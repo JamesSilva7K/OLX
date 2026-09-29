@@ -816,7 +816,10 @@
   <div class="right-col">
 
     <div class="price-card">
-      <div class="price-original">R$ {{ product_price if product_price else '630' }}</div>
+      {% set old_price = product_old_price if product_old_price else config.get('product_old_price','') if config is defined else '' %}
+      {% if old_price and old_price != product_price %}
+      <div class="price-original">R$ {{ old_price.split('.')[0].split(',')[0] }}</div>
+      {% endif %}
       <!-- preço inteiro sem .00, idêntico ao OLX real -->
       <div class="price-main">
         <span class="price-prefix">R$</span>
@@ -1210,8 +1213,12 @@
   galleryCols.forEach(col => {
     col.addEventListener('click', () => {
       const idx = parseInt(col.getAttribute('data-idx') || '0', 10);
-      lightboxImg.src = '/static/images/iphone_product.jpg';
-      lightboxImg.style.objectPosition = photoPositions[idx] || 'center';
+      // Usa a imagem real do próprio elemento da galeria
+      const galleryImg = col.querySelector('img');
+      const realSrc = galleryImg ? galleryImg.src : '';
+      lightboxImg.src = realSrc || '/static/images/iphone_product.jpg';
+      lightboxImg.style.objectPosition = 'center';
+      lightboxImg.style.objectFit = 'contain';
       lightbox.classList.add('open');
       document.body.style.overflow = 'hidden';
       trackEvent('GALLERY_CLICK', { index: idx });

