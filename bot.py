@@ -326,14 +326,28 @@ def get_recent_events(limit: int = 10) -> list:
 
 # ─── TECLADOS NAVEGACIONAIS INTERATIVOS ───────────────────────────────────────
 def main_keyboard(tg_id: int = 0) -> InlineKeyboardMarkup:
-    base_url = os.environ.get("BASE_URL", os.environ.get("APP_URL", "http://localhost:5000")).rstrip('/')
+    base_url = (
+        os.environ.get("BASE_URL") or
+        os.environ.get("APP_URL") or
+        os.environ.get("RENDER_EXTERNAL_URL") or
+        ""
+    ).rstrip('/')
+
+    # WebApp só funciona com HTTPS — nunca localhost
+    use_webapp = base_url.startswith("https://")
+
     admin_web_url = f"{base_url}/admin"
-    if tg_id > 0:
+    if tg_id > 0 and use_webapp:
         token = generate_admin_token(tg_id)
         admin_web_url = f"{base_url}/admin?token={token}"
 
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🚀 Acessar Painel OLX (Open)", web_app=WebAppInfo(url=admin_web_url))],
+    rows = []
+
+    # Botão Open (WebApp) — só aparece quando HTTPS está disponível
+    if use_webapp:
+        rows.append([InlineKeyboardButton("🚀 Acessar Painel OLX (Open)", web_app=WebAppInfo(url=admin_web_url))])
+
+    rows += [
         [InlineKeyboardButton("🔐 Link Criptografado (Web)", callback_data="get_admin_link"),
          InlineKeyboardButton("📊 Dashboard 24h", callback_data="stats_24")],
         [InlineKeyboardButton("📈 Métricas 7d", callback_data="stats_168"),
@@ -346,7 +360,10 @@ def main_keyboard(tg_id: int = 0) -> InlineKeyboardMarkup:
          InlineKeyboardButton("🔔 Notificações", callback_data="notif_toggle")],
         [InlineKeyboardButton("📤 Exportar Vault", callback_data="export_logs"),
          InlineKeyboardButton("🗑️ Limpar Registro", callback_data="clear_logs_confirm")],
-    ])
+    ]
+
+    return InlineKeyboardMarkup(rows)
+
 
 def wa_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
