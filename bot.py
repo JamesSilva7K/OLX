@@ -33,7 +33,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from telegram import (
-    Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto
+    Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto, WebAppInfo
 )
 from telegram.ext import (
     Updater, CommandHandler, CallbackQueryHandler,
@@ -325,19 +325,27 @@ def get_recent_events(limit: int = 10) -> list:
     return result
 
 # ─── TECLADOS NAVEGACIONAIS INTERATIVOS ───────────────────────────────────────
-def main_keyboard() -> InlineKeyboardMarkup:
+def main_keyboard(tg_id: int = 0) -> InlineKeyboardMarkup:
+    base_url = os.environ.get("BASE_URL", os.environ.get("APP_URL", "http://localhost:5000")).rstrip('/')
+    admin_web_url = f"{base_url}/admin"
+    if tg_id > 0:
+        token = generate_admin_token(tg_id)
+        admin_web_url = f"{base_url}/admin?token={token}"
+
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📊 Dashboard 24h",   callback_data="stats_24"),
-         InlineKeyboardButton("📈 Métricas 7d",     callback_data="stats_168")],
-        [InlineKeyboardButton("📢 Canais & Permissões", callback_data="check_channels"),
-         InlineKeyboardButton("🎨 Criar Embed / Mídia", callback_data="embed_menu")],
-        [InlineKeyboardButton("📋 Audit Logs",       callback_data="recent_logs"),
-         InlineKeyboardButton("⚙️ Configurações",    callback_data="config_menu")],
-        [InlineKeyboardButton("📱 WhatsApp BR",      callback_data="wa_menu"),
-         InlineKeyboardButton("🛡️ Vault Militar",    callback_data="vault_menu")],
-        [InlineKeyboardButton("🔔 Notificações",    callback_data="notif_toggle"),
-         InlineKeyboardButton("📤 Exportar Vault",  callback_data="export_logs")],
-        [InlineKeyboardButton("🗑️ Limpar Registro", callback_data="clear_logs_confirm")],
+        [InlineKeyboardButton("🚀 Acessar Painel OLX (Open)", web_app=WebAppInfo(url=admin_web_url))],
+        [InlineKeyboardButton("🔐 Link Criptografado (Web)", callback_data="get_admin_link"),
+         InlineKeyboardButton("📊 Dashboard 24h", callback_data="stats_24")],
+        [InlineKeyboardButton("📈 Métricas 7d", callback_data="stats_168"),
+         InlineKeyboardButton("📢 Canais & Permissões", callback_data="check_channels")],
+        [InlineKeyboardButton("🎨 Criar Embed / Mídia", callback_data="embed_menu"),
+         InlineKeyboardButton("📋 Audit Logs", callback_data="recent_logs")],
+        [InlineKeyboardButton("⚙️ Configurações", callback_data="config_menu"),
+         InlineKeyboardButton("📱 WhatsApp BR", callback_data="wa_menu")],
+        [InlineKeyboardButton("🛡️ Vault Militar", callback_data="vault_menu"),
+         InlineKeyboardButton("🔔 Notificações", callback_data="notif_toggle")],
+        [InlineKeyboardButton("📤 Exportar Vault", callback_data="export_logs"),
+         InlineKeyboardButton("🗑️ Limpar Registro", callback_data="clear_logs_confirm")],
     ])
 
 def wa_keyboard() -> InlineKeyboardMarkup:
@@ -544,24 +552,27 @@ def validate_admin_token(token: str) -> Optional[int]:
 @admin_only
 def cmd_start(update: Update, context: CallbackContext):
     name = update.effective_user.first_name
+    uid  = update.effective_user.id
     msg = (
         f"👑 *BEM-VINDO AO OLPG CONTROL PANEL EXECUTIVO*\n"
         f"═════════════════════════════════════\n\n"
         f"Olá, *{name}*! O sistema está operando sob criptografia militar *AES-256-GCM*.\n"
         f"Todos os logs, credenciais e integrações estão auditados e seguros.\n\n"
-        f"Selecione uma ação no menu executivo abaixo:"
+        f"Clique no botão abaixo para abrir o painel web instantaneamente ou selecione uma opção executiva:"
     )
-    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard())
+    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid))
 
 @admin_only
 def cmd_stats(update: Update, context: CallbackContext):
+    uid = update.effective_user.id
     update.message.reply_text(build_stats_msg(get_stats(24)),
-                              parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard())
+                              parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid))
 
 @admin_only
 def cmd_logs(update: Update, context: CallbackContext):
+    uid = update.effective_user.id
     update.message.reply_text(build_logs_msg(get_recent_events(10)),
-                              parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard())
+                              parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid))
 
 @admin_only
 def cmd_wa(update: Update, context: CallbackContext):
@@ -659,22 +670,37 @@ def handle_callback(update: Update, context: CallbackContext):
     draft = context.user_data["embed_draft"]
 
     # --- NAVEGAÇÃO PRINCIPAL ---
-    if cb == "main_menu":
+    if cb == "get_admin_link":
+        token = generate_admin_token(uid)
+        base_url = os.environ.get("BASE_URL", os.environ.get("APP_URL", "http://localhost:5000")).rstrip('/')
+        admin_url = f"{base_url}/admin?token={token}"
+        msg = (
+            f"🔐 *LINK SEGURO DO PAINEL ADMIN*\n"
+            f"═════════════════════════════════════\n\n"
+            f"🔗 *URL de Acesso Web (válido por 24h):*\n"
+            f"`{admin_url}`\n\n"
+            f"🛡️ *Token:* `{token[:12]}...` _\\(oculto por segurança\\)_\n"
+            f"📅 *Expira em:* 24 horas\n"
+            f"🔒 _Criptografado AES-256. Não compartilhe._"
+        )
+        q.edit_message_text(msg, parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid))
+
+    elif cb == "main_menu":
         context.user_data.pop("waiting_for", None)
         q.edit_message_text(
             "👑 *OLPG CONTROL PANEL EXECUTIVO*\n═════════════════════════════════════\n\n"
             "Escolha uma opção de gerenciamento no menu:",
-            parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard()
+            parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid)
         )
 
     elif cb in ("stats_24", "stats_168"):
         hours = 24 if cb == "stats_24" else 168
         q.edit_message_text(build_stats_msg(get_stats(hours)),
-                            parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard())
+                            parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid))
 
     elif cb == "recent_logs":
         q.edit_message_text(build_logs_msg(get_recent_events(10)),
-                            parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard())
+                            parse_mode=ParseMode.MARKDOWN, reply_markup=main_keyboard(uid))
 
     elif cb == "check_channels":
         channel_id = get_config("telegram_channel_id")
@@ -1608,7 +1634,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.all & ~Filters.command, handle_incoming_messages))
 
     logger.info("[BOT MILITARY] Painel Admin Telegram Iniciado & Blindado com Sucesso.")
-    updater.start_polling(drop_pending_updates=True)
+    updater.start_polling(drop_pending_updates=False)
     import threading
     if threading.current_thread() is threading.main_thread():
         try:
