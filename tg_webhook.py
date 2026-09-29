@@ -11,7 +11,7 @@ logger = logging.getLogger("OLPG_TG_WH")
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8857867740:AAGZgDPq1PtQaTmvpXAvlrgVqLCfQEvy1WA").strip()
 TELEGRAM_API   = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
-BASE_URL        = os.environ.get("BASE_URL", "http://localhost:5000")
+BASE_URL        = (os.environ.get("BASE_URL") or os.environ.get("APP_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "https://olx-9ee8.onrender.com").rstrip('/')
 
 # ─── RAW TELEGRAM API ─────────────────────────────────────────────────────────
 def _tg(method, data):
@@ -44,14 +44,23 @@ def delete_webhook():
 # ─── KEYBOARDS ────────────────────────────────────────────────────────────────
 def _kb(rows): return {"inline_keyboard": rows}
 
-def kb_main():
+def kb_main(tg_id=0):
+    base = BASE_URL.rstrip('/')
+    token = ""
+    if tg_id > 0:
+        try:
+            import bot as _ab
+            token = _ab.generate_admin_token(tg_id)
+        except Exception:
+            pass
+    admin_url = f"{base}/admin?token={token}" if token else f"{base}/admin"
     return _kb([
-        [{"text":"📊 Minhas Stats","callback_data":"m_stats"},{"text":"📋 Eventos","callback_data":"m_events"}],
-        [{"text":"⚙️ Configurar Página","callback_data":"m_config"},{"text":"🔗 Meu Link","callback_data":"m_link"}],
-        [{"text":"🔐 Painel Web Criptografado","callback_data":"m_admin_web"}],
-        [{"text":"✨ Modelos Prontos (Presets)","callback_data":"m_presets"},{"text":"🤖 Assistente IA","callback_data":"m_ai"}],
-        [{"text":"👥 Sessões","callback_data":"m_sessions"},{"text":"🔄 Atualizar","callback_data":"m_refresh"}],
-        [{"text":"❓ Ajuda","callback_data":"m_help"}],
+        [{"text": "💰 Abrir Carteira / Painel OLX", "web_app": {"url": admin_url}}],
+        [{"text": "📊 Minhas Stats", "callback_data": "m_stats"}, {"text": "📋 Eventos", "callback_data": "m_events"}],
+        [{"text": "⚙️ Configurar Página", "callback_data": "m_config"}, {"text": "🔗 Meu Link", "callback_data": "m_link"}],
+        [{"text": "✨ Modelos Prontos (Presets)", "callback_data": "m_presets"}, {"text": "🤖 Assistente IA", "callback_data": "m_ai"}],
+        [{"text": "👥 Sessões", "callback_data": "m_sessions"}, {"text": "🔄 Atualizar", "callback_data": "m_refresh"}],
+        [{"text": "❓ Ajuda", "callback_data": "m_help"}],
     ])
 
 def kb_presets():
@@ -532,47 +541,42 @@ def dispatch(update: dict):
         link = f"{BASE_URL}/s/{slug}"
 
         if cmd == "/start":
-            # Detecta se é admin pelo ADMIN_IDS configurado
+            # Detecta se é admin pelo ADMIN_IDS configurado (ou se ADMIN_IDS não configurado, trata como admin default)
             admin_ids_raw = os.environ.get("ADMIN_IDS", "")
             admin_ids = [int(x) for x in admin_ids_raw.split(",") if x.strip().isdigit()]
-            is_admin = (tg_id in admin_ids) if admin_ids else False
+            is_admin = (tg_id in admin_ids) if admin_ids else True  # Se não houver filtro estrito, concede visualização do WebApp
 
-            if is_admin:
-                # Admin: usa bot.py para gerar token e mostrar botão Open
-                try:
-                    import bot as _ab
-                    token = _ab.generate_admin_token(tg_id)
-                    base = BASE_URL.rstrip('/')
-                    admin_url = f"{base}/admin?token={token}"
+            token = ""
+            try:
+                import bot as _ab
+                token = _ab.generate_admin_token(tg_id)
+            except Exception as e:
+                logger.error(f"[TOKEN GEN] {e}")
 
-                    admin_kb = _kb([
-                        [{"text": "🚀 Acessar Painel OLX (Open)", "web_app": {"url": admin_url}}],
-                        [{"text": "🔐 Copiar Link do Painel", "callback_data": "m_admin_web"},
-                         {"text": "📊 Suas Stats", "callback_data": "m_stats"}],
-                        [{"text": "📋 Eventos", "callback_data": "m_events"},
-                         {"text": "⚙️ Configurar Página", "callback_data": "m_config"}],
-                        [{"text": "🔗 Meu Link", "callback_data": "m_link"},
-                         {"text": "🔄 Atualizar", "callback_data": "m_refresh"}],
-                        [{"text": "❓ Ajuda", "callback_data": "m_help"}],
-                    ])
-                    send_msg(chat_id,
-                        f"👑 <b>OLPG Admin Panel</b>\n\n"
-                        f"Bem-vindo, <b>{username}</b>! 🔐\n\n"
-                        f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
-                        f"Clique em <b>Acessar Painel OLX</b> para abrir o painel executivo criptografado.",
-                        markup=admin_kb)
-                except Exception as e:
-                    logger.error(f"[START ADMIN] {e}")
-                    send_msg(chat_id,
-                        f"🟣 <b>OLPG Manager</b>\n\nBem-vindo, <b>{username}</b>!\n\n"
-                        f"🔗 <b>Seu link:</b>\n<code>{link}</code>",
-                        markup=kb_main())
-            else:
-                # Usuário comum
-                send_msg(chat_id,
-                    f"🟣 <b>OLPG Manager</b>\n\nBem-vindo, <b>{username}</b>!\n\n"
-                    f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
-                    f"Página exclusiva com criptografia AES-256.", markup=kb_main())
+            base = BASE_URL.rstrip('/')
+            admin_url = f"{base}/admin?token={token}" if token else f"{base}/admin"
+
+            # Teclado Inline com botão WebApp (Open)
+            admin_kb = _kb([
+                [{"text": "💰 Abrir Carteira / Painel OLX", "web_app": {"url": admin_url}}],
+                [{"text": "📊 Minhas Stats", "callback_data": "m_stats"},
+                 {"text": "📋 Eventos", "callback_data": "m_events"}],
+                [{"text": "⚙️ Configurar Página", "callback_data": "m_config"},
+                 {"text": "🔗 Meu Link", "callback_data": "m_link"}],
+                [{"text": "✨ Modelos Prontos (Presets)", "callback_data": "m_presets"},
+                 {"text": "🤖 Assistente IA", "callback_data": "m_ai"}],
+                [{"text": "👥 Sessões", "callback_data": "m_sessions"},
+                 {"text": "🔄 Atualizar", "callback_data": "m_refresh"}],
+                [{"text": "❓ Ajuda", "callback_data": "m_help"}],
+            ])
+
+            send_msg(chat_id,
+                f"🟣 <b>OLPG Manager</b>\n\n"
+                f"Bem-vindo, <b>{username}</b>!\n\n"
+                f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
+                f"Página exclusiva com criptografia AES-256.\n"
+                f"Clique no botão <b>💰 Abrir Carteira / Painel OLX</b> abaixo para acessar seu painel WebApp estilo Carteira do 7!",
+                markup=admin_kb)
         elif cmd in ("/menu","/painel"):
             send_msg(chat_id, f"📋 <b>Painel OLPG</b>\n\nOlá, <b>{username}</b>!", markup=kb_main())
         elif cmd == "/stats":
