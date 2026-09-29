@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ product_name if product_name else 'iPhone 11. 64gb branco' }} - OLX</title>
+  <meta name="description" content="iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia. R$ {{ product_price if product_price else '630,00' }} com Pix." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --olx-purple: #6E02B1;
+      --olx-purple-light: #8B19D4;
+      --olx-purple-btn: #7B02E8;
+      --olx-purple-dark: #4A0080;
+      --olx-orange: #F28A30;
+      --olx-green: #1a7a46;
+      --olx-green-light: #eafaf2;
+      --olx-green-pix: #32BCAD;
+      --text-primary: #1A1A1A;
+      --text-secondary: #555;
+      --text-muted: #888;
+      --border: #E0E0E0;
+      --border-focus: #6E02B1;
+      --bg-light: #F6F6F6;
+      --bg-white: #FFFFFF;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.18);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-main: 'Nunito Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-light);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* HEADER */
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      flex-shrink: 0;
+      cursor: default;
+    }
+    .logo-container svg { width: 66px; height: auto; display: block; }
+    .custom-logo-img { max-height: 38px; max-width: 140px; object-fit: contain; display: block; }
+
+    .search-bar {
+      flex: 1;
+      max-width: 560px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-bar input {
+      width: 100%;
+      height: 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0 48px 0 16px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      color: var(--text-primary);
+      background: #fafafa;
+      cursor: default;
+    }
+    .search-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #777;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .nav-visual-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      white-space: nowrap;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+      text-decoration: none;
+    }
+
+    .btn-visual-entrar {
+      padding: 8px 20px;
+      border: 1.5px solid var(--text-primary);
+      border-radius: 24px;
+      background: none;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      color: var(--text-primary);
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
+
+    .btn-visual-anunciar {
+      padding: 8px 18px;
+      background: var(--olx-purple-btn);
+      border: none;
+      border-radius: 24px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb-bar { background: #fff; border-bottom: 1px solid var(--border); }
+    .breadcrumb-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .breadcrumb-item { color: var(--text-secondary); font-size: 13px; text-decoration: none; cursor: default; }
+    .breadcrumb .sep { color: var(--text-muted); font-size: 12px; }
+    .breadcrumb span.current { color: var(--text-muted); font-size: 13px; }
+    .breadcrumb-right { display: flex; align-items: center; gap: 12px; }
+    .breadcrumb-right .date { font-size: 12px; color: #999; }
+    
+    .icon-btn {
+      background: none; border: none; cursor: pointer; color: #777;
+      display: flex; align-items: center; padding: 4px; border-radius: 50%;
+      transition: background .15s, color .15s;
+    }
+    .icon-btn:hover { background: #f0e6ff; color: var(--olx-purple); }
+    .icon-btn.favorited { color: #e74c3c; }
+
+    /* MAIN LAYOUT */
+    .page-main {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px 40px;
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 24px;
+      align-items: start;
+    }
+    .left-col { display: flex; flex-direction: column; gap: 20px; }
+
+    /* GALLERY */
+    .gallery-card { background: transparent; }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .gallery-col {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #eee;
+    }
+    .gallery-col img {
+      width: 100%; height: 320px; object-fit: cover; display: block;
+      transition: transform .35s ease;
+    }
+    .gallery-col:hover img { transform: scale(1.03); }
+    .gallery-badge {
+      position: absolute; bottom: 12px; left: 12px;
+      background: #fff; color: var(--text-primary);
+      font-size: 13px; font-weight: 700; padding: 6px 12px;
+      border-radius: 20px; display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* TAGS & INFO */
+    .info-card { background: #fff; border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+    .product-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
+    }
+    .tag-green  { color: var(--olx-green); background: var(--olx-green-light); }
+    .tag-purple { color: var(--olx-purple); background: #f3e8ff; }
+
+    .product-title { font-size: 28px; font-weight: 800; color: #1a1a1a; line-height: 1.2; }
+    .product-description { font-size: 15px; color: #555; line-height: 1.5; margin-top: 12px; }
+
+    /* DETAILS CARD */
+    .section-card { background: #fff; border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+    .section-title { font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 18px; }
+    .details-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .detail-item {
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .detail-icon { color: #1a1a1a; flex-shrink: 0; margin-top: 2px; }
+    .detail-label { font-size: 12px; color: #777; margin-bottom: 2px; font-weight: 600; }
+    .detail-value { font-size: 14px; font-weight: 800; color: #1a1a1a; }
+
+    /* RIGHT COLUMN (BUY CARD) */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+    .price-card { background: #fff; border-radius: 8px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+
+    .price-original { font-size: 15px; color: #888; text-decoration: line-through; margin-bottom: 4px; font-weight: 600; }
+    .price-main { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+    .price-value { font-size: 42px; font-weight: 900; color: #1a1a1a; line-height: 1; }
+    .price-prefix { font-size: 30px; font-weight: 800; color: #1a1a1a; }
+    .price-pix { font-size: 15px; font-weight: 700; color: var(--olx-green-pix); display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+
+    .payment-icons { display: flex; align-items: center; gap: 8px; margin: 12px 0 12px; flex-wrap: wrap; }
+    .payment-card-img {
+      height: 28px;
+      width: auto;
+      border-radius: 6px;
+      object-fit: contain;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.12), 0 0 1px rgba(0,0,0,0.15);
+      transition: transform .2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow .2s ease;
+      background: #fff;
+      image-rendering: -webkit-optimize-contrast;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.06));
+    }
+    .payment-card-img:hover {
+      transform: translateY(-3px) scale(1.08);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    }
+
+    .installment-text { font-size: 14px; color: #333; margin-bottom: 4px; font-weight: 600; }
+    .installment-text strong { color: #1a1a1a; font-weight: 800; }
+    .payment-link { color: var(--olx-purple); font-size: 13px; text-decoration: underline; cursor: default; display: inline-block; margin-bottom: 14px; font-weight: 700; }
+
+    .simulate-btn {
+      display: flex; align-items: center; gap: 8px; background: none; border: none;
+      color: var(--olx-purple); font-family: inherit; font-size: 14px; font-weight: 800;
+      cursor: default; padding: 4px 0; margin-bottom: 16px;
+    }
+
+    /* CUPOM OLX 100% IDENTICO IMAGEM 2 */
+    .coupon-banner-exact {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1.5px solid #e3d2ff;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: #f7f2ff;
+      height: 84px;
+    }
+    .coupon-exact-left {
+      flex: 1;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .coupon-exact-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #6a00d5;
+      line-height: 1.2;
+    }
+    .coupon-exact-sub {
+      font-size: 11px;
+      color: #333333;
+      line-height: 1.3;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+    .coupon-exact-link {
+      font-size: 11px;
+      color: #6a00d5;
+      font-weight: 700;
+      text-decoration: underline;
+      margin-top: 3px;
+      cursor: pointer;
+    }
+    .coupon-copy-btn-exact {
+      background: #6a00d5;
+      color: #ffffff;
+      border: none;
+      width: 82px;
+      height: 100%;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+    .coupon-copy-btn-exact:hover {
+      background: #5500aa;
+    }
+    .coupon-copy-btn-exact.copied {
+      background: #4caf50;
+    }
+
+    /* FRETE AVANÇADO */
+    .shipping-section { margin-bottom: 20px; }
+    .shipping-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .shipping-title { font-size: 14px; font-weight: 800; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+    .shipping-help-link { font-size: 12px; color: var(--olx-purple); text-decoration: underline; font-weight: 700; cursor: pointer; }
+    
+    .shipping-input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .shipping-input {
+      width: 100%; height: 46px; border: 1.5px solid #ccc; border-radius: 8px;
+      padding: 0 44px 0 14px; font-size: 14px; font-family: inherit; outline: none;
+      color: #1a1a1a; background: #fff; transition: border-color .2s;
+    }
+    .shipping-input:focus { border-color: var(--olx-purple); }
+    .shipping-btn {
+      position: absolute; right: 6px; background: none; border: none;
+      cursor: pointer; padding: 6px; color: var(--olx-purple); display: flex; align-items: center; justify-content: center;
+    }
+    
+    .shipping-result-box {
+      margin-top: 10px;
+      background: #f8faf9;
+      border: 1.5px solid #d4edda;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: none;
+      animation: fadeIn .3s ease;
+    }
+    .shipping-result-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+    }
+    .shipping-badge-free {
+      background: #1a7a46; color: #fff; font-size: 11px; font-weight: 800;
+      padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .shipping-price-tag {
+      font-size: 15px; font-weight: 900; color: #1a7a46;
+    }
+    .shipping-address-text {
+      font-size: 12px; color: #333; font-weight: 700; margin-top: 4px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .shipping-details-text {
+      font-size: 12px; color: #666; margin-top: 4px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .shipping-error-msg {
+      color: #d93025; font-size: 12px; font-weight: 700; margin-top: 6px; display: none;
+    }
+
+    /* ACTION BUTTONS */
+    .btn-comprar {
+      width: 100%; height: 52px; background: var(--olx-purple); color: #fff;
+      border: none; border-radius: 26px; font-family: inherit; font-size: 16px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 12px; transition: background .2s, transform .15s;
+      box-shadow: 0 4px 14px rgba(110,2,177,0.3);
+    }
+    .btn-comprar:hover { background: var(--olx-purple-dark); transform: translateY(-1px); }
+
+    .btn-chat {
+      width: 100%; height: 48px; background: #fff; color: #1a1a1a;
+      border: 1.5px solid #1a1a1a; border-radius: 24px; font-family: inherit;
+      font-size: 15px; font-weight: 700; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px;
+      transition: background .15s;
+    }
+    .btn-chat:hover { background: #f5f5f5; }
+
+    .antifraud-banner {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--olx-purple); color: #fff;
+      padding: 12px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 700; line-height: 1.35;
+    }
+
+    /* SELLER CARD */
+    .seller-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+    .seller-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .seller-avatar {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: #eee; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: #888;
+    }
+    .seller-name { font-size: 16px; font-weight: 800; color: #1a1a1a; }
+    .seller-status { font-size: 13px; color: #666; margin-top: 2px; }
+    .seller-since {
+      display: flex; align-items: center; gap: 8px; font-size: 13px;
+      color: #555; padding-top: 14px; border-top: 1px solid #eee;
+    }
+
+    /* MODAL AVANÇADO MULTI-ETAPAS */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      z-index: 9999; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    
+    .checkout-modal-container {
+      background: #fff; width: 100%; max-width: 520px; max-height: 92vh;
+      border-radius: 18px; overflow-y: auto; box-shadow: var(--shadow-lg);
+      position: relative; animation: modalPop 0.3s ease;
+      display: flex; flex-direction: column;
+    }
+
+    .modal-header {
+      background: var(--olx-purple); color: #fff;
+      padding: 16px 22px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .modal-header-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+    .modal-close-btn { background: none; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; padding: 4px; }
+
+    /* STEP PROGRESS BAR */
+    .step-progress-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fafafa; border-bottom: 1px solid var(--border); padding: 12px 22px;
+    }
+    .step-item {
+      display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #999;
+    }
+    .step-item.active { color: var(--olx-purple); }
+    .step-item.completed { color: var(--olx-green); }
+    .step-number {
+      width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: #e0e0e0; color: #666; font-size: 11px; font-weight: 800;
+    }
+    .step-item.active .step-number { background: var(--olx-purple); color: #fff; }
+    .step-item.completed .step-number { background: var(--olx-green); color: #fff; }
+    .step-divider { flex: 1; height: 2px; background: #e0e0e0; margin: 0 10px; }
+    .step-divider.filled { background: var(--olx-green); }
+
+    .modal-step-body { padding: 22px; }
+
+    /* FORM STYLES */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12px; font-weight: 800; color: #333; margin-bottom: 5px; }
+    .form-input {
+      width: 100%; height: 42px; border: 1.5px solid #ccc; border-radius: 8px;
+      padding: 0 12px; font-size: 14px; font-family: inherit; outline: none;
+      color: #1a1a1a; transition: border-color .2s; background: #fff;
+    }
+    .form-input:focus { border-color: var(--olx-purple); }
+    .form-input.error { border-color: #d93025; background: #fff8f8; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+
+    .order-summary-box {
+      background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px;
+      padding: 14px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .summary-product { font-size: 13px; font-weight: 800; color: #1a1a1a; }
+    .summary-shipping { font-size: 12px; color: var(--olx-green); font-weight: 700; margin-top: 2px; }
+    .summary-price { font-size: 22px; font-weight: 900; color: #1a7a46; }
+
+    .btn-step-next {
+      margin-top: 18px; width: 100%; height: 50px; background: var(--olx-orange); color: #fff;
+      border: none; border-radius: 8px; font-family: inherit; font-size: 16px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background .2s;
+    }
+    .btn-step-next:hover { background: #e07920; }
+    .btn-step-next:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* STEP 2: PIX VIEW */
+    .pix-container { text-align: center; }
+    .pix-timer-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fff3cd; color: #856404; font-size: 12px; font-weight: 800;
+      padding: 6px 14px; border-radius: 20px; margin-bottom: 14px;
+    }
+    .pix-qr-wrapper {
+      background: #fff; border: 2px solid #e0e0e0; border-radius: 12px;
+      padding: 14px; display: inline-block; margin-bottom: 16px;
+    }
+    .pix-qr-img { width: 220px; height: 220px; display: block; margin: 0 auto; }
+    
+    .pix-copy-box {
+      display: flex; gap: 6px; margin-bottom: 16px;
+    }
+    .pix-copy-input {
+      flex: 1; height: 42px; border: 1px solid #ccc; border-radius: 8px;
+      padding: 0 12px; font-size: 12px; font-family: monospace; background: #f9f9f9; color: #444; outline: none;
+    }
+    .btn-copy-action {
+      background: var(--olx-purple); color: #fff; border: none; border-radius: 8px;
+      padding: 0 16px; font-family: inherit; font-size: 13px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .15s;
+    }
+    .btn-copy-action.copied { background: var(--olx-green); }
+
+    .pix-status-alert {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      color: var(--olx-green); font-size: 13px; font-weight: 700;
+      background: var(--olx-green-light); padding: 10px; border-radius: 8px;
+    }
+
+    /* STEP 3: SUCCESS VIEW */
+    .success-view { text-align: center; padding: 20px 0; }
+    .success-icon-wrapper {
+      width: 64px; height: 64px; border-radius: 50%; background: var(--olx-green-light);
+      color: var(--olx-green); display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    /* LIGHTBOX & TOAST */
+    .lightbox {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+      z-index: 10000; align-items: center; justify-content: center; flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 8px; }
+    .lightbox-close {
+      position: absolute; top: 20px; right: 24px; background: none; border: none;
+      color: #fff; cursor: pointer; padding: 8px;
+    }
+
+    .toast-box {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1e1e1e; color: #fff; padding: 12px 24px; border-radius: 30px;
+      font-size: 14px; font-weight: 600; z-index: 10001; opacity: 0; pointer-events: none;
+      transition: opacity .3s, transform .3s; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .toast-box.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 8px 0 16px; }
+
+    /* KEYFRAMES */
+    @keyframes modalPop {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner-svg { animation: spin 1s linear infinite; }
+
+    @media (max-width: 920px) {
+      .page-main { grid-template-columns: 1fr; }
+      /* Imagens e detalhes do produto aparecem no topo para usuários mobile */
+      .left-col { order: 1; }
+      .right-col { order: 2; }
+      .details-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 650px) {
+      .header-nav { display: none; }
+      .gallery-col img { height: 180px; }
+      .details-grid { grid-template-columns: 1fr; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-container">
+      {% if logo_url %}
+        <img src="{{ logo_url }}" alt="Logo" class="custom-logo-img" />
+      {% else %}
+        <!-- OLX Logo: O laranja, L roxo, X laranja — idêntico ao original -->
+        <svg viewBox="0 0 220 88" xmlns="http://www.w3.org/2000/svg" width="72" height="29">
+          <!-- O -->
+          <circle cx="30" cy="44" r="29" fill="#F28A30"/>
+          <circle cx="30" cy="44" r="16" fill="#fff"/>
+          <!-- L -->
+          <rect x="66" y="15" width="15" height="58" rx="3" fill="#7B02E8"/>
+          <rect x="66" y="59" width="30" height="14" rx="3" fill="#7B02E8"/>
+          <!-- X -->
+          <line x1="103" y1="15" x2="148" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+          <line x1="148" y1="15" x2="103" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+        </svg>
+      {% endif %}
+    </div>
+
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar" readonly />
+      <div class="search-btn">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+    </div>
+
+    <nav class="header-nav">
+      <span class="nav-visual-link">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Plano Profissional
+      </span>
+      <span class="nav-visual-link">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="9"/></svg>
+        Meus Anúncios
+      </span>
+      <span class="nav-visual-link">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </span>
+      <span class="nav-visual-link">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notificações
+      </span>
+      <span class="btn-visual-entrar">Entrar</span>
+      <span class="btn-visual-anunciar">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Anunciar grátis
+      </span>
+    </nav>
+  </div>
+</header>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb-bar">
+  <div class="breadcrumb-inner">
+    <div class="breadcrumb">
+      <span class="breadcrumb-item">São Paulo</span>
+      <span class="sep">›</span>
+      <span class="breadcrumb-item">São Paulo e região</span>
+      <span class="sep">›</span>
+      <span class="breadcrumb-item">Celulares e Smartphones</span>
+      <span class="sep">›</span>
+      <span class="current">Zona Norte</span>
+    </div>
+    <div class="breadcrumb-right">
+      <span class="date">02/09 às 11:16</span>
+      <button class="icon-btn" id="btn-favorite" aria-label="Favoritar anúncio">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" id="heart-icon">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btn-share" aria-label="Compartilhar anúncio">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<main class="page-main">
+
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+
+    <!-- Gallery 3 fotos lado a lado -->
+    <div class="gallery-card">
+      <div class="gallery-grid" id="gallery-grid">
+        <div class="gallery-col" data-idx="0">
+          <img src="{{ product_image1 if product_image1 else (product_image if product_image else '/static/images/iphone_product.jpg') }}" alt="Foto 1 do produto" style="object-position: center;" />
+          <div class="gallery-badge">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Garantia da OLX
+          </div>
+        </div>
+        <div class="gallery-col" data-idx="1">
+          <img src="{{ product_image2 if product_image2 else (product_image if product_image else '/static/images/iphone_product.jpg') }}" alt="Foto 2 do produto" style="object-position: center;" />
+        </div>
+        <div class="gallery-col" data-idx="2">
+          <img src="{{ product_image3 if product_image3 else (product_image if product_image else '/static/images/iphone_product.jpg') }}" alt="Foto 3 do produto" style="object-position: center;" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Info Card -->
+    <div class="info-card">
+      <div class="product-tags">
+        <span class="tag tag-green">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+          Entrega rápida
+        </span>
+        <span class="tag" style="color:#444;background:#f0f0f0;border:1px solid #ddd;">
+          ⚡ Permite auto / Uber
+        </span>
+        <span class="tag tag-purple">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Garantia da OLX
+        </span>
+      </div>
+
+      <h1 class="product-title">{{ product_name if product_name else 'iPhone 11. 64gb branco' }}</h1>
+      <p class="product-description" id="display-product-description">
+        {{ product_description if product_description else 'iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia.' }}
+      </p>
+    </div>
+
+    <!-- DETALHES CARD -->
+    <div class="section-card">
+      <h2 class="section-title">Detalhes</h2>
+      <div class="details-grid">
+        <div class="detail-item">
+          <div class="detail-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </div>
+          <div>
+            <div class="detail-label">Categoria</div>
+            <div class="detail-value">Celulares e Smartphones</div>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <div>
+            <div class="detail-label">Marca</div>
+            <div class="detail-value">Apple</div>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <div>
+            <div class="detail-label">Modelo</div>
+            <div class="detail-value">iPhone 11</div>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <div class="detail-label">Condição</div>
+            <div class="detail-value">Usado - Excelente</div>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <div>
+            <div class="detail-label">Armazenamento Interno</div>
+            <div class="detail-value">64gb</div>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <div class="detail-label">Cor</div>
+            <div class="detail-value">Branco</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left-col -->
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <div class="price-card">
+      <div class="price-original">R$ {{ product_price if product_price else '630' }}</div>
+      <!-- preço inteiro sem .00, idêntico ao OLX real -->
+      <div class="price-main">
+        <span class="price-prefix">R$</span>
+        <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp.split('.')[0].split(',')[0] }}</span>
+        <span class="price-pix">
+          <svg width="15" height="15" viewBox="0 0 512 512" fill="#32BCAD"><path d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512 512 397.4 512 256 397.4 0 256 0zm-17 330.2l-75.7-75.7 75.7-75.7V330.2zm34 0V178.8l75.7 75.7-75.7 75.7z"/></svg>
+          com Pix
+        </span>
+      </div>
+
+      <div class="payment-icons" id="payment-badges-row">
+        {# Tenta renderizar badges dinâmicas da config (payment_badges JSON array) #}
+        {% set badges_json = config.get('payment_badges', '') if config is defined else '' %}
+        {% if badges_json %}
+          {% set badges = badges_json | tojson | replace('"[', '[') %}
+          {# Renderizado via JS abaixo para compatibilidade máxima #}
+        {% endif %}
+        <!-- Badges padrão (substituídas se payment_badges estiver configurado) -->
+        <span class="payment-badge-default" title="Pix" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;background:#32BCAD;padding:3px 8px;box-shadow:0 1px 4px rgba(0,0,0,.18);">
+          <svg width="34" height="18" viewBox="0 0 60 22" fill="#fff"><text x="1" y="17" font-size="13" font-weight="900" font-family="Arial,sans-serif">PIX</text></svg>
+        </span>
+        <span class="payment-badge-default" title="Visa" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;background:#1A1F71;padding:2px 8px;box-shadow:0 1px 4px rgba(0,0,0,.18);">
+          <svg width="38" height="18" viewBox="0 0 68 22" fill="#fff"><text x="0" y="17" font-size="15" font-weight="900" font-family="Arial,sans-serif" font-style="italic">VISA</text></svg>
+        </span>
+        <span class="payment-badge-default" title="Mastercard" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 5px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18);">
+          <svg width="36" height="22" viewBox="0 0 36 22"><circle cx="12" cy="11" r="11" fill="#EB001B"/><circle cx="24" cy="11" r="11" fill="#F79E1B"/><path d="M18 3.8a11 11 0 0 1 0 14.4A11 11 0 0 1 18 3.8z" fill="#FF5F00"/></svg>
+        </span>
+        <span class="payment-badge-default" title="Elo" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 7px;background:#FFCD00;box-shadow:0 1px 4px rgba(0,0,0,.18);">
+          <svg width="32" height="18" viewBox="0 0 48 22"><text x="0" y="16" font-size="13" font-weight="900" font-family="Arial,sans-serif" fill="#000">elo</text></svg>
+        </span>
+        <span class="payment-badge-default" title="Hipercard" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 6px;background:#B3131C;box-shadow:0 1px 4px rgba(0,0,0,.18);">
+          <svg width="42" height="18" viewBox="0 0 66 22" fill="#fff"><text x="0" y="15" font-size="11" font-weight="800" font-family="Arial,sans-serif">hiper</text></svg>
+        </span>
+        <span class="payment-badge-default" title="American Express" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 6px;background:#006FCF;box-shadow:0 1px 4px rgba(0,0,0,.18);">
+          <svg width="42" height="18" viewBox="0 0 66 22" fill="#fff"><text x="0" y="15" font-size="11" font-weight="800" font-family="Arial,sans-serif">AMEX</text></svg>
+        </span>
+      </div>
+      <script>
+      // Carrega badges dinâmicas do /api/config se disponível
+      (async function loadDynBadges() {
+        try {
+          const r = await fetch('/api/config');
+          const d = await r.json();
+          if (d.payment_badges) {
+            let arr;
+            try { arr = JSON.parse(d.payment_badges); } catch(e) { return; }
+            if (!Array.isArray(arr) || !arr.length) return;
+            const row = document.getElementById('payment-badges-row');
+            // Remove badges padrão
+            row.querySelectorAll('.payment-badge-default').forEach(el => el.remove());
+            // Injeta badges customizadas
+            arr.forEach(url => {
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = 'Pagamento';
+              img.style.cssText = 'height:26px;max-width:58px;object-fit:contain;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.12);background:#fff;padding:2px;';
+              img.onerror = function(){ this.style.display='none'; };
+              row.appendChild(img);
+            });
+          }
+        } catch(e) {}
+      })();
+      </script>
+
+
+      <p class="installment-text">
+        12x sem juros de <strong>R$ 72,16</strong>
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#aaa" stroke-width="2" style="vertical-align:middle;margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </p>
+      <span class="payment-link">Ver meios de pagamento</span>
+
+      <div class="simulate-btn">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Simular empréstimo
+      </div>
+
+      <!-- Cupom OLX R$ 26 OFF Identico Imagem -->
+      <div class="coupon-banner-exact">
+        <div class="coupon-exact-left">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#7B02E8" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <div>
+            <div class="coupon-exact-title">R$ 26 OFF</div>
+            <div class="coupon-exact-sub">Cobre as taxas do PARCELÀ em atraso do seu pagamento.</div>
+            <div class="coupon-exact-link">Cupom limitado.</div>
+          </div>
+        </div>
+        <button class="coupon-copy-btn-exact" id="coupon-copy-btn">Copiar</button>
+      </div>
+
+      <!-- FRETE AVANÇADO -->
+      <div class="shipping-section">
+        <div class="shipping-header">
+          <span class="shipping-title">Calcule o frete</span>
+          <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener noreferrer" class="shipping-help-link">Não sei meu CEP</a>
+        </div>
+        
+        <div class="shipping-input-group">
+          <input
+            type="text"
+            class="shipping-input"
+            id="cep-input"
+            placeholder="Digite o CEP para ver o frete"
+            maxlength="9"
+          />
+          <button class="shipping-btn" id="btn-calc-shipping" title="Calcular Frete">
+            <svg id="shipping-search-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg id="shipping-spinner-icon" class="spinner-svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="display:none;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="shipping-error-msg" id="shipping-error"></div>
+
+        <!-- RESULTADO SINCRONIZADO DO FRETE -->
+        <div class="shipping-result-box" id="shipping-result">
+          <div class="shipping-result-header">
+            <span class="shipping-badge-free">
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Frete Grátis
+            </span>
+            <span class="shipping-price-tag">R$ 0,00</span>
+          </div>
+          <div class="shipping-address-text" id="shipping-address-target">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1a7a46" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>São Paulo / SP</span>
+          </div>
+          <div class="shipping-details-text">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="shipping-deadline-target">Chega entre 2 a 4 dias úteis com Garantia OLX</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTÃO COMPRAR & CHAT -->
+      <button class="btn-comprar" id="btn-comprar">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Comprar
+      </button>
+
+      <button class="btn-chat" id="btn-chat">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+
+      <div class="antifraud-banner">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Fique ligado em nossos dados para evitar golpes e fraudes.</span>
+      </div>
+    </div>
+
+    <!-- Seller Card Identico -->
+    <div class="seller-card">
+      <div class="seller-header">
+        <div class="seller-avatar">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <div class="seller-name">{{ seller_name if seller_name else 'tk prock' }}</div>
+          <div class="seller-status">{{ seller_status if seller_status else 'Último acesso há 2 horas' }}</div>
+        </div>
+      </div>
+      <div class="seller-since">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ seller_since if seller_since else 'Na OLX desde janeiro de 2022' }}
+      </div>
+    </div>
+
+  </div><!-- /right-col -->
+
+</main>
+
+<!-- MODAL CHECKOUT MULTI-ETAPAS AVANÇADO -->
+<div class="modal-backdrop" id="checkout-modal">
+  <div class="checkout-modal-container">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="modal-header-title">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Garantia da OLX • Compra Segura</span>
+      </div>
+      <button class="modal-close-btn" id="close-checkout" title="Fechar">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Step Progress Bar -->
+    <div class="step-progress-bar">
+      <div class="step-item active" id="step-nav-1">
+        <div class="step-number">1</div>
+        <span>Identificação & Entrega</span>
+      </div>
+      <div class="step-divider" id="step-div-1"></div>
+      <div class="step-item" id="step-nav-2">
+        <div class="step-number">2</div>
+        <span>Pagamento Pix</span>
+      </div>
+      <div class="step-divider" id="step-div-2"></div>
+      <div class="step-item" id="step-nav-3">
+        <div class="step-number">3</div>
+        <span>Conclusão</span>
+      </div>
+    </div>
+
+    <!-- STEP 1: QUALIFIED LEAD CAPTURE (DADOS PESSOAIS E ENTREGA) -->
+    <div class="modal-step-body" id="modal-step-1">
+      <div style="font-size: 13px; color: #555; margin-bottom: 16px;">
+        Preencha seus dados para habilitar a <strong>Garantia OLX</strong> e calcular a rota de envio seguro.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nome Completo *</label>
+        <input type="text" id="lead-name" class="form-input" placeholder="Digite seu nome completo" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CPF *</label>
+          <input type="text" id="lead-cpf" class="form-input" placeholder="000.000.000-00" maxlength="14" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp / Celular *</label>
+          <input type="text" id="lead-phone" class="form-input" placeholder="(11) 99999-9999" maxlength="15" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">E-mail para Rastreamento *</label>
+        <input type="email" id="lead-email" class="form-input" placeholder="seu-email@exemplo.com" />
+      </div>
+
+      <!-- ENDEREÇO -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CEP de Entrega *</label>
+          <input type="text" id="lead-cep" class="form-input" placeholder="00000-000" maxlength="9" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado (UF) *</label>
+          <input type="text" id="lead-state" class="form-input" placeholder="SP" maxlength="2" />
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label">Rua / Endereço *</label>
+          <input type="text" id="lead-street" class="form-input" placeholder="Ex: Av. Paulista" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número *</label>
+          <input type="text" id="lead-number" class="form-input" placeholder="123" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Compl.</label>
+          <input type="text" id="lead-complement" class="form-input" placeholder="Apto 4" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Bairro *</label>
+          <input type="text" id="lead-neighborhood" class="form-input" placeholder="Bairro" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cidade *</label>
+          <input type="text" id="lead-city" class="form-input" placeholder="Cidade" />
+        </div>
+      </div>
+
+      <!-- RESUMO DA COMPRA -->
+      <div class="order-summary-box">
+        <div>
+          <div class="summary-product">{{ product_name if product_name else 'iPhone 11 64GB Branco' }}</div>
+          <div class="summary-shipping">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Frete Grátis com Rastreamento Oficial
+          </div>
+        </div>
+        <div class="summary-price">R$ {{ product_price if product_price else '630,00' }}</div>
+      </div>
+
+      <button class="btn-step-next" id="btn-advance-lead">
+        <span id="btn-advance-text">Continuar para o Pagamento</span>
+        <svg id="btn-advance-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <svg id="btn-advance-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- STEP 2: PIX GATEWAY SINCRONIZADO -->
+    <div class="modal-step-body pix-container" id="modal-step-2" style="display: none;">
+      <div class="pix-timer-badge">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Chave expira em: <strong id="pix-countdown">14:59</strong></span>
+      </div>
+
+      <div style="font-weight: 800; font-size: 16px; color: #1a1a1a; margin-bottom: 4px;">Pague via Pix para aprovação imediata</div>
+      <div style="font-size: 13px; color: #666; margin-bottom: 14px;">Abra seu aplicativo do banco e aponte a câmera para o QR Code abaixo:</div>
+
+      <div class="pix-qr-wrapper">
+        <img id="pix-qr-img" class="pix-qr-img" src="" alt="QR Code Pix" />
+      </div>
+
+      <div class="pix-copy-box">
+        <input type="text" id="pix-copy-input" class="pix-copy-input" readonly />
+        <button class="btn-copy-action" id="btn-copy-pix">
+          <svg id="copy-icon-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copy-text-label">Copiar Pix</span>
+        </button>
+      </div>
+
+      <div class="pix-status-alert">
+        <svg class="spinner-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+        <span>Sincronizando com a rede bancária... Aguardando confirmação.</span>
+      </div>
+    </div>
+
+    <!-- STEP 3: COMPRA CONFIRMADA COM SUCESSO -->
+    <div class="modal-step-body success-view" id="modal-step-3" style="display: none;">
+      <div class="success-icon-wrapper">
+        <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3 style="font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px;">Pagamento Confirmado!</h3>
+      <p style="font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 20px;">
+        Seu pedido foi registrado com sucesso sob o protocolo de <strong>Garantia da OLX</strong>.<br/>
+        Você receberá as atualizações e o código de rastreamento no WhatsApp cadastrado.
+      </p>
+      <div style="background: #f8f9fa; border-radius: 10px; padding: 14px; text-align: left; font-size: 13px; color: #444; margin-bottom: 20px;">
+        <div><strong>Status do Pedido:</strong> <span style="color: #1a7a46; font-weight: 700;">Aprovado & Em Preparação</span></div>
+        <div style="margin-top: 6px;"><strong>Previsão de Entrega:</strong> 2 a 4 dias úteis</div>
+        <div style="margin-top: 6px;"><strong>Tipo de Envio:</strong> Entrega Fácil OLX Express</div>
+      </div>
+      <button class="btn-step-next" style="background: var(--olx-purple);" onclick="location.reload();">
+        Concluir
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close" title="Fechar">
+    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="Foto do produto" />
+</div>
+
+<!-- TOAST ALERT COM ÍCONES SVG EXCLUSIVOS -->
+<div class="toast-box" id="toast-box"></div>
+
+<script>
+  const PAGE_SLUG  = "{{ page_slug if page_slug is defined and page_slug else '' }}" || null;
+  const SESSION_ID = '{{ session_id }}' || ('sess_' + Math.random().toString(36).substring(2, 11));
+  const EVENT_URL  = PAGE_SLUG ? `/api/event/${PAGE_SLUG}` : '/api/event';
+  const CONFIG_URL = PAGE_SLUG ? `/api/config/${PAGE_SLUG}` : '/api/config';
+
+  function trackEvent(eventType, payload) {
+    try {
+      fetch(EVENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Id': SESSION_ID },
+        body: JSON.stringify({ event: eventType, session_id: SESSION_ID, ...(payload || {}) })
+      }).catch(() => {});
+    } catch(e) {}
+  }
+
+  // ─── TOAST NOTIFICATIONS (100% SVG, ZERO EMOJIS) ──────────────────────────
+  const toastBox = document.getElementById('toast-box');
+  let toastTimeout;
+
+  const SVG_MAP = {
+    check: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#4caf50" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#f44336" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info:  '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#7B02E8" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    heart: '<svg width="18" height="18" fill="#e74c3c" viewBox="0 0 24 24" stroke="#e74c3c" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+    truck: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#F28A30" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>'
+  };
+
+  function showToast(msg, type = 'info', duration = 3000) {
+    const icon = SVG_MAP[type] || SVG_MAP.info;
+    toastBox.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+    toastBox.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toastBox.classList.remove('show'), duration);
+  }
+
+  // ─── GALLERY & LIGHTBOX ───────────────────────────────────────────────────
+  const galleryCols = document.querySelectorAll('.gallery-col');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const photoPositions = ['17% center', '50% center', '83% center'];
+
+  galleryCols.forEach(col => {
+    col.addEventListener('click', () => {
+      const idx = parseInt(col.getAttribute('data-idx') || '0', 10);
+      lightboxImg.src = '/static/images/iphone_product.jpg';
+      lightboxImg.style.objectPosition = photoPositions[idx] || 'center';
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      trackEvent('GALLERY_CLICK', { index: idx });
+    });
+  });
+
+  document.getElementById('lightbox-close').addEventListener('click', () => {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+  lightbox.addEventListener('click', e => {
+    if (e.target === lightbox) {
+      lightbox.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // ─── FAVORITE & SHARE ─────────────────────────────────────────────────────
+  let isFav = false;
+  const favBtn = document.getElementById('btn-favorite');
+  const heartIcon = document.getElementById('heart-icon');
+  favBtn.addEventListener('click', () => {
+    isFav = !isFav;
+    favBtn.classList.toggle('favorited', isFav);
+    heartIcon.setAttribute('fill', isFav ? '#e74c3c' : 'none');
+    heartIcon.setAttribute('stroke', isFav ? '#e74c3c' : 'currentColor');
+    showToast(isFav ? 'Adicionado aos seus favoritos' : 'Removido dos favoritos', isFav ? 'heart' : 'info');
+    trackEvent(isFav ? 'FAVORITE_ADD' : 'FAVORITE_REMOVE');
+  });
+
+  document.getElementById('btn-share').addEventListener('click', async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url: window.location.href });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('Link do anúncio copiado com sucesso!', 'check');
+      }
+    } catch(e) {
+      showToast('Link do anúncio copiado!', 'check');
+    }
+  });
+
+  // ─── CUPOM DE DESCONTO ────────────────────────────────────────────────────
+  const couponBtn = document.getElementById('coupon-copy-btn');
+  couponBtn.addEventListener('click', function() {
+    try { navigator.clipboard.writeText('OLX26OFF'); } catch(e) {}
+    this.classList.add('copied');
+    this.textContent = 'Copiado!';
+    showToast('Cupom OLX26OFF copiado com sucesso!', 'check');
+    const btn = this;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.textContent = 'Copiar';
+    }, 3000);
+  });
+
+  // ─── VALIDAÇÃO MATEMÁTICA E MÁSCARAS AVANÇADAS ────────────────────────────
+  function isValidCPF(cpf) {
+    cpf = cpf.replace(/\D/g, '');
+    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i), 10) * (10 - i);
+    let rev = 11 - (sum % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(cpf.charAt(9), 10)) return false;
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i), 10) * (11 - i);
+    rev = 11 - (sum % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(cpf.charAt(10), 10)) return false;
+    return true;
+  }
+
+  function maskCEP(v) {
+    v = v.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+    return v;
+  }
+
+  function maskCPF(v) {
+    v = v.replace(/\D/g, '').slice(0, 11);
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    return v;
+  }
+
+  function maskPhone(v) {
+    v = v.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10) {
+      v = v.replace(/^(\d\d)(\d{5})(\d\d\d\d)/, '($1) $2-$3');
+    } else if (v.length > 5) {
+      v = v.replace(/^(\d\d)(\d{4})(\d{0,4})/, '($1) $2-$3');
+    } else if (v.length > 2) {
+      v = v.replace(/^(\d\d)(\d{0,5})/, '($1) $2');
+    }
+    return v;
+  }
+
+  // ─── FRETE AVANÇADO E SINCRONIZADO (COMPONENTE DE PÁGINA) ─────────────────
+  const cepInput = document.getElementById('cep-input');
+  const btnCalcShipping = document.getElementById('btn-calc-shipping');
+  const shippingResult = document.getElementById('shipping-result');
+  const shippingError = document.getElementById('shipping-error');
+  const shippingSearchIcon = document.getElementById('shipping-search-icon');
+  const shippingSpinnerIcon = document.getElementById('shipping-spinner-icon');
+  const shippingAddressTarget = document.getElementById('shipping-address-target');
+
+  cepInput.addEventListener('input', e => {
+    e.target.value = maskCEP(e.target.value);
+    if (e.target.value.replace(/\D/g, '').length === 8) {
+      handleCalculateShipping(e.target.value);
+    }
+  });
+
+  cepInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      handleCalculateShipping(cepInput.value);
+    }
+  });
+
+  btnCalcShipping.addEventListener('click', () => {
+    handleCalculateShipping(cepInput.value);
+  });
+
+  async function handleCalculateShipping(rawCep) {
+    const cleanCep = rawCep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      shippingError.textContent = 'Digite um CEP completo com 8 dígitos.';
+      shippingError.style.display = 'block';
+      shippingResult.style.display = 'none';
+      return;
+    }
+
+    shippingError.style.display = 'none';
+    shippingSearchIcon.style.display = 'none';
+    shippingSpinnerIcon.style.display = 'inline-block';
+
+    try {
+      const res = await fetch('/api/validate-cep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cep: cleanCep, session_id: SESSION_ID })
+      });
+      const data = await res.json();
+
+      shippingSearchIcon.style.display = 'inline-block';
+      shippingSpinnerIcon.style.display = 'none';
+
+      if (data.success) {
+        const addr = data.bairro ? `${data.bairro}, ${data.cidade} - ${data.uf}` : `${data.cidade} - ${data.uf}`;
+        shippingAddressTarget.innerHTML = `
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1a7a46" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>${addr} (${data.cep})</span>
+        `;
+        shippingResult.style.display = 'block';
+        showToast('Frete Grátis calculado com sucesso!', 'check');
+      } else {
+        shippingError.textContent = data.message || 'CEP não localizado.';
+        shippingError.style.display = 'block';
+        shippingResult.style.display = 'none';
+      }
+    } catch(err) {
+      shippingSearchIcon.style.display = 'inline-block';
+      shippingSpinnerIcon.style.display = 'none';
+      shippingError.textContent = 'Erro ao consultar CEP. Tente novamente.';
+      shippingError.style.display = 'block';
+    }
+  }
+
+  // ─── CHAT WHATSAPP DIRETO ─────────────────────────────────────────────────
+  document.getElementById('btn-chat').addEventListener('click', async () => {
+    trackEvent('CLICK_CHAT');
+    try {
+      const res = await fetch('/api/config/whatsapp');
+      const conf = await res.json();
+      const num = (conf.whatsapp_number || '5511999999999').replace(/\D/g, '');
+      const msg = encodeURIComponent(conf.whatsapp_message || 'Olá! Tenho interesse no anúncio do iPhone 11.');
+      window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+    } catch(e) {
+      window.open('https://wa.me/5511999999999?text=Olá', '_blank');
+    }
+  });
+
+  // ─── MODAL CHECKOUT & LEAD CAPTURE ENGINE ─────────────────────────────────
+  const checkoutModal = document.getElementById('checkout-modal');
+  const btnComprar = document.getElementById('btn-comprar');
+  const closeCheckout = document.getElementById('close-checkout');
+
+  btnComprar.addEventListener('click', () => {
+    trackEvent('CLICK_BUY', { step: 1 });
+    checkoutModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    
+    // Auto-preenche CEP se já digitado na página
+    const currentCep = cepInput.value.replace(/\D/g, '');
+    if (currentCep.length === 8 && !document.getElementById('lead-cep').value) {
+      document.getElementById('lead-cep').value = cepInput.value;
+      triggerAddressLookup(currentCep);
+    }
+  });
+
+  closeCheckout.addEventListener('click', () => {
+    checkoutModal.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+
+  // Inputs Masks no Modal
+  const leadCpf = document.getElementById('lead-cpf');
+  const leadPhone = document.getElementById('lead-phone');
+  const leadCep = document.getElementById('lead-cep');
+
+  leadCpf.addEventListener('input', e => e.target.value = maskCPF(e.target.value));
+  leadPhone.addEventListener('input', e => e.target.value = maskPhone(e.target.value));
+  leadCep.addEventListener('input', e => {
+    e.target.value = maskCEP(e.target.value);
+    const c = e.target.value.replace(/\D/g, '');
+    if (c.length === 8) triggerAddressLookup(c);
+  });
+
+  async function triggerAddressLookup(cleanCep) {
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const d = await res.json();
+      if (!d.erro) {
+        if (d.logradouro) document.getElementById('lead-street').value = d.logradouro;
+        if (d.bairro) document.getElementById('lead-neighborhood').value = d.bairro;
+        if (d.localidade) document.getElementById('lead-city').value = d.localidade;
+        if (d.uf) document.getElementById('lead-state').value = d.uf;
+      }
+    } catch(e) {}
+  }
+
+  // Avanço da Etapa 1 para Etapa 2 (Validação Estrita & Envio ao Telegram)
+  const btnAdvanceLead = document.getElementById('btn-advance-lead');
+  let currentPaymentId = '';
+  let paymentPollTimer = null;
+
+  btnAdvanceLead.addEventListener('click', async () => {
+    const name = document.getElementById('lead-name').value.trim();
+    const cpf = document.getElementById('lead-cpf').value.trim();
+    const phone = document.getElementById('lead-phone').value.trim();
+    const email = document.getElementById('lead-email').value.trim();
+    const cep = document.getElementById('lead-cep').value.trim();
+    const state = document.getElementById('lead-state').value.trim();
+    const street = document.getElementById('lead-street').value.trim();
+    const number = document.getElementById('lead-number').value.trim();
+    const complement = document.getElementById('lead-complement').value.trim();
+    const neighborhood = document.getElementById('lead-neighborhood').value.trim();
+    const city = document.getElementById('lead-city').value.trim();
+
+    // Validações estritas
+    let hasError = false;
+
+    function checkField(id, validCondition, errMsg) {
+      const el = document.getElementById(id);
+      if (!validCondition) {
+        el.classList.add('error');
+        if (!hasError) {
+          showToast(errMsg, 'error');
+          hasError = true;
+        }
+      } else {
+        el.classList.remove('error');
+      }
+    }
+
+    checkField('lead-name', name.split(' ').length >= 2, 'Informe seu nome e sobrenome completo.');
+    checkField('lead-cpf', isValidCPF(cpf), 'CPF inválido. Verifique os dígitos digitados.');
+    checkField('lead-phone', phone.replace(/\D/g, '').length >= 10, 'Celular/WhatsApp com DDD é obrigatório.');
+    checkField('lead-email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'Digite um e-mail válido para rastreamento.');
+    checkField('lead-cep', cep.replace(/\D/g, '').length === 8, 'CEP obrigatório com 8 dígitos.');
+    checkField('lead-street', street.length >= 3, 'Informe o nome da sua rua / logradouro.');
+    checkField('lead-number', number.length >= 1, 'Informe o número da residência.');
+    checkField('lead-neighborhood', neighborhood.length >= 2, 'Informe o bairro.');
+    checkField('lead-city', city.length >= 2, 'Informe a cidade.');
+    checkField('lead-state', state.length === 2, 'Informe o estado (UF com 2 letras).');
+
+    if (hasError) return;
+
+    // Trava botão e mostra loading
+    btnAdvanceLead.disabled = true;
+    document.getElementById('btn-advance-text').textContent = 'Processando dados de entrega...';
+    document.getElementById('btn-advance-icon').style.display = 'none';
+    document.getElementById('btn-advance-spinner').style.display = 'inline-block';
+
+    try {
+      // 1. Envia Lead Completo para o Backend & Canal do Telegram
+      const leadPayload = {
+        session_id: SESSION_ID,
+        name, cpf, phone, email,
+        cep, state, street, number, complement, neighborhood, city,
+        amount: '630,00'
+      };
+
+      const leadRes = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadPayload)
+      });
+      const leadData = await leadRes.json();
+
+      if (!leadData.ok) {
+        throw new Error(leadData.error || 'Erro ao registrar dados.');
+      }
+
+      // 2. Gera o Pagamento Pix Seguro (C7 / Gateway Oficial)
+      const pixRes = await fetch('/api/generate-pix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: SESSION_ID, ...leadPayload })
+      });
+      const pixData = await pixRes.json();
+
+      if (!pixData.ok && !pixData.success) {
+        throw new Error('Falha ao gerar o código Pix.');
+      }
+
+      currentPaymentId = pixData.payment_id || pixData.external_id;
+
+      // 3. Atualiza Interface para Step 2 (Pagamento Pix)
+      document.getElementById('modal-step-1').style.display = 'none';
+      document.getElementById('modal-step-2').style.display = 'block';
+
+      document.getElementById('step-nav-1').classList.remove('active');
+      document.getElementById('step-nav-1').classList.add('completed');
+      document.getElementById('step-div-1').classList.add('filled');
+      document.getElementById('step-nav-2').classList.add('active');
+
+      // Popula dados do Pix
+      const qrImg = document.getElementById('pix-qr-img');
+      if (pixData.qr_code_url) {
+        qrImg.src = pixData.qr_code_url;
+      }
+      document.getElementById('pix-copy-input').value = pixData.pix_code || pixData.pix_copy_paste;
+
+      // Inicia Contador Regressivo de 15 minutos
+      startPixCountdown(15 * 60);
+
+      // Inicia Polling de Status do Pagamento
+      startPaymentPolling(currentPaymentId);
+
+      showToast('Dados validados e enviados com sucesso!', 'check');
+      trackEvent('STEP_PIX_DISPLAYED', { payment_id: currentPaymentId });
+
+    } catch(err) {
+      showToast('Erro ao processar: ' + err.message, 'error');
+      btnAdvanceLead.disabled = false;
+      document.getElementById('btn-advance-text').textContent = 'Continuar para o Pagamento';
+      document.getElementById('btn-advance-icon').style.display = 'inline-block';
+      document.getElementById('btn-advance-spinner').style.display = 'none';
+    }
+  });
+
+  // Copiar Código Pix Copia e Cola
+  const btnCopyPix = document.getElementById('btn-copy-pix');
+  btnCopyPix.addEventListener('click', () => {
+    const copyInput = document.getElementById('pix-copy-input');
+    copyInput.select();
+    try { navigator.clipboard.writeText(copyInput.value); } catch(e) {}
+    btnCopyPix.classList.add('copied');
+    document.getElementById('copy-text-label').textContent = 'Copiado!';
+    showToast('Código Pix copiado para a área de transferência!', 'check');
+    trackEvent('PIX_CODE_COPIED', { payment_id: currentPaymentId });
+    setTimeout(() => {
+      btnCopyPix.classList.remove('copied');
+      document.getElementById('copy-text-label').textContent = 'Copiar Pix';
+    }, 3000);
+  });
+
+  // Countdown Timer para o Pix
+  function startPixCountdown(durationSeconds) {
+    let timer = durationSeconds;
+    const el = document.getElementById('pix-countdown');
+    const interval = setInterval(() => {
+      const minutes = parseInt(timer / 60, 10);
+      const seconds = parseInt(timer % 60, 10);
+      el.textContent = (minutes < 10 ? '0' + minutes : minutes) + ':' + (seconds < 10 ? '0' + seconds : seconds);
+      if (--timer < 0) {
+        clearInterval(interval);
+        el.textContent = 'Expirado';
+      }
+    }, 1000);
+  }
+
+  // Polling de Pagamento a cada 3 segundos
+  function startPaymentPolling(paymentId) {
+    if (!paymentId) return;
+    if (paymentPollTimer) clearInterval(paymentPollTimer);
+
+    paymentPollTimer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/check-payment/${paymentId}`);
+        const d = await res.json();
+        if (d.status === 'paid' || d.status === 'approved') {
+          clearInterval(paymentPollTimer);
+          // Avança para Step 3
+          document.getElementById('modal-step-2').style.display = 'none';
+          document.getElementById('modal-step-3').style.display = 'block';
+
+          document.getElementById('step-nav-2').classList.remove('active');
+          document.getElementById('step-nav-2').classList.add('completed');
+          document.getElementById('step-div-2').classList.add('filled');
+          document.getElementById('step-nav-3').classList.add('active');
+
+          showToast('Pagamento confirmado com sucesso!', 'check');
+          trackEvent('PAYMENT_CONFIRMED_SUCCESS', { payment_id: paymentId });
+        }
+      } catch(e) {}
+    }, 3000);
+  }
+</script>
+
+</body>
+</html>
