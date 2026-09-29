@@ -1330,7 +1330,12 @@ def main():
 
     logger.info("[BOT MILITARY] Painel Admin Telegram Iniciado & Blindado com Sucesso.")
     updater.start_polling(drop_pending_updates=True)
-    updater.idle()
+    import threading
+    if threading.current_thread() is threading.main_thread():
+        try:
+            updater.idle()
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     main()
