@@ -1109,7 +1109,64 @@ def c7_balance():
         return jsonify({"ok": False, "error": "gateway_error", "detail": str(err)}), 500
 
 
-# ─── PRODUCTS CRUD API ────────────────────────────────────────────────────────
+# ─── ASSISTENTE IA PARA IMAGENS E ANÚNCIOS (GEMINI STUDIO INTEGRADO) ───────────
+GEMINI_STUDIO_KEY = os.environ.get("GEMINI_STUDIO_KEY", "")
+
+@app.route('/api/admin/analyze-ai', methods=['POST'])
+def api_admin_analyze_ai():
+    """Analisa nome/imagem do produto e sugere título otimizado e descrição rica via IA Gemini Studio."""
+    data = request.json or {}
+    product_raw = sanitize_input(data.get("product_raw", ""), 200)
+    image_url = sanitize_input(data.get("image_url", ""), 500)
+    
+    # Se a API Key do Gemini estiver disponível, tenta gerar análise com Gemini
+    if GEMINI_STUDIO_KEY and "AQ.Ab8" in GEMINI_STUDIO_KEY:
+        try:
+            # Chamada direta para REST API da Gemini para visão & texto
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_STUDIO_KEY}"
+            prompt_text = f"Analise o produto '{product_raw}' com imagem '{image_url}'. Gere um JSON com: 'title' (título de anúncio OLX chamativo), 'price' (valor estimado numérico ex: 750.00), e 'description' (descrição vendedora completa com detalhes de estado, envio e garantia)."
+            
+            payload = {
+                "contents": [{
+                    "parts": [{"text": prompt_text}]
+                }],
+                "generationConfig": {
+                    "response_mime_type": "application/json"
+                }
+            }
+            res = requests.post(gemini_url, json=payload, timeout=8)
+            if res.status_code == 200:
+                resp_json = res.json()
+                text_out = resp_json['candidates'][0]['content']['parts'][0]['text']
+                parsed = json.loads(text_out)
+                return jsonify({
+                    "ok": True,
+                    "title": parsed.get("title", product_raw.title()),
+                    "price": str(parsed.get("price", "750.00")),
+                    "description": parsed.get("description", ""),
+                    "image_url": image_url
+                })
+        except Exception as err:
+            print(f"[GEMINI STUDIO AI] {err}")
+
+    # Fallback inteligente
+    if TG_WH_AVAILABLE:
+        ai_res = tg_wh.generate_ai_ad(product_raw or "Produto Anunciado")
+        return jsonify({
+            "ok": True,
+            "title": ai_res.get("product_name"),
+            "price": ai_res.get("product_price"),
+            "description": ai_res.get("product_description"),
+            "image_url": image_url
+        })
+    return jsonify({
+        "ok": True,
+        "title": product_raw.title() if product_raw else "Produto Exclusivo",
+        "price": "650.00",
+        "description": f"{product_raw.title()} em excelente estado de conservação, testado e 100% funcional. Acompanha caixa e acessórios.",
+        "image_url": image_url
+    })
+
 
 @app.route('/api/products', methods=['GET'])
 def api_products_list():

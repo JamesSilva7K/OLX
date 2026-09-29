@@ -490,7 +490,13 @@
           <textarea id="cfg-product-desc" class="form-textarea" placeholder="Descreva o produto..."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">📷 Imagens do Anúncio (Anexar da Máquina ou colar URL)</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;">📷 Imagens do Anúncio (Anexar da Máquina ou colar URL)</label>
+            <button type="button" class="btn-sm purple" onclick="triggerAIAdGenerator()" style="padding:4px 12px;font-size:11px;">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              🤖 IA: Gerar Título + Descrição
+            </button>
+          </div>
           <div class="image-upload-grid">
             
             <!-- DROPZONE FOTO 1 -->
@@ -1098,7 +1104,28 @@
       renderBadgeChips();
       // Atualiza os previews das imagens no uploader inteligente
       [1, 2, 3].forEach(i => updateImagePreviewFromInput(i));
-    }catch(e){}
+  async function triggerAIAdGenerator() {
+    const rawName = document.getElementById('cfg-product-name').value.trim();
+    const img1 = document.getElementById('cfg-product-image1').value.trim();
+    showToast('🤖 IA Analisando produto e imagens...', 'info', 4000);
+    try {
+      const res = await fetch('/api/admin/analyze-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_raw: rawName || "Produto OLX", image_url: img1 })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        if (data.title) document.getElementById('cfg-product-name').value = data.title;
+        if (data.price) document.getElementById('cfg-product-price').value = data.price;
+        if (data.description) document.getElementById('cfg-product-desc').value = data.description;
+        showToast('✨ Anúncio e Descrição gerados com sucesso por IA!', 'check', 4000);
+      } else {
+        showToast('Falha na resposta da IA', 'error');
+      }
+    } catch(e) {
+      showToast('Erro ao conectar com a IA', 'error');
+    }
   }
 
   async function saveConfig(){
