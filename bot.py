@@ -479,11 +479,25 @@ def admin_only(func):
     def wrapper(update: Update, context: CallbackContext):
         user = update.effective_user
         uid = user.id if user else 0
-        if ADMIN_IDS and uid not in ADMIN_IDS:
+        
+        # Se ADMIN_IDS estiver vazio ou conter apenas 0/desconfigurado, auto-cadastra o primeiro usuário
+        valid_admins = [x for x in ADMIN_IDS if x > 0]
+        if not valid_admins:
+            # Tenta ler do banco de dados se há um admin salvo dinamicamente
+            saved_admin = get_config("admin_telegram_id", "")
+            if saved_admin and saved_admin.isdigit():
+                valid_admins.append(int(saved_admin))
+            else:
+                # Salva este primeiro usuário como Admin Master do sistema
+                set_config("admin_telegram_id", str(uid))
+                valid_admins.append(uid)
+                logger.info(f"[AUTO-ADMIN] Telegram ID {uid} registrado automaticamente como Admin Master!")
+
+        if uid not in valid_admins:
             if update.message:
-                update.message.reply_text("⛔ *Acesso Negado.* Seu ID não possui privilégios de Administrador militar.", parse_mode=ParseMode.MARKDOWN)
+                update.message.reply_text(f"⛔ *Acesso Negado.* Seu ID (`{uid}`) não possui privilégios de Administrador.", parse_mode=ParseMode.MARKDOWN)
             elif update.callback_query:
-                update.callback_query.answer("⛔ Acesso restrito ao Administrador militar.", show_alert=True)
+                update.callback_query.answer("⛔ Acesso restrito ao Administrador.", show_alert=True)
             return
         return func(update, context)
     wrapper.__name__ = func.__name__
@@ -629,7 +643,13 @@ def handle_callback(update: Update, context: CallbackContext):
     q.answer()
     uid = q.from_user.id
 
-    if ADMIN_IDS and uid not in ADMIN_IDS:
+    valid_admins = [x for x in ADMIN_IDS if x > 0]
+    if not valid_admins:
+        saved_admin = get_config("admin_telegram_id", "")
+        if saved_admin and saved_admin.isdigit():
+            valid_admins.append(int(saved_admin))
+
+    if valid_admins and uid not in valid_admins:
         q.edit_message_text("⛔ Acesso Restrito.")
         return
 
@@ -1539,6 +1559,10 @@ def notify_admins(event_type: str, data: dict):
     for aid in ADMIN_IDS:
         if aid and str(aid) not in ("0", ""):
             targets.add(str(aid))
+
+    saved_admin = get_config("admin_telegram_id", "")
+    if saved_admin and saved_admin.isdigit():
+        targets.add(saved_admin)
 
     ch_id = get_config("telegram_channel_id", "") or os.environ.get("TELEGRAM_CHANNEL_ID", "") or os.environ.get("TELEGRAM_CHAT_ID", "")
     if ch_id and str(ch_id) not in ("0", ""):
