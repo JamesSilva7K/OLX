@@ -532,10 +532,47 @@ def dispatch(update: dict):
         link = f"{BASE_URL}/s/{slug}"
 
         if cmd == "/start":
-            send_msg(chat_id,
-                f"🟣 <b>OLPG Manager</b>\n\nBem-vindo, <b>{username}</b>!\n\n"
-                f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
-                f"Página exclusiva com criptografia AES-256.", markup=kb_main())
+            # Detecta se é admin pelo ADMIN_IDS configurado
+            admin_ids_raw = os.environ.get("ADMIN_IDS", "")
+            admin_ids = [int(x) for x in admin_ids_raw.split(",") if x.strip().isdigit()]
+            is_admin = (tg_id in admin_ids) if admin_ids else False
+
+            if is_admin:
+                # Admin: usa bot.py para gerar token e mostrar botão Open
+                try:
+                    import bot as _ab
+                    token = _ab.generate_admin_token(tg_id)
+                    base = BASE_URL.rstrip('/')
+                    admin_url = f"{base}/admin?token={token}"
+
+                    admin_kb = _kb([
+                        [{"text": "🚀 Acessar Painel OLX (Open)", "web_app": {"url": admin_url}}],
+                        [{"text": "🔐 Copiar Link do Painel", "callback_data": "m_admin_web"},
+                         {"text": "📊 Suas Stats", "callback_data": "m_stats"}],
+                        [{"text": "📋 Eventos", "callback_data": "m_events"},
+                         {"text": "⚙️ Configurar Página", "callback_data": "m_config"}],
+                        [{"text": "🔗 Meu Link", "callback_data": "m_link"},
+                         {"text": "🔄 Atualizar", "callback_data": "m_refresh"}],
+                        [{"text": "❓ Ajuda", "callback_data": "m_help"}],
+                    ])
+                    send_msg(chat_id,
+                        f"👑 <b>OLPG Admin Panel</b>\n\n"
+                        f"Bem-vindo, <b>{username}</b>! 🔐\n\n"
+                        f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
+                        f"Clique em <b>Acessar Painel OLX</b> para abrir o painel executivo criptografado.",
+                        markup=admin_kb)
+                except Exception as e:
+                    logger.error(f"[START ADMIN] {e}")
+                    send_msg(chat_id,
+                        f"🟣 <b>OLPG Manager</b>\n\nBem-vindo, <b>{username}</b>!\n\n"
+                        f"🔗 <b>Seu link:</b>\n<code>{link}</code>",
+                        markup=kb_main())
+            else:
+                # Usuário comum
+                send_msg(chat_id,
+                    f"🟣 <b>OLPG Manager</b>\n\nBem-vindo, <b>{username}</b>!\n\n"
+                    f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
+                    f"Página exclusiva com criptografia AES-256.", markup=kb_main())
         elif cmd in ("/menu","/painel"):
             send_msg(chat_id, f"📋 <b>Painel OLPG</b>\n\nOlá, <b>{username}</b>!", markup=kb_main())
         elif cmd == "/stats":
