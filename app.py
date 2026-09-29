@@ -47,6 +47,11 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 # Secret Key para sessões e hashing de integridade
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.environ.get("FERNET_KEY", "LO_ENI_MILITARY_VAULT_2026_SECRET"))
 
+# ─── TELEGRAM OAUTH CONFIGURATION ──────────────────────────────────────────────
+TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "8857867740")
+TELEGRAM_CLIENT_SECRET = os.environ.get("TELEGRAM_CLIENT_SECRET", "OV9is6qw51omFKMxL08MDfoFcag48iCYFim0bgm4Yc5y_CCF9eePjg")
+BASE_URL               = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com").rstrip('/')
+
 # ─── CONFIGURAÇÕES DA API C7 (CARTEIRA DO 7) CRIPTOGRAFADAS E REAIS ───────────
 C7_API_KEY       = os.environ.get("C7_API_KEY", "c7_live_bae52473c16c92cf909a40086301e988a452816322bd1e98ebab4b6b0dc49a53")
 C7_API_SECRET    = os.environ.get("C7_API_SECRET", "0449fb237f301686f9ee1c1348e21dd55d15f9fd852bd50b7e7637f01101dcf89912a873e7e257f6386634d1dfaddd652c09ca43a1841821449d051c00b48e9e")
@@ -1350,6 +1355,51 @@ def api_sessions_slug(slug):
     limit = min(int(request.args.get('limit', 20)), 100)
     sessions = tg_wh.get_tg_sessions(tg_id, limit)
     return jsonify({"sessions": sessions, "count": len(sessions)})
+
+
+@app.route('/tg/login')
+def tg_login():
+    """Redireciona para o login do Telegram OAuth."""
+    redirect_uri = f"{BASE_URL}/tg/callback"
+    oauth_url = f"https://oauth.telegram.org/auth?client_id={TELEGRAM_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code"
+    return jsonify({"login_url": oauth_url, "redirect_uri": redirect_uri})
+
+
+@app.route('/tg/callback')
+def tg_callback():
+    """Recebe a autenticação do Telegram OAuth e gera um token seguro para o painel admin."""
+    code = request.args.get('code')
+    if not code:
+        # Tenta pegar dados diretos de widgets Telegram se enviados via hash
+        hash_val = request.args.get('hash')
+        tg_id = request.args.get('id')
+        if tg_id and BOT_AVAILABLE:
+            token = admin_bot.generate_admin_token(int(tg_id))
+            return f"<script>window.location.href='/admin?token={token}';</script>"
+        return jsonify({"error": "code_missing"}), 400
+    
+    # Valida código com Telegram OAuth
+    try:
+        resp = requests.post(
+            "https://oauth.telegram.org/token",
+            data={
+                "client_id": TELEGRAM_CLIENT_ID,
+                "client_secret": TELEGRAM_CLIENT_SECRET,
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": f"{BASE_URL}/tg/callback"
+            },
+            timeout=10
+        )
+        data = resp.json()
+        if data.get("access_token") and BOT_AVAILABLE:
+            user_id = data.get("user_id", 0)
+            token = admin_bot.generate_admin_token(int(user_id))
+            return f"<script>window.location.href='/admin?token={token}';</script>"
+    except Exception as err:
+        print(f"[TG OAUTH ERROR] {err}")
+    
+    return jsonify({"error": "authentication_failed"}), 401
 
 
 if __name__ == '__main__':
