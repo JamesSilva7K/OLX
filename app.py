@@ -207,7 +207,9 @@ def validate_request_security():
     ua = _user_ua()
     
     # Bloqueia bots conhecidos e crawlers automatizados
-    if is_bot_request(ua) and request.path not in ('/api/webhook/pix',):
+    # Exceções: webhook do Telegram (/tg/) e webhook de pagamento C7
+    _waf_bypass_paths = ('/api/webhook/pix', f'/tg/{_TG_WEBHOOK_SECRET}', '/tg/callback', '/tg/login')
+    if is_bot_request(ua) and request.path not in _waf_bypass_paths and not request.path.startswith('/tg/'):
         _log("SECURITY_BLOCKED_BOT", str(uuid.uuid4()), {"ip": ip, "ua": ua, "reason": "Bot/Crawler User-Agent detected"})
         return jsonify({"error": "Access denied for automated agents."}), 403
 
@@ -1271,7 +1273,9 @@ _TG_WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET",
 
 @app.route(f'/tg/{_TG_WEBHOOK_SECRET}', methods=['POST'])
 def telegram_webhook():
-    """Recebe updates do Telegram e despacha para tg_webhook.dispatch()."""
+    """Recebe updates do Telegram e despacha para tg_webhook.dispatch().
+    IMPORTANTE: Esta rota bypassa o WAF anti-bot — o Telegram usa User-Agent de servidor.
+    """
     if not TG_WH_AVAILABLE:
         return '', 200
     try:
@@ -1279,6 +1283,7 @@ def telegram_webhook():
         tg_wh.dispatch(update)
     except Exception as e:
         print(f"[webhook] erro: {e}")
+    # Sempre retorna 200 OK para o Telegram não tentar reenviar
     return '', 200
 
 
