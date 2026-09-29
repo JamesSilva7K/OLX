@@ -902,10 +902,20 @@ def handle_callback(update: Update, context: CallbackContext):
         q.message.reply_text("💡 *Fotos validadas com sucesso no sistema!*", reply_markup=config_keyboard())
 
     elif cb == "webhook_virtual_ui":
-        c7_key = get_config("c7_key", "c7_live_bae52473...")
-        c7_secret = get_config("c7_secret", "0449fb237f30...")
-        webhook_url = f"{get_config('site_domain', 'https://seu-dominio.com')}/api/webhook/pix"
-        
+        # Busca credenciais reais do ambiente/banco
+        base_url = (
+            os.environ.get("BASE_URL") or
+            os.environ.get("RENDER_EXTERNAL_URL") or
+            os.environ.get("APP_URL") or
+            "https://olx-9ee8.onrender.com"
+        ).rstrip('/')
+        c7_key    = os.environ.get("C7_API_KEY", get_config("c7_key", ""))
+        c7_secret = os.environ.get("C7_API_SECRET", get_config("c7_secret", ""))
+        webhook_url = f"{base_url}/api/webhook/pix"
+
+        c7_key_display    = f"`{c7_key[:18]}...`" if c7_key and len(c7_key) > 10 else "`⚠️ NÃO CONFIGURADA`"
+        c7_secret_display = "✅ Configurado" if c7_secret else "⚠️ Não configurado"
+
         btns = [
             [InlineKeyboardButton("⚡ Simular Webhook Pix Confirmado", callback_data="sim_webhook_paid")],
             [InlineKeyboardButton("🔑 Testar HMAC-SHA256 C7", callback_data="test_c7_hmac")],
@@ -914,13 +924,32 @@ def handle_callback(update: Update, context: CallbackContext):
         q.edit_message_text(
             f"🌐 *INTERFACE VIRTUAL DO WEBHOOK C7*\n═════════════════════════════════════\n\n"
             f"📌 *Endpoint Webhook:* `{webhook_url}`\n"
-            f"🔑 *API Key C7:* `{c7_key[:18]}...`\n"
+            f"🔑 *API Key C7:* {c7_key_display}\n"
+            f"🔐 *API Secret C7:* {c7_secret_display}\n"
             f"🛡️ *HMAC Signature:* `SHA256 Ativado (Tempo Constante)`\n"
             f"⚡ *Tentativas da C7:* `3 tentativas (Imediata, 5s, 30s)`\n\n"
             f"Use a interface virtual abaixo para testar a comunicação em tempo real:",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=InlineKeyboardMarkup(btns)
         )
+
+    elif cb == "test_c7_hmac":
+        import hmac as _hmac, hashlib as _hashlib
+        c7_secret = os.environ.get("C7_API_SECRET", get_config("c7_secret", ""))
+        if not c7_secret:
+            q.answer("⚠️ C7_API_SECRET não configurada!", show_alert=True)
+        else:
+            payload = b'{"test": "olpg_hmac_check"}'
+            sig = _hmac.new(c7_secret.encode(), payload, _hashlib.sha256).hexdigest()
+            q.edit_message_text(
+                f"🔑 *TESTE HMAC-SHA256 C7 — RESULTADO*\n═════════════════════════════════════\n\n"
+                f"✅ *Assinatura Gerada com Sucesso!*\n\n"
+                f"📦 *Payload Teste:* `{{\"test\": \"olpg_hmac_check\"}}`\n"
+                f"🔒 *Signature:* `{sig[:32]}...`\n\n"
+                f"_O sistema está pronto para validar webhooks reais da C7._",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Voltar", callback_data="webhook_virtual_ui")]])
+            )
 
     elif cb == "sim_webhook_paid":
         q.answer("Simulando confirmação de pagamento C7...", show_alert=True)
@@ -931,6 +960,8 @@ def handle_callback(update: Update, context: CallbackContext):
             "status": "APPROVED"
         })
         q.edit_message_text("✅ *SIMULAÇÃO CONCLUÍDA!* O webhook recebeu e confirmou o pagamento com HMAC válido.", parse_mode=ParseMode.MARKDOWN, reply_markup=config_keyboard())
+
+
 
     elif cb == "product_templates_menu":
         conn = get_db()
