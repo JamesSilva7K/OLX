@@ -533,9 +533,16 @@ def generate_admin_token(tg_id: int) -> str:
     """
     Gera um token seguro de 48 hex chars para acesso ao painel admin.
     Token é armazenado em memória com TTL de 24 horas.
-    Apenas usuários cujo tg_id está em ADMIN_IDS podem gerar um token.
+    Auto-registra o admin se necessário.
     """
     import secrets
+    if tg_id > 0:
+        valid_admins = [x for x in ADMIN_IDS if x > 0]
+        if not valid_admins:
+            saved_admin = get_config("admin_telegram_id", "")
+            if not saved_admin:
+                set_config("admin_telegram_id", str(tg_id))
+
     token = secrets.token_hex(24)  # 48 chars, 192 bits de entropia
     ADMIN_ACCESS_TOKENS[token] = {
         "tg_id":   tg_id,

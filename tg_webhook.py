@@ -437,12 +437,23 @@ def handle_callback(chat_id, msg_id, cb_id, tg_id, username, data):
             f"🔗 <b>Seu Link Exclusivo:</b>\n\n<code>{BASE_URL}/s/{slug}</code>\n\n"
             f"Cada visita fica rastreada e criptografada.", markup=kb_back())
     elif data == "m_admin_web":
-        slug = get_slug(tg_id)
+        token = ""
+        try:
+            import bot as _ab
+            token = _ab.generate_admin_token(tg_id)
+        except Exception as e:
+            logger.error(f"[TOKEN GEN CB] {e}")
+        
+        base = BASE_URL.rstrip('/')
+        admin_url = f"{base}/admin?token={token}" if token else f"{base}/admin"
+        
         edit_msg(chat_id, msg_id,
             f"🔐 <b>Painel Web de Administração Criptografado</b>\n\n"
-            f"Acesse seu painel exclusivo sincronizado com o Telegram:\n\n"
-            f"<code>{BASE_URL}/admin/{slug}</code>\n\n"
-            f"⚠️ <i>Apenas seu usuário possui a chave de acesso tokenizada.</i>", markup=kb_back())
+            f"Seu token de sessão temporário (24h):\n"
+            f"<code>{token}</code>\n\n"
+            f"🔗 <b>Link Direto Criptografado com Token:</b>\n"
+            f"<code>{admin_url}</code>\n\n"
+            f"⚠️ <i>Apenas seu usuário possui esta chave de acesso tokenizada.</i>", markup=kb_back())
     elif data == "m_refresh":
         h24 = get_tg_stats(tg_id, 24)
         edit_msg(chat_id, msg_id,
