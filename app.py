@@ -66,14 +66,14 @@ PAYMENTS_DB        = {}   # {payment_id / c7_id: {record}}
 PROCESSED_WEBHOOKS = set()  # IDs já processados (idempotência C7 doc sec.11)
 
 
-# ─── RATE LIMITER & FIREWALL DE APLICAÇÃO (WAF IN-MEMORY) ────────────────────
-RATE_LIMIT_DB = {} # {ip: [timestamps]}
+# ─── RATE LIMITER, BRUTE FORCE GUARD & FIREWALL DE APLICAÇÃO (WAF IN-MEMORY) ─
+RATE_LIMIT_DB = {}   # {ip: [timestamps]}
+AUTH_FAIL_DB  = {}   # {ip: {count, blocked_until}}
 
 def is_rate_limited(ip: str, limit: int = 30, window: int = 60) -> bool:
-    """Limita a 30 requisições por minuto por IP para prevenir ataques DoS/Brute Force."""
+    """Limita a N requisições por minuto por IP para prevenir ataques DoS/Brute Force."""
     now = time.time()
     timestamps = RATE_LIMIT_DB.get(ip, [])
-    # Remove timestamps fora da janela
     timestamps = [ts for ts in timestamps if now - ts < window]
     if len(timestamps) >= limit:
         RATE_LIMIT_DB[ip] = timestamps
@@ -81,6 +81,35 @@ def is_rate_limited(ip: str, limit: int = 30, window: int = 60) -> bool:
     timestamps.append(now)
     RATE_LIMIT_DB[ip] = timestamps
     return False
+
+def is_auth_brute_forced(ip: str) -> bool:
+    """Bloqueia IP que errou credenciais 5x em 10 minutos por 30 minutos."""
+    now = time.time()
+    rec = AUTH_FAIL_DB.get(ip, {"count": 0, "blocked_until": 0})
+    if rec["blocked_until"] > now:
+        return True
+    return False
+
+def record_auth_failure(ip: str):
+    """Registra falha de autenticação e bloqueia após 5 tentativas."""
+    now = time.time()
+    rec = AUTH_FAIL_DB.get(ip, {"count": 0, "blocked_until": 0, "first_fail": now})
+    # Reseta contador após 10 minutos sem falhas
+    if now - rec.get("first_fail", now) > 600:
+        rec = {"count": 0, "blocked_until": 0, "first_fail": now}
+    rec["count"] += 1
+    if rec["count"] >= 5:
+        rec["blocked_until"] = now + 1800  # 30 minutos de bloqueio
+        _log_security(f"BRUTE_FORCE_BLOCKED", ip, rec["count"])
+    AUTH_FAIL_DB[ip] = rec
+
+def reset_auth_failures(ip: str):
+    """Reseta falhas após login bem-sucedido."""
+    AUTH_FAIL_DB.pop(ip, None)
+
+def _log_security(event: str, ip: str, detail):
+    """Log rápido de segurança sem dependência do BOT_AVAILABLE."""
+    print(f"[SECURITY] {event} | IP: {ip} | Detail: {detail}")
 
 # ─── HEADERS DE SEGURANÇA & BLINDAGEM HTTP ─────────────────────────────────
 @app.after_request
@@ -596,10 +625,13 @@ def verify_admin_access(req) -> tuple[Optional[int], str]:
             role = "supreme_admin" if is_supreme else "admin"
             return tg_id, role
 
-    admin_secret = os.environ.get("ADMIN_SECRET", "LO_ENI_MILITARY_VAULT_2026_SECRET")
-    if token == admin_secret:
+    admin_secret = os.environ.get("ADMIN_SECRET", "")
+    if admin_secret and token == admin_secret:
+        reset_auth_failures(_user_ip())
         return 999999999, "supreme_admin"
-        
+
+    # Registra falha de autenticação para proteção brute-force
+    record_auth_failure(_user_ip())
     return None, "unauthorized"
 
 
@@ -619,18 +651,28 @@ def admin_panel(slug=None):
 @app.route('/api/admin/verify-token')
 def api_admin_verify_token():
     """Endpoint para o frontend verificar se o token atual é válido, a role e o plano."""
+    ip = _user_ip()
+    # Proteção anti-brute-force específica para auth
+    if is_auth_brute_forced(ip):
+        return jsonify({"ok": False, "error": "ip_temporariamente_bloqueado",
+                        "message": "Muitas tentativas falhas. Tente novamente em 30 minutos."}), 429
+    if is_rate_limited(ip, limit=20, window=60):  # max 20 verify-token/min por IP
+        return jsonify({"ok": False, "error": "rate_limit"}), 429
+
     admin_id, role = verify_admin_access(request)
     if not admin_id:
+        record_auth_failure(ip)
         return jsonify({"ok": False, "error": "token_invalido_ou_expirado"}), 401
-    
+
+    reset_auth_failures(ip)
     plan_info = {}
     if TG_WH_AVAILABLE and admin_id:
         plan_info = tg_wh.get_user_plan(admin_id)
 
     return jsonify({
-        "ok": True, 
-        "admin_id": admin_id, 
-        "role": role, 
+        "ok": True,
+        "admin_id": admin_id,
+        "role": role,
         "is_supreme": (role == "supreme_admin"),
         "plan": plan_info
     })
@@ -888,11 +930,19 @@ def api_admin_supreme_log_channels():
 
 @app.route('/api/admin/events')
 def api_admin_events():
-    """Returns recent decrypted events from the encrypted DB."""
-    if not BOT_AVAILABLE:
-        return jsonify({"error": "bot_not_available"}), 503
+    """Retorna eventos recentes descriptografados — isolados por tenant."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"error": "unauthorized"}), 401
+
     limit = min(int(request.args.get('limit', 40)), 200)
     try:
+        if TG_WH_AVAILABLE and role != "supreme_admin":
+            # Admin normal: só vê seus próprios eventos
+            events = tg_wh.get_tg_events(admin_id, limit)
+            return jsonify({"events": events, "count": len(events)})
+        if not BOT_AVAILABLE:
+            return jsonify({"error": "bot_not_available"}), 503
         events = admin_bot.get_recent_events(limit)
         return jsonify({"events": events, "count": len(events)})
     except Exception as e:
@@ -901,11 +951,18 @@ def api_admin_events():
 
 @app.route('/api/admin/sessions')
 def api_admin_sessions():
-    """Returns recent sessions list from the DB."""
-    if not BOT_AVAILABLE:
-        return jsonify({"error": "bot_not_available"}), 503
+    """Retorna sessões recentes — isoladas por tenant."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"error": "unauthorized"}), 401
+
     limit = min(int(request.args.get('limit', 30)), 100)
     try:
+        if TG_WH_AVAILABLE and role != "supreme_admin":
+            sessions = tg_wh.get_tg_sessions(admin_id, limit)
+            return jsonify({"sessions": sessions, "count": len(sessions)})
+        if not BOT_AVAILABLE:
+            return jsonify({"error": "bot_not_available"}), 503
         conn = admin_bot.get_db()
         rows = conn.execute(
             "SELECT session_id, ip, ua, entered_at, left_at, converted FROM sessions "
@@ -920,13 +977,14 @@ def api_admin_sessions():
 
 @app.route('/api/admin/upload', methods=['POST'])
 def api_admin_upload():
-    """Endpoint moderno e inteligente para upload de imagens direto do computador."""
-    if not BOT_AVAILABLE:
-        return jsonify({"ok": False, "error": "bot_not_available"}), 503
-    
+    """Upload de imagens — requer autenticação de admin."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
     if 'file' not in request.files:
         return jsonify({"ok": False, "error": "Nenhum arquivo enviado"}), 400
-        
+
     file = request.files['file']
     if not file or file.filename == '':
         return jsonify({"ok": False, "error": "Arquivo em branco ou invalido"}), 400
@@ -934,7 +992,14 @@ def api_admin_upload():
     ext = os.path.splitext(file.filename)[1].lower()
     allowed_exts = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'}
     if ext not in allowed_exts:
-        return jsonify({"ok": False, "error": "Formato de imagem invalido. Use PNG, JPG, WEBP, GIF ou SVG."}), 400
+        return jsonify({"ok": False, "error": "Formato invalido. Use PNG, JPG, WEBP, GIF ou SVG."}), 400
+
+    # Limite de tamanho: 8MB
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 8 * 1024 * 1024:
+        return jsonify({"ok": False, "error": "Arquivo muito grande. Máximo 8MB."}), 413
 
     uploads_dir = os.path.join(app.static_folder, 'images', 'uploads')
     os.makedirs(uploads_dir, exist_ok=True)
@@ -944,8 +1009,7 @@ def api_admin_upload():
     file.save(filepath)
 
     image_url = f"/static/images/uploads/{filename}"
-    _log("IMAGE_UPLOADED", str(uuid.uuid4()), {"filename": filename, "url": image_url})
-
+    _log("IMAGE_UPLOADED", str(uuid.uuid4()), {"admin_id": admin_id, "filename": filename, "url": image_url})
     return jsonify({"ok": True, "url": image_url, "filename": filename})
 
 
@@ -1156,41 +1220,53 @@ def validate_cep():
 @app.route('/api/lead', methods=['POST'])
 def capture_lead():
     """
-    Captures complete qualified Lead data (name, CPF, phone, email, full delivery address).
-    Saves to encrypted database and immediately dispatches full card to Telegram Admin & Channel.
-    Sanitizes all input against XSS, SQLi and parameter tampering.
+    Captura lead qualificado com rastreio completo por tenant.
+    Associa o lead ao admin correto via slug na requisição.
+    Salva no DB criptografado e envia para o canal Telegram do admin.
     """
     data = request.json or {}
     sid  = _session_id(data)
-    
+    ip   = _user_ip()
+    ua   = _user_ua()
+
+    # Identifica o tenant (admin) que gerou este lead
+    slug = sanitize_input(data.get('slug', '') or request.args.get('slug', ''), 60)
+    tg_id = None
+    if TG_WH_AVAILABLE and slug:
+        tg_id = tg_wh.get_tg_id_by_slug(slug)
+
     name         = sanitize_input(data.get('name', ''), 120)
     cpf          = sanitize_input(data.get('cpf', ''), 20)
     phone        = sanitize_input(data.get('phone', ''), 25)
     email        = sanitize_input(data.get('email', ''), 100)
     cep          = sanitize_input(data.get('cep', ''), 15)
     street       = sanitize_input(data.get('street', ''), 200)
-    number       = sanitize_input(data.get('number', ''), 30)
+    number_addr  = sanitize_input(data.get('number', ''), 30)
     complement   = sanitize_input(data.get('complement', ''), 100)
     neighborhood = sanitize_input(data.get('neighborhood', ''), 100)
     city         = sanitize_input(data.get('city', ''), 100)
     state        = sanitize_input(data.get('state', ''), 10)
     amount       = sanitize_input(data.get('amount', '630,00'), 20)
+    product_name = sanitize_input(data.get('product', ''), 120)
 
-    # Strict Validation: CPF Real com Hub do Desenvolvedor, Telefone BR com 9º dígito e Nome Completo
+    # Validação: nome completo
     if not name or len(name.split()) < 2:
-        return jsonify({"ok": False, "error": "Por favor, informe seu nome completo (Nome e Sobrenome)."}), 400
+        return jsonify({"ok": False, "error": "Informe seu nome completo (Nome e Sobrenome)."}), 400
 
-    is_cpf_ok, cpf_err, _ = verify_cpf_hub(cpf)
+    # Validação: CPF real via Hub
+    is_cpf_ok, cpf_err, cpf_data = verify_cpf_hub(cpf)
     if not is_cpf_ok:
-        _log("LEAD_REJECTED_INVALID_CPF", sid, {"cpf": cpf, "name": name, "reason": cpf_err})
-        return jsonify({"ok": False, "error": cpf_err or "CPF inválido. Verifique os números digitados."}), 400
+        _log("LEAD_REJECTED_INVALID_CPF", sid, {"cpf": cpf, "name": name, "reason": cpf_err, "slug": slug})
+        return jsonify({"ok": False, "error": cpf_err or "CPF inválido."}), 400
 
+    # Validação: telefone BR
     if BOT_AVAILABLE:
         valid_phone, phone_err = admin_bot.InputValidator.validate_phone_br(phone)
         if phone_err:
             return jsonify({"ok": False, "error": phone_err}), 400
         phone = valid_phone
 
+    # Contexto de rastreio avançado
     lead_payload = {
         "name":         name,
         "cpf":          cpf,
@@ -1198,20 +1274,44 @@ def capture_lead():
         "email":        email,
         "cep":          cep,
         "street":       street,
-        "number":       number,
+        "number":       number_addr,
         "complement":   complement,
         "neighborhood": neighborhood,
         "city":         city,
         "state":        state,
         "amount":       amount,
-        "product":      admin_bot.get_config("product_name", "iPhone 11 64GB Branco") if BOT_AVAILABLE else "iPhone 11 64GB Branco"
+        "product":      product_name or (admin_bot.get_config("product_name", "iPhone 11") if BOT_AVAILABLE else "iPhone 11"),
+        "slug":         slug,
+        "tg_id":        tg_id,
+        "ip":           ip,
+        "ua":           ua[:120],
+        "cpf_verified": not cpf_data.get("fallback_math", False),
     }
 
+    # Registra no DB global
     _log("LEAD_CAPTURED", sid, lead_payload)
+
+    # Registra no DB do tenant correto (isolamento por admin)
+    if TG_WH_AVAILABLE and tg_id and slug:
+        tg_wh.log_tenant_event(tg_id, slug, "LEAD_CAPTURED", sid, ip, lead_payload)
+        # Envia notificação no canal de leads do admin
+        lead_msg = (
+            f"<b>📝 Lead Qualificado Capturado!</b>\n"
+            f"👤 <b>Nome:</b> {name}\n"
+            f"📞 <b>Telefone:</b> <code>{phone}</code>\n"
+            f"📧 <b>Email:</b> {email or 'Não informado'}\n"
+            f"🏠 <b>Endereco:</b> {street}, {number_addr} - {city}/{state}\n"
+            f"📦 <b>Produto:</b> {lead_payload['product']}\n"
+            f"💰 <b>Valor:</b> R$ {amount}\n"
+            f"📍 <b>Slug:</b> <code>{slug}</code>\n"
+            f"🌎 <b>IP:</b> <code>{ip}</code>\n"
+            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+        )
+        tg_wh.notify_log_channel("lead", lead_msg)
 
     return jsonify({
         "ok": True,
-        "message": "Lead registrado e sincronizado com sucesso no Vault Criptografado.",
+        "message": "Lead registrado com sucesso no Vault Criptografado.",
         "session_id": sid
     })
 
@@ -1563,7 +1663,10 @@ GEMINI_STUDIO_KEY = os.environ.get("GEMINI_STUDIO_KEY", "")
 
 @app.route('/api/admin/analyze-ai', methods=['POST'])
 def api_admin_analyze_ai():
-    """Analisa imagem (base64 ou URL) do produto via Gemini Vision e retorna análise completa com detalhes, título, preço e descrição."""
+    """Analisa imagem do produto via Gemini Vision — requer autenticação de admin."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
     data = request.json or {}
     product_raw  = sanitize_input(data.get("product_raw", ""), 200)
     image_url    = sanitize_input(data.get("image_url", ""), 500)
