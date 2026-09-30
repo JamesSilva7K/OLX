@@ -10,6 +10,7 @@ import re
 import struct
 import base64
 import requests
+from typing import Optional
 from flask import Flask, render_template, request, jsonify, abort
 
 # ─── Import bot module for shared DB + notifications ──────────────────────────
@@ -481,6 +482,7 @@ def api_config():
 
 
 # ─── ADMIN PANEL & ENCRYPTED AUTH ──────────────────────────────────────────────
+ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "0").split(",") if x.strip().isdigit()]
 SUPER_ADMIN_IDS = [int(x) for x in os.environ.get("SUPER_ADMIN_IDS", os.environ.get("ADMIN_IDS", "0")).split(",") if x.strip().isdigit()]
 
 def verify_admin_access(req) -> tuple[Optional[int], str]:
