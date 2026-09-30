@@ -481,13 +481,15 @@ def api_config():
 
 
 # ─── ADMIN PANEL & ENCRYPTED AUTH ──────────────────────────────────────────────
-def verify_admin_access(req):
+SUPER_ADMIN_IDS = [int(x) for x in os.environ.get("SUPER_ADMIN_IDS", os.environ.get("ADMIN_IDS", "0")).split(",") if x.strip().isdigit()]
+
+def verify_admin_access(req) -> tuple[Optional[int], str]:
     """
-    Valida acesso ao painel admin.
-    Hierarquia:
-      1. Token gerado pelo Telegram via /admin_link (48-char hex, TTL 24h)
-      2. ADMIN_SECRET de fallback (env var)
-    Retorna tg_id (int) se autenticado, None caso contrário.
+    Valida acesso ao painel admin com criptografia e validação de tokens.
+    Retorna uma tupla: (tg_id, role)
+      - role: "supreme_admin" (Admin Supremo - permissão total de movimentação)
+      - role: "admin" (Admin Comum - visualização e edição de produtos/anúncios)
+      - None: Sem acesso
     """
     token = (
         req.headers.get('Authorization', '').replace('Bearer ', '').strip() or
@@ -495,19 +497,23 @@ def verify_admin_access(req):
         req.cookies.get('admin_token', '').strip()
     )
     if not token:
-        return None
+        return None, "unauthorized"
 
-    # 1. Token Telegram gerado pelo /admin_link (validate_admin_token do bot)
+    # 1. Token Telegram gerado via Bot ou OAuth
     if BOT_AVAILABLE and len(token) >= 48:
         tg_id = admin_bot.validate_admin_token(token)
         if tg_id:
-            return tg_id
+            # Verifica se é Admin Supremo
+            is_supreme = (tg_id in SUPER_ADMIN_IDS) or (ADMIN_IDS and tg_id in ADMIN_IDS and tg_id == ADMIN_IDS[0]) or (tg_id == 999999999)
+            role = "supreme_admin" if is_supreme else "admin"
+            return tg_id, role
 
-    # 2. Fallback: ADMIN_SECRET env var (acesso direto sem Telegram)
+    # 2. Fallback: ADMIN_SECRET env var (Admin Supremo Acesso Direto)
     admin_secret = os.environ.get("ADMIN_SECRET", "LO_ENI_MILITARY_VAULT_2026_SECRET")
     if token == admin_secret:
-        return 999999999
-    return None
+        return 999999999, "supreme_admin"
+        
+    return None, "unauthorized"
 
 
 @app.route('/admin')
@@ -516,23 +522,58 @@ def admin_panel(slug=None):
     """
     Serve o painel admin com autenticação Telegram-gated.
     Acesso via /admin?token=<token_gerado_pelo_bot>
-    Sem token válido, redireciona para página de login.
     """
     ip    = _user_ip()
     token = request.args.get('token', slug or '').strip()
-    admin_id = verify_admin_access(request)
-    _log("ADMIN_PAGE_ENTRY", str(uuid.uuid4()), {"ip": ip, "auth": bool(admin_id)})
-    # Passa o token para o template para que o JS use em chamadas à API
-    return render_template('admin.html', admin_slug=slug or "", admin_token=token)
+    admin_id, role = verify_admin_access(request)
+    _log("ADMIN_PAGE_ENTRY", str(uuid.uuid4()), {"ip": ip, "auth": bool(admin_id), "role": role})
+    return render_template('admin.html', admin_slug=slug or "", admin_token=token, admin_role=role)
 
 
 @app.route('/api/admin/verify-token')
 def api_admin_verify_token():
-    """Endpoint para o frontend verificar se o token atual é válido."""
-    admin_id = verify_admin_access(request)
+    """Endpoint para o frontend verificar se o token atual é válido e qual a role (Admin Supremo vs Admin)."""
+    admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "token_invalido_ou_expirado"}), 401
-    return jsonify({"ok": True, "admin_id": admin_id})
+    return jsonify({"ok": True, "admin_id": admin_id, "role": role, "is_supreme": (role == "supreme_admin")})
+
+
+@app.route('/api/admin/c7-status')
+def api_admin_c7_status():
+    """Retorna status em tempo real da conexão com a API C7 (Carteira do 7) e do saldo financeiro."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "Acesso não autorizado"}), 401
+
+    c7_configured = bool(C7_API_KEY and "c7_live_xxx" not in C7_API_KEY)
+    live_status = "disconnected"
+    balance_info = None
+
+    if c7_configured:
+        try:
+            res = requests.get(f"{C7_BASE_URL}/merchant/balance", headers={"Authorization": f"Bearer {C7_API_KEY}"}, timeout=5)
+            if res.status_code == 200:
+                live_status = "connected"
+                # Apenas Admin Supremo visualiza/detalha movimentações do saldo
+                if role == "supreme_admin":
+                    balance_info = res.json().get("balance", {})
+            elif res.status_code == 401:
+                live_status = "invalid_credentials"
+            else:
+                live_status = f"http_{res.status_code}"
+        except Exception as e:
+            live_status = "error_connecting"
+
+    return jsonify({
+        "ok": True,
+        "c7_status": live_status,
+        "api_key_masked": f"{C7_API_KEY[:8]}...{C7_API_KEY[-4:]}" if C7_API_KEY else "não configurada",
+        "role": role,
+        "is_supreme_admin": (role == "supreme_admin"),
+        "balance": balance_info if role == "supreme_admin" else "RESTRITO_ADMIN_SUPREMO"
+    })
+
 
 
 @app.route('/api/admin/stats')
