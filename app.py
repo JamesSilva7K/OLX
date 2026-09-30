@@ -727,6 +727,11 @@ def api_admin_verify_token():
         return jsonify({"ok": False, "error": "token_invalido_ou_expirado"}), 401
 
     reset_auth_failures(ip)
+    if TG_WH_AVAILABLE:
+        try:
+            tg_wh.notify_admin_access(admin_id, role, ip, str(request.user_agent))
+        except Exception:
+            pass
     plan_info = {}
     if TG_WH_AVAILABLE and admin_id:
         plan_info = tg_wh.get_user_plan(admin_id)

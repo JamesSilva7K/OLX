@@ -300,6 +300,23 @@ def get_log_channels():
 
 def notify_log_channel(channel_key: str, text: str, markup=None):
     channels = get_log_channels()
+    ch = channels.get(channel_key) or channels.get('all')
+    if ch and ch.get('chat_id'):
+        send_msg(ch['chat_id'], text, markup=markup)
+def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
+    try:
+        dt = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        role_label = 'ADMIN SUPREMO' if role == 'supreme_admin' else 'ADMIN'
+        geo = get_ip_geolocation(ip)
+        city = geo.get('city', 'Desconhecida')
+        country = geo.get('country', 'BR')
+        isp = geo.get('isp', 'Provedor')
+        msg = f'<b>NOTIFICACAO DE ACESSO AO PAINEL WEB</b>\n\n<b>Admin ID:</b> <code>{admin_id}</code> ({role_label})\n<b>Data/Hora:</b> {dt}\n<b>IP:</b> <code>{ip}</code>\n<b>Localizacao:</b> {city}, {country} ({isp})\n<b>Dispositivo:</b> <code>{user_agent[:60]}</code>'
+        notify_log_channel('system', msg)
+    except Exception as e:
+        logger.error(f'[NOTIFY ACCESS ERROR] {e}')
+
+    channels = get_log_channels()
     ch = channels.get(channel_key) or channels.get("all")
     if ch and ch.get("chat_id"):
         send_msg(ch["chat_id"], text, markup=markup)
