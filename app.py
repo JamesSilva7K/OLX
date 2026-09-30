@@ -2515,7 +2515,7 @@ def monitor_links():
     if not TG_WH_AVAILABLE:
         return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
 
-    db = get_db()
+    db = admin_bot.get_db()
     try:
         # Supreme admin sees all tenants; regular admin sees only their own
         if role == "supreme":
@@ -2594,7 +2594,7 @@ def monitor_visitors():
         return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
 
     limit = min(int(request.args.get("limit", 20)), 100)
-    db = get_db()
+    db = admin_bot.get_db()
     try:
         if role == "supreme":
             rows = db.execute(
@@ -2654,7 +2654,7 @@ def monitor_leads():
         return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
 
     limit = min(int(request.args.get("limit", 30)), 100)
-    db = get_db()
+    db = admin_bot.get_db()
     try:
         if role == "supreme":
             rows = db.execute(

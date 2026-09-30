@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+#!/usr/bin/env python3
+"""Generates the complete premium admin.html for BladeBot OLPG."""
+
+HTML = """<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -35,7 +38,7 @@
     .auth-logo-icon svg{width:24px;height:24px;color:#fff}
     .auth-logo-name{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px}
     .auth-logo-badge{font-size:10px;font-weight:700;padding:2px 8px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);border-radius:20px;color:var(--c-purple3);letter-spacing:1px}
-    .auth-card{background:rgba(22,0,36,0.9);border:1px solid rgba(139,92,246,0.2);border-radius:var(--r-xl);padding:36px 28px;box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(139,92,246,0.08);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);animation:authIn .5s cubic-bezier(0.16,1,0.3,1)}
+    .auth-card{background:rgba(22,0,36,0.9);border:1px solid rgba(139,92,246,0.2);border-radius:var(--r-xl);padding:36px 28px;box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(139,92,246,0.08);backdrop-filter:blur(24px);animation:authIn .5s cubic-bezier(0.16,1,0.3,1)}
     @keyframes authIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
     .auth-head{text-align:center;margin-bottom:28px}
     .auth-shield{width:60px;height:60px;margin:0 auto 16px;border-radius:20px;background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(167,139,250,0.08));border:1px solid rgba(139,92,246,0.25);display:flex;align-items:center;justify-content:center;color:var(--c-purple3);box-shadow:0 8px 32px rgba(139,92,246,0.2)}
@@ -73,7 +76,7 @@
     #app-shell{display:none;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;position:relative;background:var(--c-surface)}
 
     /* HEADER */
-    .hdr{height:var(--hdr-h);flex-shrink:0;background:rgba(15,0,24,0.97);border-bottom:1px solid var(--c-border);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:50}
+    .hdr{height:var(--hdr-h);flex-shrink:0;background:rgba(15,0,24,0.97);border-bottom:1px solid var(--c-border);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:50}
     .hdr-l{display:flex;align-items:center;gap:10px}
     .hdr-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(139,92,246,0.4)}
     .hdr-mark svg{width:18px;height:18px;color:#fff}
@@ -94,7 +97,7 @@
     @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
     /* BOTTOM NAV */
-    .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);background:rgba(10,0,18,0.97);border-top:1px solid var(--c-border);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);display:flex;align-items:center;z-index:50}
+    .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);background:rgba(10,0,18,0.97);border-top:1px solid var(--c-border);backdrop-filter:blur(24px);display:flex;align-items:center;z-index:50}
     .bnav-items{display:flex;width:100%;align-items:center}
     .ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:var(--nav-h);cursor:pointer;color:var(--c-t3);transition:color .2s;-webkit-user-select:none;user-select:none;position:relative}
     .ni svg{width:22px;height:22px;transition:transform .2s}
@@ -219,7 +222,7 @@
 
     /* TOAST */
     .toast-host{position:fixed;bottom:calc(var(--nav-h) + 12px + var(--safe-b));left:50%;transform:translateX(-50%);display:flex;flex-direction:column-reverse;gap:8px;z-index:99999;pointer-events:none;width:100%;max-width:440px;padding:0 14px}
-    .toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r-md);font-size:13px;font-weight:600;color:var(--c-text);background:rgba(20,5,35,0.97);border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 32px rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);animation:toastIn .3s cubic-bezier(0.16,1,.3,1) both;pointer-events:all}
+    .toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r-md);font-size:13px;font-weight:600;color:var(--c-text);background:rgba(20,5,35,0.97);border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 32px rgba(0,0,0,0.5);backdrop-filter:blur(16px);animation:toastIn .3s cubic-bezier(0.16,1,.3,1) both;pointer-events:all}
     .toast.out{animation:toastOut .25s ease forwards}
     @keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
     @keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.95)}}
@@ -229,7 +232,7 @@
     .tdot.inf{background:var(--c-purple);box-shadow:0 0 8px var(--c-purple)}
 
     /* MODAL */
-    .modal{display:none;position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,0.75);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;padding:0}
+    .modal{display:none;position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;padding:0}
     .modal.open{display:flex}
     .modal-sheet{width:100%;max-width:480px;background:var(--c-card);border-radius:24px 24px 0 0;border:1px solid var(--c-border);border-bottom:none;max-height:90dvh;overflow-y:auto;animation:sheetIn .3s cubic-bezier(0.16,1,.3,1);padding-bottom:calc(var(--safe-b) + 16px)}
     @keyframes sheetIn{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -344,69 +347,7 @@
     .ova{overflow-x:auto}.wfull{width:100%}
     hr.div{border:none;border-top:1px solid var(--c-border);margin:14px 0}
     @supports (padding-bottom: env(safe-area-inset-bottom)){.bnav{padding-bottom:env(safe-area-inset-bottom)}}
-  
-    /* ── TELEGRAM WEB APP FIXES ──────────────────────────────── */
-    :root {
-      --twa-safe-top: env(safe-area-inset-top, 0px);
-      --twa-safe-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    html, body {
-      /* Prevent rubber-band scroll in TWA */
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: touch;
-    }
-    /* Nav bar always at bottom, never overlaps content */
-    #nav-bar {
-      padding-bottom: calc(8px + var(--twa-safe-bottom, 0px));
-      height: calc(var(--nav-h) + var(--twa-safe-bottom, 0px));
-    }
-    .page-wrap {
-      /* Account for nav bar height including safe area */
-      padding-bottom: calc(var(--nav-h) + var(--twa-safe-bottom, 0px) + 8px);
-    }
-    /* Header safe area */
-    #app-header {
-      padding-top: calc(var(--twa-safe-top, 0px) + 8px);
-    }
-    /* Fix proportional scaling on Telegram mini apps */
-    * { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    input, textarea, select {
-      font-size: 16px !important; /* Prevents iOS zoom on focus */
-    }
-    /* TWA Scrollbar hidden but functional */
-    ::-webkit-scrollbar { display: none; }
-    * { scrollbar-width: none; }
-</style>
-
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    // TWA Init
-    if (window.Telegram && window.Telegram.WebApp) {
-      const twa = window.Telegram.WebApp;
-      twa.ready();
-      twa.expand();
-      // Set theme colors from Telegram
-      const root = document.documentElement;
-      if (twa.themeParams) {
-        const p = twa.themeParams;
-        if (p.bg_color) root.style.setProperty('--twa-bg', p.bg_color);
-        if (p.text_color) root.style.setProperty('--twa-text', p.text_color);
-      }
-      // Safe area insets for iOS notch
-      root.style.setProperty('--twa-safe-top', (twa.safeAreaInsets?.top || 0) + 'px');
-      root.style.setProperty('--twa-safe-bottom', (twa.safeAreaInsets?.bottom || 0) + 'px');
-      // Back button handling
-      twa.BackButton.onClick(() => {
-        const pages = document.querySelectorAll('.page');
-        const activePage = document.querySelector('.page:not(.hidden)');
-        if (activePage && activePage.id !== 'page-dash') {
-          navTo('dash');
-          twa.BackButton.hide();
-        }
-      });
-    }
-  </script>
+  </style>
 </head>
 <body>
 
@@ -448,7 +389,7 @@
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7 5l-4.5 4.5a1.7 1.7 0 0 0 2.4 2.4L14 11m-7 5l-3 3m9-15l2.5 2.5"/></svg>
         </div>
         <input type="password" id="auth-inp" class="auth-inp" placeholder="Cole o token do bot (48+ chars)..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
-        <button class="auth-eye" id="eye-btn" onclick="toggleEye()" type="button" title="Mostrar/ocultar token" aria-label="Mostrar/ocultar token">
+        <button class="auth-eye" id="eye-btn" onclick="toggleEye()" type="button">
           <svg id="eye-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
           </svg>
@@ -612,90 +553,15 @@
     </section>
 
     <!-- CONFIG -->
-    
-    <!-- MONITORING PAGE -->
-    <section class="page hidden" id="page-monitor">
-      <div class="sec-ttl">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        Monitoramento de Links
-      </div>
-
-      <!-- Stats Row -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div class="stat-card">
-          <div class="stat-val" id="mon-total-visits">—</div>
-          <div class="stat-lbl">Visitas Totais</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="mon-unique-visits">—</div>
-          <div class="stat-lbl">Visitantes Unicos</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="mon-leads-today">—</div>
-          <div class="stat-lbl">Leads Hoje</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="mon-conv-rate">—</div>
-          <div class="stat-lbl">Conversao</div>
-        </div>
-      </div>
-
-      <!-- Link Performance -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-hdr">
-          <div class="card-ttl">
-            <div class="ci ci-pur">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            </div>
-            Performance por Link
-          </div>
-          <button class="btn btn-g btn-xs" onclick="loadLinkMonitor()">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          </button>
-        </div>
-        <div class="card-body" id="mon-link-list"><div class="empty"><p>Carregando...</p></div></div>
-      </div>
-
-      <!-- Recent Visitors -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-hdr">
-          <div class="card-ttl">
-            <div class="ci ci-blu">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            Visitantes Recentes
-          </div>
-        </div>
-        <div class="card-body" id="mon-visitors-list"><div class="empty"><p>Carregando...</p></div></div>
-      </div>
-
-      <!-- Lead Validation Status -->
-      <div class="card">
-        <div class="card-hdr">
-          <div class="card-ttl">
-            <div class="ci ci-grn">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            </div>
-            Leads Validados
-          </div>
-          <button class="btn btn-g btn-xs" onclick="loadLeadMonitor()">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          </button>
-        </div>
-        <div class="card-body" id="mon-leads-list"><div class="empty"><p>Carregando leads...</p></div></div>
-      </div>
-    </section>
     <section class="page" id="page-config">
       <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
       <div class="tabs-pill" id="cfg-tabs" style="margin-bottom:14px">
-        <button class="tp active" onclick="cfgTab('produto',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Produto</button>
-        <button class="tp" onclick="cfgTab('vendedor',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Vendedor</button>
-        <button class="tp" onclick="cfgTab('whatsapp',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.71 3.41 2 2 0 0 1 3.69 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> WhatsApp</button>
-        <button class="tp" onclick="cfgTab('badges',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Badges</button>
-        <button class="tp" onclick="cfgTab('fotos',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Fotos</button>
+        <button class="tp active" onclick="cfgTab('produto',this)">📦 Produto</button>
+        <button class="tp" onclick="cfgTab('vendedor',this)">👤 Vendedor</button>
+        <button class="tp" onclick="cfgTab('whatsapp',this)">📱 WhatsApp</button>
+        <button class="tp" onclick="cfgTab('badges',this)">🏷️ Badges</button>
+        <button class="tp" onclick="cfgTab('fotos',this)">📸 Fotos</button>
         <button class="tp" onclick="cfgTab('sistema',this)">⚙️ Sistema</button>
-      
-        <button class="tp" id="tab-fin" onclick="cfgTab('financeiro',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Financeiro</button>
       </div>
 
       <div id="ct-produto">
@@ -800,114 +666,6 @@
     </section>
 
     <!-- PROFILE -->
-    <section class="page"       <!-- VAULT FINANCEIRO (injected) -->
-      <div id="ct-financeiro" class="hidden">
-        <div style="background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.06));border:1px solid rgba(139,92,246,0.25);border-radius:18px;padding:18px 16px;margin-bottom:16px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            </div>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:#fff">Detector de Credenciais IA</div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.5)">Cole qualquer API key &#8212; o sistema detecta o gateway automaticamente</div>
-            </div>
-          </div>
-          <textarea id="ai-detect-input" class="fta" placeholder="Cole aqui sua API key, token ou credenciais..." style="min-height:80px;font-size:12px;font-family:monospace"></textarea>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-p" onclick="aiDetectCreds()" style="flex:1" id="ai-detect-btn">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Detectar Gateway
-            </button>
-            <button class="btn btn-g" onclick="document.getElementById('ai-detect-input').value='';document.getElementById('ai-result').style.display='none'">Limpar</button>
-          </div>
-          <div id="ai-result" style="display:none;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)">
-            <!-- Header -->
-            <div id="ai-result-header" style="padding:14px;background:rgba(255,255,255,0.04)">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                <div id="ai-gw-logo" style="width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;background:#7C3AED;flex-shrink:0">?</div>
-                <div style="flex:1">
-                  <div id="ai-gw-name" style="font-size:13px;font-weight:800;color:#fff">&#8212;</div>
-                  <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
-                    <div id="ai-conf-bar" style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);overflow:hidden"><div id="ai-conf-fill" style="height:100%;border-radius:2px;background:linear-gradient(90deg,#8B5CF6,#10B981);width:0%;transition:width 0.6s ease"></div></div>
-                    <span id="ai-gw-conf" style="font-size:11px;color:rgba(255,255,255,0.5);flex-shrink:0">0%</span>
-                  </div>
-                </div>
-                <span id="ai-engine-chip" style="font-size:9px;padding:3px 7px;border-radius:6px;background:rgba(139,92,246,0.15);color:#A78BFA;font-weight:700;flex-shrink:0">IA</span>
-              </div>
-              <!-- Runner-up -->
-              <div id="ai-runnerup" style="display:none;font-size:11px;color:rgba(255,255,255,0.35);padding:6px 0 0">Tambem detectado: <span id="ai-runnerup-text"></span></div>
-            </div>
-            <!-- Issues / Warnings -->
-            <div id="ai-issues" style="display:none;padding:10px 14px;background:rgba(245,158,11,0.07);border-top:1px solid rgba(245,158,11,0.15)">
-              <div style="font-size:11px;font-weight:700;color:#FCD34D;margin-bottom:4px"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Avisos</div>
-              <div id="ai-issues-list" style="font-size:11.5px;color:#FCD34D;line-height:1.8"></div>
-            </div>
-            <!-- Extracted fields preview -->
-            <div id="ai-fields-preview" style="display:none;padding:10px 14px;background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05)">
-              <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Campos Extraidos</div>
-              <div id="ai-fields-list" style="display:flex;flex-direction:column;gap:5px"></div>
-            </div>
-            <!-- Instructions -->
-            <div id="ai-instructions" style="display:none;padding:10px 14px;background:rgba(16,185,129,0.04);border-top:1px solid rgba(16,185,129,0.1)">
-              <div style="font-size:11px;font-weight:700;color:#34D399;margin-bottom:6px"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Como Configurar</div>
-              <ol id="ai-instructions-list" style="padding-left:16px;font-size:11.5px;color:rgba(255,255,255,0.6);line-height:2"></ol>
-            </div>
-            <!-- Action -->
-            <div style="padding:12px 14px;background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px">
-              <button class="btn btn-p" style="flex:1" id="ai-use-btn" onclick="useAiDetection()">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Preencher Campos
-              </button>
-              <button class="btn btn-g btn-xs" onclick="document.getElementById('ai-result').style.display='none'">&#10005;</button>
-            </div>
-          </div>
-        </div>
-        <div id="vault-active-banner" style="display:none;margin-bottom:14px;padding:14px 16px;border-radius:14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:10px;height:10px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;flex-shrink:0"></div>
-            <div><div style="font-size:12px;font-weight:800;color:#34D399">Gateway Ativo</div><div id="vault-active-name" style="font-size:11px;color:rgba(255,255,255,0.5)">&#8212;</div></div>
-            <button class="btn btn-d btn-xs" style="margin-left:auto" onclick="deactivateAll()">Desativar</button>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-ttl" style="margin:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Meus Gateways</div>
-          <button class="btn btn-g btn-xs" onclick="loadVaultGateways()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
-        </div>
-        <div id="vault-gw-grid" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"><div class="empty"><p>Carregando...</p></div></div>
-        <div class="card" id="vault-add-card">
-          <div class="card-hdr"><div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>Adicionar / Editar Gateway</div></div>
-          <div class="card-body">
-            <div class="fg"><label class="flbl">Tipo de Gateway</label>
-              <select class="fsel" id="vault-gw-sel" onchange="onGwSelChange()">
-                <option value="">Selecione...</option>
-                <option value="c7">Carteira do 7 (C7)</option>
-                <option value="mercadopago">Mercado Pago</option>
-                <option value="pagseguro">PagSeguro</option>
-                <option value="stripe">Stripe</option>
-                <option value="efipay">Efi Pay (Gerencianet)</option>
-                <option value="pix_manual">Pix Manual (Chave Direta)</option>
-                <option value="custom">API Personalizada</option>
-              </select>
-            </div>
-            <div id="vault-fields-wrap"></div>
-            <button class="btn btn-p btn-w" onclick="saveVaultCreds()" id="vault-save-btn">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Salvar (AES-256 Criptografado)
-            </button>
-            <div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7">
-              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> AES-256 + PBKDF2-HMAC-SHA256 &bull; 390.000 iteracoes &bull; Salt unico por campo &bull; Zero plaintext no banco
-            </div>
-          </div>
-        </div>
-        <div class="card mt-12">
-          <div class="card-hdr">
-            <div class="card-ttl"><div class="ci ci-tel"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>Auditoria do Vault</div>
-            <button class="btn btn-g btn-xs" onclick="loadVaultAudit()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
-          </div>
-          <div class="card-body" id="vault-audit-list" style="padding:8px 16px"><div class="empty"><p>Carregando...</p></div></div>
-        </div>
-      </div>
-
     <section class="page" id="page-profile">
       <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Meu Perfil</div>
       <div class="card"><div class="card-body">
@@ -933,12 +691,7 @@
       <div class="ni" id="ni-config" onclick="goTo('config')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config</span></div>
       <div class="ni" id="ni-profile" onclick="goTo('profile')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfil</span></div>
     </div>
-  
-      <button class="nav-btn" id="nav-monitor" onclick="navTo('monitor')">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span class="nav-lbl">Monitor</span>
-      </button>
-      </nav>
+  </nav>
 
 </div>
 
@@ -1061,7 +814,7 @@ async function apiFetch(url,opts={}){return fetch(url,{...opts,headers:{...hdrs(
 async function loadStats(){
   try{const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';const r=await apiFetch(url);const d=await r.json();if(!d.ok)return;const s=d.stats||d;const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v??'—';};sv('st-entries',s.entries??s.page_entries??'—');sv('st-buy',s.click_buy??'—');sv('st-leads',s.leads??s.lead_captured??'—');sv('st-paid',s.paid??s.payment_confirmed??'—');sv('st-conv','Taxa: '+(s.conv_rate??0)+'%');const ent=parseInt(s.entries||s.page_entries||0)||1;const buy=parseInt(s.click_buy||0)||0;const lds=parseInt(s.leads||s.lead_captured||0)||0;const pd=parseInt(s.paid||s.payment_confirmed||0)||0;sv('fn-entries',ent);sv('fn-buy',buy);sv('fn-leads',lds);sv('fn-paid',pd);const pct=v=>Math.min(100,Math.round((v/ent)*100))+'%';['buy','leads','paid'].forEach(k=>{const el=document.getElementById('fnb-'+k);if(el)el.style.width=pct(k==='buy'?buy:k==='leads'?lds:pd);});}catch(e){}}
 
-let _allEv=[];let _pmap={};
+let _allEv=[];
 async function loadEvents(){
   try{const url=_SLUG?'/api/admin/events?slug='+_SLUG+'&limit=50':'/api/admin/events?limit=50';const r=await apiFetch(url);const d=await r.json();_allEv=d.events||d.logs||[];renderEv(_EV_F);const c=document.getElementById('ev-cnt');if(c)c.textContent=_allEv.length+' evento(s)';}catch{renderEv(_EV_F);}
 }
@@ -1080,11 +833,11 @@ function renderEv(f){
 }
 
 async function loadSessions(){
-  try{const url=_SLUG?'/api/admin/sessions?slug='+_SLUG+'&limit=15':'/api/admin/sessions?limit=15';const r=await apiFetch(url);const d=await r.json();const list=d.sessions||[];const el=document.getElementById('sess-list');if(!list.length){el.innerHTML='<div class="empty"><p>Nenhuma sessão.</p></div>';return;}const em=['🧑','👤','👩','🧔','👦','👧'];el.innerHTML=list.slice(0,12).map((s,i)=>{const dt=new Date((s.entered_at||s.ts||0)*1000);const tm=dt.toLocaleDateString('pt-BR')+' '+dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');const cv=s.converted?'<span class="chip chip-g" style="font-size:10px">Converteu</span>':'';return '<div class="sess"><div class="sess-av">'+em[i%em.length]+'</div><div class="sess-info"><div class="sess-ip">'+(s.ip||'—')+'</div><div class="sess-meta">'+((s.ua||'').slice(0,50)||'Desconhecido')+' '+cv+'</div></div><span class="sess-time">'+tm+'</span></div>';}).join('');}catch(e){}
+  try{const url=_SLUG?'/api/admin/sessions?slug='+_SLUG+'&limit=15':'/api/admin/sessions?limit=15';const r=await apiFetch(url);const d=await r.json();const list=d.sessions||[];const el=document.getElementById('sess-list');if(!list.length){el.innerHTML='<div class="empty"><p>Nenhuma sessão.</p></div>';return;}const em=['🧑','👤','👩','🧔','👦','👧'];el.innerHTML=list.slice(0,12).map((s,i)=>{const dt=new Date((s.entered_at||s.ts||0)*1000);const tm=dt.toLocaleDateString('pt-BR')+' '+dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');const cv=s.converted?'<span class="chip chip-g" style="font-size:10px">Converteu</span>':'';return '<div class="sess"><div class="sess-av">'+em[i%em.length]+'</div><div class="sess-info"><div class="sess-ip">'+(s.ip||'—')+'</div><div class="sess-meta">'+((s.ua||'').slice(0,50)||'Desconhecido')+' '+cv+'</div></div><span class="sess-time">'+tm+'</span></div>';}).join('');}catch{}
 }
 
 async function loadProducts(){
-  try{const url=_SLUG?'/api/products?slug='+_SLUG:'/api/products';const r=await apiFetch(url);const d=await r.json();const list=d.products||d.items||[];const g=document.getElementById('prods-grid');if(!list.length){g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para criar.</p></div>';return;}_pmap={};list.forEach(function(px){_pmap[px.code||px.product_code||'']=px;});g.innerHTML=list.map(p=>{const img=p.image_url||p.image||'';const code=p.code||p.product_code||'';const oldp=p.old_price?'<span class="prod-oldp">R$ '+p.old_price+'</span>':'';return '<div class="prod-card"><div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+p.name+'" onerror="this.style.display=&quot;none&quot;"/>':'')+'<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div></div><div class="prod-info"><div class="prod-name">'+(p.name||p.title)+'</div><div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div><div class="prod-code">Código: '+code+'</div></div><div class="prod-acts"><button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')" ><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button><button class="btn btn-g btn-xs" onclick="openEditProd(_pmap['+JSON.stringify(code)+'])">Editar</button><button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></div>';}).join('');}catch(e){}
+  try{const url=_SLUG?'/api/products?slug='+_SLUG:'/api/products';const r=await apiFetch(url);const d=await r.json();const list=d.products||d.items||[];const g=document.getElementById('prods-grid');if(!list.length){g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para criar.</p></div>';return;}g.innerHTML=list.map(p=>{const img=p.image_url||p.image||'';const code=p.code||p.product_code||'';const oldp=p.old_price?'<span class="prod-oldp">R$ '+p.old_price+'</span>':'';return '<div class="prod-card"><div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+p.name+'" onerror="this.style.display=\'none\'"/>':'')+'<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div></div><div class="prod-info"><div class="prod-name">'+(p.name||p.title)+'</div><div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div><div class="prod-code">Código: '+code+'</div></div><div class="prod-acts"><button class="btn btn-s btn-xs" onclick="applyProd(\''+code+'\',\''+((p.name||p.title).replace(/\'/g,"\\'"))+'\')" ><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button><button class="btn btn-g btn-xs" onclick=\'openEditProd('+JSON.stringify(p)+')\'>Editar</button><button class="btn btn-d btn-xs" onclick="delProd(\''+code+'\',\''+((p.name||p.title).replace(/\'/g,"\\'"))+'\')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></div>';}).join('');}catch(e){}
 }
 function openAddProd(){document.getElementById('prod-modal-ttl').textContent='Novo Produto';['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-img','edit-slug'].forEach(id=>{document.getElementById(id).value='';});document.getElementById('edit-slug').disabled=false;document.getElementById('edit-lnk-box').style.display='none';document.getElementById('prod-modal').classList.add('open');}
 function openEditProd(p){document.getElementById('prod-modal-ttl').textContent='Editar Produto';const code=p.code||p.product_code||'';document.getElementById('edit-code').value=code;document.getElementById('edit-name').value=p.name||p.title||'';document.getElementById('edit-price').value=p.price||'';document.getElementById('edit-oldp').value=p.old_price||'';document.getElementById('edit-desc').value=p.description||'';document.getElementById('edit-img').value=p.image_url||p.image||'';document.getElementById('edit-slug').value=code;document.getElementById('edit-slug').disabled=true;if(code){document.getElementById('edit-lnk').value=window.location.origin+'/p/'+code;document.getElementById('edit-lnk-box').style.display='flex';}document.getElementById('prod-modal').classList.add('open');}
@@ -1100,7 +853,7 @@ async function applyProd(code,name){if(!confirm('Definir "'+name+'" como produto
 async function delProd(code,name){if(!confirm('Excluir "'+name+'"?'))return;try{const r=await apiFetch('/api/products/'+code,{method:'DELETE'});const d=await r.json();if(d.ok){toast('Produto excluído.','info');loadProducts();}else toast(d.error||'Erro.','err');}catch{toast('Erro.','err');}}
 
 async function loadCfg(){
-  try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);if(d.payment_badges){try{_BADGES=JSON.parse(d.payment_badges);if(!Array.isArray(_BADGES))_BADGES=[];}catch(e){_BADGES=[];}renderBadges();}loadTgls();}catch(e){}
+  try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);if(d.payment_badges){try{_BADGES=JSON.parse(d.payment_badges);if(!Array.isArray(_BADGES))_BADGES=[];}catch{_BADGES=[];}renderBadges();}loadTgls();}catch{}
 }
 async function loadTgls(){try{const r=await apiFetch('/api/admin/config');const d=await r.json();if(!d.ok)return;const c=d.config||{};const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v==='1'||v===true||v===1;};sc('tgl-active',c.active);sc('tgl-pixel',c.pixel_active);sc('tgl-notif',c.notifications);}catch{}}
 
@@ -1134,171 +887,27 @@ function debWa(){clearTimeout(_wa_t);_wa_t=setTimeout(validateWa,700);}
 async function validateWa(){const inp=document.getElementById('cfg-wa'),dot=document.getElementById('wa-dot'),msg=document.getElementById('wa-msg');if(!inp||!inp.value.trim()){if(dot)dot.style.background='rgba(255,255,255,0.12)';return;}if(dot)dot.style.background='#F59E0B';try{const r=await apiFetch('/api/admin/validate-whatsapp',{method:'POST',body:JSON.stringify({number:inp.value.trim()})});const d=await r.json();if(d.valid){dot.style.background='#10B981';inp.value=d.clean_number||inp.value;if(msg){msg.textContent='✅ '+(d.formatted_national||'')+' — '+(d.ddd_info?.region||'Brasil 🇧🇷');msg.style.color='#34D399';}}else{dot.style.background='#EF4444';if(msg){msg.textContent=d.error||'Número inválido.';msg.style.color='#F87171';}}}catch{if(dot)dot.style.background='#EF4444';}}
 
 async function upPhoto(n,inp){const file=inp.files[0];if(!file)return;const fd=new FormData();fd.append('file',file);try{const r=await fetch('/api/admin/upload',{method:'POST',headers:{'Authorization':'Bearer '+_TK},body:fd});const d=await r.json();if(d.url){document.getElementById('pu'+n).value=d.url;const dz=document.getElementById('dz'+n);if(dz){dz.innerHTML='<img src="'+d.url+'" />';dz.classList.add('dz-done');}toast('Foto '+n+' enviada!','ok');}else toast(d.error||'Erro.','err');}catch{toast('Erro upload.','err');}}
-function prevPhoto(n){const url=document.getElementById('pu'+n)?.value.trim();const dz=document.getElementById('dz'+n);if(!dz)return;if(url){dz.innerHTML='<input type="file" id="fi'+n+'" accept="image/*" onchange="upPhoto('+n+',this)"/><img src="'+url+'" onerror="this.style.display=&quot;none&quot;" />';dz.classList.add('dz-done');}}
+function prevPhoto(n){const url=document.getElementById('pu'+n)?.value.trim();const dz=document.getElementById('dz'+n);if(!dz)return;if(url){dz.innerHTML='<input type="file" id="fi'+n+'" accept="image/*" onchange="upPhoto('+n+',this)"/><img src="'+url+'" onerror="this.style.display=\'none\'" />';dz.classList.add('dz-done');}}
 
 const PB={pix:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg/512px-Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg.png',label:'Pix'},visa:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/512px-Visa_Inc._logo.svg.png',label:'Visa'},master:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/512px-Mastercard-logo.svg.png',label:'Mastercard'},elo:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Elo_logo.svg/512px-Elo_logo.svg.png',label:'Elo'},amex:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/512px-American_Express_logo.svg.png',label:'Amex'},boleto:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Boleto_logo.svg/512px-Boleto_logo.svg.png',label:'Boleto'}};
 function addPBadge(k){const b=PB[k];if(!b)return;if(_BADGES.some(x=>x.url===b.url)){toast('Badge já adicionada.','info');return;}_BADGES.push(b);renderBadges();}
 function addBadgeURL(){const i=document.getElementById('badge-url');const url=i.value.trim();if(!url)return;if(_BADGES.some(x=>x.url===url)){toast('Já adicionada.','info');return;}_BADGES.push({url,label:''});renderBadges();i.value='';}
 function delBadge(i){_BADGES.splice(i,1);renderBadges();}
 function clearBadges(){if(!confirm('Remover todas as badges?'))return;_BADGES=[];renderBadges();toast('Badges removidas.','info');}
-function renderBadges(){const g=document.getElementById('badge-grid');if(!g)return;if(!_BADGES.length){g.innerHTML='<span style="font-size:12px;color:var(--c-t3)">Nenhum método adicionado.</span>';return;}g.innerHTML=_BADGES.map((b,i)=>'<div class="badge-chip"><img src="'+b.url+'" alt="'+(b.label||'badge')+'" onerror="this.style.opacity=&quot;0.3&quot;"/>'+(b.label?'<span style="font-size:10px;font-weight:700;color:var(--c-t3)">'+b.label+'</span>':'')+'<button class="badge-del" onclick="delBadge('+i+')">×</button></div>').join('');}
+function renderBadges(){const g=document.getElementById('badge-grid');if(!g)return;if(!_BADGES.length){g.innerHTML='<span style="font-size:12px;color:var(--c-t3)">Nenhum método adicionado.</span>';return;}g.innerHTML=_BADGES.map((b,i)=>'<div class="badge-chip"><img src="'+b.url+'" alt="'+(b.label||'badge')+'" onerror="this.style.opacity=\'.3\'"/>'+(b.label?'<span style="font-size:10px;font-weight:700;color:var(--c-t3)">'+b.label+'</span>':'')+'<button class="badge-del" onclick="delBadge('+i+')">×</button></div>').join('');}
 
 async function fullRefresh(){await loadStats();updLink();}
 
-
-// ── VAULT / FINANCIAL PANEL ───────────────────────────────────────────────
-let _AI_DET = null;
-const GW_META = {
-  c7:         {name:'Carteira do 7',  logo:'C7',  color:'#7C3AED'},
-  mercadopago:{name:'Mercado Pago',   logo:'MP',  color:'#009EE3'},
-  pagseguro:  {name:'PagSeguro',      logo:'PS',  color:'#00B272'},
-  stripe:     {name:'Stripe',         logo:'ST',  color:'#635BFF'},
-  efipay:     {name:'Efi Pay',        logo:'EFI', color:'#1A5EFF'},
-  pix_manual: {name:'Pix Manual',     logo:'PIX', color:'#32BCAD'},
-  custom:     {name:'Personalizada',  logo:'API', color:'#6B7280'},
-};
-const GW_FIELDS = {
-  c7:         [{key:'api_key',label:'API Key',pw:true,hint:'c7_live_...'},{key:'api_secret',label:'API Secret',pw:true,hint:'0449fb...'},{key:'internal_token',label:'Token Interno',pw:true,hint:'39Qrhf...'},{key:'base_url',label:'Base URL',pw:false,hint:'https://api.carteirado7.com/v2'},{key:'acquirer_code',label:'Cod. Adquirente',pw:false,hint:'Opcional'}],
-  mercadopago:[{key:'access_token',label:'Access Token',pw:true,hint:'APP_USR-...'},{key:'public_key',label:'Public Key',pw:false,hint:'APP_USR-...'}],
-  pagseguro:  [{key:'token',label:'Token',pw:true,hint:'UUID token'},{key:'email',label:'E-mail',pw:false,hint:'seu@email.com'}],
-  stripe:     [{key:'secret_key',label:'Secret Key',pw:true,hint:'sk_live_...'},{key:'publishable_key',label:'Publishable Key',pw:false,hint:'pk_live_...'},{key:'webhook_secret',label:'Webhook Secret',pw:true,hint:'whsec_...'}],
-  efipay:     [{key:'client_id',label:'Client ID',pw:false,hint:'Client_Id_...'},{key:'client_secret',label:'Client Secret',pw:true,hint:'Client_Secret_...'},{key:'pix_key',label:'Chave Pix',pw:false,hint:'CPF/e-mail/tel'},{key:'sandbox',label:'Sandbox',pw:false,hint:'true/false'}],
-  pix_manual: [{key:'pix_key',label:'Chave Pix',pw:false,hint:'CPF, CNPJ, e-mail...'},{key:'pix_name',label:'Nome Recebedor',pw:false,hint:'Nome completo'},{key:'pix_city',label:'Cidade',pw:false,hint:'Sao Paulo'}],
-  custom:     [{key:'raw_credentials',label:'Credenciais JSON',pw:false,hint:'{"key":"..."}'},{key:'base_url',label:'URL Base',pw:false,hint:'https://...'}],
-};
-const _origCfgTab = cfgTab;
-cfgTab = function(n, btn) {
-  ['produto','vendedor','whatsapp','badges','fotos','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});
-  document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));
-  const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');
-  if(n==='sistema')loadStatus();
-  if(n==='financeiro'){loadVaultGateways();loadVaultAudit();}
-};
-function onGwSelChange(){const gw=document.getElementById('vault-gw-sel').value;renderVaultFields(gw,{});}
-function renderVaultFields(gw,prefill){
-  const wrap=document.getElementById('vault-fields-wrap');if(!gw||!GW_FIELDS[gw]){wrap.innerHTML='';return;}
-  const meta=GW_META[gw]||{};
-  wrap.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:14px"><div style="width:28px;height:28px;border-radius:7px;background:'+(meta.color||'#888')+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff">'+(meta.logo||'?')+'</div><span style="font-size:13px;font-weight:700;color:#fff">'+(meta.name||gw)+'</span><span class="chip chip-p" style="margin-left:auto;font-size:10px">Configurando</span></div>'+
-  GW_FIELDS[gw].map(f=>'<div class="fg"><label class="flbl">'+f.label+'</label><input type="'+(f.pw?'password':'text')+'" class="fi vault-field" data-key="'+f.key+'" placeholder="'+(f.hint||'')+'" value="'+(prefill[f.key]||'')+'" autocomplete="off" spellcheck="false"/></div>').join('');
-}
-async function saveVaultCreds(){
-  const gw=document.getElementById('vault-gw-sel').value;if(!gw){toast('Selecione um gateway.','err');return;}
-  const fields={};document.querySelectorAll('.vault-field').forEach(el=>{if(el.value.trim())fields[el.dataset.key]=el.value.trim();});
-  if(!Object.keys(fields).length){toast('Preencha ao menos um campo.','err');return;}
-  const btn=document.getElementById('vault-save-btn');btn.disabled=true;
-  try{const r=await apiFetch('/api/admin/vault/credentials',{method:'POST',body:JSON.stringify({gateway:gw,fields})});const d=await r.json();if(d.ok){toast('Credenciais salvas com AES-256!','ok');loadVaultGateways();loadVaultAudit();}else toast(d.error||'Erro.','err');}catch{toast('Erro.','err');}
-  btn.disabled=false;
-}
-async function loadVaultGateways(){
-  const grid=document.getElementById('vault-gw-grid');const banner=document.getElementById('vault-active-banner');
-  try{const r=await apiFetch('/api/admin/vault/gateways');const d=await r.json();
-  if(!d.ok){grid.innerHTML='<div class="empty"><p>Vault indisponivel.</p></div>';return;}
-  const gws=d.gateways||[];const active=d.active_gateway;
-  if(active&&banner){banner.style.display='block';const m=GW_META[active]||{};document.getElementById('vault-active-name').textContent=m.name||active;}else if(banner)banner.style.display='none';
-  if(!gws.length){grid.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></div><h3>Nenhum gateway</h3><p>Configure um acima.</p></div>';return;}
-  grid.innerHTML = gws.map(gw => {
-    const meta = GW_META[gw.gateway] || {};
-    const isA = gw.gateway === active;
-    const dt = gw.updated_at ? new Date(gw.updated_at * 1000).toLocaleDateString('pt-BR') : '';
-    const borderColor = isA ? 'rgba(16,185,129,0.35)' : 'var(--c-border)';
-    const activateBtn = !isA
-      ? `<button class="btn btn-s btn-xs" onclick="activateGw('${gw.gateway}')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>`
-      : '';
-    const deactivateBtn = isA
-      ? `<button class="btn btn-d btn-xs" onclick="deactivateAll()">Desativar</button>`
-      : '';
-    return `<div style="background:var(--c-card2);border:1.5px solid ${borderColor};border-radius:14px;padding:14px 16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:${meta.color||'#888'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0">${meta.logo||'?'}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:800;color:#fff">${meta.name||gw.gateway}</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">${gw.field_count||0} campo(s) &bull; ${dt}</div></div><span class="chip ${isA?'chip-g':'chip-o'}" style="font-size:10px;flex-shrink:0">${isA?'Ativo':'Inativo'}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap">${activateBtn} <button class="btn btn-g btn-xs" onclick="editGw('${gw.gateway}')">Editar</button> <button class="btn btn-d btn-xs" onclick="deleteGw('${gw.gateway}')">Excluir</button> ${deactivateBtn}</div></div>`;
-  }).join('');
-  }catch(e){grid.innerHTML='<div class="empty"><p>Erro.</p></div>';}
-}
-async function activateGw(gw){
-  const r=await apiFetch('/api/admin/vault/activate',{method:'POST',body:JSON.stringify({gateway:gw,active:true})});const d=await r.json();
-  if(d.ok){toast('Gateway ativado!','ok');loadVaultGateways();}else toast(d.error||'Erro.','err');
-}
-async function deactivateAll(){
-  await apiFetch('/api/admin/vault/activate',{method:'POST',body:JSON.stringify({gateway:'deactivate',active:false})});
-  toast('Gateway desativado.','info');loadVaultGateways();
-}
-async function editGw(gw){
-  document.getElementById('vault-gw-sel').value=gw;
-  const r=await apiFetch('/api/admin/vault/credentials?gateway='+gw);const d=await r.json();
-  renderVaultFields(gw,d.masked||{});
-  document.getElementById('vault-add-card').scrollIntoView({behavior:'smooth'});
-}
-async function deleteGw(gw){
-  const meta=GW_META[gw]||{};if(!confirm('Excluir '+(meta.name||gw)+'?'))return;
-  const r=await apiFetch('/api/admin/vault/delete',{method:'POST',body:JSON.stringify({gateway:gw})});const d=await r.json();
-  if(d.ok){toast('Gateway removido.','info');loadVaultGateways();loadVaultAudit();}else toast(d.error||'Erro.','err');
-}
-async function loadVaultAudit(){
-  const el=document.getElementById('vault-audit-list');if(!el)return;
-  try{const r=await apiFetch('/api/admin/vault/audit?limit=15');const d=await r.json();
-  const items=d.audit||[];
-  if(!items.length){el.innerHTML='<div class="empty"><p>Sem registros.</p></div>';return;}
-  const icons={SAVE_CREDENTIALS:'💾',ACTIVATE:'✅',DEACTIVATE_ALL:'⛔',DELETE_GATEWAY:'🗑️'};
-  el.innerHTML=items.map(a=>{const dt=new Date(a.ts*1000);const tm=dt.getDate().toString().padStart(2,'0')+'/'+(dt.getMonth()+1).toString().padStart(2,'0')+' '+dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');const meta=GW_META[a.gateway]||{};
-  return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:16px;flex-shrink:0">'+(icons[a.action]||'🔑')+'</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--c-text)">'+a.action.replace(/_/g,' ')+'</div><div style="font-size:11px;color:var(--c-t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(meta.name||a.gateway||'—')+' &bull; '+(a.ip||'—')+'</div></div><span style="font-size:11px;color:var(--c-t3);flex-shrink:0">'+tm+'</span></div>';}).join('');
-  }catch{el.innerHTML='<div class="empty"><p>Erro.</p></div>';}
-}
-async function aiDetectCreds(){
-  const text=document.getElementById('ai-detect-input').value.trim();
-  if(text.length<5){toast('Cole as credenciais ou documentacao da API.','err');return;}
-  const btn=document.getElementById('ai-detect-btn');btn.disabled=true;btn.textContent='Analisando...';
-  try{
-    const r=await apiFetch('/api/admin/vault/detect',{method:'POST',body:JSON.stringify({text})});
-    const d=await r.json();
-    if(!d.ok){toast(d.error||'Erro.','err');return;}
-    _AI_DET=d.detection;
-    const det=d.detection;
-    const meta=GW_META[det.gateway]||{};
-    const res=document.getElementById('ai-result');
-    res.style.display='block';
-    // Logo + Name
-    const logo=document.getElementById('ai-gw-logo');
-    logo.textContent=meta.logo||'?';logo.style.background=meta.color||'#888';
-    document.getElementById('ai-gw-name').textContent=meta.name||det.gateway;
-    // Confidence bar
-    const pct=Math.round((det.confidence||0)*100);
-    document.getElementById('ai-gw-conf').textContent=pct+'%';
-    document.getElementById('ai-conf-fill').style.width=pct+'%';
-    document.getElementById('ai-conf-fill').style.background=pct>80?'linear-gradient(90deg,#10B981,#34D399)':pct>50?'linear-gradient(90deg,#F59E0B,#FBBF24)':'linear-gradient(90deg,#EF4444,#F87171)';
-    // Engine chip
-    const ec=document.getElementById('ai-engine-chip');
-    ec.textContent=d.engine==='full'?'IA Avancada':'IA Basica';
-    // Runner-up
-    const ru=det.runner_up||[];const ruEl=document.getElementById('ai-runnerup');
-    if(ru.length){document.getElementById('ai-runnerup-text').textContent=ru.map(x=>(GW_META[x.gateway]||{}).name||x.gateway).join(', ');ruEl.style.display='block';}else ruEl.style.display='none';
-    // Issues / Warnings
-    const issues=det.issues||det.warnings||[];const iEl=document.getElementById('ai-issues');const iList=document.getElementById('ai-issues-list');
-    const issArr=Array.isArray(issues)?issues:Object.values(issues);
-    if(issArr.length){iList.innerHTML=issArr.map(i=>'<div>'+i+'</div>').join('');iEl.style.display='block';}else iEl.style.display='none';
-    // Extracted fields preview
-    const flds=det.fields||{};const vld=det.validated_fields||{};const fpEl=document.getElementById('ai-fields-preview');const fList=document.getElementById('ai-fields-list');
-    const fEntries=Object.entries(flds).filter(([k,v])=>v);
-    if(fEntries.length){
-      fList.innerHTML=fEntries.map(([k,v])=>{const ok=vld[k];const badge=ok===true?'<span style="color:#10B981;font-size:10px">VALIDO</span>':ok===false?'<span style="color:#EF4444;font-size:10px">INVALIDO</span>':'';
-      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);min-width:90px;flex-shrink:0">'+k+'</span><span style="font-size:11px;font-family:monospace;color:rgba(255,255,255,0.8);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+v.substring(0,40)+(v.length>40?'...':'')+'</span>'+badge+'</div>';}).join('');
-      fpEl.style.display='block';
-    }else fpEl.style.display='none';
-    // Instructions
-    const instr=det.instructions||[];const instrEl=document.getElementById('ai-instructions');const instrList=document.getElementById('ai-instructions-list');
-    if(instr.length){instrList.innerHTML=instr.map(i=>'<li>'+i+'</li>').join('');instrEl.style.display='block';}else instrEl.style.display='none';
-  }catch(e){toast('Erro na analise: '+e.message,'err');}
-  btn.disabled=false;
-  btn.innerHTML='<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Detectar Gateway';
-}
-function useAiDetection(){
-  if(!_AI_DET)return;const gw=_AI_DET.gateway;
-  document.getElementById('vault-gw-sel').value=gw;
-  // Fill with extracted fields — api_intel returns 'fields', basic vault returns 'detected_fields'
-  const prefill=_AI_DET.fields||_AI_DET.detected_fields||{};
-  renderVaultFields(gw,prefill);
-  document.getElementById('vault-add-card').scrollIntoView({behavior:'smooth'});
-  const cnt=Object.keys(prefill).filter(k=>prefill[k]).length;
-  toast(cnt?cnt+' campo(s) preenchido(s) automaticamente!':'Gateway selecionado. Preencha os campos.','ok');
-}
 document.addEventListener('contextmenu',e=>{if(document.getElementById('auth-gate').style.display!=='flex')e.preventDefault();});
 document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','i','J','j','C','c'].includes(e.key))||(e.ctrlKey&&['u','U','s','S'].includes(e.key))){e.preventDefault();toast('🛡️ Painel protegido.','inf');}});
 </script>
 </body>
 </html>
+"""
+
+with open('d:/OLPG/templates/admin.html', 'w', encoding='utf-8') as f:
+    f.write(HTML)
+
+lines = HTML.count('\n')
+size = len(HTML.encode('utf-8'))
+print(f"admin.html escrito: {lines} linhas, {size} bytes")
