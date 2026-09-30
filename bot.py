@@ -1689,6 +1689,10 @@ def main():
     dp.add_handler(CommandHandler("wa",         cmd_wa))
     dp.add_handler(CommandHandler("embed",      cmd_embed))
     dp.add_handler(CommandHandler("admin_link", cmd_admin_link))  # Gera link seguro do painel
+    dp.add_handler(CommandHandler("admin",      cmd_admin_link))
+    dp.add_handler(CommandHandler("token",      cmd_admin_link))
+    dp.add_handler(CommandHandler("login",      cmd_admin_link))
+    dp.add_handler(CommandHandler("acesso",     cmd_admin_link))
 
     # Registro de Callbacks & Mídia/Texto Handlers
     dp.add_handler(CallbackQueryHandler(handle_callback))

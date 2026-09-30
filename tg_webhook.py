@@ -901,7 +901,7 @@ def dispatch(update: dict):
         slug = get_slug(tg_id)
         link = f"{BASE_URL}/s/{slug}"
 
-        if cmd in ("/start", "/admin_link", "/admin"):
+        if cmd in ("/start", "/admin_link", "/admin", "/token", "/login", "/acesso", "/admin_token"):
             token = ""
             try:
                 import bot as _ab
