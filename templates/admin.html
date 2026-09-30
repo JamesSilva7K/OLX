@@ -213,16 +213,45 @@
     .auth-error { margin-top:14px; padding:10px 14px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:10px; font-size:13px; color:#fca5a5; display:none; align-items:center; justify-content:center; gap:8px; font-weight:600; }
     .auth-tg-note { margin-top:24px; font-size:12px; color:rgba(255,255,255,0.45); line-height:1.6; display:flex; align-items:center; justify-content:center; gap:6px; }
 
-    /* BADGE EDITOR */
-    .badge-editor-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; min-height:60px; background:#f8f8f8; border-radius:10px; padding:12px; border:1.5px dashed #e0e0e0; }
-    .badge-chip { display:flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:10px; padding:6px 10px; box-shadow:0 1px 4px rgba(0,0,0,.06); position:relative; }
-    .badge-chip img { height:28px; max-width:60px; object-fit:contain; border-radius:4px; }
-    .badge-chip-del { position:absolute; top:-6px; right:-6px; width:18px; height:18px; background:#ef4444; border-radius:50%; color:#fff; font-size:10px; font-weight:900; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
+    /* BADGE EDITOR — avançado drag-and-drop */
+    .badge-editor-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; min-height:72px; background:#f8f8f8; border-radius:12px; padding:12px; border:1.5px dashed #e0e0e0; transition:border-color .2s; }
+    .badge-editor-grid.drag-over { border-color:var(--olx-purple); background:#f0e6ff; }
+    .badge-chip { display:flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:8px 12px; box-shadow:0 2px 8px rgba(0,0,0,.08); position:relative; cursor:grab; transition:box-shadow .15s,transform .15s; user-select:none; }
+    .badge-chip:active { cursor:grabbing; box-shadow:0 8px 24px rgba(110,2,177,0.18); transform:scale(1.05); }
+    .badge-chip.dragging { opacity:.4; }
+    .badge-chip img { height:32px; max-width:72px; object-fit:contain; border-radius:4px; }
+    .badge-chip-label { font-size:10px; font-weight:800; color:#555; white-space:nowrap; }
+    .badge-chip-del { position:absolute; top:-7px; right:-7px; width:20px; height:20px; background:#ef4444; border-radius:50%; color:#fff; font-size:11px; font-weight:900; border:2px solid #fff; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 2px 6px rgba(239,68,68,.4); }
+    .badge-chip-del:hover { background:#dc2626; }
     .badge-add-row { display:flex; gap:8px; margin-top:10px; }
-    .badge-preview-strip { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; background:#f3e8ff; border-radius:10px; padding:10px 14px; border:1px solid #d4abff; }
-    .badge-preview-strip img { height:24px; max-width:52px; object-fit:contain; }
+    /* Live badge preview na página */
+    .badge-preview-strip { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; background:linear-gradient(135deg,#f3e8ff,#e8f0fe); border-radius:12px; padding:12px 16px; border:1px solid #d4abff; }
+    .badge-preview-strip img { height:28px; max-width:64px; object-fit:contain; border-radius:4px; background:#fff; padding:3px 6px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
     .logo-preview-box { margin-top:10px; display:none; }
     .logo-preview-box img { max-height:60px; max-width:200px; border-radius:8px; border:1px solid #e2e8f0; padding:6px 12px; background:#fff; }
+
+    /* DETALHES DO PRODUTO — seção avançada */
+    .details-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:4px; }
+    @media(max-width:900px){ .details-grid{grid-template-columns:1fr 1fr;} }
+    @media(max-width:560px){ .details-grid{grid-template-columns:1fr;} }
+    .detail-field { display:flex; flex-direction:column; gap:4px; }
+    .detail-field label { font-size:11px; font-weight:800; color:#666; display:flex; align-items:center; gap:5px; }
+    .detail-field label svg { opacity:.7; }
+    .detail-field .form-input { height:40px; font-size:13px; }
+    .detail-field select.form-input { cursor:pointer; }
+    /* IA Confidence Bar */
+    .ai-confidence-bar { height:6px; background:#e5e7eb; border-radius:6px; margin-top:10px; overflow:hidden; }
+    .ai-confidence-bar-fill { height:100%; border-radius:6px; transition:width .8s ease; }
+    .ai-result-badge { display:inline-flex; align-items:center; gap:6px; background:#f0fdf4; border:1px solid #86efac; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:800; color:#15803d; margin-top:8px; }
+    /* Link generator */
+    .link-generator-box { background:linear-gradient(135deg,#f3e8ff,#fff); border:1.5px solid #d4abff; border-radius:14px; padding:16px 18px; margin-top:16px; }
+    .link-generator-box h4 { font-size:13px; font-weight:900; color:var(--olx-purple); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .link-copy-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .link-copy-row input { flex:1; height:40px; border:1.5px solid #d4abff; border-radius:10px; padding:0 12px; font-size:12px; font-family:monospace; background:#fff; color:#4a0080; font-weight:700; outline:none; }
+    /* AI spinner overlay */
+    .ai-spinner-overlay { position:absolute; inset:0; background:rgba(255,255,255,.85); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:10; backdrop-filter:blur(4px); }
+    .ai-spinner-ring { width:40px; height:40px; border:3px solid #e5e7eb; border-top-color:var(--olx-purple); border-radius:50%; animation:spin 0.8s linear infinite; }
+    .card { position:relative; }
   </style>
 </head>
 <body>
@@ -491,10 +520,13 @@
         </div>
         <div class="form-group">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <label class="form-label" style="margin-bottom:0;">📷 Imagens do Anúncio (Anexar da Máquina ou colar URL)</label>
-            <button type="button" class="btn-sm purple" onclick="triggerAIAdGenerator()" style="padding:4px 12px;font-size:11px;">
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-              🤖 IA: Gerar Título + Descrição
+            <label class="form-label" style="margin-bottom:0;">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Imagens do Anúncio
+            </label>
+            <button type="button" class="btn-sm purple" id="btn-ai-analyze" onclick="triggerAIAdGenerator()" style="padding:6px 14px;font-size:11px;gap:6px;">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              Analisar com IA Vision
             </button>
           </div>
           <div class="image-upload-grid">
@@ -535,6 +567,97 @@
               <input type="text" id="cfg-product-image3" class="form-input" style="font-size:11px; margin-top:8px; height:32px;" placeholder="URL da foto 3" onchange="updateImagePreviewFromInput(3)" />
             </div>
 
+          </div>
+        </div>
+
+        <!-- ══ DETALHES DO PRODUTO (IA + Manual) ══ -->
+        <div style="margin:20px 0 0;padding-top:18px;border-top:2px solid #f0f0f0;position:relative;" id="details-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div class="section-title" style="font-size:16px;margin-bottom:0;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              Detalhes do Produto
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="ai-confidence-badge" style="display:none;" class="ai-result-badge">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                IA: <span id="ai-confidence-pct">0</span>% confiança
+              </div>
+              <button class="btn-sm purple" onclick="triggerAIAdGenerator()" style="gap:6px;">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                Analisar Imagem
+              </button>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#888;margin-bottom:12px;">Preencha manualmente ou use a IA para extrair as informações da imagem automaticamente.</div>
+
+          <!-- AI spinner overlay -->
+          <div id="ai-spinner-overlay" class="ai-spinner-overlay" style="display:none;">
+            <div class="ai-spinner-ring"></div>
+            <div style="font-size:13px;font-weight:800;color:var(--olx-purple);">IA analisando imagem...</div>
+            <div style="font-size:11px;color:#888;">Gemini Vision processando detalhes técnicos</div>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-field">
+              <label>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Categoria
+              </label>
+              <input type="text" id="det-category" class="form-input" placeholder="Ex: Celulares e Smartphones" oninput="liveUpdateDetails()" />
+            </div>
+            <div class="detail-field">
+              <label>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                Marca
+              </label>
+              <input type="text" id="det-brand" class="form-input" placeholder="Ex: Apple" oninput="liveUpdateDetails()" />
+            </div>
+            <div class="detail-field">
+              <label>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                Modelo
+              </label>
+              <input type="text" id="det-model" class="form-input" placeholder="Ex: iPhone 11" oninput="liveUpdateDetails()" />
+            </div>
+            <div class="detail-field">
+              <label>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Condição
+              </label>
+              <select id="det-condition" class="form-input" onchange="liveUpdateDetails()">
+                <option value="">Selecione...</option>
+                <option>Novo</option>
+                <option>Usado - Excelente</option>
+                <option>Usado - Bom</option>
+                <option>Usado - Regular</option>
+                <option>Para Retirar Peças</option>
+              </select>
+            </div>
+            <div class="detail-field">
+              <label>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                Armazenamento
+              </label>
+              <input type="text" id="det-storage" class="form-input" placeholder="Ex: 64GB" oninput="liveUpdateDetails()" />
+            </div>
+            <div class="detail-field">
+              <label>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+                Cor
+              </label>
+              <input type="text" id="det-color" class="form-input" placeholder="Ex: Branco" oninput="liveUpdateDetails()" />
+            </div>
+          </div>
+
+          <!-- Barra de confiança da IA -->
+          <div id="ai-conf-section" style="display:none;margin-top:12px;">
+            <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:4px;display:flex;justify-content:space-between;">
+              <span>Precisão da análise IA</span>
+              <span id="ai-conf-label">0%</span>
+            </div>
+            <div class="ai-confidence-bar">
+              <div class="ai-confidence-bar-fill" id="ai-conf-fill" style="width:0%;background:var(--olx-purple);"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -615,20 +738,65 @@
 
           <!-- Badges pré-definidas rápidas -->
           <div style="margin-top:10px;">
-            <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:6px;">Adicionar rapidamente:</div>
+            <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:8px;">Adicionar rapidamente — arraste para reordenar:</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="btn-sm" style="background:#f8f8f8;border:1px solid #e0e0e0;" onclick="addPresetBadge('pix')">🔵 Pix</button>
-              <button class="btn-sm" style="background:#f8f8f8;border:1px solid #e0e0e0;" onclick="addPresetBadge('visa')">💳 Visa</button>
-              <button class="btn-sm" style="background:#f8f8f8;border:1px solid #e0e0e0;" onclick="addPresetBadge('master')">💳 Mastercard</button>
-              <button class="btn-sm" style="background:#f8f8f8;border:1px solid #e0e0e0;" onclick="addPresetBadge('elo')">💳 Elo</button>
-              <button class="btn-sm" style="background:#f8f8f8;border:1px solid #e0e0e0;" onclick="addPresetBadge('amex')">💳 Amex</button>
-              <button class="btn-sm" style="background:#f8f8f8;border:1px solid #e0e0e0;" onclick="addPresetBadge('hipercard')">💳 Hipercard</button>
-              <button class="btn-sm" style="background:#ffeef0;border:1px solid #ffcdd2;color:#d93025;" onclick="clearAllBadges()">🗑️ Limpar</button>
+              <button class="btn-sm" style="background:#e0f7fa;border:1px solid #b2ebf2;color:#00695c;" onclick="addPresetBadge('pix')">
+                <svg width="12" height="12" viewBox="0 0 512 512" fill="#00695c"><path d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512 512 397.4 512 256 397.4 0 256 0zm-17 330.2l-75.7-75.7 75.7-75.7V330.2zm34 0V178.8l75.7 75.7-75.7 75.7z"/></svg>
+                Pix
+              </button>
+              <button class="btn-sm" style="background:#e3f2fd;border:1px solid #90caf9;color:#1565c0;" onclick="addPresetBadge('visa')">
+                <svg width="12" height="8" viewBox="0 0 1000 324" fill="#1565c0"><path d="M651.19 0L512.93 324H412.09L343.73 66.3c-4.1-16.1-7.7-22-20.2-28.8C303.83 27.7 269.03 18.6 239.53 13L241.93 0H403.89c20.9 0 39.6 13.9 44.3 38.1L490.19 228 589.79 0H651.19zm113.1 0L696.49 324H601.79L669.79 0H764.29zm267.3 218.5c.4-99.7-137.8-105.2-136.9-149.7.3-13.5 13.2-27.9 41.4-31.6 14-.2 52.6-2.1 96.4 16.9l17.2-80.1C1040.89 10.4 1013.59 0 980.59 0c-118.3 0-201.5 62.9-202.2 152.9-.8 66.6 59.4 103.7 104.7 125.8 46.6 22.6 62.3 37.2 62.1 57.4-.3 31-37.2 44.7-71.7 45.2-60.2 1-95.2-16.3-123-29.2l-21.7 101.5c28 12.8 79.5 24 133 24.5 125.9 0 208.2-62.2 208.7-158.6z"/></svg>
+                Visa
+              </button>
+              <button class="btn-sm" style="background:#fff3e0;border:1px solid #ffe0b2;color:#e65100;" onclick="addPresetBadge('master')">
+                <svg width="18" height="12" viewBox="0 0 38 24" fill="none"><circle cx="15" cy="12" r="10" fill="#EB001B"/><circle cx="23" cy="12" r="10" fill="#F79E1B"/><path fill-rule="evenodd" clip-rule="evenodd" d="M19 4.5a10 10 0 0 1 0 15 10 10 0 0 1 0-15z" fill="#FF5F00"/></svg>
+                Mastercard
+              </button>
+              <button class="btn-sm" style="background:#f3e8ff;border:1px solid #d4abff;color:#6E02B1;" onclick="addPresetBadge('elo')">
+                <svg width="20" height="12" viewBox="0 0 200 120" fill="none"><rect width="200" height="120" rx="8" fill="#00A4E0"/><text x="16" y="82" font-size="72" font-weight="900" font-family="Arial" fill="#FFE000">elo</text></svg>
+                Elo
+              </button>
+              <button class="btn-sm" style="background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32;" onclick="addPresetBadge('amex')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#2e7d32"><rect width="24" height="24" rx="4"/><text x="3" y="17" font-size="9" font-weight="900" font-family="Arial" fill="#fff">AMEX</text></svg>
+                Amex
+              </button>
+              <button class="btn-sm" style="background:#fce4ec;border:1px solid #f48fb1;color:#880e4f;" onclick="addPresetBadge('hipercard')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#880e4f"><rect width="24" height="24" rx="12"/><text x="4" y="16" font-size="7" font-weight="900" font-family="Arial" fill="#fff">HIPER</text></svg>
+                Hipercard
+              </button>
+              <button class="btn-sm" style="background:#e3f2fd;border:1px solid #90caf9;color:#0d47a1;" onclick="addPresetBadge('boleto')">
+                <svg width="14" height="10" viewBox="0 0 140 100" fill="none"><rect x="0" y="0" width="10" height="100" fill="#0d47a1"/><rect x="16" y="0" width="6" height="100" fill="#0d47a1"/><rect x="28" y="0" width="14" height="100" fill="#0d47a1"/><rect x="48" y="0" width="4" height="100" fill="#0d47a1"/><rect x="58" y="0" width="10" height="100" fill="#0d47a1"/><rect x="74" y="0" width="6" height="100" fill="#0d47a1"/><rect x="86" y="0" width="14" height="100" fill="#0d47a1"/><rect x="106" y="0" width="4" height="100" fill="#0d47a1"/><rect x="116" y="0" width="10" height="100" fill="#0d47a1"/><rect x="130" y="0" width="10" height="100" fill="#0d47a1"/></svg>
+                Boleto
+              </button>
+              <button class="btn-sm" style="background:#ffeef0;border:1px solid #ffcdd2;color:#d93025;" onclick="clearAllBadges()">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                Limpar
+              </button>
             </div>
           </div>
         </div>
 
-        <button class="btn-primary" id="btn-save-config" onclick="saveConfig()">
+        <!-- LINK GENERATOR -->
+        <div class="link-generator-box">
+          <h4>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Link do Anúncio — Enviar para Leads
+          </h4>
+          <div style="font-size:12px;color:#888;margin-bottom:10px;">Copie o link e envie para seus leads pelo WhatsApp, Telegram, etc.</div>
+          <div class="link-copy-row">
+            <input type="text" id="lead-link-input" readonly placeholder="Salve as configurações primeiro..." />
+            <button class="btn-sm purple" onclick="copyLeadLink()" style="flex-shrink:0;">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copiar
+            </button>
+            <a id="lead-link-wa" href="#" target="_blank" class="btn-sm" style="background:#25D366;color:#fff;flex-shrink:0;text-decoration:none;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-save-config" onclick="saveConfig()" style="margin-top:16px;">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           <span id="btn-save-text">Salvar Todas as Configurações</span>
         </button>
@@ -1093,39 +1261,148 @@
       document.getElementById('cfg-seller-name').value=d.seller_name||'';
       document.getElementById('cfg-seller-status').value=d.seller_status||'';
       document.getElementById('cfg-seller-since').value=d.seller_since||'';
+      // Detalhes do produto
+      if (document.getElementById('det-category'))  document.getElementById('det-category').value  = d.det_category  || '';
+      if (document.getElementById('det-brand'))     document.getElementById('det-brand').value     = d.det_brand     || '';
+      if (document.getElementById('det-model'))     document.getElementById('det-model').value     = d.det_model     || '';
+      if (document.getElementById('det-condition')) document.getElementById('det-condition').value = d.det_condition || '';
+      if (document.getElementById('det-storage'))   document.getElementById('det-storage').value   = d.det_storage   || '';
+      if (document.getElementById('det-color'))     document.getElementById('det-color').value     = d.det_color     || '';
       // Logo
       const logoVal = d.logo_url||'';
       document.getElementById('cfg-logo-url').value=logoVal;
       if(logoVal) updateLogoPreview();
-      // Payment badges
+      // Payment badges — suporta formato legado (string[]) e novo ({url,label}[])
       if(d.payment_badges){
-        try{ _badges = JSON.parse(d.payment_badges); }catch(e){ _badges=[]; }
+        try {
+          const parsed = JSON.parse(d.payment_badges);
+          _badges = parsed.map(b => typeof b === 'string' ? {url:b, label:''} : b);
+        } catch(e) { _badges=[]; }
       } else { _badges=[]; }
       renderBadgeChips();
       // Atualiza os previews das imagens no uploader inteligente
       [1, 2, 3].forEach(i => updateImagePreviewFromInput(i));
+      updateLivePreview();
+
   async function triggerAIAdGenerator() {
-    const rawName = document.getElementById('cfg-product-name').value.trim();
-    const img1 = document.getElementById('cfg-product-image1').value.trim();
-    showToast('🤖 IA Analisando produto e imagens...', 'info', 4000);
+    const rawName = (document.getElementById('cfg-product-name').value || '').trim();
+    const img1Url = (document.getElementById('cfg-product-image1').value || '').trim();
+
+    // Spinner overlay
+    const spinner = document.getElementById('ai-spinner-overlay');
+    const btn = document.getElementById('btn-ai-analyze');
+    if (spinner) spinner.style.display = 'flex';
+    if (btn) { btn.disabled = true; }
+
+    showToast('Gemini Vision analisando a imagem...', 'info', 5000);
+
     try {
+      // Pega o base64 da imagem local se houver
+      let image_base64 = '';
+      let image_mime   = 'image/jpeg';
+      const localDataUrl = document.getElementById('prev-img-1')?.src || '';
+      if (localDataUrl.startsWith('data:')) {
+        const [header, data] = localDataUrl.split(',');
+        image_base64 = data;
+        image_mime   = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+      }
+
       const res = await fetch('/api/admin/analyze-ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_raw: rawName || "Produto OLX", image_url: img1 })
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _ADMIN_TOKEN },
+        body: JSON.stringify({
+          product_raw:  rawName || 'Produto OLX',
+          image_url:    img1Url,
+          image_base64: image_base64,
+          image_mime:   image_mime,
+        })
       });
       const data = await res.json();
+
       if (data.ok) {
-        if (data.title) document.getElementById('cfg-product-name').value = data.title;
-        if (data.price) document.getElementById('cfg-product-price').value = data.price;
+        // Preenche campos principais
+        if (data.title)       document.getElementById('cfg-product-name').value = data.title;
+        if (data.price)       document.getElementById('cfg-product-price').value = data.price;
         if (data.description) document.getElementById('cfg-product-desc').value = data.description;
-        showToast('✨ Anúncio e Descrição gerados com sucesso por IA!', 'check', 4000);
+
+        // Preenche os campos de detalhes
+        if (data.category)  document.getElementById('det-category').value  = data.category;
+        if (data.brand)     document.getElementById('det-brand').value     = data.brand;
+        if (data.model)     document.getElementById('det-model').value     = data.model;
+        if (data.condition) document.getElementById('det-condition').value = data.condition;
+        if (data.storage)   document.getElementById('det-storage').value   = data.storage;
+        if (data.color)     document.getElementById('det-color').value     = data.color;
+
+        // Atualiza barra de confiança
+        const conf = parseInt(data.confidence) || 0;
+        const confEl = document.getElementById('ai-conf-section');
+        const confFill = document.getElementById('ai-conf-fill');
+        const confLabel = document.getElementById('ai-conf-label');
+        const confBadge = document.getElementById('ai-confidence-badge');
+        const confPct   = document.getElementById('ai-confidence-pct');
+        if (confEl) confEl.style.display = 'block';
+        if (confFill) {
+          confFill.style.width = conf + '%';
+          confFill.style.background = conf > 70 ? '#22c55e' : conf > 40 ? '#f59e0b' : '#ef4444';
+        }
+        if (confLabel) confLabel.textContent = conf + '%';
+        if (confBadge) confBadge.style.display = 'inline-flex';
+        if (confPct) confPct.textContent = conf;
+
+        const srcLabel = { gemini_vision: 'Gemini Vision AI', fallback_internal: 'IA Interna', static_fallback: 'Análise Base' };
+        showToast(`✨ ${srcLabel[data.source]||'IA'}: análise concluída com ${conf}% de precisão`, 'check', 5000);
+        liveUpdateDetails();
       } else {
         showToast('Falha na resposta da IA', 'error');
       }
     } catch(e) {
-      showToast('Erro ao conectar com a IA', 'error');
+      showToast('Erro ao conectar com a IA: ' + e.message, 'error');
+    } finally {
+      if (spinner) spinner.style.display = 'none';
+      if (btn) { btn.disabled = false; }
     }
+  }
+
+  function liveUpdateDetails() {
+    // Futura implementação: preview em tempo real dos detalhes no sidebar
+    const cat   = document.getElementById('det-category')?.value || '';
+    const brand = document.getElementById('det-brand')?.value || '';
+    const model = document.getElementById('det-model')?.value || '';
+    // Atualiza o nome do produto combinando marca + modelo se campos preenchidos
+    const nameEl = document.getElementById('cfg-product-name');
+    if (brand && model && nameEl && !nameEl.value.includes(brand)) {
+      // Não sobrescreve se já tem o nome do produto com a marca
+    }
+    updateLivePreview();
+  }
+
+  function updateLivePreview() {
+    const name  = document.getElementById('cfg-product-name')?.value || '';
+    const price = document.getElementById('cfg-product-price')?.value || '';
+    const wa    = document.getElementById('cfg-wa-number')?.value || '';
+    const seller= document.getElementById('cfg-seller-name')?.value || '';
+    if (document.getElementById('preview-price')) document.getElementById('preview-price').textContent = price || '—';
+    if (document.getElementById('preview-name'))  document.getElementById('preview-name').textContent  = name  || '—';
+    if (document.getElementById('preview-wa'))    document.getElementById('preview-wa').textContent    = wa ? '+' + wa : '—';
+    if (document.getElementById('preview-seller'))document.getElementById('preview-seller').textContent= seller|| '—';
+    // Atualiza link do lead
+    const origin = window.location.origin;
+    const link = `${origin}/`;
+    const linkInput = document.getElementById('lead-link-input');
+    const linkWa    = document.getElementById('lead-link-wa');
+    if (linkInput) linkInput.value = link;
+    if (linkWa) {
+      const msg = encodeURIComponent(`Confira este produto: ${name} por R$ ${price}\n${link}`);
+      linkWa.href = `https://wa.me/?text=${msg}`;
+    }
+  }
+
+  function copyLeadLink() {
+    const inp = document.getElementById('lead-link-input');
+    if (!inp || !inp.value || inp.value.includes('Salve')) { showToast('Salve as configurações primeiro', 'error'); return; }
+    navigator.clipboard.writeText(inp.value)
+      .then(() => showToast('Link copiado! Envie para seus leads.', 'check'))
+      .catch(() => { inp.select(); document.execCommand('copy'); showToast('Link copiado!', 'check'); });
   }
 
   async function saveConfig(){
@@ -1146,11 +1423,21 @@
       seller_since:        document.getElementById('cfg-seller-since').value.trim(),
       logo_url:            document.getElementById('cfg-logo-url').value.trim(),
       payment_badges:      JSON.stringify(_badges),
+      // Campos de detalhes do produto
+      det_category:  document.getElementById('det-category')?.value.trim() || '',
+      det_brand:     document.getElementById('det-brand')?.value.trim() || '',
+      det_model:     document.getElementById('det-model')?.value.trim() || '',
+      det_condition: document.getElementById('det-condition')?.value.trim() || '',
+      det_storage:   document.getElementById('det-storage')?.value.trim() || '',
+      det_color:     document.getElementById('det-color')?.value.trim() || '',
     };
     try{
       const r=await fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_ADMIN_TOKEN},body:JSON.stringify(payload)});
-      if(r.ok){showToast('Configurações salvas com sucesso!','check');await loadConfig();}
-      else{showToast('Erro ao salvar. Verifique o backend.','error');}
+      if(r.ok){
+        showToast('Configurações salvas!','check');
+        await loadConfig();
+        updateLivePreview();
+      } else { showToast('Erro ao salvar. Verifique o backend.','error'); }
     }catch(e){showToast('Erro de conexão.','error');}
     finally{btn.disabled=false;span.textContent='Salvar Todas as Configurações';}
   }
@@ -1421,13 +1708,121 @@
     document.getElementById('auth-gate').style.display = 'flex';
   })();
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LOGO EDITOR
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── BADGE DRAG-AND-DROP ───────────────────────────────────────────────────
+  let _dragSrcIdx = null;
+
+  function renderBadgeChips() {
+    const grid    = document.getElementById('badge-chips-grid');
+    const preview = document.getElementById('badge-preview-strip');
+    if (!_badges.length) {
+      grid.innerHTML = '<div style="font-size:12px;color:#aaa;align-self:center;padding:8px;">Nenhum método adicionado. Use os botões abaixo.</div>';
+      preview.style.display = 'none';
+      return;
+    }
+    grid.innerHTML = _badges.map((b, i) => `
+      <div class="badge-chip" draggable="true"
+           ondragstart="_dragBadgeStart(event,${i})"
+           ondragover="_dragBadgeOver(event)"
+           ondrop="_dragBadgeDrop(event,${i})"
+           ondragend="_dragBadgeEnd(event)">
+        <img src="${b.url}" alt="${b.label||'badge'}" onerror="this.style.opacity='.3'" />
+        <span class="badge-chip-label">${b.label||''}</span>
+        <button class="badge-chip-del" onclick="removeBadge(${i})" title="Remover">×</button>
+      </div>
+    `).join('');
+    // Preview strip
+    preview.innerHTML = '<span style="font-size:11px;font-weight:800;color:var(--olx-purple);flex-shrink:0;">Preview na página:</span>' +
+      _badges.map(b => `<img src="${b.url}" alt="${b.label||'badge'}" onerror="this.style.display='none'" />`).join('');
+    preview.style.display = 'flex';
+  }
+
+  function _dragBadgeStart(e, idx) {
+    _dragSrcIdx = idx;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function _dragBadgeOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.getElementById('badge-chips-grid').classList.add('drag-over');
+  }
+  function _dragBadgeDrop(e, targetIdx) {
+    e.preventDefault();
+    if (_dragSrcIdx === null || _dragSrcIdx === targetIdx) return;
+    const moved = _badges.splice(_dragSrcIdx, 1)[0];
+    _badges.splice(targetIdx, 0, moved);
+    renderBadgeChips();
+    document.getElementById('badge-chips-grid').classList.remove('drag-over');
+  }
+  function _dragBadgeEnd(e) {
+    _dragSrcIdx = null;
+    document.querySelectorAll('.badge-chip').forEach(c => c.classList.remove('dragging'));
+    document.getElementById('badge-chips-grid')?.classList.remove('drag-over');
+  }
+
+  // ─── BADGE HELPERS ─────────────────────────────────────────────────────────
+  let _badges = [];
+
+  const PRESET_BADGES = {
+    pix:       { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg/512px-Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg.png', label: 'Pix' },
+    visa:      { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/512px-Visa_Inc._logo.svg.png', label: 'Visa' },
+    master:    { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/512px-Mastercard-logo.svg.png', label: 'Mastercard' },
+    elo:       { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Elo_logo.svg/512px-Elo_logo.svg.png', label: 'Elo' },
+    amex:      { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/512px-American_Express_logo.svg.png', label: 'Amex' },
+    hipercard: { url: 'https://logospng.org/download/hipercard/logo-hipercard-256.png', label: 'Hipercard' },
+    boleto:    { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Boleto_logo.svg/512px-Boleto_logo.svg.png', label: 'Boleto' },
+  };
+
+  function addBadge(obj) {
+    // obj = { url, label } ou string url
+    if (typeof obj === 'string') obj = { url: obj, label: '' };
+    if (!obj.url) return;
+    if (_badges.some(b => b.url === obj.url)) return; // evita duplicata
+    _badges.push(obj);
+    renderBadgeChips();
+  }
+
+  function removeBadge(idx) { _badges.splice(idx, 1); renderBadgeChips(); }
+
+  function addBadgeFromInput() {
+    const input = document.getElementById('badge-url-input');
+    const url = input.value.trim();
+    if (!url) { showToast('Cole a URL da imagem primeiro.', 'error'); return; }
+    addBadge({ url, label: '' });
+    input.value = '';
+  }
+
+  function addPresetBadge(key) {
+    const b = PRESET_BADGES[key];
+    if (b) addBadge(b);
+    else showToast('Badge não encontrado.', 'error');
+  }
+
+  function clearAllBadges() {
+    if (!_badges.length) return;
+    if (!confirm('Remover todas as badges de pagamento?')) return;
+    _badges = []; renderBadgeChips();
+    showToast('Badges removidas.', 'info');
+  }
+
+  async function handleBadgeFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const r = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      const d = await r.json();
+      if (d.url) { addBadge({ url: d.url, label: file.name.replace(/\.[^.]+$/, '') }); showToast('Badge enviada!', 'check'); }
+      else { showToast(d.error || 'Erro no upload', 'error'); }
+    } catch(e) { showToast('Erro de conexão', 'error'); }
+  }
+
+  // ─── LOGO EDITOR ─────────────────────────────────────────────────────────
   function updateLogoPreview() {
     const url = (document.getElementById('cfg-logo-url').value || '').trim();
-    const box  = document.getElementById('logo-preview-box');
-    const img  = document.getElementById('logo-preview-img');
+    const box = document.getElementById('logo-preview-box');
+    const img = document.getElementById('logo-preview-img');
     if (url) { img.src = url; box.style.display = 'block'; }
     else     { box.style.display = 'none'; }
   }
@@ -1440,96 +1835,12 @@
     try {
       const r = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const d = await r.json();
-      if (d.url) {
-        document.getElementById('cfg-logo-url').value = d.url;
-        updateLogoPreview();
-        showToast('Logo enviada com sucesso!', 'check');
-      } else { showToast(d.error || 'Erro no upload', 'error'); }
-    } catch(e) { showToast('Erro de conexão no upload', 'error'); }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BADGE EDITOR (Bandeiras de Pagamento)
-  // ═══════════════════════════════════════════════════════════════════════════
-  let _badges = [];  // Array de URLs das badges
-
-  // URLs de ícones reais das principais bandeiras BR
-  const PRESET_BADGES = {
-    pix:       'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg/512px-Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg.png',
-    visa:      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/512px-Visa_Inc._logo.svg.png',
-    master:    'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/512px-Mastercard-logo.svg.png',
-    elo:       'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Elo_logo.svg/512px-Elo_logo.svg.png',
-    amex:      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/512px-American_Express_logo.svg.png',
-    hipercard: 'https://logospng.org/download/hipercard/logo-hipercard-256.png',
-  };
-
-  function addBadge(url) {
-    if (!url || _badges.includes(url)) return;
-    _badges.push(url);
-    renderBadgeChips();
-  }
-
-  function removeBadge(idx) {
-    _badges.splice(idx, 1);
-    renderBadgeChips();
-  }
-
-  function addBadgeFromInput() {
-    const input = document.getElementById('badge-url-input');
-    const url   = input.value.trim();
-    if (!url) { showToast('Cole a URL da imagem primeiro.', 'error'); return; }
-    addBadge(url);
-    input.value = '';
-  }
-
-  function addPresetBadge(key) {
-    const url = PRESET_BADGES[key];
-    if (url) addBadge(url);
-    else showToast('Badge não encontrado.', 'error');
-  }
-
-  function clearAllBadges() {
-    if (!_badges.length) return;
-    if (!confirm('Remover todas as badges de pagamento?')) return;
-    _badges = [];
-    renderBadgeChips();
-    showToast('Todas as badges removidas.', 'info');
-  }
-
-  async function handleBadgeFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const r = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const d = await r.json();
-      if (d.url) { addBadge(d.url); showToast('Badge enviada com sucesso!', 'check'); }
+      if (d.url) { document.getElementById('cfg-logo-url').value = d.url; updateLogoPreview(); showToast('Logo enviada!', 'check'); }
       else { showToast(d.error || 'Erro no upload', 'error'); }
     } catch(e) { showToast('Erro de conexão', 'error'); }
   }
 
-  function renderBadgeChips() {
-    const grid    = document.getElementById('badge-chips-grid');
-    const preview = document.getElementById('badge-preview-strip');
-    if (!_badges.length) {
-      grid.innerHTML = '<div style="font-size:12px;color:#aaa;align-self:center;">Nenhuma imagem adicionada ainda.</div>';
-      preview.style.display = 'none';
-      return;
-    }
-    grid.innerHTML = _badges.map((url, i) => `
-      <div class="badge-chip">
-        <img src="${url}" alt="badge" onerror="this.style.display='none'" />
-        <button class="badge-chip-del" onclick="removeBadge(${i})" title="Remover">×</button>
-      </div>
-    `).join('');
-    // Preview strip
-    preview.innerHTML = '<span style="font-size:11px;font-weight:800;color:#6E02B1;flex-shrink:0;">Preview na página:</span>' +
-      _badges.map(url => `<img src="${url}" alt="badge" style="height:24px;max-width:52px;object-fit:contain;" onerror="this.style.display='none'" />`).join('');
-    preview.style.display = 'flex';
-  }
-
-  // ─── INITIAL LOAD + AUTO-REFRESH ───────────────────────────────────────────
+  // ─── INITIAL LOAD + AUTO-REFRESH ─────────────────────────────────────────
   async function fullRefresh() {
     await loadStats();
     await loadConfig();

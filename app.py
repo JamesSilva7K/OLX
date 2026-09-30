@@ -8,6 +8,7 @@ import hmac
 import hashlib
 import re
 import struct
+import base64
 import requests
 from flask import Flask, render_template, request, jsonify, abort
 
@@ -468,7 +469,14 @@ def api_config():
         "seller_name":         gc("seller_name", "tk prock"),
         "seller_status":       gc("seller_status", "Último acesso há 2 horas"),
         "seller_since":        gc("seller_since", "Na OLX desde janeiro de 2022"),
-        "payment_badges":      gc("payment_badges", ""),  # JSON array de URLs de badges
+        "payment_badges":      gc("payment_badges", ""),   # JSON array de badges
+        # Detalhes do produto (IA ou manual)
+        "det_category":  gc("det_category",  ""),
+        "det_brand":     gc("det_brand",     ""),
+        "det_model":     gc("det_model",     ""),
+        "det_condition": gc("det_condition", ""),
+        "det_storage":   gc("det_storage",   ""),
+        "det_color":     gc("det_color",     ""),
     })
 
 
@@ -615,6 +623,8 @@ def api_admin_config_save():
         "whatsapp_number", "whatsapp_message",
         "seller_name", "seller_status", "seller_since", "logo_url",
         "pix_key", "payment_badges",
+        # Detalhes do produto (preenchidos manual ou via IA)
+        "det_category", "det_brand", "det_model", "det_condition", "det_storage", "det_color",
     }
     saved = []
     for key, value in data.items():
@@ -1114,57 +1124,120 @@ GEMINI_STUDIO_KEY = os.environ.get("GEMINI_STUDIO_KEY", "")
 
 @app.route('/api/admin/analyze-ai', methods=['POST'])
 def api_admin_analyze_ai():
-    """Analisa nome/imagem do produto e sugere título otimizado e descrição rica via IA Gemini Studio."""
+    """Analisa imagem (base64 ou URL) do produto via Gemini Vision e retorna análise completa com detalhes, título, preço e descrição."""
     data = request.json or {}
-    product_raw = sanitize_input(data.get("product_raw", ""), 200)
-    image_url = sanitize_input(data.get("image_url", ""), 500)
-    
-    # Se a API Key do Gemini estiver disponível, tenta gerar análise com Gemini
-    if GEMINI_STUDIO_KEY and "AQ.Ab8" in GEMINI_STUDIO_KEY:
-        try:
-            # Chamada direta para REST API da Gemini para visão & texto
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_STUDIO_KEY}"
-            prompt_text = f"Analise o produto '{product_raw}' com imagem '{image_url}'. Gere um JSON com: 'title' (título de anúncio OLX chamativo), 'price' (valor estimado numérico ex: 750.00), e 'description' (descrição vendedora completa com detalhes de estado, envio e garantia)."
-            
-            payload = {
-                "contents": [{
-                    "parts": [{"text": prompt_text}]
-                }],
-                "generationConfig": {
-                    "response_mime_type": "application/json"
-                }
-            }
-            res = requests.post(gemini_url, json=payload, timeout=8)
-            if res.status_code == 200:
-                resp_json = res.json()
-                text_out = resp_json['candidates'][0]['content']['parts'][0]['text']
-                parsed = json.loads(text_out)
-                return jsonify({
-                    "ok": True,
-                    "title": parsed.get("title", product_raw.title()),
-                    "price": str(parsed.get("price", "750.00")),
-                    "description": parsed.get("description", ""),
-                    "image_url": image_url
-                })
-        except Exception as err:
-            print(f"[GEMINI STUDIO AI] {err}")
+    product_raw  = sanitize_input(data.get("product_raw", ""), 200)
+    image_url    = sanitize_input(data.get("image_url", ""), 500)
+    image_base64 = data.get("image_base64", "")   # base64 sem prefixo data:...
+    image_mime   = data.get("image_mime", "image/jpeg")
 
-    # Fallback inteligente
+    def _gemini_call(parts):
+        gemini_url = (
+            f"https://generativelanguage.googleapis.com/v1beta/"
+            f"models/gemini-1.5-flash:generateContent?key={GEMINI_STUDIO_KEY}"
+        )
+        prompt_system = (
+            "Você é um especialista em precificação e redação de anúncios brasileiros para OLX. "
+            "Analise o produto com precisão técnica. Responda EXCLUSIVAMENTE em JSON válido, sem markdown."
+        )
+        prompt_user = (
+            f"Produto informado pelo usuário: '{product_raw}'.\n"
+            "Retorne um JSON com EXATAMENTE estas chaves:\n"
+            "- title: título atraente para anúncio OLX (máx 80 chars)\n"
+            "- price: preço estimado de mercado Brasil 2025 (número, ex: 750.00)\n"
+            "- description: descrição vendedora completa (mín 80 palavras, mencionando estado, funcionalidades, acessórios, envio)\n"
+            "- category: categoria OLX mais adequada\n"
+            "- brand: marca do produto\n"
+            "- model: modelo exato do produto\n"
+            "- condition: estado (Novo, Usado - Excelente, Usado - Bom, Usado - Regular)\n"
+            "- storage: capacidade/tamanho se aplicável (ex: 64GB, 128GB)\n"
+            "- color: cor predominante do produto na imagem\n"
+            "- confidence: sua confiança na análise de 0 a 100\n"
+            "JSON:"
+        )
+        full_parts = [{"text": prompt_system + "\n\n" + prompt_user}] + parts
+        payload = {
+            "contents": [{"parts": full_parts}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024}
+        }
+        res = requests.post(gemini_url, json=payload, timeout=15)
+        res.raise_for_status()
+        rj = res.json()
+        raw_text = rj["candidates"][0]["content"]["parts"][0]["text"].strip()
+        # Limpa possível markdown fence
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[-2].lstrip("json").strip()
+        return json.loads(raw_text)
+
+    if GEMINI_STUDIO_KEY:
+        try:
+            parts = []
+            if image_base64:
+                parts.append({"inline_data": {"mime_type": image_mime, "data": image_base64}})
+            elif image_url:
+                # Tenta baixar a imagem e enviar como base64
+                try:
+                    img_resp = requests.get(image_url, timeout=8)
+                    if img_resp.status_code == 200:
+                        b64 = base64.b64encode(img_resp.content).decode()
+                        ct  = img_resp.headers.get("Content-Type", "image/jpeg").split(";")[0]
+                        parts.append({"inline_data": {"mime_type": ct, "data": b64}})
+                except Exception:
+                    pass  # sem imagem binária, usa só texto
+
+            parsed = _gemini_call(parts)
+            return jsonify({
+                "ok": True,
+                "title":       parsed.get("title",       product_raw.title()),
+                "price":       str(parsed.get("price",   "750.00")),
+                "description": parsed.get("description", ""),
+                "category":    parsed.get("category",    "Celulares e Smartphones"),
+                "brand":       parsed.get("brand",       ""),
+                "model":       parsed.get("model",       ""),
+                "condition":   parsed.get("condition",   "Usado - Excelente"),
+                "storage":     parsed.get("storage",     ""),
+                "color":       parsed.get("color",       ""),
+                "confidence":  parsed.get("confidence",  0),
+                "source":      "gemini_vision",
+                "image_url":   image_url,
+            })
+        except Exception as err:
+            print(f"[GEMINI VISION] {err}")
+
+    # Fallback inteligente interno
     if TG_WH_AVAILABLE:
         ai_res = tg_wh.generate_ai_ad(product_raw or "Produto Anunciado")
         return jsonify({
             "ok": True,
-            "title": ai_res.get("product_name"),
-            "price": ai_res.get("product_price"),
+            "title":       ai_res.get("product_name"),
+            "price":       ai_res.get("product_price"),
             "description": ai_res.get("product_description"),
-            "image_url": image_url
+            "category":    "Celulares e Smartphones",
+            "brand":       "",
+            "model":       "",
+            "condition":   "Usado - Excelente",
+            "storage":     "",
+            "color":       "",
+            "confidence":  40,
+            "source":      "fallback_internal",
+            "image_url":   image_url,
         })
+
+    name_t = product_raw.title() if product_raw else "Produto Exclusivo"
     return jsonify({
         "ok": True,
-        "title": product_raw.title() if product_raw else "Produto Exclusivo",
-        "price": "650.00",
-        "description": f"{product_raw.title()} em excelente estado de conservação, testado e 100% funcional. Acompanha caixa e acessórios.",
-        "image_url": image_url
+        "title":       name_t,
+        "price":       "650.00",
+        "description": f"{name_t} em excelente estado de conservação, testado e 100% funcional. Acompanha caixa e acessórios originais. Entrega disponível.",
+        "category":    "Celulares e Smartphones",
+        "brand":       "",
+        "model":       "",
+        "condition":   "Usado - Excelente",
+        "storage":     "",
+        "color":       "",
+        "confidence":  10,
+        "source":      "static_fallback",
+        "image_url":   image_url,
     })
 
 
