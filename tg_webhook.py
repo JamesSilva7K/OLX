@@ -153,6 +153,13 @@ def init_tenant_tables():
             image1 TEXT, image2 TEXT, image3 TEXT,
             created_at REAL NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS tg_plans (
+            tg_id INTEGER PRIMARY KEY,
+            plan_key TEXT NOT NULL DEFAULT 'free',
+            max_links INTEGER NOT NULL DEFAULT 1,
+            max_clicks_month INTEGER NOT NULL DEFAULT 500,
+            updated_at REAL NOT NULL
+        );
         CREATE INDEX IF NOT EXISTS idx_tp_tgid  ON tenant_products(tg_id);
         CREATE INDEX IF NOT EXISTS idx_tp_code  ON tenant_products(product_code);
         CREATE INDEX IF NOT EXISTS idx_tge_id   ON tg_events(tg_id, created_at);
@@ -160,6 +167,106 @@ def init_tenant_tables():
         CREATE INDEX IF NOT EXISTS idx_tg_slug  ON tg_users(slug);
     """)
     conn.commit(); conn.close()
+
+# ─── PLANOS POR ADMIN ─────────────────────────────────────────────────────────
+PLAN_DEFINITIONS = {
+    "free":      {"name": "Plano Free",      "max_links": 1,    "max_clicks_month": 500},
+    "starter":   {"name": "Plano Starter",   "max_links": 5,    "max_clicks_month": 5000},
+    "pro":       {"name": "Plano Pro",       "max_links": 20,   "max_clicks_month": 30000},
+    "unlimited": {"name": "Plano Unlimited", "max_links": 9999, "max_clicks_month": 999999},
+}
+
+def get_user_plan(tg_id: int) -> dict:
+    """Retorna o plano atual do admin."""
+    conn = _get_db()
+    r = conn.execute("SELECT plan_key, max_links, max_clicks_month FROM tg_plans WHERE tg_id=?", (tg_id,)).fetchone()
+    conn.close()
+    if r:
+        pdef = PLAN_DEFINITIONS.get(r["plan_key"], PLAN_DEFINITIONS["free"])
+        return {
+            "key": r["plan_key"],
+            "name": pdef["name"],
+            "max_links": r["max_links"],
+            "max_clicks_month": r["max_clicks_month"],
+        }
+    # Padrão: free
+    pdef = PLAN_DEFINITIONS["free"]
+    return {"key": "free", "name": pdef["name"], "max_links": pdef["max_links"], "max_clicks_month": pdef["max_clicks_month"]}
+
+def set_user_plan(tg_id: int, plan_key: str) -> bool:
+    """Altera o plano de um admin. Retorna True se ok."""
+    if plan_key not in PLAN_DEFINITIONS:
+        return False
+    pdef = PLAN_DEFINITIONS[plan_key]
+    conn = _get_db()
+    conn.execute("""
+        INSERT INTO tg_plans(tg_id, plan_key, max_links, max_clicks_month, updated_at) VALUES(?,?,?,?,?)
+        ON CONFLICT(tg_id) DO UPDATE SET plan_key=excluded.plan_key,
+            max_links=excluded.max_links, max_clicks_month=excluded.max_clicks_month,
+            updated_at=excluded.updated_at
+    """, (tg_id, plan_key, pdef["max_links"], pdef["max_clicks_month"], time.time()))
+    conn.commit(); conn.close()
+    return True
+
+def check_click_limit(tg_id: int):
+    """Verifica se o admin ainda tem cliques disponíveis no plano.
+    Retorna: (allowed: bool, current_month: int, max: int)"""
+    plan = get_user_plan(tg_id)
+    max_clicks = plan["max_clicks_month"]
+    # Conta eventos do mês atual
+    import datetime as _dt
+    now = time.time()
+    month_start = _dt.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0).timestamp()
+    conn = _get_db()
+    current = conn.execute(
+        "SELECT COUNT(*) FROM tg_events WHERE tg_id=? AND event_type='PAGE_ENTRY' AND created_at>=?",
+        (tg_id, month_start)
+    ).fetchone()[0]
+    conn.close()
+    return (current < max_clicks), current, max_clicks
+
+# ─── ALIASES PARA COMPATIBILIDADE COM app.py ──────────────────────────────────
+def get_tenant_all_config(tg_id: int) -> dict:
+    """Alias de get_all_cfg para compatibilidade com app.py."""
+    return get_all_cfg(tg_id)
+
+def set_tenant_config(tg_id: int, key: str, value: str):
+    """Alias de set_cfg para compatibilidade com app.py."""
+    return set_cfg(tg_id, key, value)
+
+def get_tenant_stats(tg_id: int, hours: int) -> dict:
+    """Alias de get_tg_stats para compatibilidade com app.py."""
+    return get_tg_stats(tg_id, hours)
+
+def get_global_stats(hours: int) -> dict:
+    """Estatísticas globais de todos os admins (para o Admin Supremo)."""
+    since = time.time() - hours * 3600
+    conn  = _get_db()
+    def c(et): return conn.execute(
+        "SELECT COUNT(*) FROM tg_events WHERE event_type=? AND created_at>=?",
+        (et, since)).fetchone()[0]
+    entries   = c("PAGE_ENTRY"); click_buy = c("CLICK_BUY")
+    pix       = c("PIX_GENERATED"); paid = c("PAYMENT_CONFIRMED")
+    leads     = c("LEAD_CAPTURED")
+    sess      = conn.execute("SELECT COUNT(*) FROM tg_sessions WHERE entered_at>=?", (since,)).fetchone()[0]
+    conv      = conn.execute("SELECT COUNT(*) FROM tg_sessions WHERE converted=1 AND entered_at>=?", (since,)).fetchone()[0]
+    admins    = conn.execute("SELECT COUNT(*) FROM tg_users").fetchone()[0]
+    conn.close()
+    return dict(
+        entries=entries, click_buy=click_buy, pix_generated=pix,
+        paid=paid, leads=leads, sessions=sess, converted=conv,
+        conv_rate=round((conv/sess*100) if sess>0 else 0, 1),
+        total_admins=admins, period_hours=hours
+    )
+
+def get_all_tenants() -> list:
+    """Retorna todos os usuários/admins cadastrados."""
+    conn = _get_db()
+    rows = conn.execute(
+        "SELECT tg_id, username, slug, created_at FROM tg_users ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 # ─── CANAIS DE LOGS DO ADMIN SUPREMO ──────────────────────────────────────────
 def set_log_channel(channel_key: str, chat_id: int, title: str = ""):
