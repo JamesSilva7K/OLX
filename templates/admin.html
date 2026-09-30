@@ -344,7 +344,28 @@
     .ova{overflow-x:auto}.wfull{width:100%}
     hr.div{border:none;border-top:1px solid var(--c-border);margin:14px 0}
     @supports (padding-bottom: env(safe-area-inset-bottom)){.bnav{padding-bottom:env(safe-area-inset-bottom)}}
-  
+
+    /* STAT CARD (Monitor page) */
+    .stat-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--r-md);padding:16px 14px;position:relative;overflow:hidden;transition:transform .15s}
+    .stat-card:hover{transform:translateY(-2px)}
+    .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c-purple),var(--c-purple3))}
+    .stat-val{font-size:26px;font-weight:900;color:var(--c-text);letter-spacing:-1px;line-height:1;margin-bottom:6px}
+    .stat-lbl{font-size:10.5px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.8px}
+
+    /* MONITOR LINK CARD */
+    .mon-link-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+    .mon-link-item:last-child{border-bottom:none}
+    .mon-link-url{font-size:12px;font-weight:600;color:var(--c-text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mon-link-visits{font-size:12px;font-weight:800;color:var(--c-purple3);flex-shrink:0}
+
+    /* NAV BTN MONITOR (standalone extra nav button) */
+    .nav-btn-extra{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:var(--nav-h);flex:1;cursor:pointer;color:var(--c-t3);transition:color .2s;background:none;border:none;font-family:var(--font)}
+    .nav-btn-extra.active{color:var(--c-purple3)}
+    .nav-btn-extra svg{width:22px;height:22px;transition:transform .2s}
+    .nav-btn-extra span{font-size:10px;font-weight:600;transition:all .2s}
+    .nav-btn-extra::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--c-purple);border-radius:0 0 4px 4px;transition:width .25s ease}
+    .nav-btn-extra.active::before{width:32px}
+
     /* ── TELEGRAM WEB APP FIXES ──────────────────────────────── */
     :root {
       --twa-safe-top: env(safe-area-inset-top, 0px);
@@ -800,7 +821,7 @@
     </section>
 
     <!-- PROFILE -->
-    <section class="page"       <!-- VAULT FINANCEIRO (injected) -->
+    <!-- ct-financeiro is managed by cfgTab inside page-config -->
       <div id="ct-financeiro" class="hidden">
         <div style="background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.06));border:1px solid rgba(139,92,246,0.25);border-radius:18px;padding:18px 16px;margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -933,12 +954,10 @@
       <div class="ni" id="ni-config" onclick="goTo('config')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config</span></div>
       <div class="ni" id="ni-profile" onclick="goTo('profile')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfil</span></div>
     </div>
-  
-      <button class="nav-btn" id="nav-monitor" onclick="navTo('monitor')">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span class="nav-lbl">Monitor</span>
-      </button>
-      </nav>
+
+      <div class="ni" id="ni-monitor" onclick="goTo('monitor')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Monitor</span></div>
+    </div>
+  </nav>
 
 </div>
 
@@ -985,6 +1004,7 @@ function goTo(n){
   if(n==='products')loadProducts();
   if(n==='config')loadCfg();
   if(n==='profile')loadProf();
+  if(n==='monitor'){loadLinkMonitor();loadLeadMonitor();}
   if(n==='dashboard')loadStats();
 }
 
@@ -1142,6 +1162,34 @@ function addBadgeURL(){const i=document.getElementById('badge-url');const url=i.
 function delBadge(i){_BADGES.splice(i,1);renderBadges();}
 function clearBadges(){if(!confirm('Remover todas as badges?'))return;_BADGES=[];renderBadges();toast('Badges removidas.','info');}
 function renderBadges(){const g=document.getElementById('badge-grid');if(!g)return;if(!_BADGES.length){g.innerHTML='<span style="font-size:12px;color:var(--c-t3)">Nenhum método adicionado.</span>';return;}g.innerHTML=_BADGES.map((b,i)=>'<div class="badge-chip"><img src="'+b.url+'" alt="'+(b.label||'badge')+'" onerror="this.style.opacity=&quot;0.3&quot;"/>'+(b.label?'<span style="font-size:10px;font-weight:700;color:var(--c-t3)">'+b.label+'</span>':'')+'<button class="badge-del" onclick="delBadge('+i+')">×</button></div>').join('');}
+
+
+async function loadLinkMonitor(){
+  const el=document.getElementById('mon-link-list');if(!el)return;
+  try{
+    const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';
+    const r=await apiFetch(url);const d=await r.json();const s=d.stats||d;
+    const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+    sv('mon-total-visits',s.entries??s.page_entries??'—');
+    sv('mon-unique-visits',s.unique_visitors??'—');
+    sv('mon-leads-today',s.leads??s.lead_captured??'—');
+    const conv=s.conv_rate??0;sv('mon-conv-rate',conv+'%');
+    el.innerHTML='<div class="empty"><p>Dados carregados via stats.</p></div>';
+  }catch{if(el)el.innerHTML='<div class="empty"><p>Erro.</p></div>';}
+}
+async function loadLeadMonitor(){
+  const el=document.getElementById('mon-leads-list');if(!el)return;
+  try{
+    const url=_SLUG?'/api/admin/events?slug='+_SLUG+'&limit=20&type=LEAD_CAPTURED':'/api/admin/events?limit=20&type=LEAD_CAPTURED';
+    const r=await apiFetch(url);const d=await r.json();const list=(d.events||d.logs||[]).filter(e=>e.type==='LEAD_CAPTURED');
+    if(!list.length){el.innerHTML='<div class="empty"><p>Nenhum lead.</p></div>';return;}
+    el.innerHTML=list.map(e=>{
+      const dt=new Date((e.ts||0)*1000);const tm=dt.toLocaleDateString('pt-BR')+' '+dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');
+      const name=(e.data&&e.data.name)||'—';const phone=(e.data&&e.data.phone)||'';
+      return '<div class="sess"><div class="sess-av">📋</div><div class="sess-info"><div class="sess-ip">'+name+'</div><div class="sess-meta">'+(phone||e.ip||'—')+'</div></div><span class="sess-time">'+tm+'</span></div>';
+    }).join('');
+  }catch{if(el)el.innerHTML='<div class="empty"><p>Erro.</p></div>';}
+}
 
 async function fullRefresh(){await loadStats();updLink();}
 
