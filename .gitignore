@@ -1,7 +1,6 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled
 __pycache__/
 *.py[cod]
-*$py.class
 
 # Databases
 *.db
@@ -9,15 +8,26 @@ __pycache__/
 *.db-wal
 *.sqlite3
 
-# Environments
+# Backup files
+*.bak_*
+*.bak
+
+# Secrets / Env
 .env
+.env.*
 .venv
 env/
 venv/
-ENV/
+*.pem
+*.key
+vault_master.key
+fernet.key
 
 # OS / Editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
+# Logs
+*.log

