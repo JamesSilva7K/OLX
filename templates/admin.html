@@ -1210,16 +1210,19 @@ const TOAST_ICONS = {
 const TOAST_TYPE_MAP = {ok:'ok',success:'ok',check:'ok',err:'err',error:'err',info:'inf',inf:'inf',warn:'wrn',warning:'wrn',load:'ld',loading:'ld'};
 let _toastLoadingEl = null;
 
-function toast(msg, t='ok', d=3000) {
+function toast(msg, t, d) {
+  t = t || 'ok'; d = d || 3000;
   const h = document.getElementById('toast-host');
   const type = TOAST_TYPE_MAP[t] || 'inf';
   const el = document.createElement('div');
   el.className = 'toast';
   el.style.setProperty('--toast-dur', d + 'ms');
-  el.innerHTML = \`<div class="toast-ico \${type}">\${TOAST_ICONS[type]||''}</div><div class="toast-msg">\${msg}</div><button class="toast-close" onclick="this.closest('.toast').remove()">&#10005;</button>\`;
+  el.innerHTML = '<div class="toast-ico ' + type + '">' + (TOAST_ICONS[type]||'') + '</div>' +
+    '<div class="toast-msg">' + msg + '</div>' +
+    '<button class="toast-close" onclick="this.closest(\'.toast\').remove()">&#10005;</button>';
   h.appendChild(el);
   if (t === 'load' || t === 'loading') { _toastLoadingEl = el; return el; }
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 260); }, d);
+  setTimeout(function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); }, 260); }, d);
   return el;
 }
 function toastDismissLoading(msg, t='ok') {
@@ -1262,7 +1265,7 @@ function hideLoader() {
 }
 
 // ── SKELETON BUILDERS ────────────────────────────────────────────
-function skelKpi() { return \`<div class="page-loading"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div></div></div>\`; }
+function skelKpi() { return `<div class="page-loading"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div></div></div>`; }
 function skelCards(n=3) { return '<div class="page-loading">' + Array(n).fill('<div class="skel skel-card"></div>').join('') + '</div>'; }
 function skelRows(n=5) { return '<div class="page-loading">' + Array(n).fill('<div class="skel skel-row"></div>').join('') + '</div>'; }
 
