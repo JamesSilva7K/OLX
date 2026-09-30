@@ -943,30 +943,6 @@ def api_admin_profiles_all():
     return jsonify({"ok": True, "profiles": profiles})
 
 
-# â”€â”€â”€ IA DE ESTRATÃ‰GIAS ADS E INSIGHTS FINANCEIROS REAIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-@app.route('/api/admin/ai/financial-insights')
-def api_admin_ai_financial_insights():
-    """Retorna relatÃ³rios e estratÃ©gias de IA reais para aumento de conversÃ£o em Ads."""
-    admin_id, role = verify_admin_access(request)
-    if not admin_id:
-        return jsonify({"ok": False, "error": "unauthorized"}), 401
-
-    return jsonify({
-        "ok": True,
-        "conversion_rate": "8.4%",
-        "insights": [
-            "ðŸŽ¯ **HorÃ¡rio de Pico**: 64% das conversÃµes ocorrem entre 18:00 e 22:30. Programe campanhas de Ads para este horÃ¡rio.",
-            "ðŸ’¡ **PreÃ§o PsicolÃ³gico**: AnÃºncios terminados em .90 ou .00 aumentaram em 22% o clique no botÃ£o de compra.",
-            "ðŸš€ **Gatilho de UrgÃªncia**: A ativaÃ§Ã£o da notificaÃ§Ã£o toast 'Ãšltima unidade disponÃ­vel' elevou o pagamento PIX em 31%."
-        ],
-        "ads_strategy": {
-            "target_audience": "Homens e Mulheres, 22-45 anos, interesse em eletrÃ´nicos seminovos e OLX",
-            "recommended_budget": "R$ 30.00 / dia",
-            "cpa_target": "R$ 4.50 por lead de WhatsApp"
-        }
-    })
-
-
 @app.route('/api/admin/stats')
 def api_admin_stats():
     """Retorna estatÃ­sticas isoladas por admin ou globais para o Admin Supremo."""
