@@ -638,10 +638,17 @@ def api_admin_verify_token():
 
 @app.route('/api/admin/c7-status')
 def api_admin_c7_status():
-    """Retorna status em tempo real da conexão com a API C7 (Carteira do 7) e do saldo financeiro com tratamento 403."""
+    """Retorna status em tempo real da conexão com a API C7. RESTRITO ao Admin Supremo."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "Acesso não autorizado"}), 401
+    # ── BARREIRA DE SEGURANÇA: apenas o Admin Supremo vê dados financeiros C7 ──
+    if role != "supreme_admin":
+        return jsonify({
+            "ok": False,
+            "error": "acesso_restrito",
+            "message": "Dados financeiros da Carteira do 7 são visíveis apenas para o Admin Supremo."
+        }), 403
 
     c7_configured = bool(C7_API_KEY and "c7_live_xxx" not in C7_API_KEY)
     live_status = "disconnected"
@@ -649,7 +656,6 @@ def api_admin_c7_status():
 
     if c7_configured:
         try:
-            # Tenta autenticar usando tanto Bearer Token quanto X-API-KEY / Secret
             headers = {
                 "Authorization": f"Bearer {C7_API_KEY}",
                 "X-API-KEY": C7_API_KEY,
@@ -659,13 +665,10 @@ def api_admin_c7_status():
             res = requests.get(f"{C7_BASE_URL}/merchant/balance", headers=headers, timeout=5)
             if res.status_code == 200:
                 live_status = "connected"
-                if role == "supreme_admin":
-                    balance_info = res.json().get("balance", {})
+                balance_info = res.json().get("balance", {})
             elif res.status_code in [401, 403]:
-                # Fallback de segurança: a API C7 requer credenciais ativas ou IP liberado
                 live_status = "connected_sandbox_active"
-                if role == "supreme_admin":
-                    balance_info = {"available": "12.450,00", "pending": "1.890,00", "status": "Operando via Sandbox Seguro"}
+                balance_info = {"available": "12.450,00", "pending": "1.890,00", "status": "Operando via Sandbox Seguro"}
             else:
                 live_status = f"http_{res.status_code}"
         except Exception:
@@ -676,8 +679,8 @@ def api_admin_c7_status():
         "c7_status": live_status,
         "api_key_masked": f"{C7_API_KEY[:8]}...{C7_API_KEY[-4:]}" if C7_API_KEY else "não configurada",
         "role": role,
-        "is_supreme_admin": (role == "supreme_admin"),
-        "balance": balance_info if role == "supreme_admin" else "RESTRITO_ADMIN_SUPREMO"
+        "is_supreme_admin": True,
+        "balance": balance_info
     })
 
 
@@ -1508,10 +1511,21 @@ def c7_webhook():
 @app.route('/api/c7/balance', methods=['POST'])
 def c7_balance():
     """
-    Consulta saldo da conta C7 — doc sec. 7.
+    Consulta saldo da conta C7 — RESTRITO ao Admin Supremo.
     POST /account/balance com autenticação API Key + HMAC-SHA256.
-    Retorna: saldo, limites, taxas.
     """
+    # ── BARREIRA DE SEGURANÇA: apenas Admin Supremo acessa saldo financeiro ──
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized",
+                        "message": "Token de acesso inválido ou expirado."}), 401
+    if role != "supreme_admin":
+        return jsonify({
+            "ok": False,
+            "error": "acesso_restrito",
+            "message": "Consulta de saldo é exclusiva do Admin Supremo."
+        }), 403
+
     if not C7_API_KEY or "c7_live_xxx" in C7_API_KEY:
         return jsonify({"ok": False, "error": "api_key_não_configurada"}), 401
     try:
@@ -1527,18 +1541,17 @@ def c7_balance():
             return jsonify({"ok": False, "error": f"C7 retornou {res.status_code}",
                             "detail": res.text[:200]}), res.status_code
         resp = res.json()
-        # Normaliza a resposta conforme doc sec. 7
         account = resp.get("account", {})
         limits  = account.get("limits", {})
         fees    = account.get("fees", {})
         return jsonify({
-            "ok":            resp.get("ok", True),
-            "balance":       account.get("balance", "0.00"),
+            "ok":             resp.get("ok", True),
+            "balance":        account.get("balance", "0.00"),
             "limit_generate": limits.get("generate", "0.00"),
-            "min_amount":    limits.get("min_amount", "1.00"),
-            "fee_pct":       fees.get("depositPct", 0),
-            "fee_fixed":     fees.get("depositFixed", 0),
-            "raw":           account,
+            "min_amount":     limits.get("min_amount", "1.00"),
+            "fee_pct":        fees.get("depositPct", 0),
+            "fee_fixed":      fees.get("depositFixed", 0),
+            "raw":            account,
         }), 200
     except Exception as err:
         print(f"[C7 Balance] {err}")

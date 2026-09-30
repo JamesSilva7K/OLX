@@ -1050,8 +1050,8 @@
       <div class="config-status-row"><span class="config-key">Conversão</span><span class="config-val" id="stat7-conv">—%</span></div>
     </div>
 
-    <!-- C7 Balance card -->
-    <div class="card card-sm" id="c7-balance-card" style="border-left:4px solid #32BCAD;">
+    <!-- C7 Balance card — RESTRITO AO ADMIN SUPREMO (oculto por padrão) -->
+    <div class="card card-sm" id="c7-balance-card" style="border-left:4px solid #32BCAD; display:none;">
       <div class="metrics-section" style="justify-content:space-between;">
         <span style="display:flex;align-items:center;gap:8px;">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#32BCAD" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
@@ -1733,11 +1733,20 @@
 
   // ─── C7 BALANCE ────────────────────────────────────────────────────────────
   async function loadC7Balance() {
+    const card  = document.getElementById('c7-balance-card');
     const errEl = document.getElementById('c7-balance-error');
+    if (!card || card.style.display === 'none') return; // nao e supremo, nem tenta
     errEl.style.display = 'none';
     try {
-      const r = await fetch('/api/c7/balance', {method: 'POST'});
+      const r = await fetch('/api/c7/balance', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + _ADMIN_TOKEN }
+      });
       const d = await r.json();
+      if (r.status === 403) {
+        // Nao deveria chegar aqui, mas esconde o card por seguranca
+        card.style.display = 'none'; return;
+      }
       if (d.ok || d.balance !== undefined) {
         const fmtBRL = v => `R$ ${parseFloat(v || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         document.getElementById('c7-balance').textContent = fmtBRL(d.balance);
@@ -1749,12 +1758,12 @@
           ? `${feePct}% + ${fmtBRL(feeFixed)}`
           : `${feePct}%`;
       } else {
-        errEl.textContent = d.error || 'API indisponível';
+        errEl.textContent = d.message || d.error || 'API indisponível';
         errEl.style.display = 'block';
       }
     } catch(e) {
-      document.getElementById('c7-balance-error').textContent = 'Sem conexão com C7';
-      document.getElementById('c7-balance-error').style.display = 'block';
+      errEl.textContent = 'Sem conexão com C7';
+      errEl.style.display = 'block';
     }
   }
 
@@ -1762,14 +1771,26 @@
   // AUTH GATE — Telegram-gated (token gerado via /admin_link no bot)
   // ═══════════════════════════════════════════════════════════════════════════
   let _ADMIN_TOKEN = '';
+  let _IS_SUPREME  = false; // flag de permissao financeira
 
   async function verifyAuth(token) {
     try {
       const r = await fetch('/api/admin/verify-token', {
         headers: { 'Authorization': 'Bearer ' + token }
       });
-      return r.ok;
-    } catch(e) { return false; }
+      if (!r.ok) return null;
+      return await r.json(); // retorna { ok, admin_id, role, is_supreme, plan }
+    } catch(e) { return null; }
+  }
+
+  function applySupremeUI(isSupreme) {
+    _IS_SUPREME = !!isSupreme;
+    const card = document.getElementById('c7-balance-card');
+    if (card) card.style.display = isSupreme ? 'block' : 'none';
+    // Elementos de gerenciamento global só para supremo
+    document.querySelectorAll('[data-supreme-only]').forEach(el => {
+      el.style.display = isSupreme ? '' : 'none';
+    });
   }
 
   async function doLogin() {
@@ -1777,18 +1798,19 @@
     if (!token) return;
     const errEl = document.getElementById('auth-error');
     errEl.style.display = 'none';
-    const ok = await verifyAuth(token);
-    if (ok) {
+    const authData = await verifyAuth(token);
+    if (authData && authData.ok) {
       _ADMIN_TOKEN = token;
-      // Persiste com localStorage (sobrevive reload do Telegram WebApp)
       localStorage.setItem('olpg_admin_token', token);
-      // Salva no hash da URL para sobreviver a redirects do WebApp
       try { history.replaceState(null, '', '#t=' + encodeURIComponent(token)); } catch(e){}
+      applySupremeUI(authData.is_supreme);
       document.getElementById('auth-gate').style.display = 'none';
       fullRefresh();
-      loadC7Balance();
+      if (authData.is_supreme) {
+        loadC7Balance();
+        setInterval(loadC7Balance, 120000);
+      }
       setInterval(fullRefresh, 30000);
-      setInterval(loadC7Balance, 120000);
     } else {
       errEl.style.display = 'block';
     }
@@ -1820,17 +1842,19 @@
     if (!token) token = localStorage.getItem('olpg_admin_token') || '';
 
     if (token) {
-      const ok = await verifyAuth(token);
-      if (ok) {
+      const authData = await verifyAuth(token);
+      if (authData && authData.ok) {
         _ADMIN_TOKEN = token;
-        // Mantém token no hash para próximos reloads
         try { history.replaceState(null, '', '#t=' + encodeURIComponent(token)); } catch(e){}
         localStorage.setItem('olpg_admin_token', token);
+        applySupremeUI(authData.is_supreme);
         document.getElementById('auth-gate').style.display = 'none';
         fullRefresh();
-        loadC7Balance();
+        if (authData.is_supreme) {
+          loadC7Balance();
+          setInterval(loadC7Balance, 120000);
+        }
         setInterval(fullRefresh, 30000);
-        setInterval(loadC7Balance, 120000);
         return;
       } else {
         localStorage.removeItem('olpg_admin_token');
