@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -23,6 +23,92 @@
       --font:'Inter',-apple-system,sans-serif;
       --nav-h:68px;--hdr-h:56px;--safe-b:env(safe-area-inset-bottom,0px)
     }
+
+    /* ── LIGHT THEME ──────────────────────────────────────────── */
+    [data-theme="light"] {
+      --c-bg:#F0EBF8;--c-surface:#FAF7FF;--c-card:#FFFFFF;--c-card2:#F5F0FF;
+      --c-border:rgba(124,58,237,0.12);--c-border2:rgba(124,58,237,0.22);
+      --c-text:#1A0A2E;--c-t2:rgba(26,10,46,0.65);--c-t3:rgba(26,10,46,0.38);
+      --c-glow:rgba(139,92,246,0.15);
+    }
+    [data-theme="light"] #app-shell{background:var(--c-surface)}
+    [data-theme="light"] .hdr{background:rgba(255,255,255,0.97);border-bottom-color:var(--c-border)}
+    [data-theme="light"] .bnav{background:rgba(250,247,255,0.97);border-top-color:var(--c-border)}
+    [data-theme="light"] .card{box-shadow:0 2px 12px rgba(124,58,237,0.08)}
+    [data-theme="light"] .auth-card{background:rgba(255,255,255,0.95)}
+    [data-theme="light"] #auth-gate{background:radial-gradient(ellipse at 50% 0%,#e0d4ff 0%,#f5f0ff 55%,#ede8ff 100%)}
+    [data-theme="light"] .kpi{box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+    [data-theme="light"] .fi,.fta,.fsel{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.12);color:var(--c-text)}
+    [data-theme="light"] .fi::placeholder,.fta::placeholder{color:var(--c-t3)}
+    [data-theme="light"] .empty{color:var(--c-t3)}
+    [data-theme="light"] .empty p{color:var(--c-t3)}
+    [data-theme="light"] .toast{background:rgba(255,255,255,0.98);border-color:var(--c-border2);color:var(--c-text);box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+    [data-theme="light"] .stat-card{background:#fff}
+
+    /* ── THEME TOGGLE BUTTON ──────────────────────────────────── */
+    .theme-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;color:var(--c-t2);cursor:pointer;transition:all .2s;flex-shrink:0}
+    .theme-btn:hover{background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.3);color:var(--c-purple3)}
+    .theme-btn svg{width:16px;height:16px}
+    [data-theme="light"] .theme-btn{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.12)}
+
+    /* ── GLOBAL LOADER OVERLAY ────────────────────────────────── */
+    #global-loader{position:fixed;inset:0;z-index:99998;background:var(--c-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s}
+    #global-loader.hidden{opacity:0;pointer-events:none}
+    .gl-logo{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(139,92,246,0.5);animation:glPulse 1.5s ease-in-out infinite}
+    @keyframes glPulse{0%,100%{box-shadow:0 0 40px rgba(139,92,246,0.5)}50%{box-shadow:0 0 60px rgba(139,92,246,0.8)}}
+    .gl-logo svg{width:28px;height:28px;color:#fff}
+    .gl-title{font-size:16px;font-weight:800;color:var(--c-text);letter-spacing:-0.3px}
+    .gl-sub{font-size:12px;color:var(--c-t3);font-weight:500;margin-top:-12px;transition:all .3s}
+    .gl-bar-wrap{width:160px;height:3px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+    .gl-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,#7C3AED,#A855F7,#EC4899);background-size:200% 100%;animation:glBar 1.5s ease-in-out infinite;width:0%;transition:width .4s ease}
+    @keyframes glBar{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+    /* ── SKELETON LOADER ──────────────────────────────────────── */
+    .skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 100%);background-size:200% 100%;animation:skelShim 1.5s ease-in-out infinite;border-radius:8px}
+    @keyframes skelShim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    [data-theme="light"] .skel{background:linear-gradient(90deg,rgba(0,0,0,0.04) 0%,rgba(0,0,0,0.09) 50%,rgba(0,0,0,0.04) 100%);background-size:200% 100%}
+    .skel-kpi{height:90px;border-radius:16px}
+    .skel-card{height:72px;border-radius:16px;margin-bottom:8px}
+    .skel-row{height:44px;border-radius:10px;margin-bottom:6px}
+    .skel-txt-sm{height:12px;border-radius:4px;width:60%}
+    .skel-txt-lg{height:20px;border-radius:6px;width:40%}
+
+    /* ── ENHANCED TOAST / NOTIFY ──────────────────────────────── */
+    .toast-host{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:8px;width:calc(100% - 32px);max-width:360px;pointer-events:none}
+    .toast{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(22,0,36,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:13px;font-weight:600;color:var(--c-text);animation:toastIn .3s cubic-bezier(0.16,1,0.3,1);pointer-events:all;position:relative;overflow:hidden}
+    .toast::after{content:'';position:absolute;bottom:0;left:0;height:2px;background:var(--toast-color,var(--c-purple));animation:toastTimer linear forwards;animation-duration:var(--toast-dur,3s)}
+    @keyframes toastTimer{from{width:100%}to{width:0%}}
+    @keyframes toastIn{from{opacity:0;transform:translateY(-12px) scale(.95)}to{opacity:1;transform:none}}
+    .toast.out{animation:toastOut .25s ease forwards}
+    @keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.96)}}
+    .toast-ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .toast-ico svg{width:14px;height:14px}
+    .toast-ico.ok{background:rgba(16,185,129,0.15);color:#34D399;--toast-color:#10B981}
+    .toast-ico.err{background:rgba(239,68,68,0.15);color:#F87171;--toast-color:#EF4444}
+    .toast-ico.inf{background:rgba(59,130,246,0.15);color:#93C5FD;--toast-color:#3B82F6}
+    .toast-ico.wrn{background:rgba(245,158,11,0.15);color:#FCD34D;--toast-color:#F59E0B}
+    .toast-ico.ld{background:rgba(139,92,246,0.15);color:var(--c-purple3);--toast-color:var(--c-purple)}
+    .toast-msg{flex:1}
+    .toast-close{background:none;border:none;color:var(--c-t3);cursor:pointer;padding:2px;font-size:16px;line-height:1;flex-shrink:0;transition:color .15s}
+    .toast-close:hover{color:var(--c-text)}
+    .toast-prog{position:absolute;bottom:0;left:0;height:2px;background:var(--toast-color,var(--c-purple))}
+
+    /* ── PAGE SKELETON WRAPPER ────────────────────────────────── */
+    .page-loading{display:flex;flex-direction:column;gap:10px;padding:4px 0;width:100%}
+
+    /* ── INLINE LOADING SPINNER ───────────────────────────────── */
+    .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,0.15);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── CONNECTION STATUS BAR ────────────────────────────────── */
+    #conn-bar{position:fixed;top:0;left:0;right:0;z-index:99997;height:3px;background:linear-gradient(90deg,#7C3AED,#A855F7,#EC4899);background-size:200% 100%;animation:connProgress 1s ease-in-out infinite;display:none}
+    #conn-bar.show{display:block}
+    @keyframes connProgress{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+
+    /* ── NOTIFICATION DOT ─────────────────────────────────────── */
+    .ni-dot{position:absolute;top:8px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:var(--c-red);border:2px solid var(--c-bg);animation:niDotPop .3s cubic-bezier(0.16,1,0.3,1)}
+    @keyframes niDotPop{from{transform:scale(0)}to{transform:scale(1)}}
+
     html,body{height:100%;background:var(--c-bg);color:var(--c-text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
 
     /* AUTH GATE */
@@ -468,6 +554,19 @@
 </head>
 <body>
 
+<!-- CONNECTION PROGRESS BAR -->
+<div id="conn-bar"></div>
+
+<!-- GLOBAL PAGE LOADER -->
+<div id="global-loader">
+  <div class="gl-logo">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  </div>
+  <div class="gl-title">BladeBot Admin</div>
+  <div class="gl-sub" id="gl-msg">Verificando autenticação...</div>
+  <div class="gl-bar-wrap"><div class="gl-bar" id="gl-bar"></div></div>
+</div>
+
 <!-- AUTH GATE -->
 <div id="auth-gate">
   <div class="auth-wrap">
@@ -549,7 +648,11 @@
       <div class="hdr-badge" id="hdr-badge">ADMIN</div>
     </div>
     <div class="hdr-r">
-      <div class="live-row"><div class="live-dot"></div><span>Online</span></div>
+      <div class="live-row"><div class="live-dot"></div><span id="conn-status-txt">Online</span></div>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" title="Alternar tema">
+        <svg id="theme-ico-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="theme-ico-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <button class="hdr-btn" onclick="doLogout()" title="Sair">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
@@ -566,7 +669,7 @@
         <div style="margin-left:auto"><span class="chip chip-g">✓ Autenticado</span></div>
       </div>
 
-      <div class="kpi-grid">
+      <div id="kpi-skel"></div><div class="kpi-grid">
         <div class="kpi kpi-pur">
           <div class="kpi-lbl">Visitas 24h</div>
           <div class="kpi-val" id="st-entries">—</div>
@@ -1092,29 +1195,93 @@
 
 <script>
 'use strict';
+let _currentPage='dashboard';
 let _TK='',_ID=0,_ROLE='',_SUP=false,_SLUG=_JINJA_SLUG||'',_REF=null,_WA_T=null,_BADGES=[],_ALL_EV=[],_EV_F='all';
 const SK='blade_admin_v2';
 
-function toast(msg,t='ok',d=3000){
-  const h=document.getElementById('toast-host'),el=document.createElement('div');
-  el.className='toast';
-  const m={ok:'ok',err:'err',error:'err',info:'inf',check:'ok'};
-  el.innerHTML=`<div class="tdot ${m[t]||'inf'}"></div><span>${msg}</span>`;
+// ── ENHANCED TOAST SYSTEM ──────────────────────────────────────
+const TOAST_ICONS = {
+  ok:  '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+  err: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  inf: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  wrn: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  ld:  '<div class="spin"></div>',
+};
+const TOAST_TYPE_MAP = {ok:'ok',success:'ok',check:'ok',err:'err',error:'err',info:'inf',inf:'inf',warn:'wrn',warning:'wrn',load:'ld',loading:'ld'};
+let _toastLoadingEl = null;
+
+function toast(msg, t='ok', d=3000) {
+  const h = document.getElementById('toast-host');
+  const type = TOAST_TYPE_MAP[t] || 'inf';
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.setProperty('--toast-dur', d + 'ms');
+  el.innerHTML = \`<div class="toast-ico \${type}">\${TOAST_ICONS[type]||''}</div><div class="toast-msg">\${msg}</div><button class="toast-close" onclick="this.closest('.toast').remove()">&#10005;</button>\`;
   h.appendChild(el);
-  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},d);
+  if (t === 'load' || t === 'loading') { _toastLoadingEl = el; return el; }
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 260); }, d);
+  return el;
+}
+function toastDismissLoading(msg, t='ok') {
+  if (_toastLoadingEl) { _toastLoadingEl.remove(); _toastLoadingEl = null; }
+  if (msg) toast(msg, t, 3000);
 }
 
+// ── PROGRESS BAR HELPERS ────────────────────────────────────────
+function showConnBar() { document.getElementById('conn-bar').classList.add('show'); }
+function hideConnBar() { document.getElementById('conn-bar').classList.remove('show'); }
+
+// ── THEME TOGGLE ────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const curr = html.getAttribute('data-theme') || 'dark';
+  const next = curr === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('blade_theme', next);
+  document.getElementById('theme-ico-dark').style.display = next === 'dark' ? '' : 'none';
+  document.getElementById('theme-ico-light').style.display = next === 'light' ? '' : 'none';
+  document.querySelector('meta[name="theme-color"]').content = next === 'dark' ? '#0f0018' : '#F0EBF8';
+}
+function applyTheme() {
+  const saved = localStorage.getItem('blade_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const di = document.getElementById('theme-ico-dark'), li = document.getElementById('theme-ico-light');
+  if (di) di.style.display = saved === 'dark' ? '' : 'none';
+  if (li) li.style.display = saved === 'light' ? '' : 'none';
+}
+
+// ── GLOBAL LOADER ────────────────────────────────────────────────
+function setLoader(msg, pct) {
+  const m = document.getElementById('gl-msg'), b = document.getElementById('gl-bar');
+  if (m) m.textContent = msg || '';
+  if (b && pct !== undefined) b.style.width = pct + '%';
+}
+function hideLoader() {
+  const gl = document.getElementById('global-loader');
+  if (gl) { gl.classList.add('hidden'); setTimeout(() => gl.style.display='none', 400); }
+}
+
+// ── SKELETON BUILDERS ────────────────────────────────────────────
+function skelKpi() { return \`<div class="page-loading"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div><div class="skel skel-kpi"></div></div></div>\`; }
+function skelCards(n=3) { return '<div class="page-loading">' + Array(n).fill('<div class="skel skel-card"></div>').join('') + '</div>'; }
+function skelRows(n=5) { return '<div class="page-loading">' + Array(n).fill('<div class="skel skel-row"></div>').join('') + '</div>'; }
+
 function goTo(n){
+  if(typeof _currentPage !== 'undefined' && _currentPage === n) return;
+  _currentPage = n;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(i=>i.classList.remove('active'));
   const p=document.getElementById('page-'+n),ni=document.getElementById('ni-'+n);
   if(p)p.classList.add('active');if(ni)ni.classList.add('active');
-  if(n==='events'){loadEvents();loadSessions();}
-  if(n==='products')loadProducts();
-  if(n==='config')loadCfg();
-  if(n==='profile')loadProf();
-  if(n==='monitor'){loadLinkMonitor();loadLeadMonitor();}
-  if(n==='dashboard')loadStats();
+  showConnBar();
+  const done = ()=>hideConnBar();
+  if(n==='events'){Promise.all([loadEvents(),loadSessions()]).finally(done);}
+  else if(n==='products'){loadProducts().finally(done);}
+  else if(n==='config'){loadCfg().finally(done);}
+  else if(n==='profile'){loadProf().finally(done);}
+  else if(n==='dashboard'){loadStats().finally(done);}
+  else if(n==='monitor'){Promise.all([loadLinkMonitor(),loadLeadMonitor()]).finally(done);}
+  else done();
 }
 
 function toggleEye(){
@@ -1129,11 +1296,16 @@ async function doLogin(){
   if(!tk){toast('Cole o token primeiro.','err');return;}
   const btn=document.getElementById('auth-btn'),errEl=document.getElementById('auth-err'),okEl=document.getElementById('auth-ok-msg');
   errEl.style.display='none';okEl.style.display='none';btn.disabled=true;
-  document.getElementById('auth-btn-txt').textContent='Verificando...';
+  document.getElementById('auth-btn-txt').textContent='Verificando...';document.getElementById('auth-btn-ico').style.display='none';
   const res=await verifyTk(tk);
   if(res&&res.ok){
     okEl.style.display='flex';_TK=tk;_ID=res.admin_id;_ROLE=res.role;_SUP=res.is_supreme;
-    localStorage.setItem(SK,tk);setTimeout(()=>bootApp(res),600);
+    localStorage.setItem(SK,tk);
+    setLoader('Autenticando...', 60);
+    document.getElementById('auth-gate').style.display='none';
+    document.getElementById('global-loader').style.display='flex';
+    document.getElementById('global-loader').classList.remove('hidden');
+    setTimeout(()=>{setLoader('Carregando painel...',90);setTimeout(()=>bootApp(res),300);},400);
   }else{
     errEl.style.display='flex';
     document.getElementById('auth-err-msg').textContent=(res&&res.message)||'Token inválido ou expirado.';
@@ -1231,7 +1403,10 @@ function bootApp(a){
     const sow=document.getElementById('sup-overview-wrap');if(sow)sow.style.display='none';
   }
   if(a.plan&&a.plan.slug)_SLUG=a.plan.slug;
-  updLink();fullRefresh();_REF=setInterval(fullRefresh,30000);
+  updLink();
+  // Load initial page data then hide loader
+  loadStats().then(()=>{ hideLoader(); }).catch(()=>hideLoader());
+  _REF=setInterval(fullRefresh,30000);
 }
 
 function doLogout(){
@@ -1243,26 +1418,117 @@ function doLogout(){
 }
 
 (async function init(){
+  // Apply saved theme immediately
+  applyTheme();
+  // Start loader
+  setLoader('Iniciando painel...', 10);
   const saved=localStorage.getItem(SK);
   if(saved){document.getElementById('auth-saved').style.display='block';document.getElementById('saved-prev').textContent=saved.slice(0,12)+'...'+saved.slice(-4);}
   let tk=(_JINJA_TOKEN||'').trim();
   if(!tk){const hm=location.hash.match(/[#&]t=([^&]+)/);if(hm)tk=decodeURIComponent(hm[1]);}
   if(!tk)tk=new URLSearchParams(location.search).get('token')||'';
   if(!tk)tk=saved||'';
-  if(tk){const r=await verifyTk(tk);if(r&&r.ok){_TK=tk;_ID=r.admin_id;_ROLE=r.role;_SUP=r.is_supreme;localStorage.setItem(SK,tk);try{history.replaceState(null,'',window.location.pathname);}catch{}bootApp(r);return;}else{localStorage.removeItem(SK);document.getElementById('auth-saved').style.display='none';}}
+  if(tk){
+    setLoader('Verificando identidade...', 40);
+    const r=await verifyTk(tk);
+    setLoader('Carregando painel...', 80);
+    if(r&&r.ok){
+      _TK=tk;_ID=r.admin_id;_ROLE=r.role;_SUP=r.is_supreme;
+      localStorage.setItem(SK,tk);
+      try{history.replaceState(null,'',window.location.pathname);}catch{}
+      setLoader('Pronto!', 100);
+      setTimeout(()=>{hideLoader();bootApp(r);},400);
+      return;
+    }else{
+      localStorage.removeItem(SK);
+      document.getElementById('auth-saved').style.display='none';
+    }
+  }
+  hideLoader();
   document.getElementById('auth-gate').style.display='flex';
 })();
 
 function hdrs(){return{'Authorization':'Bearer '+_TK,'Content-Type':'application/json'};}
 async function apiFetch(url,opts={}){return fetch(url,{...opts,headers:{...hdrs(),...(opts.headers||{})}});}
 
-async function loadStats(){
-  try{const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';const r=await apiFetch(url);const d=await r.json();if(!d.ok)return;const s=d.stats||d;const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v??'—';};sv('st-entries',s.entries??s.page_entries??'—');sv('st-buy',s.click_buy??'—');sv('st-leads',s.leads??s.lead_captured??'—');sv('st-paid',s.paid??s.payment_confirmed??'—');sv('st-conv','Taxa: '+(s.conv_rate??0)+'%');const ent=parseInt(s.entries||s.page_entries||0)||1;const buy=parseInt(s.click_buy||0)||0;const lds=parseInt(s.leads||s.lead_captured||0)||0;const pd=parseInt(s.paid||s.payment_confirmed||0)||0;sv('fn-entries',ent);sv('fn-buy',buy);sv('fn-leads',lds);sv('fn-paid',pd);const pct=v=>Math.min(100,Math.round((v/ent)*100))+'%';['buy','leads','paid'].forEach(k=>{const el=document.getElementById('fnb-'+k);if(el)el.style.width=pct(k==='buy'?buy:k==='leads'?lds:pd);});}catch(e){}}
-
-let _allEv=[];let _pmap={};
-async function loadEvents(){
-  try{const url=_SLUG?'/api/admin/events?slug='+_SLUG+'&limit=50':'/api/admin/events?limit=50';const r=await apiFetch(url);const d=await r.json();_allEv=d.events||d.logs||[];renderEv(_EV_F);const c=document.getElementById('ev-cnt');if(c)c.textContent=_allEv.length+' evento(s)';}catch{renderEv(_EV_F);}
+// ── GLOBAL 401 / AUTH EXPIRY HANDLER ───────────────────────────
+function handleUnauth(){
+  clearInterval(_REF);
+  toast('Sessão expirada. Faça login novamente.','err',5000);
+  setTimeout(()=>{
+    _TK='';_ID=0;_ROLE='';_SUP=false;
+    document.getElementById('app-shell').style.display='none';
+    document.getElementById('auth-gate').style.display='flex';
+    document.getElementById('auth-inp').value='';
+    document.getElementById('auth-err').style.display='none';
+  },1500);
 }
+
+// ── GLOBAL API FETCH with auth + 401 handling ───────────────────
+async function apiFetchSafe(url, opts={}) {
+  showConnBar();
+  try {
+    const r = await fetch(url, {...opts, headers:{...hdrs(),...(opts.headers||{})}});
+    if(r.status === 401) { handleUnauth(); return null; }
+    if(r.status === 429) { toast('Muitas requisições. Aguarde.','wrn',4000); return null; }
+    return r;
+  } catch(e) {
+    toast('Sem conexão com o servidor.','err',4000);
+    return null;
+  } finally {
+    hideConnBar();
+  }
+}
+
+
+async function loadStats(){
+  const kgrid = document.getElementById('kpi-skel');
+  if(kgrid) kgrid.innerHTML = skelKpi();
+  try{
+    const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';
+    const r=await apiFetch(url);
+    if(r.status===401){handleUnauth();return;}
+    const d=await r.json();
+    if(!d.ok)return;
+    const s=d.stats||d;
+    const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v??'—';};
+    sv('st-entries',s.entries??s.page_entries??'—');
+    sv('st-buy',s.click_buy??'—');
+    sv('st-leads',s.leads??s.lead_captured??'—');
+    sv('st-paid',s.paid??s.payment_confirmed??'—');
+    sv('st-conv','Taxa: '+(s.conv_rate??0)+'%');
+    const ent=parseInt(s.entries||s.page_entries||0)||1;
+    const buy=parseInt(s.click_buy||0)||0;
+    const lds=parseInt(s.leads||s.lead_captured||0)||0;
+    const pd=parseInt(s.paid||s.payment_confirmed||0)||0;
+    sv('fn-entries',ent);sv('fn-buy',buy);sv('fn-leads',lds);sv('fn-paid',pd);
+    const pct=v=>Math.min(100,Math.round((v/ent)*100))+'%';
+    ['buy','leads','paid'].forEach(k=>{const el=document.getElementById('fnb-'+k);if(el)el.style.width=pct(k==='buy'?buy:k==='leads'?lds:pd);});
+    if(kgrid) kgrid.innerHTML = '';
+  }catch(e){
+    console.warn('loadStats:',e);
+    if(kgrid) kgrid.innerHTML = '<div class="empty"><p>Erro ao carregar estatísticas.</p></div>';
+  }
+}
+
+
+async function loadEvents(){
+  const tb=document.getElementById('ev-tbody');
+  if(tb) tb.innerHTML='<tr><td colspan="4">'+skelRows(5)+'</td></tr>';
+  try{
+    const url=_SLUG?'/api/admin/events?slug='+_SLUG+'&limit=50':'/api/admin/events?limit=50';
+    const r=await apiFetch(url);
+    if(!r||r.status===401){handleUnauth();return;}
+    const d=await r.json();
+    _allEv=d.events||d.logs||[];
+    renderEv(_EV_F);
+    const c=document.getElementById('ev-cnt');if(c)c.textContent=_allEv.length+' evento(s)';
+  }catch(e){
+    console.warn('loadEvents:',e);
+    if(tb) tb.innerHTML='<tr><td colspan="4"><div class="empty"><p>Erro ao carregar eventos.</p></div></td></tr>';
+  }
+}
+
 function filterEv(t,btn){_EV_F=t;document.querySelectorAll('#ev-tabs .tp').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');const titles={all:'Todos os Eventos',LEAD_CAPTURED:'Leads',CLICK_BUY:'Compras',PIX_GENERATED:'Pix Gerado',PAYMENT_CONFIRMED:'Pagamentos'};const el=document.getElementById('ev-title');if(el)el.textContent=titles[t]||'Eventos';renderEv(t);}
 function renderEv(f){
   const tb=document.getElementById('ev-tbody');if(!tb)return;
@@ -1282,8 +1548,46 @@ async function loadSessions(){
 }
 
 async function loadProducts(){
-  try{const url=_SLUG?'/api/products?slug='+_SLUG:'/api/products';const r=await apiFetch(url);const d=await r.json();const list=d.products||d.items||[];const g=document.getElementById('prods-grid');if(!list.length){g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para criar.</p></div>';return;}_pmap={};list.forEach(function(px){_pmap[px.code||px.product_code||'']=px;});g.innerHTML=list.map(p=>{const img=p.image_url||p.image||'';const code=p.code||p.product_code||'';const oldp=p.old_price?'<span class="prod-oldp">R$ '+p.old_price+'</span>':'';return '<div class="prod-card"><div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+p.name+'" onerror="this.style.display=&quot;none&quot;"/>':'')+'<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div></div><div class="prod-info"><div class="prod-name">'+(p.name||p.title)+'</div><div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div><div class="prod-code">Código: '+code+'</div></div><div class="prod-acts"><button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')" ><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button><button class="btn btn-g btn-xs" onclick="openEditProd(_pmap['+JSON.stringify(code)+'])">Editar</button><button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></div>';}).join('');}catch(e){}
+  const g=document.getElementById('prods-grid');
+  if(g) g.innerHTML = skelCards(3);
+  try{
+    const url=_SLUG?'/api/products?slug='+_SLUG:'/api/products';
+    const r=await apiFetch(url);
+    if(r.status===401){handleUnauth();return;}
+    const d=await r.json();
+    const list=d.products||d.items||[];
+    if(!list.length){
+      g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para criar.</p></div>';
+      return;
+    }
+    _pmap={};
+    list.forEach(function(px){_pmap[px.code||px.product_code||'']=px;});
+    g.innerHTML=list.map(p=>{
+      const img=p.image_url||p.image||'';
+      const code=p.code||p.product_code||'';
+      const oldp=p.old_price?'<span class="prod-oldp">R$ '+p.old_price+'</span>':'';
+      const isActive=p.is_active||p.active;
+      const activeBadge=isActive?'<span class="chip chip-g" style="font-size:10px;position:absolute;top:8px;right:8px">Ativo</span>':'';
+      return '<div class="prod-card" style="position:relative">'+
+        '<div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+p.name+'" onerror="this.style.display='none'"/>':'')+
+        '<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'+
+        activeBadge+
+        '</div>'+
+        '<div class="prod-info"><div class="prod-name">'+(p.name||p.title)+'</div>'+
+        '<div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div>'+
+        '<div class="prod-code">Código: '+code+'</div></div>'+
+        '<div class="prod-acts">'+
+        '<button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
+        '<button class="btn btn-g btn-xs" onclick="openEditProd(_pmap['+JSON.stringify(code)+'])">Editar</button>'+
+        '<button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')" title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
+        '</div></div>';
+    }).join('');
+  }catch(e){
+    console.warn('loadProducts:',e);
+    if(g) g.innerHTML='<div class="empty"><p>Erro ao carregar produtos.</p></div>';
+  }
 }
+
 function openAddProd(){document.getElementById('prod-modal-ttl').textContent='Novo Produto';['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-img','edit-slug'].forEach(id=>{document.getElementById(id).value='';});document.getElementById('edit-slug').disabled=false;document.getElementById('edit-lnk-box').style.display='none';document.getElementById('prod-modal').classList.add('open');}
 function openEditProd(p){document.getElementById('prod-modal-ttl').textContent='Editar Produto';const code=p.code||p.product_code||'';document.getElementById('edit-code').value=code;document.getElementById('edit-name').value=p.name||p.title||'';document.getElementById('edit-price').value=p.price||'';document.getElementById('edit-oldp').value=p.old_price||'';document.getElementById('edit-desc').value=p.description||'';document.getElementById('edit-img').value=p.image_url||p.image||'';document.getElementById('edit-slug').value=code;document.getElementById('edit-slug').disabled=true;if(code){document.getElementById('edit-lnk').value=window.location.origin+'/p/'+code;document.getElementById('edit-lnk-box').style.display='flex';}document.getElementById('prod-modal').classList.add('open');}
 function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
