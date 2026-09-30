@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -345,6 +345,43 @@
     hr.div{border:none;border-top:1px solid var(--c-border);margin:14px 0}
     @supports (padding-bottom: env(safe-area-inset-bottom)){.bnav{padding-bottom:env(safe-area-inset-bottom)}}
 
+
+    /* AVATAR with image support */
+    .adm-av{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;overflow:hidden;position:relative}
+    .adm-av img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit}
+    .adm-av-lg{width:72px;height:72px;border-radius:20px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;overflow:hidden;position:relative;box-shadow:0 8px 24px rgba(124,58,237,0.4)}
+    .adm-av-lg img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit}
+
+    /* PROFILE HERO */
+    .prof-hero{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(168,85,247,0.08));border:1px solid rgba(139,92,246,0.25);border-radius:var(--r-lg);padding:20px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden}
+    .prof-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.2),transparent);pointer-events:none}
+    .prof-hero-info{flex:1;min-width:0}
+    .prof-hero-name{font-size:18px;font-weight:900;color:var(--c-text);letter-spacing:-0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .prof-hero-role{font-size:12px;color:var(--c-purple3);font-weight:700;margin-top:3px}
+    .prof-hero-slug{font-size:11px;color:var(--c-t3);font-family:monospace;margin-top:2px}
+
+    /* PERSONAL STATS */
+    .pstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .pstat{background:var(--c-card2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:12px 14px;text-align:center}
+    .pstat-val{font-size:22px;font-weight:900;color:var(--c-text);letter-spacing:-0.5px;line-height:1}
+    .pstat-lbl{font-size:10px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.6px;margin-top:4px}
+
+    /* SUPREME ADMIN PANEL */
+    .sup-admin-card{background:var(--c-card2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px 16px;transition:all .18s}
+    .sup-admin-card:hover{border-color:rgba(139,92,246,0.3)}
+    .sup-admin-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .sup-admin-name{font-size:13px;font-weight:800;color:var(--c-text)}
+    .sup-admin-slug{font-size:11px;color:var(--c-t3);font-family:monospace;margin-top:1px}
+    .sup-stat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .sup-stat-chip{display:flex;flex-direction:column;align-items:center;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:8px;min-width:44px}
+    .sup-stat-chip-val{font-size:13px;font-weight:900;color:var(--c-text)}
+    .sup-stat-chip-lbl{font-size:9px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.4px;margin-top:1px}
+
+    /* AVATAR URL PREVIEW */
+    .av-prev-wrap{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.03);border-radius:var(--r-sm);border:1px solid var(--c-border)}
+    .av-prev-img{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;overflow:hidden;flex-shrink:0}
+    .av-prev-img img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+
     /* STAT CARD (Monitor page) */
     .stat-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--r-md);padding:16px 14px;position:relative;overflow:hidden;transition:transform .15s}
     .stat-card:hover{transform:translateY(-2px)}
@@ -524,7 +561,7 @@
     <!-- DASHBOARD -->
     <section class="page active" id="page-dashboard">
       <div class="adm-pill">
-        <div class="adm-av" id="av-letter">A</div>
+        <div class="adm-av" id="av-letter"><span id="av-letter-txt">A</span></div>
         <div><div class="adm-name" id="adm-name">Administrador</div><div class="adm-role" id="adm-role">Verificando...</div></div>
         <div style="margin-left:auto"><span class="chip chip-g">✓ Autenticado</span></div>
       </div>
@@ -930,17 +967,91 @@
       </div>
 
     <section class="page" id="page-profile">
-      <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Meu Perfil</div>
-      <div class="card"><div class="card-body">
-        <div class="adm-pill mb-12"><div class="adm-av" id="prof-av">A</div><div><div class="adm-name" id="prof-name">Admin</div><div class="adm-role" id="prof-role">—</div></div></div>
-        <hr class="div">
-        <div class="fg"><label class="flbl">Nome de Exibição</label><input type="text" class="fi" id="pf-name" placeholder="Seu nome"/></div>
-        <div class="fg"><label class="flbl">Bio</label><textarea class="fta" id="pf-bio" placeholder="Breve descrição..." style="min-height:70px"></textarea></div>
-        <div class="fg"><label class="flbl">Contato</label><input type="text" class="fi" id="pf-contact" placeholder="@telegram ou número..."/></div>
-        <button class="btn btn-p" onclick="saveProf()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar Perfil</button>
-      </div></div>
-      <div class="sec-ttl mt-12"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Outros Admins</div>
+
+      <!-- PROFILE HERO -->
+      <div class="prof-hero">
+        <div class="adm-av-lg" id="prof-av-lg">A</div>
+        <div class="prof-hero-info">
+          <div class="prof-hero-name" id="prof-hero-name">Carregando...</div>
+          <div class="prof-hero-role" id="prof-hero-role">—</div>
+          <div class="prof-hero-slug" id="prof-hero-slug">@—</div>
+        </div>
+        <button class="btn btn-g btn-xs" onclick="loadProf()" style="flex-shrink:0">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+
+      <!-- PERSONAL STATS 24h -->
+      <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Minha Performance (24h)</div>
+      <div class="pstat-grid">
+        <div class="pstat"><div class="pstat-val" id="ps-entries">—</div><div class="pstat-lbl">Visitas</div></div>
+        <div class="pstat"><div class="pstat-val" id="ps-buy">—</div><div class="pstat-lbl">Cliques</div></div>
+        <div class="pstat"><div class="pstat-val" id="ps-leads">—</div><div class="pstat-lbl">Leads</div></div>
+        <div class="pstat"><div class="pstat-val" id="ps-paid">—</div><div class="pstat-lbl">Pagos</div></div>
+      </div>
+
+      <!-- EDIT PROFILE -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>Editar Perfil</div>
+        </div>
+        <div class="card-body">
+          <!-- Avatar preview -->
+          <div class="av-prev-wrap mb-12" id="av-prev-wrap">
+            <div class="av-prev-img" id="av-prev"><span id="av-prev-letter">A</span></div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:var(--c-t2)">Foto do Perfil</div>
+              <div style="font-size:11px;color:var(--c-t3);margin-top:2px">Cole a URL do avatar do Telegram ou qualquer imagem</div>
+            </div>
+          </div>
+          <div class="fg"><label class="flbl">URL do Avatar</label><input type="url" class="fi" id="pf-avatar" placeholder="https://t.me/i/userpic/..." oninput="prevAvatar(this.value)"/></div>
+          <div class="fg"><label class="flbl">Nome de Exibição</label><input type="text" class="fi" id="pf-name" placeholder="Seu nome ou nome do canal"/></div>
+          <div class="fg"><label class="flbl">Bio</label><textarea class="fta" id="pf-bio" placeholder="Breve descrição sobre você..." style="min-height:70px"></textarea></div>
+          <div class="fg"><label class="flbl">Contato / @Username</label><input type="text" class="fi" id="pf-contact" placeholder="@seu_telegram ou número..."/></div>
+          <button class="btn btn-p" onclick="saveProf()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="save-prof-txt">Salvar Perfil</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TOKEN INFO -->
+      <div class="card">
+        <div class="card-hdr"><div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>Sessão Atual</div></div>
+        <div class="card-body">
+          <div class="cfg-row"><span class="cfg-k">Admin ID</span><span class="cfg-v" id="prof-tok-id">—</span></div>
+          <div class="cfg-row"><span class="cfg-k">Nível</span><span class="cfg-v" id="prof-tok-role">—</span></div>
+          <div class="cfg-row"><span class="cfg-k">Slug</span><span class="cfg-v" id="prof-tok-slug">—</span></div>
+          <div class="cfg-row" style="border-bottom:none"><span class="cfg-k">Criptografia</span><span class="chip chip-g" style="font-size:10px">AES-256</span></div>
+        </div>
+      </div>
+
+      <!-- OTHER ADMINS -->
+      <div class="sec-ttl">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Outros Admins
+      </div>
       <div class="card"><div class="card-body" id="other-admins"><div class="empty"><p>Carregando...</p></div></div></div>
+
+      <!-- SUPREME: ALL ADMINS OVERVIEW (only visible to supreme) -->
+      <div id="sup-overview-wrap" style="display:none">
+        <div class="sec-ttl" style="margin-top:4px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Visão Supreme — Todos os Admins
+          <button class="btn btn-g btn-xs" onclick="loadSupremeOverview()" style="margin-left:auto">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+        <div id="sup-admins-list" style="display:flex;flex-direction:column;gap:10px">
+          <div class="empty"><p>Carregando overview...</p></div>
+        </div>
+      </div>
+
+      <button class="btn btn-d btn-w" onclick="doLogout()" style="margin-top:4px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair do Painel
+      </button>
+
     </section>
 
   </div>
@@ -953,8 +1064,6 @@
       <div class="ni" id="ni-products" onclick="goTo('products')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span>Produtos</span></div>
       <div class="ni" id="ni-config" onclick="goTo('config')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config</span></div>
       <div class="ni" id="ni-profile" onclick="goTo('profile')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfil</span></div>
-    </div>
-
       <div class="ni" id="ni-monitor" onclick="goTo('monitor')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Monitor</span></div>
     </div>
   </nav>
@@ -1037,21 +1146,90 @@ async function verifyTk(tk){
   try{const r=await fetch('/api/admin/verify-token',{headers:{'Authorization':'Bearer '+tk}});if(!r.ok&&r.status===429)return{ok:false,message:'Muitas tentativas. Aguarde 30min.'};return await r.json();}catch{return null;}
 }
 
+// Store profile globally
+let _PROF = {};
+
+function applyProfileUI(prof, id, sup, role, slug) {
+  const name = (prof && prof.display_name && !prof.display_name.startsWith('Admin #')) 
+    ? prof.display_name 
+    : (id ? 'Admin #' + id : 'Administrador');
+  const avatar = prof && prof.avatar_url ? prof.avatar_url : '';
+  const letter = name.charAt(0).toUpperCase() || 'A';
+  const roleLabel = sup ? '⭐ Supreme Admin' : '✅ Administrador';
+  const slugLabel = slug ? '@' + slug : '@admin';
+
+  // Header avatar + name
+  setAvEl('av-letter', letter, avatar);
+  const admNameEl = document.getElementById('adm-name');
+  if (admNameEl) admNameEl.textContent = name;
+  const admRoleEl = document.getElementById('adm-role');
+  if (admRoleEl) admRoleEl.textContent = roleLabel;
+
+  // Profile page hero
+  setAvEl('prof-av-lg', letter, avatar);
+  const hn = document.getElementById('prof-hero-name'); if (hn) hn.textContent = name;
+  const hr = document.getElementById('prof-hero-role'); if (hr) hr.textContent = roleLabel;
+  const hs = document.getElementById('prof-hero-slug'); if (hs) hs.textContent = slugLabel;
+
+  // Profile edit form
+  const pfName = document.getElementById('pf-name'); if (pfName && !pfName.value) pfName.value = prof && prof.display_name ? prof.display_name : '';
+  const pfBio = document.getElementById('pf-bio'); if (pfBio && !pfBio.value) pfBio.value = prof && prof.bio ? prof.bio : '';
+  const pfContact = document.getElementById('pf-contact'); if (pfContact && !pfContact.value) pfContact.value = prof && prof.contact ? prof.contact : '';
+  const pfAv = document.getElementById('pf-avatar'); if (pfAv && !pfAv.value) pfAv.value = avatar;
+  prevAvatar(avatar);
+
+  // Session info in profile
+  const ti = document.getElementById('prof-tok-id'); if (ti) ti.textContent = id || '—';
+  const tr = document.getElementById('prof-tok-role'); if (tr) tr.textContent = role || '—';
+  const ts = document.getElementById('prof-tok-slug'); if (ts) ts.textContent = slug || '—';
+
+  // Token security tab
+  const tokPrev = document.getElementById('tok-prev'); if (tokPrev && _TK) tokPrev.textContent = _TK.slice(0,12)+'...'+_TK.slice(-4);
+  const tokId = document.getElementById('tok-id'); if (tokId) tokId.textContent = id || '—';
+  const tokRole = document.getElementById('tok-role'); if (tokRole) tokRole.textContent = role || '—';
+}
+
+function setAvEl(id, letter, avatarUrl) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (avatarUrl) {
+    el.innerHTML = '<img src="' + avatarUrl + '" onerror="this.remove()" />' + letter;
+  } else {
+    el.textContent = letter;
+  }
+}
+
+function prevAvatar(url) {
+  const wrap = document.getElementById('av-prev');
+  const letter = document.getElementById('av-prev-letter');
+  if (!wrap) return;
+  if (url) {
+    wrap.innerHTML = '<img src="' + url + '" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>';
+  } else {
+    wrap.innerHTML = '<span id="av-prev-letter">' + (letter ? letter.textContent : 'A') + '</span>';
+  }
+}
+
 function bootApp(a){
   document.getElementById('auth-gate').style.display='none';
   const sh=document.getElementById('app-shell');sh.style.display='flex';
   const rp=_SUP?'SUPREME':'ADMIN';
-  document.getElementById('hdr-badge').textContent=rp;
-  document.getElementById('adm-name').textContent='Admin #'+_ID;
-  document.getElementById('adm-role').textContent=_SUP?'⭐ Supreme Admin':'✅ Administrador';
-  document.getElementById('av-letter').textContent=String(_ID).slice(-1).toUpperCase();
-  document.getElementById('prof-av').textContent=String(_ID).slice(-1).toUpperCase();
-  document.getElementById('prof-role').textContent=_SUP?'Supreme Admin':'Administrador';
-  document.getElementById('tok-prev').textContent=_TK.slice(0,12)+'...'+_TK.slice(-4);
-  document.getElementById('tok-id').textContent=_ID;
-  document.getElementById('tok-role').textContent=_ROLE;
-  if(_SUP){document.querySelectorAll('[data-sup]').forEach(e=>e.style.display='block');document.getElementById('fin-card').style.display='block';loadC7();setInterval(loadC7,120000);}
-  else{document.querySelectorAll('[data-sup]').forEach(e=>e.style.display='none');}
+  const hdrBadge=document.getElementById('hdr-badge');if(hdrBadge)hdrBadge.textContent=rp;
+
+  // Apply profile from verify-token response immediately (no extra request needed)
+  const slug = (a.plan && a.plan.slug) ? a.plan.slug : _SLUG;
+  _PROF = (a.profile && a.profile.display_name) ? a.profile : {};
+  applyProfileUI(_PROF, _ID, _SUP, _ROLE, slug);
+
+  if(_SUP){
+    document.querySelectorAll('[data-sup]').forEach(e=>e.style.display='block');
+    const fc=document.getElementById('fin-card');if(fc)fc.style.display='block';
+    const sow=document.getElementById('sup-overview-wrap');if(sow)sow.style.display='block';
+    loadC7();setInterval(loadC7,120000);
+  } else {
+    document.querySelectorAll('[data-sup]').forEach(e=>e.style.display='none');
+    const sow=document.getElementById('sup-overview-wrap');if(sow)sow.style.display='none';
+  }
   if(a.plan&&a.plan.slug)_SLUG=a.plan.slug;
   updLink();fullRefresh();_REF=setInterval(fullRefresh,30000);
 }
@@ -1134,8 +1312,95 @@ function savePhotos(){saveCfg({product_image1:document.getElementById('pu1').val
 
 function cfgTab(n,btn){['produto','vendedor','whatsapp','badges','fotos','sistema'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');if(n==='sistema')loadStatus();}
 
-async function loadProf(){try{const r=await apiFetch('/api/admin/profile');const d=await r.json();if(d.ok&&d.profile){const p=d.profile;const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};sv('pf-name',p.display_name);sv('pf-bio',p.bio);sv('pf-contact',p.contact);if(p.display_name){document.getElementById('adm-name').textContent=p.display_name;document.getElementById('prof-name').textContent=p.display_name;document.getElementById('prof-av').textContent=p.display_name[0].toUpperCase();document.getElementById('av-letter').textContent=p.display_name[0].toUpperCase();}}const r2=await apiFetch('/api/admin/profiles/all');const d2=await r2.json();const c=document.getElementById('other-admins');const oth=(d2.profiles||[]).filter(p=>p.tg_id!==_ID);if(!oth.length){c.innerHTML='<div class="empty"><p>Nenhum outro admin.</p></div>';}else{c.innerHTML=oth.map(p=>'<div class="sess"><div class="sess-av">'+(p.display_name||'A')[0].toUpperCase()+'</div><div class="sess-info"><div class="sess-ip">'+(p.display_name||'Admin #'+p.tg_id)+'</div><div class="sess-meta">'+(p.bio||p.contact||'—')+'</div></div></div>').join('');}}catch{}}
-async function saveProf(){try{const r=await apiFetch('/api/admin/profile',{method:'POST',body:JSON.stringify({display_name:document.getElementById('pf-name').value,bio:document.getElementById('pf-bio').value,contact:document.getElementById('pf-contact').value})});const d=await r.json();if(d.ok){toast('Perfil salvo!','ok');const n=document.getElementById('pf-name').value;if(n){document.getElementById('adm-name').textContent=n;document.getElementById('prof-name').textContent=n;document.getElementById('prof-av').textContent=n[0].toUpperCase();document.getElementById('av-letter').textContent=n[0].toUpperCase();}}else toast(d.error||'Erro.','err');}catch{toast('Erro.','err');}}
+async function loadProf(){
+  try {
+    // Fetch rich profile with personal stats
+    const r = await apiFetch('/api/admin/me');
+    const d = await r.json();
+    if (d.ok) {
+      _PROF = d.profile || {};
+      applyProfileUI(_PROF, d.admin_id || _ID, d.is_supreme || _SUP, d.role || _ROLE, d.slug || _SLUG);
+      // Fill personal stats 24h
+      const s = d.stats_24h || {};
+      const sv = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '—'; };
+      sv('ps-entries', s.page_entries ?? s.entries ?? '—');
+      sv('ps-buy',     s.click_buy ?? '—');
+      sv('ps-leads',   s.leads ?? s.lead_captured ?? '—');
+      sv('ps-paid',    s.paid ?? s.payment_confirmed ?? '—');
+    }
+  } catch(e) { console.warn('loadProf:', e); }
+  // Load other admins
+  try {
+    const r2 = await apiFetch('/api/admin/profiles/all');
+    const d2 = await r2.json();
+    const c = document.getElementById('other-admins');
+    const oth = (d2.profiles || []).filter(p => p.tg_id !== _ID);
+    if (!oth.length) {
+      c.innerHTML = '<div class="empty"><p>Nenhum outro admin cadastrado.</p></div>';
+    } else {
+      c.innerHTML = oth.map(p => {
+        const name = p.display_name || 'Admin #' + p.tg_id;
+        const letter = name.charAt(0).toUpperCase();
+        const av = p.avatar_url ? '<img src="' + p.avatar_url + '" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>' + letter : letter;
+        return '<div class="sess"><div class="sess-av" style="overflow:hidden;position:relative">' + av + '</div><div class="sess-info"><div class="sess-ip">' + name + '</div><div class="sess-meta">' + (p.bio || p.contact || '@' + (p.username || '—')) + '</div></div>' + (p.slug ? '<span class="sess-time">/' + p.slug + '</span>' : '') + '</div>';
+      }).join('');
+    }
+  } catch(e) {}
+  // Supreme overview
+  if (_SUP) loadSupremeOverview();
+}
+
+async function loadSupremeOverview() {
+  const el = document.getElementById('sup-admins-list');
+  if (!el) return;
+  try {
+    const r = await apiFetch('/api/admin/supreme/full-overview');
+    const d = await r.json();
+    if (!d.ok) { el.innerHTML = '<div class="empty"><p>' + (d.error || 'Indisponível.') + '</p></div>'; return; }
+    const admins = d.admins || [];
+    if (!admins.length) { el.innerHTML = '<div class="empty"><p>Nenhum admin registrado.</p></div>'; return; }
+    el.innerHTML = admins.map(a => {
+      const prof = a.profile || {};
+      const name = prof.display_name || 'Admin #' + a.tg_id;
+      const letter = name.charAt(0).toUpperCase();
+      const av = prof.avatar_url ? '<img src="' + prof.avatar_url + '" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>' + letter : letter;
+      const s24 = a.stats_24h || {};
+      const planChip = a.plan && a.plan.plan_name ? '<span class="chip chip-p" style="font-size:10px;margin-left:auto">' + a.plan.plan_name + '</span>' : '';
+      return '<div class="sup-admin-card">' +
+        '<div class="sup-admin-head">' +
+          '<div class="adm-av" style="overflow:hidden;position:relative">' + av + '</div>' +
+          '<div style="flex:1;min-width:0"><div class="sup-admin-name">' + name + '</div><div class="sup-admin-slug">/' + (a.slug || '—') + '</div></div>' +
+          planChip +
+        '</div>' +
+        '<div class="sup-stat-row">' +
+          '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (s24.page_entries ?? s24.entries ?? 0) + '</div><div class="sup-stat-chip-lbl">Visitas</div></div>' +
+          '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (s24.leads ?? s24.lead_captured ?? 0) + '</div><div class="sup-stat-chip-lbl">Leads</div></div>' +
+          '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (s24.paid ?? s24.payment_confirmed ?? 0) + '</div><div class="sup-stat-chip-lbl">Pagos</div></div>' +
+          '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (a.products ? a.products.length : 0) + '</div><div class="sup-stat-chip-lbl">Prods</div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><p>Erro ao carregar overview.</p></div>';
+  }
+}
+async function saveProf(){
+  const btn=document.getElementById('save-prof-txt');if(btn)btn.textContent='Salvando...';
+  try{
+    const name=document.getElementById('pf-name')?.value||'';
+    const bio=document.getElementById('pf-bio')?.value||'';
+    const contact=document.getElementById('pf-contact')?.value||'';
+    const avatar_url=document.getElementById('pf-avatar')?.value||'';
+    const r=await apiFetch('/api/admin/profile',{method:'POST',body:JSON.stringify({display_name:name,bio,contact,avatar_url})});
+    const d=await r.json();
+    if(d.ok){
+      toast('Perfil salvo!','ok');
+      _PROF={..._PROF,display_name:name,bio,contact,avatar_url};
+      applyProfileUI(_PROF,_ID,_SUP,_ROLE,_SLUG);
+    }else toast(d.error||'Erro.','err');
+  }catch{toast('Erro de conexão.','err');}
+  if(btn)btn.textContent='Salvar Perfil';
+}
 
 async function loadC7(){if(!_SUP)return;try{const r=await apiFetch('/api/c7/balance',{method:'POST'});const d=await r.json();const fmt=v=>'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});if(d.ok||d.balance!==undefined){document.getElementById('c7-bal').textContent=fmt(d.balance);document.getElementById('c7-lim').textContent=fmt(d.limit_generate);const fp=parseFloat(d.fee_pct||0),ff=parseFloat(d.fee_fixed||0);document.getElementById('c7-fee').textContent=ff>0?fp+'% + '+fmt(ff):fp+'%';}}catch{}}
 

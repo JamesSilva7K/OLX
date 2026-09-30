@@ -731,12 +731,26 @@ def api_admin_verify_token():
     if TG_WH_AVAILABLE and admin_id:
         plan_info = tg_wh.get_user_plan(admin_id)
 
+    # Load profile so frontend gets real name + avatar immediately at login
+    prof = {}
+    if TG_WH_AVAILABLE and admin_id:
+        try:
+            prof = tg_wh.get_tenant_profile(admin_id)
+        except Exception:
+            prof = {}
+
     return jsonify({
         "ok": True,
         "admin_id": admin_id,
         "role": role,
         "is_supreme": (role == "supreme_admin"),
-        "plan": plan_info
+        "plan": plan_info,
+        "profile": {
+            "display_name": prof.get("display_name", ""),
+            "avatar_url":   prof.get("avatar_url", ""),
+            "bio":          prof.get("bio", ""),
+            "contact":      prof.get("contact", ""),
+        }
     })
 
 
@@ -811,6 +825,62 @@ def api_admin_profile():
         prof = tg_wh.get_tenant_profile(admin_id)
     return jsonify({"ok": True, "profile": prof})
 
+
+
+
+@app.route('/api/admin/me')
+def api_admin_me():
+    """Perfil completo do admin logado com stats pessoais."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    prof = {}
+    stats_24h = {}
+    stats_7d  = {}
+    username  = ""
+    slug      = ""
+
+    if TG_WH_AVAILABLE:
+        try:
+            prof = tg_wh.get_tenant_profile(admin_id) or {}
+        except Exception:
+            prof = {}
+        try:
+            stats_24h = tg_wh.get_tg_stats(admin_id, 24)   or {}
+        except Exception:
+            stats_24h = {}
+        try:
+            stats_7d  = tg_wh.get_tg_stats(admin_id, 168)  or {}
+        except Exception:
+            stats_7d  = {}
+        try:
+            db  = tg_wh._get_db()
+            row = db.execute("SELECT username, slug FROM tg_users WHERE tg_id=?", (admin_id,)).fetchone()
+            db.close()
+            if row:
+                username = row["username"] or ""
+                slug     = row["slug"] or ""
+        except Exception:
+            pass
+
+    return jsonify({
+        "ok":       True,
+        "admin_id": admin_id,
+        "role":     role,
+        "is_supreme": (role == "supreme_admin"),
+        "username": username,
+        "slug":     slug,
+        "profile": {
+            "display_name": prof.get("display_name", f"Admin #{admin_id}"),
+            "avatar_url":   prof.get("avatar_url", ""),
+            "bio":          prof.get("bio", ""),
+            "contact":      prof.get("contact", ""),
+            "updated_at":   prof.get("updated_at", 0),
+        },
+        "stats_24h": stats_24h,
+        "stats_7d":  stats_7d,
+    })
 
 @app.route('/api/admin/profiles/all')
 def api_admin_profiles_all():
