@@ -1241,6 +1241,125 @@ def api_admin_analyze_ai():
     })
 
 
+# ─── VALIDAÇÃO E LOOKUP AVANÇADO DE NÚMERO WHATSAPP ─────────────────────────
+@app.route('/api/admin/validate-whatsapp', methods=['POST'])
+def api_validate_whatsapp():
+    """
+    Validação avançada de número WhatsApp:
+    - Normalização e parsing completo do número
+    - Verificação de formato E.164 para Brasil
+    - Lookup de operadora, DDD, região e tipo de linha
+    - Geração de links wa.me diretos para teste
+    - Opcionalmente consulta NumVerify API (via NUMVERIFY_API_KEY env)
+    """
+    data = request.json or {}
+    raw_number = sanitize_input(data.get("number", ""), 30)
+
+    # 1. Normalização — remove tudo que não é dígito
+    digits_only = re.sub(r'\D', '', raw_number)
+
+    # Remove zero inicial de DDD local
+    if digits_only.startswith('0'):
+        digits_only = digits_only[1:]
+
+    # Adiciona DDI +55 Brasil se necessário
+    if len(digits_only) <= 11 and not digits_only.startswith('55'):
+        digits_only = '55' + digits_only
+
+    # Remove +55 duplicado
+    if digits_only.startswith('5555'):
+        digits_only = '55' + digits_only[4:]
+
+    ddi   = digits_only[:2]   if len(digits_only) >= 2 else ''
+    ddd   = digits_only[2:4]  if len(digits_only) >= 4 else ''
+    local = digits_only[4:]   if len(digits_only) > 4  else ''
+
+    # 2. Validação de formato BR
+    is_valid = (
+        bool(re.match(r'^55\d{2}[6-9]\d{8}$', digits_only)) or  # celular 9 dígitos
+        bool(re.match(r'^55\d{2}[2-5]\d{7}$', digits_only))      # fixo 8 dígitos
+    )
+    is_mobile = bool(re.match(r'^[6-9]', local)) if local else False
+    line_type = "Celular" if is_mobile else ("Fixo" if local else "Desconhecido")
+
+    # 3. Mapeamento de DDDs por região
+    DDD_MAP = {
+        "11":"São Paulo - Capital","12":"SP - Vale do Paraíba","13":"SP - Baixada Santista",
+        "14":"SP - Bauru","15":"SP - Sorocaba","16":"SP - Ribeirão Preto",
+        "17":"SP - Rio Preto","18":"SP - Araçatuba","19":"SP - Campinas",
+        "21":"Rio de Janeiro - Capital","22":"RJ - Interior","24":"RJ - Volta Redonda",
+        "27":"ES - Vitória","28":"ES - Interior",
+        "31":"MG - Belo Horizonte","32":"MG - Juiz de Fora","33":"MG - Gov. Valadares",
+        "34":"MG - Uberlândia","35":"MG - Poços de Caldas","37":"MG - Divinópolis","38":"MG - Montes Claros",
+        "41":"PR - Curitiba","42":"PR - Ponta Grossa","43":"PR - Londrina","44":"PR - Maringá",
+        "45":"PR - Cascavel","46":"PR - Pato Branco",
+        "47":"SC - Joinville","48":"SC - Florianópolis","49":"SC - Chapecó",
+        "51":"RS - Porto Alegre","53":"RS - Pelotas","54":"RS - Caxias do Sul","55":"RS - Santa Maria",
+        "61":"Brasília / DF","62":"GO - Goiânia","63":"Tocantins","64":"GO - Interior",
+        "65":"MT - Cuiabá","66":"MT - Rondonópolis","67":"MS - Campo Grande","68":"Acre","69":"Rondônia",
+        "71":"BA - Salvador","73":"BA - Ilhéus","74":"BA - Interior","75":"BA - Feira de Santana","77":"BA - Vitória da Conquista",
+        "79":"SE - Aracaju",
+        "81":"PE - Recife","82":"Alagoas","83":"Paraíba","84":"RN - Natal","85":"CE - Fortaleza",
+        "86":"PI - Teresina","87":"PE - Interior","88":"CE - Interior","89":"PI - Interior",
+        "91":"PA - Belém","92":"AM - Manaus","93":"PA - Santarém","94":"PA - Marabá",
+        "95":"Roraima","96":"Amapá","97":"AM - Interior","98":"MA - São Luís","99":"MA - Interior",
+    }
+    regiao = DDD_MAP.get(ddd, f"DDD {ddd}" if ddd else "Região desconhecida")
+
+    # 4. Formata para exibição nacional BR
+    if len(local) == 9:
+        local_fmt = f"({ddd}) {local[0]} {local[1:5]}-{local[5:]}"
+    elif len(local) == 8:
+        local_fmt = f"({ddd}) {local[:4]}-{local[4:]}"
+    else:
+        local_fmt = f"({ddd}) {local}"
+
+    # 5. Lookup via NumVerify API (opcional)
+    carrier      = ""
+    lookup_source = "local"
+    numverify_key = os.environ.get("NUMVERIFY_API_KEY", "")
+    if numverify_key and is_valid:
+        try:
+            nv_url = (
+                f"http://apilayer.net/api/validate"
+                f"?access_key={numverify_key}&number={digits_only}&country_code=BR&format=1"
+            )
+            nv = requests.get(nv_url, timeout=5).json()
+            if nv.get("valid"):
+                carrier       = nv.get("carrier", "")
+                line_type     = nv.get("line_type", line_type)
+                regiao        = nv.get("location", regiao)
+                local_fmt     = nv.get("national_format", local_fmt)
+                lookup_source = "numverify"
+        except Exception as e:
+            print(f"[NumVerify] {e}")
+
+    # 6. Links de ação
+    wa_link      = f"https://wa.me/{digits_only}"
+    wa_chat_link = f"https://wa.me/{digits_only}?text=Ol%C3%A1%2C+testando+contato"
+    wa_api_link  = f"https://api.whatsapp.com/send?phone={digits_only}"
+
+    return jsonify({
+        "ok":           True,
+        "valid":        is_valid,
+        "raw_input":    raw_number,
+        "normalized":   digits_only,
+        "e164":         f"+{digits_only}",
+        "national":     local_fmt,
+        "ddi":          ddi,
+        "ddd":          ddd,
+        "local":        local,
+        "region":       regiao,
+        "country":      "Brasil",
+        "line_type":    line_type,
+        "carrier":      carrier,
+        "wa_link":      wa_link,
+        "wa_chat_link": wa_chat_link,
+        "wa_api_link":  wa_api_link,
+        "lookup_source":lookup_source,
+    })
+
+
 @app.route('/api/products', methods=['GET'])
 def api_products_list():
     """Lista todos os modelos de produto do banco."""

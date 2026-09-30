@@ -216,7 +216,7 @@
     /* BADGE EDITOR — avançado drag-and-drop */
     .badge-editor-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; min-height:72px; background:#f8f8f8; border-radius:12px; padding:12px; border:1.5px dashed #e0e0e0; transition:border-color .2s; }
     .badge-editor-grid.drag-over { border-color:var(--olx-purple); background:#f0e6ff; }
-    .badge-chip { display:flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:8px 12px; box-shadow:0 2px 8px rgba(0,0,0,.08); position:relative; cursor:grab; transition:box-shadow .15s,transform .15s; user-select:none; }
+    .badge-chip { display:flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:8px 12px; box-shadow:0 2px 8px rgba(0,0,0,.08); position:relative; cursor:grab; transition:box-shadow .15s,transform .15s; -webkit-user-select:none; user-select:none; }
     .badge-chip:active { cursor:grabbing; box-shadow:0 8px 24px rgba(110,2,177,0.18); transform:scale(1.05); }
     .badge-chip.dragging { opacity:.4; }
     .badge-chip img { height:32px; max-width:72px; object-fit:contain; border-radius:4px; }
@@ -249,7 +249,9 @@
     .link-copy-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
     .link-copy-row input { flex:1; height:40px; border:1.5px solid #d4abff; border-radius:10px; padding:0 12px; font-size:12px; font-family:monospace; background:#fff; color:#4a0080; font-weight:700; outline:none; }
     /* AI spinner overlay */
-    .ai-spinner-overlay { position:absolute; inset:0; background:rgba(255,255,255,.85); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:10; backdrop-filter:blur(4px); }
+    .ai-spinner-overlay { position:absolute; inset:0; background:rgba(255,255,255,.85); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:10; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+    .ai-spinner-ring { width:40px; height:40px; border:3px solid #e5e7eb; border-top-color:var(--olx-purple); border-radius:50%; animation:spin 0.8s linear infinite; }
+    .card { position:relative; }
     .ai-spinner-ring { width:40px; height:40px; border:3px solid #e5e7eb; border-top-color:var(--olx-purple); border-radius:50%; animation:spin 0.8s linear infinite; }
     .card { position:relative; }
   </style>
@@ -668,10 +670,91 @@
           WhatsApp &amp; Vendedor
         </h2>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Número WhatsApp *</label>
-            <input type="text" id="cfg-wa-number" class="form-input" placeholder="5511999999999" />
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label" style="display:flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              Número WhatsApp do Vendedor *
+            </label>
+            <!-- Input com validação ao vivo -->
+            <div style="position:relative;">
+              <div style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:800;color:#888;pointer-events:none;">+55</div>
+              <input type="text" id="cfg-wa-number"
+                class="form-input" style="padding-left:48px;font-size:15px;font-weight:700;letter-spacing:.5px;"
+                placeholder="11 9 9999-9999"
+                oninput="onWaNumberInput(this)"
+                onblur="validateWhatsappNumber()" />
+              <div id="wa-valid-dot" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:#e5e7eb;transition:background .3s;"></div>
+            </div>
+            <div style="font-size:11px;color:#aaa;margin-top:5px;">Digite apenas o número (ex: 11999999999 ou 5511999999999)</div>
           </div>
+        </div>
+
+        <!-- ── CARD DE CONTA WHATSAPP (aparece após validação) ── -->
+        <div id="wa-account-card" style="display:none;margin-bottom:14px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:14px;padding:16px 18px;animation:fadeIn .3s ease;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <!-- Avatar SVG gerado dinamicamente -->
+            <div id="wa-avatar" style="width:52px;height:52px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(37,211,102,.3);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:15px;font-weight:900;color:#15803d;display:flex;align-items:center;gap:6px;">
+                <span id="wa-acc-e164">—</span>
+                <span style="background:#dcfce7;border:1px solid #86efac;border-radius:20px;font-size:10px;font-weight:800;color:#15803d;padding:2px 8px;">
+                  <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" style="margin-right:2px;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Válido
+                </span>
+              </div>
+              <div style="font-size:12px;color:#166534;font-weight:600;margin-top:2px;" id="wa-acc-national">—</div>
+            </div>
+          </div>
+          <!-- Grade de informações -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+            <div style="background:rgba(255,255,255,.7);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Região / DDD</div>
+              <div style="font-size:13px;font-weight:800;color:#15803d;" id="wa-acc-region">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.7);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Tipo de Linha</div>
+              <div style="font-size:13px;font-weight:800;color:#15803d;" id="wa-acc-type">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.7);border-radius:10px;padding:10px 12px;" id="wa-acc-carrier-box">
+              <div style="font-size:10px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Operadora</div>
+              <div style="font-size:13px;font-weight:800;color:#15803d;" id="wa-acc-carrier">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.7);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">País</div>
+              <div style="font-size:13px;font-weight:800;color:#15803d;" id="wa-acc-country">Brasil 🇧🇷</div>
+            </div>
+          </div>
+          <!-- Ações rápidas -->
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <a id="wa-acc-link" href="#" target="_blank" class="btn-sm" style="background:#25D366;color:#fff;text-decoration:none;gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967c-.273-.099-.471-.148-.67.15c-.197.297-.767.966-.94 1.164c-.173.199-.347.223-.644.075c-.297-.15-1.255-.463-2.39-1.475c-.883-.788-1.48-1.761-1.653-2.059c-.173-.297-.018-.458.13-.606c.134-.133.298-.347.446-.52c.149-.174.198-.298.298-.497c.099-.198.05-.371-.025-.52c-.075-.149-.669-1.612-.916-2.207c-.242-.579-.487-.5-.669-.51c-.173-.008-.371-.01-.57-.01c-.198 0-.52.074-.792.372c-.272.297-1.04 1.016-1.04 2.479c0 1.462 1.065 2.875 1.213 3.074c.149.198 2.096 3.2 5.077 4.487c.709.306 1.262.489 1.694.625c.712.227 1.36.195 1.871.118c.571-.085 1.758-.719 2.006-1.413c.248-.694.248-1.289.173-1.413c-.074-.124-.272-.198-.57-.347"/></svg>
+              Abrir Chat WhatsApp
+            </a>
+            <a id="wa-acc-test" href="#" target="_blank" class="btn-sm" style="background:#128C7E;color:#fff;text-decoration:none;gap:6px;">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Testar Contato
+            </a>
+            <button class="btn-sm" style="background:#f0fdf4;border:1px solid #86efac;color:#15803d;" onclick="copyWaNumber()">
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copiar número
+            </button>
+          </div>
+        </div>
+
+        <!-- Card de erro WhatsApp -->
+        <div id="wa-error-card" style="display:none;margin-bottom:14px;background:#fff7f7;border:1.5px solid #fca5a5;border-radius:14px;padding:14px 16px;animation:fadeIn .3s ease;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#dc2626;">Número inválido</div>
+              <div style="font-size:12px;color:#ef4444;" id="wa-error-msg">Verifique o número e tente novamente.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-top:8px;">
           <div class="form-group">
             <label class="form-label">Status do Vendedor</label>
             <input type="text" id="cfg-seller-status" class="form-input" placeholder="Último acesso há 2 horas" />
@@ -1283,6 +1366,10 @@
       // Atualiza os previews das imagens no uploader inteligente
       [1, 2, 3].forEach(i => updateImagePreviewFromInput(i));
       updateLivePreview();
+    }catch(e){
+      console.error(e);
+    }
+  }
 
   async function triggerAIAdGenerator() {
     const rawName = (document.getElementById('cfg-product-name').value || '').trim();
@@ -1838,6 +1925,87 @@
       if (d.url) { document.getElementById('cfg-logo-url').value = d.url; updateLogoPreview(); showToast('Logo enviada!', 'check'); }
       else { showToast(d.error || 'Erro no upload', 'error'); }
     } catch(e) { showToast('Erro de conexão', 'error'); }
+  }
+
+  // ─── VALIDAÇÃO AVANÇADA DE WHATSAPP ADMIN ─────────────────────────────
+  let _waDebounceTimer = null;
+
+  function onWaNumberInput(input) {
+    const dot = document.getElementById('wa-valid-dot');
+    if (dot) dot.style.background = '#e5e7eb';
+    clearTimeout(_waDebounceTimer);
+    _waDebounceTimer = setTimeout(() => {
+      validateWhatsappNumber();
+    }, 600);
+  }
+
+  async function validateWhatsappNumber() {
+    const input = document.getElementById('cfg-wa-number');
+    if (!input) return;
+    const rawVal = input.value.trim();
+    const dot = document.getElementById('wa-valid-dot');
+    const card = document.getElementById('wa-account-card');
+    const errCard = document.getElementById('wa-error-card');
+    const errMsg = document.getElementById('wa-error-msg');
+
+    if (!rawVal) {
+      if (dot) dot.style.background = '#e5e7eb';
+      if (card) card.style.display = 'none';
+      if (errCard) errCard.style.display = 'none';
+      return;
+    }
+
+    try {
+      if (dot) dot.style.background = '#f59e0b'; // buscando/validando
+      const r = await fetch('/api/admin/validate-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: rawVal })
+      });
+      const d = await r.json();
+
+      if (d.valid) {
+        if (dot) dot.style.background = '#22c55e';
+        if (errCard) errCard.style.display = 'none';
+
+        // Atualiza input formatado E.164 limpo se necessário
+        input.value = d.clean_number;
+
+        // Atualiza card de informações da conta
+        document.getElementById('wa-acc-e164').textContent = '+' + d.clean_number;
+        document.getElementById('wa-acc-national').textContent = d.formatted_national || d.clean_number;
+        document.getElementById('wa-acc-region').textContent = d.ddd_info ? `${d.ddd_info.ddd} - ${d.ddd_info.region}` : 'Brasil';
+        document.getElementById('wa-acc-type').textContent = d.line_type || 'Celular';
+        document.getElementById('wa-acc-carrier').textContent = d.carrier || 'Operadora BR';
+        document.getElementById('wa-acc-country').textContent = d.country || 'Brasil 🇧🇷';
+
+        // Atualiza Links de Teste wa.me
+        const waLink = document.getElementById('wa-acc-link');
+        const waTest = document.getElementById('wa-acc-test');
+        if (waLink) waLink.href = d.wa_me_url || `https://wa.me/${d.clean_number}`;
+        if (waTest) waTest.href = d.wa_me_url ? `${d.wa_me_url}?text=Ol%C3%A1%2C%20teste%20de%20valida%C3%A7%C3%A3o%20Admin!` : `https://wa.me/${d.clean_number}?text=Teste`;
+
+        if (card) card.style.display = 'block';
+      } else {
+        if (dot) dot.style.background = '#ef4444';
+        if (card) card.style.display = 'none';
+        if (errCard) errCard.style.display = 'block';
+        if (errMsg) errMsg.textContent = d.error || 'Número de WhatsApp inválido ou fora do padrão BR.';
+      }
+    } catch(e) {
+      if (dot) dot.style.background = '#ef4444';
+      if (errCard) {
+        errCard.style.display = 'block';
+        if (errMsg) errMsg.textContent = 'Erro ao conectar ao validador de WhatsApp.';
+      }
+    }
+  }
+
+  function copyWaNumber() {
+    const input = document.getElementById('cfg-wa-number');
+    if (!input || !input.value) return;
+    navigator.clipboard.writeText(input.value);
+    showToast('Número WhatsApp copiado!', 'check');
   }
 
   // ─── INITIAL LOAD + AUTO-REFRESH ─────────────────────────────────────────
