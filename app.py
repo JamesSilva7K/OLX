@@ -1,4 +1,4 @@
-# ─── IMPORTS DE SEGURANÇA ───────────────────────────────────────────────────
+# â”€â”€â”€ IMPORTS DE SEGURANÃ‡A â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import os
 import sys
 import json
@@ -15,7 +15,7 @@ from typing import Optional
 
 from flask import Flask, render_template, request, jsonify, abort
 
-# ─── Import bot module for shared DB + notifications ──────────────────────────
+# â”€â”€â”€ Import bot module for shared DB + notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 sys.path.insert(0, os.path.dirname(__file__))
 try:
     import bot as admin_bot
@@ -33,53 +33,53 @@ try:
         print("[app.py] Telegram polling Bot iniciado em thread.")
 except ImportError:
     BOT_AVAILABLE = False
-    print("[app.py] bot.py not found — logging to console only.")
+    print("[app.py] bot.py not found â€” logging to console only.")
 
-# ─── Import multi-tenant webhook handler ──────────────────────────────────────
+# â”€â”€â”€ Import multi-tenant webhook handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
     import tg_webhook as tg_wh
     if BOT_AVAILABLE:
         tg_wh.init_tenant_tables()
     TG_WH_AVAILABLE = True
-    print("[app.py] tg_webhook.py carregado — modo multi-tenant ativo.")
+    print("[app.py] tg_webhook.py carregado â€” modo multi-tenant ativo.")
 except ImportError:
     TG_WH_AVAILABLE = False
     print("[app.py] tg_webhook.py nao encontrado.")
 
-# ─── Import Vault (Military Credential Store) ─────────────────────────────────
+# â”€â”€â”€ Import Vault (Military Credential Store) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
     import vault as credential_vault
     credential_vault.init()
     VAULT_AVAILABLE = True
 except ImportError:
     VAULT_AVAILABLE = False
-    print("[app.py] vault.py nao encontrado — credenciais em env only.")
+    print("[app.py] vault.py nao encontrado â€” credenciais em env only.")
 
-# ─── Import API Intelligence Engine ──────────────────────────────────────────
+# â”€â”€â”€ Import API Intelligence Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
     import api_intel as api_engine
     API_INTEL_AVAILABLE = True
 except ImportError:
     API_INTEL_AVAILABLE = False
-    print("[app.py] api_intel.py nao encontrado — detector IA basico ativo.")
+    print("[app.py] api_intel.py nao encontrado â€” detector IA basico ativo.")
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# Secret Key para sessões e hashing de integridade
+# Secret Key para sessÃµes e hashing de integridade
 # Secret key: env first, then auto-generated (never weak literal in prod)
 _flask_sk_raw = os.environ.get("FLASK_SECRET_KEY") or os.environ.get("FERNET_KEY") or ""
 if not _flask_sk_raw:
     import secrets as _fsec
     _flask_sk_raw = _fsec.token_hex(32)
-    print("[SECURITY] FLASK_SECRET_KEY nao definida — usando chave temporaria!")
+    print("[SECURITY] FLASK_SECRET_KEY nao definida â€” usando chave temporaria!")
 app.secret_key = _flask_sk_raw
 
-# ─── TELEGRAM OAUTH CONFIGURATION ──────────────────────────────────────────────
+# â”€â”€â”€ TELEGRAM OAUTH CONFIGURATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "8857867740")
 TELEGRAM_CLIENT_SECRET = os.environ.get("TELEGRAM_CLIENT_SECRET", "")  # SEGURO: nao hardcoded
 BASE_URL               = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com").rstrip('/')
 
-# ─── CONFIGURAÇÕES DA API C7 — lidas do vault ou do env ────────────────────
+# â”€â”€â”€ CONFIGURAÃ‡Ã•ES DA API C7 â€” lidas do vault ou do env â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Credenciais nunca hardcoded; boot-time env leitura apenas. Armazenamento
 # persistente e criptografado gerenciado pelo vault.py (AES-256 + PBKDF2).
 C7_API_KEY       = os.environ.get("C7_API_KEY", "")
@@ -88,7 +88,7 @@ C7_INTERNAL_TOKEN= os.environ.get("C7_INTERNAL_TOKEN", "")
 C7_BASE_URL      = os.environ.get("C7_BASE_URL", "https://api.carteirado7.com/v2")
 C7_ACQUIRER_CODE = os.environ.get("C7_ACQUIRER_CODE", "")
 
-# ─── SUPREME ADMIN ID para consulta do vault ─────────────────────────────────
+# â”€â”€â”€ SUPREME ADMIN ID para consulta do vault â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _SUPREME_ADMIN_ID = int(os.environ.get("SUPREME_ADMIN_ID", "0"))
 
 def _get_live_c7_keys() -> dict:
@@ -105,17 +105,17 @@ def _get_live_c7_keys() -> dict:
         "acquirer_code": C7_ACQUIRER_CODE,
     }
 
-# ─── BANCO DE DADOS EM MEMÓRIA DE PAGAMENTOS ─────────────────────────────────
+# â”€â”€â”€ BANCO DE DADOS EM MEMÃ“RIA DE PAGAMENTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 PAYMENTS_DB        = {}   # {payment_id / c7_id: {record}}
-PROCESSED_WEBHOOKS = set()  # IDs já processados (idempotência C7 doc sec.11)
+PROCESSED_WEBHOOKS = set()  # IDs jÃ¡ processados (idempotÃªncia C7 doc sec.11)
 
 
-# ─── RATE LIMITER, BRUTE FORCE GUARD & FIREWALL DE APLICAÇÃO (WAF IN-MEMORY) ─
+# â”€â”€â”€ RATE LIMITER, BRUTE FORCE GUARD & FIREWALL DE APLICAÃ‡ÃƒO (WAF IN-MEMORY) â”€
 RATE_LIMIT_DB = {}   # {ip: [timestamps]}
 AUTH_FAIL_DB  = {}   # {ip: {count, blocked_until}}
 
 def is_rate_limited(ip: str, limit: int = 30, window: int = 60) -> bool:
-    """Limita a N requisições por minuto por IP para prevenir ataques DoS/Brute Force."""
+    """Limita a N requisiÃ§Ãµes por minuto por IP para prevenir ataques DoS/Brute Force."""
     now = time.time()
     timestamps = RATE_LIMIT_DB.get(ip, [])
     timestamps = [ts for ts in timestamps if now - ts < window]
@@ -135,10 +135,10 @@ def is_auth_brute_forced(ip: str) -> bool:
     return False
 
 def record_auth_failure(ip: str):
-    """Registra falha de autenticação e bloqueia após 5 tentativas."""
+    """Registra falha de autenticaÃ§Ã£o e bloqueia apÃ³s 5 tentativas."""
     now = time.time()
     rec = AUTH_FAIL_DB.get(ip, {"count": 0, "blocked_until": 0, "first_fail": now})
-    # Reseta contador após 10 minutos sem falhas
+    # Reseta contador apÃ³s 10 minutos sem falhas
     if now - rec.get("first_fail", now) > 600:
         rec = {"count": 0, "blocked_until": 0, "first_fail": now}
     rec["count"] += 1
@@ -148,17 +148,17 @@ def record_auth_failure(ip: str):
     AUTH_FAIL_DB[ip] = rec
 
 def reset_auth_failures(ip: str):
-    """Reseta falhas após login bem-sucedido."""
+    """Reseta falhas apÃ³s login bem-sucedido."""
     AUTH_FAIL_DB.pop(ip, None)
 
 def _log_security(event: str, ip: str, detail):
-    """Log rápido de segurança sem dependência do BOT_AVAILABLE."""
+    """Log rÃ¡pido de seguranÃ§a sem dependÃªncia do BOT_AVAILABLE."""
     print(f"[SECURITY] {event} | IP: {ip} | Detail: {detail}")
 
-# ─── HEADERS DE SEGURANÇA & BLINDAGEM HTTP ─────────────────────────────────
+# â”€â”€â”€ HEADERS DE SEGURANÃ‡A & BLINDAGEM HTTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.after_request
 def apply_security_headers(response):
-    """Aplica cabeçalhos de proteção militar contra XSS, Clickjacking, MIME-sniffing e HSTS."""
+    """Aplica cabeÃ§alhos de proteÃ§Ã£o militar contra XSS, Clickjacking, MIME-sniffing e HSTS."""
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
@@ -176,7 +176,7 @@ def apply_security_headers(response):
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
     return response
 
-# ─── MOTORES DE VALIDAÇÃO ESTREITA & ANTI-BOT / ANTI-FAKE LEAD ────────────────
+# â”€â”€â”€ MOTORES DE VALIDAÃ‡ÃƒO ESTREITA & ANTI-BOT / ANTI-FAKE LEAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 KNOWN_BOT_UAS = [
     "bot", "crawler", "spider", "headless", "selenium", "puppeteer",
     "phantom", "curl", "python-requests", "wget", "httpclient", "guzzle",
@@ -189,33 +189,33 @@ KNOWN_CLOUD_HEADERS = [
 ]
 
 def is_bot_request(ua: str) -> bool:
-    """Detecta scrapers, bots, robôs de crawlers, ferramentas automatizadas e requisições de datacenter/cloud sem navegador real."""
+    """Detecta scrapers, bots, robÃ´s de crawlers, ferramentas automatizadas e requisiÃ§Ãµes de datacenter/cloud sem navegador real."""
     if not ua or len(ua) < 15:
         return True
     ua_low = ua.lower()
     if any(b in ua_low for b in KNOWN_BOT_UAS):
         return True
-    # Navegadores legítimos sempre possuem Mozilla/5.0 e componentes conhecidos
+    # Navegadores legÃ­timos sempre possuem Mozilla/5.0 e componentes conhecidos
     if not ua_low.startswith("mozilla/5.0"):
         return True
     return False
 
 def validate_cpf(cpf_raw: str) -> bool:
-    """Valida o cálculo matemático exato dos 2 dígitos verificadores do CPF brasileiro."""
+    """Valida o cÃ¡lculo matemÃ¡tico exato dos 2 dÃ­gitos verificadores do CPF brasileiro."""
     digits = [int(c) for c in str(cpf_raw) if c.isdigit()]
     if len(digits) != 11:
         return False
     if len(set(digits)) == 1:
-        return False # 111.111.111-11 é inválido
+        return False # 111.111.111-11 Ã© invÃ¡lido
 
-    # Cálculo do 1º Dígito Verificador
+    # CÃ¡lculo do 1Âº DÃ­gito Verificador
     sum1 = sum(digits[i] * (10 - i) for i in range(9))
     rev1 = 11 - (sum1 % 11)
     d1 = 0 if rev1 >= 10 else rev1
     if digits[9] != d1:
         return False
 
-    # Cálculo do 2º Dígito Verificador
+    # CÃ¡lculo do 2Âº DÃ­gito Verificador
     sum2 = sum(digits[i] * (11 - i) for i in range(10))
     rev2 = 11 - (sum2 % 11)
     d2 = 0 if rev2 >= 10 else rev2
@@ -224,12 +224,12 @@ def validate_cpf(cpf_raw: str) -> bool:
 def verify_cpf_hub(cpf_raw: str, dob: str = "") -> tuple[bool, str, dict]:
     """
     Consulta a API do Hub do Desenvolvedor para validar CPF e dados reais.
-    Caso os créditos acabem ou haja erro no token, avisa o Admin no Telegram para trocar o token.
+    Caso os crÃ©ditos acabem ou haja erro no token, avisa o Admin no Telegram para trocar o token.
     Retorna (is_valid, error_msg, raw_data).
     """
     clean_cpf = re.sub(r'\D', '', str(cpf_raw))
     if not validate_cpf(clean_cpf):
-        return False, "CPF matematicamente inválido.", {}
+        return False, "CPF matematicamente invÃ¡lido.", {}
 
     token = admin_bot.get_config("hub_cpf_token", "") if BOT_AVAILABLE else os.environ.get("HUB_CPF_TOKEN", "")
     url = f"https://ws.hubdodesenvolvedor.com.br/v2/cpf/?cpf={clean_cpf}&data={dob}&token={token}"
@@ -238,13 +238,13 @@ def verify_cpf_hub(cpf_raw: str, dob: str = "") -> tuple[bool, str, dict]:
         res = requests.get(url, timeout=5)
         res_json = res.json()
         
-        # Verifica se o retorno indica saldo/créditos esgotados ou erro de autenticação
+        # Verifica se o retorno indica saldo/crÃ©ditos esgotados ou erro de autenticaÃ§Ã£o
         status_code = res_json.get("status")
         code = str(res_json.get("code", ""))
         message = str(res_json.get("message", "") or res_json.get("msg", "")).lower()
 
         is_out_of_credits = (
-            "crédito" in message or "saldo" in message or "token" in message or 
+            "crÃ©dito" in message or "saldo" in message or "token" in message or 
             "expirad" in message or "limit" in message or code in ("401", "402", "403", "99") or
             status_code is False and ("credito" in message or "token" in message)
         )
@@ -252,37 +252,37 @@ def verify_cpf_hub(cpf_raw: str, dob: str = "") -> tuple[bool, str, dict]:
         if is_out_of_credits:
             # Notifica o Admin no Telegram
             alert_msg = (
-                "⚠️ *ALERTA DE SISTEMA - CRÉDITOS CPF ESGOTADOS*\n\n"
-                "Os créditos da API Hub do Desenvolvedor para consulta de CPF acabaram ou o token expirou!\n\n"
-                "👉 *Ação necessária:* Crie uma nova conta na Hub do Desenvolvedor, gere um novo token e atualize as configurações.\n"
-                f"🔑 *Token Atual:* `{token}`"
+                "âš ï¸ *ALERTA DE SISTEMA - CRÃ‰DITOS CPF ESGOTADOS*\n\n"
+                "Os crÃ©ditos da API Hub do Desenvolvedor para consulta de CPF acabaram ou o token expirou!\n\n"
+                "ðŸ‘‰ *AÃ§Ã£o necessÃ¡ria:* Crie uma nova conta na Hub do Desenvolvedor, gere um novo token e atualize as configuraÃ§Ãµes.\n"
+                f"ðŸ”‘ *Token Atual:* `{token}`"
             )
             _log("HUB_CPF_CREDITS_EXHAUSTED", str(uuid.uuid4()), {"alert": alert_msg, "response": res_json})
-            # Mantém fallback para validação matemática para o lead não travar
+            # MantÃ©m fallback para validaÃ§Ã£o matemÃ¡tica para o lead nÃ£o travar
             return True, "", {"fallback_math": True}
 
         if res_json.get("return") == "OK" or res_json.get("status") is True or res_json.get("code") == 200:
             result_data = res_json.get("result", {})
             return True, "", result_data
 
-        # Se retornou CPF não encontrado ou cancelado
-        if "não encontrado" in message or "inválido" in message:
-            return False, "CPF não localizado na base de dados da Receita Federal.", res_json
+        # Se retornou CPF nÃ£o encontrado ou cancelado
+        if "nÃ£o encontrado" in message or "invÃ¡lido" in message:
+            return False, "CPF nÃ£o localizado na base de dados da Receita Federal.", res_json
 
     except Exception as e:
         print(f"[Hub CPF API Error] {e}")
 
-    # Em caso de timeout ou indisponibilidade da API, faz fallback para validação matemática
+    # Em caso de timeout ou indisponibilidade da API, faz fallback para validaÃ§Ã£o matemÃ¡tica
     return True, "", {"fallback_math": True}
 
 @app.before_request
 def validate_request_security():
-    """Filtro global de mitigação de DoS, inspeção de Payload e bloqueio de bots/crawlers."""
+    """Filtro global de mitigaÃ§Ã£o de DoS, inspeÃ§Ã£o de Payload e bloqueio de bots/crawlers."""
     ip = _user_ip()
     ua = _user_ua()
     
     # Bloqueia bots conhecidos e crawlers automatizados
-    # Exceções: webhook do Telegram (/tg/) e webhook de pagamento C7
+    # ExceÃ§Ãµes: webhook do Telegram (/tg/) e webhook de pagamento C7
     _waf_bypass_paths = ('/api/webhook/pix', f'/tg/{_TG_WEBHOOK_SECRET}', '/tg/callback', '/tg/login')
     if is_bot_request(ua) and request.path not in _waf_bypass_paths and not request.path.startswith('/tg/'):
         _log("SECURITY_BLOCKED_BOT", str(uuid.uuid4()), {"ip": ip, "ua": ua, "reason": "Bot/Crawler User-Agent detected"})
@@ -292,9 +292,9 @@ def validate_request_security():
         _log("SECURITY_ALERT_DOS", str(uuid.uuid4()), {"ip": ip, "reason": "Rate limit exceeded"})
         return jsonify({"error": "Too many requests. Temporary security block."}), 429
 
-# ─── HELPERS DE SANITIZAÇÃO & CRIPTOGRAFIA ────────────────────────────────
+# â”€â”€â”€ HELPERS DE SANITIZAÃ‡ÃƒO & CRIPTOGRAFIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def sanitize_input(val: str, max_len: int = 500) -> str:
-    """Sanitiza strings removendo possíveis injeções XSS/HTML e delimitando tamanho."""
+    """Sanitiza strings removendo possÃ­veis injeÃ§Ãµes XSS/HTML e delimitando tamanho."""
     if not isinstance(val, str):
         return ""
     clean = re.sub(r'[<>]', '', val.strip())
@@ -315,7 +315,7 @@ def _session_id(data):
     return data.get('session_id', str(uuid.uuid4()))
 
 def _log(event_type, session_id, data):
-    """Central logging — writes to bot.py DB (encrypted) + sends Telegram notification."""
+    """Central logging â€” writes to bot.py DB (encrypted) + sends Telegram notification."""
     ip = _user_ip()
     data['ip'] = ip
     if BOT_AVAILABLE:
@@ -329,9 +329,9 @@ def _log(event_type, session_id, data):
 
 def get_c7_auth_headers(body_str: str = "") -> dict:
     """
-    Gera headers de autenticação HMAC-SHA256 conforme C7 API Doc sec. 2.2 & 3.
-    Credenciais lidas do vault militar em tempo real (sem cache em memória).
-    Fórmula: HMAC-SHA256(api_secret, timestamp + '.' + nonce + '.' + body)
+    Gera headers de autenticaÃ§Ã£o HMAC-SHA256 conforme C7 API Doc sec. 2.2 & 3.
+    Credenciais lidas do vault militar em tempo real (sem cache em memÃ³ria).
+    FÃ³rmula: HMAC-SHA256(api_secret, timestamp + '.' + nonce + '.' + body)
     """
     keys      = _get_live_c7_keys()
     api_key   = keys.get("api_key", C7_API_KEY)
@@ -352,7 +352,7 @@ def get_c7_auth_headers(body_str: str = "") -> dict:
         "X-C7-Signature": signature,
     }
 
-# ─── GERADOR DE PIX EMV VÁLIDO (BACEN BR CODE 2.0) ───────────────────────────
+# â”€â”€â”€ GERADOR DE PIX EMV VÃLIDO (BACEN BR CODE 2.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _crc16_ccitt(data: str) -> str:
     """Calcula CRC-16/CCITT-FALSE conforme exigido pelo BACEN para QR Codes Pix."""
     crc = 0xFFFF
@@ -367,14 +367,14 @@ def _crc16_ccitt(data: str) -> str:
     return format(crc, '04X')
 
 def _emv_field(id_: str, value: str) -> str:
-    """Monta um campo TLV EMV: ID + length (2 dígitos) + value."""
+    """Monta um campo TLV EMV: ID + length (2 dÃ­gitos) + value."""
     return f"{id_}{len(value):02d}{value}"
 
 def generate_pix_emv(amount: float, merchant_name: str, merchant_city: str,
                      pix_key: str, txid: str = "") -> str:
     """
-    Gera um payload Pix BR Code 2.0 válido conforme Manual do BACEN.
-    Produz QR Code que passa na validação de TODOS os bancos brasileiros.
+    Gera um payload Pix BR Code 2.0 vÃ¡lido conforme Manual do BACEN.
+    Produz QR Code que passa na validaÃ§Ã£o de TODOS os bancos brasileiros.
     """
     merchant_name = re.sub(r'[^A-Za-z0-9 ]', '', merchant_name)[:25].upper().strip()
     merchant_city = re.sub(r'[^A-Za-z0-9 ]', '', merchant_city)[:15].upper().strip()
@@ -390,7 +390,7 @@ def generate_pix_emv(amount: float, merchant_name: str, merchant_city: str,
 
     # Payload Format Indicator
     pfi = _emv_field("00", "01")
-    # Point of Initiation Method (12 = dinâmico / único uso)
+    # Point of Initiation Method (12 = dinÃ¢mico / Ãºnico uso)
     poim = _emv_field("01", "12")
     # Merchant Category Code
     mcc = _emv_field("52", "0000")
@@ -405,7 +405,7 @@ def generate_pix_emv(amount: float, merchant_name: str, merchant_city: str,
     merchant_n = _emv_field("59", merchant_name)
     # Merchant City
     merchant_c = _emv_field("60", merchant_city)
-    # Additional Data Field Template (ID 62) — TXID
+    # Additional Data Field Template (ID 62) â€” TXID
     txid_field = _emv_field("05", txid)
     adf = _emv_field("62", txid_field)
     # CRC placeholder (4 zeros antes de calcular)
@@ -420,14 +420,14 @@ def get_whatsapp_config():
     if BOT_AVAILABLE:
         return {
             "number":  admin_bot.get_config("whatsapp_number",  "5511999999999"),
-            "message": admin_bot.get_config("whatsapp_message", "Olá! Tenho interesse no iPhone 11 64GB branco. Pode me ajudar?"),
+            "message": admin_bot.get_config("whatsapp_message", "OlÃ¡! Tenho interesse no iPhone 11 64GB branco. Pode me ajudar?"),
         }
     return {
         "number":  os.environ.get("WHATSAPP_NUMBER",  "5511999999999"),
-        "message": os.environ.get("WHATSAPP_MESSAGE", "Olá! Tenho interesse no iPhone 11 64GB branco. Pode me ajudar?"),
+        "message": os.environ.get("WHATSAPP_MESSAGE", "OlÃ¡! Tenho interesse no iPhone 11 64GB branco. Pode me ajudar?"),
     }
 
-# ─── ROUTES ───────────────────────────────────────────────────────────────────
+# â”€â”€â”€ ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.route('/')
 @app.route('/p/<slug_or_code>')
@@ -449,7 +449,7 @@ def index(slug_or_code=None, item_code=None):
             if item_code:
                 custom_item = tg_wh.get_product_by_code(item_code)
         else:
-            # Tenta buscar por código de produto direto
+            # Tenta buscar por cÃ³digo de produto direto
             custom_item = tg_wh.get_product_by_code(p_code)
             if custom_item:
                 tg_id = custom_item["tg_id"]
@@ -458,18 +458,18 @@ def index(slug_or_code=None, item_code=None):
     if TG_WH_AVAILABLE and tg_id and slug:
         allowed, current_clicks, max_clicks = tg_wh.check_click_limit(tg_id)
         if not allowed:
-            return f"<h1>Página Temporariamente Indisponível</h1><p>O limite mensal de visitas deste anúncio foi atingido ({current_clicks}/{max_clicks}). Contate o administrador.</p>", 429
+            return f"<h1>PÃ¡gina Temporariamente IndisponÃ­vel</h1><p>O limite mensal de visitas deste anÃºncio foi atingido ({current_clicks}/{max_clicks}). Contate o administrador.</p>", 429
 
         tg_wh.record_tenant_session(tg_id, slug, sid, ip, ua[:200])
         tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200], "item": item_code or "default"})
 
         cfgs = tg_wh.get_tenant_all_config(tg_id)
         
-        # Se for um item específico do catálogo próprio do admin
+        # Se for um item especÃ­fico do catÃ¡logo prÃ³prio do admin
         p_name = custom_item["title"] if custom_item else cfgs.get("product_name", "iPhone 11 64GB Branco")
         p_price = custom_item["price"] if custom_item else cfgs.get("product_price", "630.00")
         p_old_price = custom_item["old_price"] if custom_item else cfgs.get("product_old_price", "")
-        p_desc = custom_item["description"] if custom_item else cfgs.get("product_description", "iPhone 11 em ótimo estado.")
+        p_desc = custom_item["description"] if custom_item else cfgs.get("product_description", "iPhone 11 em Ã³timo estado.")
         p_img = (custom_item["image_url"] if custom_item and custom_item["image_url"] else cfgs.get("product_image", "/static/images/iphone11_1.jpg"))
         p_img1 = (custom_item["image1"] if custom_item and custom_item["image1"] else p_img)
         p_img2 = (custom_item["image2"] if custom_item and custom_item["image2"] else cfgs.get("product_image2", ""))
@@ -481,7 +481,7 @@ def index(slug_or_code=None, item_code=None):
         p_shipping_coupon = custom_item.get("shipping_coupon", "")        if custom_item else ""
         p_product_code    = custom_item.get("product_code",    "")        if custom_item else ""
 
-        # Geolocalização em background (não bloqueia o render)
+        # GeolocalizaÃ§Ã£o em background (nÃ£o bloqueia o render)
         import threading
         threading.Thread(
             target=tg_wh.enrich_session_with_geo, args=(tg_id, sid, ip), daemon=True
@@ -501,7 +501,7 @@ def index(slug_or_code=None, item_code=None):
             product_image3=p_img3,
             seller_name=cfgs.get("seller_name", "Vendedor OLX"),
             seller_since=cfgs.get("seller_since", "Na OLX desde 2022"),
-            seller_status=cfgs.get("seller_status", "Último acesso há 2 horas"),
+            seller_status=cfgs.get("seller_status", "Ãšltimo acesso hÃ¡ 2 horas"),
             logo_url=cfgs.get("logo_url", ""),
             shipping_mode=p_shipping_mode,
             shipping_fee=p_shipping_fee,
@@ -509,7 +509,7 @@ def index(slug_or_code=None, item_code=None):
             product_code=p_product_code,
             whatsapp={
                 "number": cfgs.get("whatsapp_number", "5511999999999"),
-                "message": cfgs.get("whatsapp_message", f"Olá! Tenho interesse no anúncio: {p_name}")
+                "message": cfgs.get("whatsapp_message", f"OlÃ¡! Tenho interesse no anÃºncio: {p_name}")
             }
         )
 
@@ -526,7 +526,7 @@ def index(slug_or_code=None, item_code=None):
         except Exception as e:
             print(f"[session] {e}")
 
-    # Carrega produto específico por código se fornecido
+    # Carrega produto especÃ­fico por cÃ³digo se fornecido
     custom_product = None
     if p_code and BOT_AVAILABLE:
         try:
@@ -571,10 +571,10 @@ def index(slug_or_code=None, item_code=None):
         product_old_price = admin_bot.get_config("product_old_price", "") if BOT_AVAILABLE else ""
 
 
-    # Campos partilhados — sempre carregados do config global
+    # Campos partilhados â€” sempre carregados do config global
     seller_name   = admin_bot.get_config("seller_name",   "tk prock") if BOT_AVAILABLE else "tk prock"
     seller_since  = admin_bot.get_config("seller_since",  "Na OLX desde janeiro de 2022") if BOT_AVAILABLE else "Na OLX desde janeiro de 2022"
-    seller_status = admin_bot.get_config("seller_status", "Último acesso há 2 horas") if BOT_AVAILABLE else "Último acesso há 2 horas"
+    seller_status = admin_bot.get_config("seller_status", "Ãšltimo acesso hÃ¡ 2 horas") if BOT_AVAILABLE else "Ãšltimo acesso hÃ¡ 2 horas"
     logo_url      = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
 
     _log("PAGE_ENTRY", sid, {"ua": ua, "path": request.path, "product": product_name})
@@ -611,7 +611,7 @@ def api_config(slug=None):
     if TG_WH_AVAILABLE and tg_id:
         cfgs = tg_wh.get_tenant_all_config(tg_id)
         wa_num = cfgs.get("whatsapp_number", "5511999999999")
-        wa_msg = cfgs.get("whatsapp_message", "Olá! Tenho interesse no anúncio.")
+        wa_msg = cfgs.get("whatsapp_message", "OlÃ¡! Tenho interesse no anÃºncio.")
         return jsonify({
             "whatsapp_number":     wa_num,
             "whatsapp_message":    wa_msg,
@@ -625,7 +625,7 @@ def api_config(slug=None):
             "product_image2":      cfgs.get("product_image2", ""),
             "product_image3":      cfgs.get("product_image3", ""),
             "seller_name":         cfgs.get("seller_name", "Vendedor OLX"),
-            "seller_status":       cfgs.get("seller_status", "Último acesso há 2 horas"),
+            "seller_status":       cfgs.get("seller_status", "Ãšltimo acesso hÃ¡ 2 horas"),
             "seller_since":        cfgs.get("seller_since", "Na OLX desde 2022"),
             "payment_badges":      cfgs.get("payment_badges", ""),
             "det_category":        cfgs.get("det_category",  ""),
@@ -651,7 +651,7 @@ def api_config(slug=None):
         "product_image2":      gc("product_image2", ""),
         "product_image3":      gc("product_image3", ""),
         "seller_name":         gc("seller_name", "tk prock"),
-        "seller_status":       gc("seller_status", "Último acesso há 2 horas"),
+        "seller_status":       gc("seller_status", "Ãšltimo acesso hÃ¡ 2 horas"),
         "seller_since":        gc("seller_since", "Na OLX desde janeiro de 2022"),
         "payment_badges":      gc("payment_badges", ""),
         "det_category":  gc("det_category",  ""),
@@ -663,13 +663,13 @@ def api_config(slug=None):
     })
 
 
-# ─── ADMIN PANEL & ENCRYPTED AUTH ──────────────────────────────────────────────
+# â”€â”€â”€ ADMIN PANEL & ENCRYPTED AUTH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "0").split(",") if x.strip().isdigit()]
 SUPER_ADMIN_IDS = [int(x) for x in os.environ.get("SUPER_ADMIN_IDS", os.environ.get("ADMIN_IDS", "0")).split(",") if x.strip().isdigit()]
 
 def verify_admin_access(req) -> tuple[Optional[int], str]:
     """
-    Valida acesso ao painel admin com criptografia e validação de tokens.
+    Valida acesso ao painel admin com criptografia e validaÃ§Ã£o de tokens.
     Retorna uma tupla: (tg_id, role)
     """
     token = (
@@ -692,7 +692,7 @@ def verify_admin_access(req) -> tuple[Optional[int], str]:
         reset_auth_failures(_user_ip())
         return 999999999, "supreme_admin"
 
-    # Registra falha de autenticação para proteção brute-force
+    # Registra falha de autenticaÃ§Ã£o para proteÃ§Ã£o brute-force
     record_auth_failure(_user_ip())
     return None, "unauthorized"
 
@@ -701,7 +701,7 @@ def verify_admin_access(req) -> tuple[Optional[int], str]:
 @app.route('/admin/<slug>')
 def admin_panel(slug=None):
     """
-    Serve o painel admin com autenticação Telegram-gated e suporte multi-tenant.
+    Serve o painel admin com autenticaÃ§Ã£o Telegram-gated e suporte multi-tenant.
     """
     ip    = _user_ip()
     token = request.args.get('token', slug or '').strip()
@@ -712,9 +712,9 @@ def admin_panel(slug=None):
 
 @app.route('/api/admin/verify-token')
 def api_admin_verify_token():
-    """Endpoint para o frontend verificar se o token atual é válido, a role e o plano."""
+    """Endpoint para o frontend verificar se o token atual Ã© vÃ¡lido, a role e o plano."""
     ip = _user_ip()
-    # Proteção anti-brute-force específica para auth
+    # ProteÃ§Ã£o anti-brute-force especÃ­fica para auth
     if is_auth_brute_forced(ip):
         return jsonify({"ok": False, "error": "ip_temporariamente_bloqueado",
                         "message": "Muitas tentativas falhas. Tente novamente em 30 minutos."}), 429
@@ -756,16 +756,16 @@ def api_admin_verify_token():
 
 @app.route('/api/admin/c7-status')
 def api_admin_c7_status():
-    """Retorna status em tempo real da conexão com a API C7. RESTRITO ao Admin Supremo."""
+    """Retorna status em tempo real da conexÃ£o com a API C7. RESTRITO ao Admin Supremo."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
-        return jsonify({"ok": False, "error": "Acesso não autorizado"}), 401
-    # ── BARREIRA DE SEGURANÇA: apenas o Admin Supremo vê dados financeiros C7 ──
+        return jsonify({"ok": False, "error": "Acesso nÃ£o autorizado"}), 401
+    # â”€â”€ BARREIRA DE SEGURANÃ‡A: apenas o Admin Supremo vÃª dados financeiros C7 â”€â”€
     if role != "supreme_admin":
         return jsonify({
             "ok": False,
             "error": "acesso_restrito",
-            "message": "Dados financeiros da Carteira do 7 são visíveis apenas para o Admin Supremo."
+            "message": "Dados financeiros da Carteira do 7 sÃ£o visÃ­veis apenas para o Admin Supremo."
         }), 403
 
     c7_configured = bool(C7_API_KEY and "c7_live_xxx" not in C7_API_KEY)
@@ -795,35 +795,83 @@ def api_admin_c7_status():
     return jsonify({
         "ok": True,
         "c7_status": live_status,
-        "api_key_masked": f"{C7_API_KEY[:8]}...{C7_API_KEY[-4:]}" if C7_API_KEY else "não configurada",
+        "api_key_masked": f"{C7_API_KEY[:8]}...{C7_API_KEY[-4:]}" if C7_API_KEY else "nÃ£o configurada",
         "role": role,
         "is_supreme_admin": True,
         "balance": balance_info
     })
 
 
-# ─── ROTAS DE PERFIL DOS ADMINS E COMPARTILHAMENTO ───────────────────────────
-@app.route('/api/admin/profile', methods=['GET', 'POST'])
-def api_admin_profile():
-    """Obtém ou atualiza o perfil individual do admin logado."""
+# ROTAS DE PERFIL DOS ADMINS E COMPARTILHAMENTO
+@app.route('/api/admin/ai/financial-insights')
+def api_admin_ai_financial_insights():
+    """Insights reais de convers\u00e3o calculados a partir dos dados do banco."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
-    if request.method == 'POST':
-        data = request.json or {}
-        display_name = data.get("display_name", "").strip()
-        avatar_url   = data.get("avatar_url", "").strip()
-        bio          = data.get("bio", "").strip()
-        contact      = data.get("contact", "").strip()
+    try:
         if TG_WH_AVAILABLE:
-            tg_wh.set_tenant_profile(admin_id, display_name, avatar_url, bio, contact)
-        return jsonify({"ok": True, "message": "Perfil atualizado com sucesso!"})
+            if role == "supreme_admin":
+                s24  = tg_wh.get_global_stats(24)
+                s168 = tg_wh.get_global_stats(168)
+            else:
+                s24  = tg_wh.get_tenant_stats(admin_id, 24)
+                s168 = tg_wh.get_tenant_stats(admin_id, 168)
+        elif BOT_AVAILABLE:
+            s24  = admin_bot.get_stats(24)
+            s168 = admin_bot.get_stats(168)
+        else:
+            return jsonify({"ok": False, "error": "stats_unavailable"}), 503
 
-    prof = {}
-    if TG_WH_AVAILABLE:
-        prof = tg_wh.get_tenant_profile(admin_id)
-    return jsonify({"ok": True, "profile": prof})
+        entries_24  = s24.get("entries", 0) or 1
+        leads_24    = s24.get("leads", 0)
+        paid_24     = s24.get("paid", 0)
+        buy_24      = s24.get("click_buy", 0)
+        conv_rate   = s24.get("conv_rate", 0)
+        entries_7d  = s168.get("entries", 0) or 1
+        leads_7d    = s168.get("leads", 0)
+
+        lead_rate   = round((leads_24 / entries_24) * 100, 1)
+        click_rate  = round((buy_24   / entries_24) * 100, 1)
+        lead_7d_rate = round((leads_7d / entries_7d) * 100, 1)
+
+        # Build real insights from actual data
+        insights = []
+        if leads_24 > 0:
+            insights.append(f"\U0001f4cb **{leads_24} leads capturados** nas \u00faltimas 24h — taxa de capta\u00e7\u00e3o: {lead_rate}%.")
+        else:
+            insights.append("\U0001f4cb **Nenhum lead** nas \u00faltimas 24h. Verifique se o formul\u00e1rio est\u00e1 ativo.")
+
+        if buy_24 > 0:
+            insights.append(f"\U0001f6d2 **{buy_24} cliques em Comprar** — {click_rate}% dos visitantes chegaram ao checkout.")
+        if paid_24 > 0:
+            insights.append(f"\u2705 **{paid_24} pagamentos confirmados** nas \u00faltimas 24h.")
+        if leads_7d > leads_24 * 7 * 1.3:
+            insights.append("\U0001f4c8 **Performance acima da m\u00e9dia semanal** — ritmo de leads acelerado.")
+        elif leads_7d < leads_24 * 7 * 0.7 and leads_24 > 0:
+            insights.append("\U0001f4c9 **Performance abaixo da m\u00e9dia semanal** — analise se houve queda de tr\u00e1fego.")
+        if conv_rate >= 10:
+            insights.append(f"\U0001f3af **Convers\u00e3o {conv_rate}%** — resultado acima da m\u00e9dia de mercado (8-12%).")
+        elif conv_rate > 0:
+            insights.append(f"\U0001f3af **Convers\u00e3o {conv_rate}%** — otimize o texto do an\u00fancio para subir acima de 10%.")
+
+        if not insights:
+            insights = ["\U0001f4ca Sem dados suficientes ainda. Aguarde as primeiras visitas para ver insights reais."]
+
+        return jsonify({
+            "ok":             True,
+            "conversion_rate": f"{conv_rate}%",
+            "lead_rate":       f"{lead_rate}%",
+            "click_rate":      f"{click_rate}%",
+            "leads_24h":       leads_24,
+            "paid_24h":        paid_24,
+            "entries_24h":     entries_24,
+            "insights":        insights,
+            "period":          "24h",
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 
@@ -884,7 +932,7 @@ def api_admin_me():
 
 @app.route('/api/admin/profiles/all')
 def api_admin_profiles_all():
-    """Retorna perfis de todos os admins cadastrados para visualização mútua."""
+    """Retorna perfis de todos os admins cadastrados para visualizaÃ§Ã£o mÃºtua."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -895,10 +943,10 @@ def api_admin_profiles_all():
     return jsonify({"ok": True, "profiles": profiles})
 
 
-# ─── IA DE ESTRATÉGIAS ADS E INSIGHTS FINANCEIROS REAIS ──────────────────────
+# â”€â”€â”€ IA DE ESTRATÃ‰GIAS ADS E INSIGHTS FINANCEIROS REAIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/ai/financial-insights')
 def api_admin_ai_financial_insights():
-    """Retorna relatórios e estratégias de IA reais para aumento de conversão em Ads."""
+    """Retorna relatÃ³rios e estratÃ©gias de IA reais para aumento de conversÃ£o em Ads."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -907,12 +955,12 @@ def api_admin_ai_financial_insights():
         "ok": True,
         "conversion_rate": "8.4%",
         "insights": [
-            "🎯 **Horário de Pico**: 64% das conversões ocorrem entre 18:00 e 22:30. Programe campanhas de Ads para este horário.",
-            "💡 **Preço Psicológico**: Anúncios terminados em .90 ou .00 aumentaram em 22% o clique no botão de compra.",
-            "🚀 **Gatilho de Urgência**: A ativação da notificação toast 'Última unidade disponível' elevou o pagamento PIX em 31%."
+            "ðŸŽ¯ **HorÃ¡rio de Pico**: 64% das conversÃµes ocorrem entre 18:00 e 22:30. Programe campanhas de Ads para este horÃ¡rio.",
+            "ðŸ’¡ **PreÃ§o PsicolÃ³gico**: AnÃºncios terminados em .90 ou .00 aumentaram em 22% o clique no botÃ£o de compra.",
+            "ðŸš€ **Gatilho de UrgÃªncia**: A ativaÃ§Ã£o da notificaÃ§Ã£o toast 'Ãšltima unidade disponÃ­vel' elevou o pagamento PIX em 31%."
         ],
         "ads_strategy": {
-            "target_audience": "Homens e Mulheres, 22-45 anos, interesse em eletrônicos seminovos e OLX",
+            "target_audience": "Homens e Mulheres, 22-45 anos, interesse em eletrÃ´nicos seminovos e OLX",
             "recommended_budget": "R$ 30.00 / dia",
             "cpa_target": "R$ 4.50 por lead de WhatsApp"
         }
@@ -921,7 +969,7 @@ def api_admin_ai_financial_insights():
 
 @app.route('/api/admin/stats')
 def api_admin_stats():
-    """Retorna estatísticas isoladas por admin ou globais para o Admin Supremo."""
+    """Retorna estatÃ­sticas isoladas por admin ou globais para o Admin Supremo."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"error": "unauthorized"}), 401
@@ -947,7 +995,7 @@ def api_admin_stats():
 
 @app.route('/api/admin/load-config')
 def api_admin_load_config():
-    """Carrega as configurações salvas do admin logado sem resetar ao atualizar a página."""
+    """Carrega as configuraÃ§Ãµes salvas do admin logado sem resetar ao atualizar a pÃ¡gina."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"error": "unauthorized"}), 401
@@ -981,10 +1029,10 @@ def api_admin_load_config():
     })
 
 
-# ─── CATÁLOGO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────────────
+# â”€â”€â”€ CATÃLOGO DE MULTI-PRODUTOS POR ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/my-products', methods=['GET', 'POST'])
 def api_admin_my_products():
-    """Listar ou criar produtos no catálogo próprio do admin logado."""
+    """Listar ou criar produtos no catÃ¡logo prÃ³prio do admin logado."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -1001,13 +1049,13 @@ def api_admin_my_products():
         image3 = data.get("image3", "").strip()
 
         if not title:
-            return jsonify({"ok": False, "error": "Título é obrigatório"}), 400
+            return jsonify({"ok": False, "error": "TÃ­tulo Ã© obrigatÃ³rio"}), 400
 
         if TG_WH_AVAILABLE:
             code = tg_wh.create_tenant_product(admin_id, title, price, old_price, description, image_url, image1, image2, image3)
             slug = tg_wh.get_slug(admin_id)
             unique_link = f"{BASE_URL}/p/{slug}/{code}" if slug else f"{BASE_URL}/p/{code}"
-            return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado no catálogo!"})
+            return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado no catÃ¡logo!"})
 
     products = []
     if TG_WH_AVAILABLE:
@@ -1022,21 +1070,21 @@ def api_admin_my_products():
 
 @app.route('/api/admin/my-products/<product_code>', methods=['DELETE'])
 def api_admin_delete_product(product_code):
-    """Deletar produto do catálogo do admin."""
+    """Deletar produto do catÃ¡logo do admin."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     if TG_WH_AVAILABLE:
         tg_wh.delete_tenant_product(admin_id, product_code)
-        return jsonify({"ok": True, "message": "Produto excluído."})
-    return jsonify({"ok": False, "error": "Recurso indisponível"}), 400
+        return jsonify({"ok": True, "message": "Produto excluÃ­do."})
+    return jsonify({"ok": False, "error": "Recurso indisponÃ­vel"}), 400
 
 
-# ─── CANAIS DE LOGS CONFIGURÁVEIS DO ADMIN SUPREMO ───────────────────────────
+# â”€â”€â”€ CANAIS DE LOGS CONFIGURÃVEIS DO ADMIN SUPREMO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/supreme/log-channels', methods=['GET', 'POST'])
 def api_admin_supreme_log_channels():
-    """Configura ou obtém os canais de logs do Telegram (visita, lead, pix, pagamento)."""
+    """Configura ou obtÃ©m os canais de logs do Telegram (visita, lead, pix, pagamento)."""
     admin_id, role = verify_admin_access(request)
     if role != "supreme_admin":
         return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
@@ -1048,7 +1096,7 @@ def api_admin_supreme_log_channels():
         title       = data.get("title", "").strip()
 
         if not channel_key or not chat_id:
-            return jsonify({"ok": False, "error": "channel_key e chat_id são obrigatórios"}), 400
+            return jsonify({"ok": False, "error": "channel_key e chat_id sÃ£o obrigatÃ³rios"}), 400
 
         if TG_WH_AVAILABLE:
             tg_wh.set_log_channel(channel_key, int(chat_id), title)
@@ -1062,7 +1110,7 @@ def api_admin_supreme_log_channels():
 
 @app.route('/api/admin/events')
 def api_admin_events():
-    """Retorna eventos recentes descriptografados — isolados por tenant."""
+    """Retorna eventos recentes descriptografados â€” isolados por tenant."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"error": "unauthorized"}), 401
@@ -1070,7 +1118,7 @@ def api_admin_events():
     limit = min(int(request.args.get('limit', 40)), 200)
     try:
         if TG_WH_AVAILABLE and role != "supreme_admin":
-            # Admin normal: só vê seus próprios eventos
+            # Admin normal: sÃ³ vÃª seus prÃ³prios eventos
             events = tg_wh.get_tg_events(admin_id, limit)
             return jsonify({"events": events, "count": len(events)})
         if not BOT_AVAILABLE:
@@ -1083,7 +1131,7 @@ def api_admin_events():
 
 @app.route('/api/admin/sessions')
 def api_admin_sessions():
-    """Retorna sessões recentes — isoladas por tenant."""
+    """Retorna sessÃµes recentes â€” isoladas por tenant."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"error": "unauthorized"}), 401
@@ -1109,7 +1157,7 @@ def api_admin_sessions():
 
 @app.route('/api/admin/upload', methods=['POST'])
 def api_admin_upload():
-    """Upload de imagens — requer autenticação de admin."""
+    """Upload de imagens â€” requer autenticaÃ§Ã£o de admin."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -1131,7 +1179,7 @@ def api_admin_upload():
     size = file.tell()
     file.seek(0)
     if size > 8 * 1024 * 1024:
-        return jsonify({"ok": False, "error": "Arquivo muito grande. Máximo 8MB."}), 413
+        return jsonify({"ok": False, "error": "Arquivo muito grande. MÃ¡ximo 8MB."}), 413
 
     uploads_dir = os.path.join(app.static_folder, 'images', 'uploads')
     os.makedirs(uploads_dir, exist_ok=True)
@@ -1201,7 +1249,7 @@ def api_admin_config_save():
     return jsonify({"ok": True, "saved": saved})
 
 
-# ─── ENDPOINTS GERENCIAMENTO SUPREMO ──────────────────────────────────────────
+# â”€â”€â”€ ENDPOINTS GERENCIAMENTO SUPREMO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/supreme/tenants')
 def api_admin_supreme_tenants():
     """Retorna lista completa de admins/tenants com planos e uso de visitas para o Admin Supremo."""
@@ -1245,39 +1293,39 @@ def api_admin_supreme_set_plan():
     plan_key = data.get("plan")
 
     if not target_tg_id or not plan_key:
-        return jsonify({"ok": False, "error": "tg_id e plan são obrigatórios"}), 400
+        return jsonify({"ok": False, "error": "tg_id e plan sÃ£o obrigatÃ³rios"}), 400
 
     if TG_WH_AVAILABLE and tg_wh.set_user_plan(target_tg_id, plan_key):
         return jsonify({"ok": True, "message": f"Plano alterado para {plan_key} com sucesso!"})
 
-    return jsonify({"ok": False, "error": "Falha ao alterar plano ou plano inválido."}), 400
+    return jsonify({"ok": False, "error": "Falha ao alterar plano ou plano invÃ¡lido."}), 400
 
 
 @app.route('/api/admin/supreme/full-overview')
 def api_admin_supreme_full_overview():
-    """Visão completa de TODOS os admins, produtos, leads recentes e stats — Admin Supremo."""
+    """VisÃ£o completa de TODOS os admins, produtos, leads recentes e stats â€” Admin Supremo."""
     admin_id, role = verify_admin_access(request)
     if role != "supreme_admin":
         return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
     if not TG_WH_AVAILABLE:
-        return jsonify({"ok": False, "error": "multi-tenant indisponível"}), 503
+        return jsonify({"ok": False, "error": "multi-tenant indisponÃ­vel"}), 503
     overview = tg_wh.get_full_overview_for_supreme()
     return jsonify({"ok": True, **overview})
 
 
 @app.route('/api/geo')
 def api_geo():
-    """Geolocalização real do IP do visitante — retorna lat, lng, cidade, país, ISP."""
+    """GeolocalizaÃ§Ã£o real do IP do visitante â€” retorna lat, lng, cidade, paÃ­s, ISP."""
     ip = _user_ip()
     if not TG_WH_AVAILABLE:
-        return jsonify({"ok": False, "error": "indisponível"}), 503
+        return jsonify({"ok": False, "error": "indisponÃ­vel"}), 503
     geo = tg_wh.get_ip_geolocation(ip)
     return jsonify({"ok": True, "ip": ip, **geo})
 
 
 @app.route('/api/admin/my-products/<product_code>', methods=['PATCH'])
 def api_admin_update_product(product_code):
-    """Atualiza produto do catálogo do admin — inclui shipping_mode, shipping_fee, shipping_coupon."""
+    """Atualiza produto do catÃ¡logo do admin â€” inclui shipping_mode, shipping_fee, shipping_coupon."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -1289,7 +1337,7 @@ def api_admin_update_product(product_code):
         ok = tg_wh.update_tenant_product(admin_id, safe_code, data)
         if ok:
             return jsonify({"ok": True, "message": "Produto atualizado com sucesso!"})
-    return jsonify({"ok": False, "error": "Produto não encontrado ou erro ao atualizar."}), 400
+    return jsonify({"ok": False, "error": "Produto nÃ£o encontrado ou erro ao atualizar."}), 400
 
 
 @app.route('/api/admin/my-products/<product_code>/shipping', methods=['POST'])
@@ -1361,7 +1409,7 @@ def api_event():
     if TG_WH_AVAILABLE:
         slug = payload.get("slug") or request.args.get("slug", "global")
         ip = _user_ip()
-        # Mapeia tipo de evento para canal específico
+        # Mapeia tipo de evento para canal especÃ­fico
         ch_key = {
             "PAGE_ENTRY": "visita",
             "CLICK_BUY": "cliques",
@@ -1372,20 +1420,20 @@ def api_event():
         }.get(event_type, "all")
 
         title_map = {
-            "PAGE_ENTRY": "👁 Nova Visita no Anúncio",
-            "CLICK_BUY": "🛒 Clique em Comprar",
-            "LEAD_CAPTURED": "📝 Lead Capturado Real",
-            "PIX_GENERATED": "💸 Pix Gerado",
-            "PIX_PAID": "✅ Pagamento Confirmado!",
-            "PAYMENT_CONFIRMED": "✅ Pagamento Confirmado!"
+            "PAGE_ENTRY": "ðŸ‘ Nova Visita no AnÃºncio",
+            "CLICK_BUY": "ðŸ›’ Clique em Comprar",
+            "LEAD_CAPTURED": "ðŸ“ Lead Capturado Real",
+            "PIX_GENERATED": "ðŸ’¸ Pix Gerado",
+            "PIX_PAID": "âœ… Pagamento Confirmado!",
+            "PAYMENT_CONFIRMED": "âœ… Pagamento Confirmado!"
         }
-        ev_title = title_map.get(event_type, f"⚡ Evento: {event_type}")
+        ev_title = title_map.get(event_type, f"âš¡ Evento: {event_type}")
         msg_text = (
             f"<b>{ev_title}</b>\n"
-            f"📦 <b>Slug:</b> <code>{slug}</code>\n"
-            f"🌐 <b>IP:</b> <code>{ip}</code>\n"
-            f"🔑 <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
-            f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+            f"ðŸ“¦ <b>Slug:</b> <code>{slug}</code>\n"
+            f"ðŸŒ <b>IP:</b> <code>{ip}</code>\n"
+            f"ðŸ”‘ <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
+            f"â± <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
         )
         tg_wh.notify_log_channel(ch_key, msg_text)
 
@@ -1400,13 +1448,13 @@ def validate_cep():
     sid  = _session_id(data)
 
     if len(cep) != 8 or not cep.isdigit():
-        return jsonify({"success": False, "message": "CEP inválido. Digite 8 dígitos numéricos."}), 400
+        return jsonify({"success": False, "message": "CEP invÃ¡lido. Digite 8 dÃ­gitos numÃ©ricos."}), 400
 
     try:
         res      = requests.get(f"https://viacep.com.br/ws/{cep}/json/", timeout=4)
         cep_data = res.json()
         if "erro" in cep_data:
-            return jsonify({"success": False, "message": "CEP não localizado na base dos Correios."}), 404
+            return jsonify({"success": False, "message": "CEP nÃ£o localizado na base dos Correios."}), 404
 
         street = cep_data.get('logradouro', '')
         bairro = cep_data.get('bairro', '')
@@ -1428,20 +1476,20 @@ def validate_cep():
             "bairro":     bairro,
             "cidade":     cidade,
             "uf":         uf,
-            "frete":      "Grátis",
-            "modalidade": "Entrega Fácil OLX Garantida",
-            "prazo":      "Chega entre 2 a 4 dias úteis",
+            "frete":      "GrÃ¡tis",
+            "modalidade": "Entrega FÃ¡cil OLX Garantida",
+            "prazo":      "Chega entre 2 a 4 dias Ãºteis",
             "seguro":     "100% Protegido com Garantia da OLX"
         })
     except Exception as e:
-        return jsonify({"success": False, "message": "Erro de conexão ao consultar CEP."}), 500
+        return jsonify({"success": False, "message": "Erro de conexÃ£o ao consultar CEP."}), 500
 
 
 @app.route('/api/lead', methods=['POST'])
 def capture_lead():
     """
     Captura lead qualificado com rastreio completo por tenant.
-    Associa o lead ao admin correto via slug na requisição.
+    Associa o lead ao admin correto via slug na requisiÃ§Ã£o.
     Salva no DB criptografado e envia para o canal Telegram do admin.
     """
     data = request.json or {}
@@ -1469,24 +1517,24 @@ def capture_lead():
     amount       = sanitize_input(data.get('amount', '630,00'), 20)
     product_name = sanitize_input(data.get('product', ''), 120)
 
-    # Validação: nome completo
+    # ValidaÃ§Ã£o: nome completo
     if not name or len(name.split()) < 2:
         return jsonify({"ok": False, "error": "Informe seu nome completo (Nome e Sobrenome)."}), 400
 
-    # Validação: CPF real via Hub
+    # ValidaÃ§Ã£o: CPF real via Hub
     is_cpf_ok, cpf_err, cpf_data = verify_cpf_hub(cpf)
     if not is_cpf_ok:
         _log("LEAD_REJECTED_INVALID_CPF", sid, {"cpf": cpf, "name": name, "reason": cpf_err, "slug": slug})
-        return jsonify({"ok": False, "error": cpf_err or "CPF inválido."}), 400
+        return jsonify({"ok": False, "error": cpf_err or "CPF invÃ¡lido."}), 400
 
-    # Validação: telefone BR
+    # ValidaÃ§Ã£o: telefone BR
     if BOT_AVAILABLE:
         valid_phone, phone_err = admin_bot.InputValidator.validate_phone_br(phone)
         if phone_err:
             return jsonify({"ok": False, "error": phone_err}), 400
         phone = valid_phone
 
-    # Contexto de rastreio avançado
+    # Contexto de rastreio avanÃ§ado
     lead_payload = {
         "name":         name,
         "cpf":          cpf,
@@ -1514,18 +1562,18 @@ def capture_lead():
     # Registra no DB do tenant correto (isolamento por admin)
     if TG_WH_AVAILABLE and tg_id and slug:
         tg_wh.log_tenant_event(tg_id, slug, "LEAD_CAPTURED", sid, ip, lead_payload)
-        # Envia notificação no canal de leads do admin
+        # Envia notificaÃ§Ã£o no canal de leads do admin
         lead_msg = (
-            f"<b>📝 Lead Qualificado Capturado!</b>\n"
-            f"👤 <b>Nome:</b> {name}\n"
-            f"📞 <b>Telefone:</b> <code>{phone}</code>\n"
-            f"📧 <b>Email:</b> {email or 'Não informado'}\n"
-            f"🏠 <b>Endereco:</b> {street}, {number_addr} - {city}/{state}\n"
-            f"📦 <b>Produto:</b> {lead_payload['product']}\n"
-            f"💰 <b>Valor:</b> R$ {amount}\n"
-            f"📍 <b>Slug:</b> <code>{slug}</code>\n"
-            f"🌎 <b>IP:</b> <code>{ip}</code>\n"
-            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+            f"<b>ðŸ“ Lead Qualificado Capturado!</b>\n"
+            f"ðŸ‘¤ <b>Nome:</b> {name}\n"
+            f"ðŸ“ž <b>Telefone:</b> <code>{phone}</code>\n"
+            f"ðŸ“§ <b>Email:</b> {email or 'NÃ£o informado'}\n"
+            f"ðŸ  <b>Endereco:</b> {street}, {number_addr} - {city}/{state}\n"
+            f"ðŸ“¦ <b>Produto:</b> {lead_payload['product']}\n"
+            f"ðŸ’° <b>Valor:</b> R$ {amount}\n"
+            f"ðŸ“ <b>Slug:</b> <code>{slug}</code>\n"
+            f"ðŸŒŽ <b>IP:</b> <code>{ip}</code>\n"
+            f"â± <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
         )
         tg_wh.notify_log_channel("lead", lead_msg)
 
@@ -1577,14 +1625,14 @@ def generate_pix():
     pix_code    = ""
     qr_code_url = ""
     c7_id       = ""
-    expires_at  = ""       # ISO datetime de expiração — vem da C7 (doc sec. 4)
+    expires_at  = ""       # ISO datetime de expiraÃ§Ã£o â€” vem da C7 (doc sec. 4)
     c7_status   = "pending"  # status inicial sempre "pending" (doc sec. 4 / 6)
 
     if C7_API_KEY and "your_key" not in C7_API_KEY and "c7_live_xxx" not in C7_API_KEY:
         try:
             headers  = get_c7_auth_headers(body_str)
             # Envia body_str como string raw com Content-Type: application/json
-            # (body_str deve ser EXATAMENTE o mesmo usado para gerar HMAC — doc sec.2.2)
+            # (body_str deve ser EXATAMENTE o mesmo usado para gerar HMAC â€” doc sec.2.2)
             res  = requests.post(
                 f"{C7_BASE_URL}/payment/create",
                 data=body_str,
@@ -1592,7 +1640,7 @@ def generate_pix():
                 timeout=10
             )
             if res.status_code == 429:
-                print(f"[C7 API] Rate limited (429) — aguardando e usando fallback")
+                print(f"[C7 API] Rate limited (429) â€” aguardando e usando fallback")
             elif res.status_code >= 400:
                 print(f"[C7 API] Erro HTTP {res.status_code}: {res.text[:200]}")
             else:
@@ -1608,10 +1656,10 @@ def generate_pix():
                 else:
                     print(f"[C7 API] Resposta inesperada: {resp}")
         except Exception as err:
-            print(f"[C7 API] Exceção: {err}")
+            print(f"[C7 API] ExceÃ§Ã£o: {err}")
 
     if not pix_code:
-        # Gera PIX EMV válido com CRC-16/CCITT correto (BACEN BR Code 2.0)
+        # Gera PIX EMV vÃ¡lido com CRC-16/CCITT correto (BACEN BR Code 2.0)
         pix_key_fallback = ""
         if BOT_AVAILABLE:
             pix_key_fallback = admin_bot.get_config("pix_key", "")
@@ -1644,7 +1692,7 @@ def generate_pix():
     }
     PAYMENTS_DB[payment_id] = record
     if c7_id:
-        PAYMENTS_DB[c7_id] = record  # indexa também pelo ID interno da C7
+        PAYMENTS_DB[c7_id] = record  # indexa tambÃ©m pelo ID interno da C7
 
     _log("PIX_GENERATED", sid, {
         "c7_id":      c7_id or "fallback-emv",
@@ -1673,8 +1721,8 @@ def generate_pix():
 def check_payment(payment_id):
     """
     Consulta status do pagamento.
-    Doc C7 sec. 6: GET /payment/:id/status — autenticação apenas com API Key.
-    Status possíveis: pending | approved | expired | cancelled
+    Doc C7 sec. 6: GET /payment/:id/status â€” autenticaÃ§Ã£o apenas com API Key.
+    Status possÃ­veis: pending | approved | expired | cancelled
     """
     safe_pid = sanitize_input(payment_id, 80)
     payment  = PAYMENTS_DB.get(safe_pid)
@@ -1683,16 +1731,16 @@ def check_payment(payment_id):
 
     current_status = payment.get("status", "pending")
 
-    # Já confirmado localmente — retorna imediatamente
+    # JÃ¡ confirmado localmente â€” retorna imediatamente
     if current_status in ("paid", "approved"):
         return jsonify({"payment_id": safe_pid, "status": "paid",
                         "amount": payment.get("amount"), "expires_at": payment.get("expires_at", "")})
 
-    # Expirado ou cancelado — não precisa consultar a C7
+    # Expirado ou cancelado â€” nÃ£o precisa consultar a C7
     if current_status in ("expired", "cancelled"):
         return jsonify({"payment_id": safe_pid, "status": current_status})
 
-    # Consulta a C7 (apenas Authorization header — doc sec. 6)
+    # Consulta a C7 (apenas Authorization header â€” doc sec. 6)
     c7_id = payment.get("c7_id")
     if c7_id and C7_API_KEY and "c7_live_xxx" not in C7_API_KEY:
         try:
@@ -1725,7 +1773,7 @@ def check_payment(payment_id):
                     elif status == "cancelled":
                         payment["status"] = "cancelled"
                         return jsonify({"payment_id": safe_pid, "status": "cancelled"})
-                    # pending — continua aguardando
+                    # pending â€” continua aguardando
         except Exception as err:
             print(f"[C7 Status] {err}")
 
@@ -1736,21 +1784,21 @@ def check_payment(payment_id):
 @app.route('/api/webhook/pix', methods=['POST'])
 def c7_webhook():
     """
-    Webhook da Carteira do 7 — implementação completa conforme doc sec. 8-11.
+    Webhook da Carteira do 7 â€” implementaÃ§Ã£o completa conforme doc sec. 8-11.
     Valida:
       1. Assinatura HMAC-SHA256: HMAC(secret, ts + '.' + raw_body)   (sec. 9)
       2. Janela de timestamp: rejeita > 5 minutos (sec. 9)
-      3. Idempotência: não reprocessa IDs já confirmados (sec. 11)
-    Responde HTTP 2xx para a C7 não retentar (sec. 10).
+      3. IdempotÃªncia: nÃ£o reprocessa IDs jÃ¡ confirmados (sec. 11)
+    Responde HTTP 2xx para a C7 nÃ£o retentar (sec. 10).
     """
     raw_body   = request.get_data(as_text=True)
     sig_header = request.headers.get("X-C7-Signature", "")
     ts_header  = request.headers.get("X-C7-Timestamp", "")
     event_hdr  = request.headers.get("X-C7-Event", "")
 
-    # ─── 1. Validação da assinatura HMAC (sec. 9) ───────────────────────────────────
+    # â”€â”€â”€ 1. ValidaÃ§Ã£o da assinatura HMAC (sec. 9) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if C7_API_SECRET and "your_api_secret" not in C7_API_SECRET:
-        # Fórmula da doc: HMAC(api_secret, timestamp + "." + body)
+        # FÃ³rmula da doc: HMAC(api_secret, timestamp + "." + body)
         expected = hmac.new(
             C7_API_SECRET.encode('utf-8'),
             f"{ts_header}.{raw_body}".encode('utf-8'),
@@ -1758,11 +1806,11 @@ def c7_webhook():
         ).hexdigest()
         if not (sig_header and hmac.compare_digest(sig_header, expected)):
             _log("SECURITY_ALERT_WEBHOOK", "webhook", {
-                "ip": _user_ip(), "reason": "HMAC inválido", "event": event_hdr
+                "ip": _user_ip(), "reason": "HMAC invÃ¡lido", "event": event_hdr
             })
             return jsonify({"error": "invalid_signature"}), 401
 
-    # ─── 2. Validação da janela de timestamp (sec. 9) ─────────────────────────────
+    # â”€â”€â”€ 2. ValidaÃ§Ã£o da janela de timestamp (sec. 9) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try:
         ts_int = int(ts_header)
         if abs(time.time() - ts_int) > 300:  # 5 minutos = 300 segundos
@@ -1773,7 +1821,7 @@ def c7_webhook():
     except (ValueError, TypeError):
         return jsonify({"error": "invalid_timestamp"}), 400
 
-    # ─── 3. Parse do payload (sec. 8) ─────────────────────────────────────────
+    # â”€â”€â”€ 3. Parse do payload (sec. 8) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     payload    = request.json or {}
     event_data = payload.get("data", {})
 
@@ -1788,13 +1836,13 @@ def c7_webhook():
     payer_info   = event_data.get("payer", {})
     event_type   = payload.get("event", event_hdr)
 
-    # ─── 4. Idempotência — doc sec. 11 ───────────────────────────────────────
+    # â”€â”€â”€ 4. IdempotÃªncia â€” doc sec. 11 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     idempotency_key = identifier or correlation or end_to_end
     if idempotency_key and idempotency_key in PROCESSED_WEBHOOKS:
-        # Já processado — responde 2xx para C7 parar de retentar (sec. 10)
+        # JÃ¡ processado â€” responde 2xx para C7 parar de retentar (sec. 10)
         return jsonify({"ok": True, "duplicate": True}), 200
 
-    # ─── 5-7. Atualiza pagamento e registra evento ────────────────────────────
+    # â”€â”€â”€ 5-7. Atualiza pagamento e registra evento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     is_confirmed = (
         status == "APPROVED" or
         event_type in ("payment.confirmed", "payment.approved")
@@ -1824,30 +1872,30 @@ def c7_webhook():
             "ip":         record.get("ip", "N/A") if record else "N/A",
         })
 
-    # ─── 8. Responde HTTP 2xx (sec. 10) ──────────────────────────────────────
+    # â”€â”€â”€ 8. Responde HTTP 2xx (sec. 10) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     return jsonify({"ok": True}), 200
 
 
 @app.route('/api/c7/balance', methods=['POST'])
 def c7_balance():
     """
-    Consulta saldo da conta C7 — RESTRITO ao Admin Supremo.
-    POST /account/balance com autenticação API Key + HMAC-SHA256.
+    Consulta saldo da conta C7 â€” RESTRITO ao Admin Supremo.
+    POST /account/balance com autenticaÃ§Ã£o API Key + HMAC-SHA256.
     """
-    # ── BARREIRA DE SEGURANÇA: apenas Admin Supremo acessa saldo financeiro ──
+    # â”€â”€ BARREIRA DE SEGURANÃ‡A: apenas Admin Supremo acessa saldo financeiro â”€â”€
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized",
-                        "message": "Token de acesso inválido ou expirado."}), 401
+                        "message": "Token de acesso invÃ¡lido ou expirado."}), 401
     if role != "supreme_admin":
         return jsonify({
             "ok": False,
             "error": "acesso_restrito",
-            "message": "Consulta de saldo é exclusiva do Admin Supremo."
+            "message": "Consulta de saldo Ã© exclusiva do Admin Supremo."
         }), 403
 
     if not C7_API_KEY or "c7_live_xxx" in C7_API_KEY:
-        return jsonify({"ok": False, "error": "api_key_não_configurada"}), 401
+        return jsonify({"ok": False, "error": "api_key_nÃ£o_configurada"}), 401
     try:
         body_str = "{}"  # body vazio mas ainda participa do HMAC
         headers  = get_c7_auth_headers(body_str)
@@ -1878,12 +1926,12 @@ def c7_balance():
         return jsonify({"ok": False, "error": "gateway_error", "detail": str(err)}), 500
 
 
-# ─── ASSISTENTE IA PARA IMAGENS E ANÚNCIOS (GEMINI STUDIO INTEGRADO) ───────────
+# â”€â”€â”€ ASSISTENTE IA PARA IMAGENS E ANÃšNCIOS (GEMINI STUDIO INTEGRADO) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 GEMINI_STUDIO_KEY = os.environ.get("GEMINI_STUDIO_KEY", "")
 
 @app.route('/api/admin/analyze-ai', methods=['POST'])
 def api_admin_analyze_ai():
-    """Analisa imagem do produto via Gemini Vision — requer autenticação de admin."""
+    """Analisa imagem do produto via Gemini Vision â€” requer autenticaÃ§Ã£o de admin."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -1899,22 +1947,22 @@ def api_admin_analyze_ai():
             f"models/gemini-1.5-flash:generateContent?key={GEMINI_STUDIO_KEY}"
         )
         prompt_system = (
-            "Você é um especialista em precificação e redação de anúncios brasileiros para OLX. "
-            "Analise o produto com precisão técnica. Responda EXCLUSIVAMENTE em JSON válido, sem markdown."
+            "VocÃª Ã© um especialista em precificaÃ§Ã£o e redaÃ§Ã£o de anÃºncios brasileiros para OLX. "
+            "Analise o produto com precisÃ£o tÃ©cnica. Responda EXCLUSIVAMENTE em JSON vÃ¡lido, sem markdown."
         )
         prompt_user = (
-            f"Produto informado pelo usuário: '{product_raw}'.\n"
+            f"Produto informado pelo usuÃ¡rio: '{product_raw}'.\n"
             "Retorne um JSON com EXATAMENTE estas chaves:\n"
-            "- title: título atraente para anúncio OLX (máx 80 chars)\n"
-            "- price: preço estimado de mercado Brasil 2025 (número, ex: 750.00)\n"
-            "- description: descrição vendedora completa (mín 80 palavras, mencionando estado, funcionalidades, acessórios, envio)\n"
+            "- title: tÃ­tulo atraente para anÃºncio OLX (mÃ¡x 80 chars)\n"
+            "- price: preÃ§o estimado de mercado Brasil 2025 (nÃºmero, ex: 750.00)\n"
+            "- description: descriÃ§Ã£o vendedora completa (mÃ­n 80 palavras, mencionando estado, funcionalidades, acessÃ³rios, envio)\n"
             "- category: categoria OLX mais adequada\n"
             "- brand: marca do produto\n"
             "- model: modelo exato do produto\n"
             "- condition: estado (Novo, Usado - Excelente, Usado - Bom, Usado - Regular)\n"
-            "- storage: capacidade/tamanho se aplicável (ex: 64GB, 128GB)\n"
+            "- storage: capacidade/tamanho se aplicÃ¡vel (ex: 64GB, 128GB)\n"
             "- color: cor predominante do produto na imagem\n"
-            "- confidence: sua confiança na análise de 0 a 100\n"
+            "- confidence: sua confianÃ§a na anÃ¡lise de 0 a 100\n"
             "JSON:"
         )
         full_parts = [{"text": prompt_system + "\n\n" + prompt_user}] + parts
@@ -1926,7 +1974,7 @@ def api_admin_analyze_ai():
         res.raise_for_status()
         rj = res.json()
         raw_text = rj["candidates"][0]["content"]["parts"][0]["text"].strip()
-        # Limpa possível markdown fence
+        # Limpa possÃ­vel markdown fence
         if raw_text.startswith("```"):
             raw_text = raw_text.split("```")[-2].lstrip("json").strip()
         return json.loads(raw_text)
@@ -1945,7 +1993,7 @@ def api_admin_analyze_ai():
                         ct  = img_resp.headers.get("Content-Type", "image/jpeg").split(";")[0]
                         parts.append({"inline_data": {"mime_type": ct, "data": b64}})
                 except Exception:
-                    pass  # sem imagem binária, usa só texto
+                    pass  # sem imagem binÃ¡ria, usa sÃ³ texto
 
             parsed = _gemini_call(parts)
             return jsonify({
@@ -1990,7 +2038,7 @@ def api_admin_analyze_ai():
         "ok": True,
         "title":       name_t,
         "price":       "650.00",
-        "description": f"{name_t} em excelente estado de conservação, testado e 100% funcional. Acompanha caixa e acessórios originais. Entrega disponível.",
+        "description": f"{name_t} em excelente estado de conservaÃ§Ã£o, testado e 100% funcional. Acompanha caixa e acessÃ³rios originais. Entrega disponÃ­vel.",
         "category":    "Celulares e Smartphones",
         "brand":       "",
         "model":       "",
@@ -2003,28 +2051,28 @@ def api_admin_analyze_ai():
     })
 
 
-# ─── VALIDAÇÃO E LOOKUP AVANÇADO DE NÚMERO WHATSAPP ─────────────────────────
+# â”€â”€â”€ VALIDAÃ‡ÃƒO E LOOKUP AVANÃ‡ADO DE NÃšMERO WHATSAPP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/validate-whatsapp', methods=['POST'])
 def api_validate_whatsapp():
     """
-    Validação avançada de número WhatsApp:
-    - Normalização e parsing completo do número
-    - Verificação de formato E.164 para Brasil
-    - Lookup de operadora, DDD, região e tipo de linha
-    - Geração de links wa.me diretos para teste
+    ValidaÃ§Ã£o avanÃ§ada de nÃºmero WhatsApp:
+    - NormalizaÃ§Ã£o e parsing completo do nÃºmero
+    - VerificaÃ§Ã£o de formato E.164 para Brasil
+    - Lookup de operadora, DDD, regiÃ£o e tipo de linha
+    - GeraÃ§Ã£o de links wa.me diretos para teste
     - Opcionalmente consulta NumVerify API (via NUMVERIFY_API_KEY env)
     """
     data = request.json or {}
     raw_number = sanitize_input(data.get("number", ""), 30)
 
-    # 1. Normalização — remove tudo que não é dígito
+    # 1. NormalizaÃ§Ã£o â€” remove tudo que nÃ£o Ã© dÃ­gito
     digits_only = re.sub(r'\D', '', raw_number)
 
     # Remove zero inicial de DDD local
     if digits_only.startswith('0'):
         digits_only = digits_only[1:]
 
-    # Adiciona DDI +55 Brasil se necessário
+    # Adiciona DDI +55 Brasil se necessÃ¡rio
     if len(digits_only) <= 11 and not digits_only.startswith('55'):
         digits_only = '55' + digits_only
 
@@ -2036,39 +2084,39 @@ def api_validate_whatsapp():
     ddd   = digits_only[2:4]  if len(digits_only) >= 4 else ''
     local = digits_only[4:]   if len(digits_only) > 4  else ''
 
-    # 2. Validação de formato BR
+    # 2. ValidaÃ§Ã£o de formato BR
     is_valid = (
-        bool(re.match(r'^55\d{2}[6-9]\d{8}$', digits_only)) or  # celular 9 dígitos
-        bool(re.match(r'^55\d{2}[2-5]\d{7}$', digits_only))      # fixo 8 dígitos
+        bool(re.match(r'^55\d{2}[6-9]\d{8}$', digits_only)) or  # celular 9 dÃ­gitos
+        bool(re.match(r'^55\d{2}[2-5]\d{7}$', digits_only))      # fixo 8 dÃ­gitos
     )
     is_mobile = bool(re.match(r'^[6-9]', local)) if local else False
     line_type = "Celular" if is_mobile else ("Fixo" if local else "Desconhecido")
 
-    # 3. Mapeamento de DDDs por região
+    # 3. Mapeamento de DDDs por regiÃ£o
     DDD_MAP = {
-        "11":"São Paulo - Capital","12":"SP - Vale do Paraíba","13":"SP - Baixada Santista",
-        "14":"SP - Bauru","15":"SP - Sorocaba","16":"SP - Ribeirão Preto",
-        "17":"SP - Rio Preto","18":"SP - Araçatuba","19":"SP - Campinas",
+        "11":"SÃ£o Paulo - Capital","12":"SP - Vale do ParaÃ­ba","13":"SP - Baixada Santista",
+        "14":"SP - Bauru","15":"SP - Sorocaba","16":"SP - RibeirÃ£o Preto",
+        "17":"SP - Rio Preto","18":"SP - AraÃ§atuba","19":"SP - Campinas",
         "21":"Rio de Janeiro - Capital","22":"RJ - Interior","24":"RJ - Volta Redonda",
-        "27":"ES - Vitória","28":"ES - Interior",
+        "27":"ES - VitÃ³ria","28":"ES - Interior",
         "31":"MG - Belo Horizonte","32":"MG - Juiz de Fora","33":"MG - Gov. Valadares",
-        "34":"MG - Uberlândia","35":"MG - Poços de Caldas","37":"MG - Divinópolis","38":"MG - Montes Claros",
-        "41":"PR - Curitiba","42":"PR - Ponta Grossa","43":"PR - Londrina","44":"PR - Maringá",
+        "34":"MG - UberlÃ¢ndia","35":"MG - PoÃ§os de Caldas","37":"MG - DivinÃ³polis","38":"MG - Montes Claros",
+        "41":"PR - Curitiba","42":"PR - Ponta Grossa","43":"PR - Londrina","44":"PR - MaringÃ¡",
         "45":"PR - Cascavel","46":"PR - Pato Branco",
-        "47":"SC - Joinville","48":"SC - Florianópolis","49":"SC - Chapecó",
+        "47":"SC - Joinville","48":"SC - FlorianÃ³polis","49":"SC - ChapecÃ³",
         "51":"RS - Porto Alegre","53":"RS - Pelotas","54":"RS - Caxias do Sul","55":"RS - Santa Maria",
-        "61":"Brasília / DF","62":"GO - Goiânia","63":"Tocantins","64":"GO - Interior",
-        "65":"MT - Cuiabá","66":"MT - Rondonópolis","67":"MS - Campo Grande","68":"Acre","69":"Rondônia",
-        "71":"BA - Salvador","73":"BA - Ilhéus","74":"BA - Interior","75":"BA - Feira de Santana","77":"BA - Vitória da Conquista",
+        "61":"BrasÃ­lia / DF","62":"GO - GoiÃ¢nia","63":"Tocantins","64":"GO - Interior",
+        "65":"MT - CuiabÃ¡","66":"MT - RondonÃ³polis","67":"MS - Campo Grande","68":"Acre","69":"RondÃ´nia",
+        "71":"BA - Salvador","73":"BA - IlhÃ©us","74":"BA - Interior","75":"BA - Feira de Santana","77":"BA - VitÃ³ria da Conquista",
         "79":"SE - Aracaju",
-        "81":"PE - Recife","82":"Alagoas","83":"Paraíba","84":"RN - Natal","85":"CE - Fortaleza",
+        "81":"PE - Recife","82":"Alagoas","83":"ParaÃ­ba","84":"RN - Natal","85":"CE - Fortaleza",
         "86":"PI - Teresina","87":"PE - Interior","88":"CE - Interior","89":"PI - Interior",
-        "91":"PA - Belém","92":"AM - Manaus","93":"PA - Santarém","94":"PA - Marabá",
-        "95":"Roraima","96":"Amapá","97":"AM - Interior","98":"MA - São Luís","99":"MA - Interior",
+        "91":"PA - BelÃ©m","92":"AM - Manaus","93":"PA - SantarÃ©m","94":"PA - MarabÃ¡",
+        "95":"Roraima","96":"AmapÃ¡","97":"AM - Interior","98":"MA - SÃ£o LuÃ­s","99":"MA - Interior",
     }
-    regiao = DDD_MAP.get(ddd, f"DDD {ddd}" if ddd else "Região desconhecida")
+    regiao = DDD_MAP.get(ddd, f"DDD {ddd}" if ddd else "RegiÃ£o desconhecida")
 
-    # 4. Formata para exibição nacional BR
+    # 4. Formata para exibiÃ§Ã£o nacional BR
     if len(local) == 9:
         local_fmt = f"({ddd}) {local[0]} {local[1:5]}-{local[5:]}"
     elif len(local) == 8:
@@ -2096,7 +2144,7 @@ def api_validate_whatsapp():
         except Exception as e:
             print(f"[NumVerify] {e}")
 
-    # 6. Links de ação
+    # 6. Links de aÃ§Ã£o
     wa_link      = f"https://wa.me/{digits_only}"
     wa_chat_link = f"https://wa.me/{digits_only}?text=Ol%C3%A1%2C+testando+contato"
     wa_api_link  = f"https://api.whatsapp.com/send?phone={digits_only}"
@@ -2154,9 +2202,9 @@ def api_products_create():
     code        = sanitize_input(data.get('code', ''), 80)
 
     if not name or not price:
-        return jsonify({"ok": False, "error": "name e price são obrigatórios"}), 400
+        return jsonify({"ok": False, "error": "name e price sÃ£o obrigatÃ³rios"}), 400
 
-    # Auto-gera code se não fornecido
+    # Auto-gera code se nÃ£o fornecido
     if not code:
         code = re.sub(r'[^a-z0-9_]', '_', name.lower().strip())[:40]
         code = re.sub(r'_+', '_', code).strip('_')
@@ -2173,7 +2221,7 @@ def api_products_create():
         conn.close()
     except Exception as e:
         if "UNIQUE" in str(e):
-            return jsonify({"ok": False, "error": f"Código '{code}' já existe. Use outro nome."}), 409
+            return jsonify({"ok": False, "error": f"CÃ³digo '{code}' jÃ¡ existe. Use outro nome."}), 409
         return jsonify({"ok": False, "error": str(e)}), 500
 
     base_url = request.host_url.rstrip('/')
@@ -2184,7 +2232,7 @@ def api_products_create():
 
 @app.route('/api/products/<code>', methods=['PUT'])
 def api_products_update(code):
-    """Edita um modelo de produto existente pelo código."""
+    """Edita um modelo de produto existente pelo cÃ³digo."""
     if not BOT_AVAILABLE:
         return jsonify({"ok": False, "error": "bot_not_available"}), 503
     safe_code = sanitize_input(code, 80)
@@ -2196,7 +2244,7 @@ def api_products_update(code):
     ).fetchone()
     if not row:
         conn.close()
-        return jsonify({"ok": False, "error": "Produto não encontrado"}), 404
+        return jsonify({"ok": False, "error": "Produto nÃ£o encontrado"}), 404
 
     fields, values = [], []
     allowed = {'name': 200, 'price': 20, 'description': 2000, 'image_url': 500}
@@ -2207,7 +2255,7 @@ def api_products_update(code):
 
     if not fields:
         conn.close()
-        return jsonify({"ok": False, "error": "Nenhum campo válido para atualizar"}), 400
+        return jsonify({"ok": False, "error": "Nenhum campo vÃ¡lido para atualizar"}), 400
 
     values.append(safe_code)
     conn.execute(f"UPDATE product_templates SET {', '.join(fields)} WHERE code=?", values)
@@ -2230,14 +2278,14 @@ def api_products_delete(code):
     conn.commit()
     conn.close()
     if result.rowcount == 0:
-        return jsonify({"ok": False, "error": "Produto não encontrado"}), 404
+        return jsonify({"ok": False, "error": "Produto nÃ£o encontrado"}), 404
     _log("PRODUCT_DELETED", str(uuid.uuid4()), {"code": safe_code})
     return jsonify({"ok": True})
 
 
 @app.route('/api/products/<code>/link', methods=['GET'])
 def api_product_link(code):
-    """Retorna o link público personalizado de um produto."""
+    """Retorna o link pÃºblico personalizado de um produto."""
     if not BOT_AVAILABLE:
         return jsonify({"ok": False, "error": "bot_not_available"}), 503
     safe_code = sanitize_input(code, 80)
@@ -2247,7 +2295,7 @@ def api_product_link(code):
     ).fetchone()
     conn.close()
     if not row:
-        return jsonify({"ok": False, "error": "Produto não encontrado"}), 404
+        return jsonify({"ok": False, "error": "Produto nÃ£o encontrado"}), 404
     base_url = request.host_url.rstrip('/')
     public_link = f"{base_url}/p/{safe_code}"
     return jsonify({"ok": True, "code": safe_code, "name": row["name"], "price": row["price"], "public_link": public_link})
@@ -2255,7 +2303,7 @@ def api_product_link(code):
 
 @app.route('/api/products/<code>/apply', methods=['POST'])
 def api_products_apply(code):
-    """Define um produto como padrão ativo da loja (sobrescreve config global)."""
+    """Define um produto como padrÃ£o ativo da loja (sobrescreve config global)."""
     if not BOT_AVAILABLE:
         return jsonify({"ok": False, "error": "bot_not_available"}), 503
     safe_code = sanitize_input(code, 80)
@@ -2265,7 +2313,7 @@ def api_products_apply(code):
     ).fetchone()
     conn.close()
     if not row:
-        return jsonify({"ok": False, "error": "Produto não encontrado"}), 404
+        return jsonify({"ok": False, "error": "Produto nÃ£o encontrado"}), 404
 
     admin_bot.set_config("product_name",        row["name"])
     admin_bot.set_config("product_price",       row["price"])
@@ -2277,15 +2325,15 @@ def api_products_apply(code):
     return jsonify({"ok": True, "applied": safe_code, "name": row["name"]})
 
 
-# ─── TELEGRAM WEBHOOK ────────────────────────────────────────────────────────
-# URL camuflada: /tg/<webhook_secret> — o secret vem da variavel de ambiente
+# â”€â”€â”€ TELEGRAM WEBHOOK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# URL camuflada: /tg/<webhook_secret> â€” o secret vem da variavel de ambiente
 _TG_WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET",
     hashlib.sha256(os.environ.get("TELEGRAM_BOT_TOKEN", "notoken").encode()).hexdigest()[:32])
 
 @app.route(f'/tg/{_TG_WEBHOOK_SECRET}', methods=['POST'])
 def telegram_webhook():
     """Recebe updates do Telegram e despacha para tg_webhook.dispatch().
-    IMPORTANTE: Esta rota bypassa o WAF anti-bot — o Telegram usa User-Agent de servidor.
+    IMPORTANTE: Esta rota bypassa o WAF anti-bot â€” o Telegram usa User-Agent de servidor.
     """
     if not TG_WH_AVAILABLE:
         return '', 200
@@ -2294,13 +2342,13 @@ def telegram_webhook():
         tg_wh.dispatch(update)
     except Exception as e:
         print(f"[webhook] erro: {e}")
-    # Sempre retorna 200 OK para o Telegram não tentar reenviar
+    # Sempre retorna 200 OK para o Telegram nÃ£o tentar reenviar
     return '', 200
 
 
 @app.route('/api/webhook/register')
 def register_webhook():
-    """Registra o webhook na API do Telegram. Chame uma vez após o deploy."""
+    """Registra o webhook na API do Telegram. Chame uma vez apÃ³s o deploy."""
     if not TG_WH_AVAILABLE:
         return jsonify({"error": "tg_webhook not loaded"}), 503
     base = os.environ.get("BASE_URL", request.host_url.rstrip("/"))
@@ -2309,7 +2357,7 @@ def register_webhook():
     return jsonify({"ok": res.get("ok"), "webhook_url": url, "tg_response": res})
 
 
-# ─── MULTI-TENANT SLUG PAGES ─────────────────────────────────────────────────
+# â”€â”€â”€ MULTI-TENANT SLUG PAGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/s/<slug>')
 def slug_page(slug):
     """Serve a pagina do produto personalizada para cada usuario do Telegram."""
@@ -2326,18 +2374,6 @@ def slug_page(slug):
     _log("PAGE_ENTRY", sid, {"slug": slug, "ip": ip})
     # Passa o slug para o template via JS
     return render_template('index.html', page_slug=slug)
-
-
-@app.route('/api/config/<slug>')
-def api_config_slug(slug):
-    """Retorna a config do usuario dono desse slug (para paginas /s/<slug>)."""
-    if not TG_WH_AVAILABLE:
-        return jsonify({"error": "not_available"}), 503
-    tg_id = tg_wh.get_tg_id_by_slug(slug)
-    if tg_id is None:
-        return jsonify({"error": "slug_not_found"}), 404
-    cfg = tg_wh.get_all_cfg(tg_id)
-    return jsonify(cfg)
 
 
 @app.route('/api/event/<slug>', methods=['POST'])
@@ -2383,7 +2419,7 @@ def tg_login():
 
 @app.route('/tg/callback')
 def tg_callback():
-    """Recebe a autenticação do Telegram OAuth e gera um token seguro para o painel admin."""
+    """Recebe a autenticaÃ§Ã£o do Telegram OAuth e gera um token seguro para o painel admin."""
     code = request.args.get('code')
     if not code:
         # Tenta pegar dados diretos de widgets Telegram se enviados via hash
@@ -2394,7 +2430,7 @@ def tg_callback():
             return f"<script>window.location.href='/admin?token={token}';</script>"
         return jsonify({"error": "code_missing"}), 400
     
-    # Valida código com Telegram OAuth
+    # Valida cÃ³digo com Telegram OAuth
     try:
         resp = requests.post(
             "https://oauth.telegram.org/token",
@@ -2418,9 +2454,9 @@ def tg_callback():
     return jsonify({"error": "authentication_failed"}), 401
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# VAULT — PAINEL FINANCEIRO SUPREMO (Rotas de Gerenciamento de Gateways)
-# ═══════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# VAULT â€” PAINEL FINANCEIRO SUPREMO (Rotas de Gerenciamento de Gateways)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route('/api/admin/vault/schemas')
 def vault_schemas():
@@ -2574,7 +2610,7 @@ def vault_audit_log():
     return jsonify({"ok": True, "audit": credential_vault.get_vault_audit(admin_id, limit)})
 
 
-# ── MONITORING ROUTES ─────────────────────────────────────────────────────────
+# â”€â”€ MONITORING ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.route('/api/admin/monitor/links')
 def monitor_links():
@@ -2588,14 +2624,12 @@ def monitor_links():
     db = admin_bot.get_db()
     try:
         # Supreme admin sees all tenants; regular admin sees only their own
-        if role == "supreme":
+        if role == "supreme_admin":
             sessions = db.execute(
                 "SELECT tg_id, slug, ip, entered_at FROM tg_sessions ORDER BY entered_at DESC"
             ).fetchall()
         else:
-            tg_id = tg_wh.get_tg_id_by_admin_token(admin_id) if hasattr(tg_wh, 'get_tg_id_by_admin_token') else None
-            if not tg_id:
-                tg_id = admin_id
+            tg_id = admin_id
             sessions = db.execute(
                 "SELECT tg_id, slug, ip, entered_at FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC",
                 (tg_id,)
@@ -2611,13 +2645,13 @@ def monitor_links():
             link_data[slug]["last_visit"] = max(link_data[slug]["last_visit"], s["entered_at"] or 0)
 
         # Count leads per slug
-        if role == "supreme":
+        if role == "supreme_admin":
             leads_rows = db.execute(
-                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE event_type='LEAD_SUBMIT' GROUP BY slug"
+                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE event_type='LEAD_CAPTURED' GROUP BY slug"
             ).fetchall()
         else:
             leads_rows = db.execute(
-                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE tg_id=? AND event_type='LEAD_SUBMIT' GROUP BY slug",
+                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED' GROUP BY slug",
                 (tg_id,)
             ).fetchall()
         for row in leads_rows:
@@ -2666,20 +2700,16 @@ def monitor_visitors():
     limit = min(int(request.args.get("limit", 20)), 100)
     db = admin_bot.get_db()
     try:
-        if role == "supreme":
+        if role == "supreme_admin":
             rows = db.execute(
-                "SELECT s.tg_id, s.slug, s.ip, s.ua, s.entered_at, s.session_id, "
-                "g.city, g.country, g.isp "
-                "FROM tg_sessions s LEFT JOIN tg_geo g ON s.session_id=g.session_id "
-                "ORDER BY s.entered_at DESC LIMIT ?", (limit,)
+                "SELECT tg_id, slug, ip, ua, entered_at, session_id, city_geo, country_geo "
+                "FROM tg_sessions ORDER BY entered_at DESC LIMIT ?", (limit,)
             ).fetchall()
         else:
             tg_id = admin_id
             rows = db.execute(
-                "SELECT s.tg_id, s.slug, s.ip, s.ua, s.entered_at, s.session_id, "
-                "g.city, g.country, g.isp "
-                "FROM tg_sessions s LEFT JOIN tg_geo g ON s.session_id=g.session_id "
-                "WHERE s.tg_id=? ORDER BY s.entered_at DESC LIMIT ?", (tg_id, limit)
+                "SELECT tg_id, slug, ip, ua, entered_at, session_id, city_geo, country_geo "
+                "FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC LIMIT ?", (tg_id, limit)
             ).fetchall()
 
         # Mark which sessions have a lead
@@ -2688,7 +2718,7 @@ def monitor_visitors():
         if session_ids:
             placeholders = ",".join("?" * len(session_ids))
             lead_rows = db.execute(
-                f"SELECT DISTINCT session_id FROM tg_events WHERE event_type='LEAD_SUBMIT' AND session_id IN ({placeholders})",
+                f"SELECT DISTINCT session_id FROM tg_events WHERE event_type='LEAD_CAPTURED' AND session_id IN ({placeholders})",
                 session_ids
             ).fetchall()
             lead_sessions = {r["session_id"] for r in lead_rows}
@@ -2696,8 +2726,10 @@ def monitor_visitors():
         visitors = []
         for r in rows:
             geo = {}
-            if r["city"] or r["country"]:
-                geo = {"city": r["city"], "country": r["country"], "isp": r["isp"]}
+            city = r["city_geo"] if "city_geo" in r.keys() else None
+            country = r["country_geo"] if "country_geo" in r.keys() else None
+            if city or country:
+                geo = {"city": city or "", "country": country or ""}
             visitors.append({
                 "ip": r["ip"],
                 "ua": r["ua"],
@@ -2716,7 +2748,7 @@ def monitor_visitors():
 
 @app.route('/api/admin/monitor/leads')
 def monitor_leads():
-    """Validated leads with status (valid/invalid/pending), CPF, phone, name."""
+    """Validated leads with all captured fields, today count and conversion rate."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -2726,21 +2758,20 @@ def monitor_leads():
     limit = min(int(request.args.get("limit", 30)), 100)
     db = admin_bot.get_db()
     try:
-        if role == "supreme":
+        if role == "supreme_admin":
             rows = db.execute(
                 "SELECT tg_id, slug, session_id, ip, data_enc, created_at "
-                "FROM tg_events WHERE event_type='LEAD_SUBMIT' ORDER BY created_at DESC LIMIT ?",
+                "FROM tg_events WHERE event_type='LEAD_CAPTURED' ORDER BY created_at DESC LIMIT ?",
                 (limit,)
             ).fetchall()
         else:
             tg_id = admin_id
             rows = db.execute(
                 "SELECT tg_id, slug, session_id, ip, data_enc, created_at "
-                "FROM tg_events WHERE tg_id=? AND event_type='LEAD_SUBMIT' ORDER BY created_at DESC LIMIT ?",
+                "FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED' ORDER BY created_at DESC LIMIT ?",
                 (tg_id, limit)
             ).fetchall()
 
-        # Count today's leads
         today_start = int(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
         leads = []
         today_count = 0
@@ -2748,7 +2779,6 @@ def monitor_leads():
             ts = r["created_at"] or 0
             if ts >= today_start:
                 today_count += 1
-            # Decrypt event data if possible
             data = {}
             if r["data_enc"] and BOT_AVAILABLE:
                 try:
@@ -2762,28 +2792,43 @@ def monitor_leads():
                 except Exception:
                     pass
 
+            # Mask CPF: show only first 3 and last 2 digits for privacy
+            cpf_raw = data.get("cpf", "")
+            cpf_masked = f"{cpf_raw[:3]}.***.***-{cpf_raw[-2:]}" if len(cpf_raw) >= 11 else cpf_raw
+
             leads.append({
-                "slug": r["slug"],
-                "ip": r["ip"],
-                "ts": ts,
-                "cpf": data.get("cpf", ""),
-                "name": data.get("name", data.get("nome", "")),
-                "phone": data.get("phone", data.get("whatsapp", "")),
-                "validation_status": data.get("validation_status", "pending"),
-                "validation_reason": data.get("validation_reason", ""),
+                "slug":         r["slug"],
+                "tg_id":        r["tg_id"],
+                "session_id":   r["session_id"],
+                "ip":           r["ip"],
+                "ts":           ts,
+                "name":         data.get("name", data.get("nome", "")),
+                "cpf":          cpf_masked,
+                "phone":        data.get("phone", data.get("whatsapp", "")),
+                "email":        data.get("email", ""),
+                "city":         data.get("city", ""),
+                "state":        data.get("state", ""),
+                "cep":          data.get("cep", ""),
+                "street":       data.get("street", ""),
+                "number":       data.get("number", ""),
+                "neighborhood": data.get("neighborhood", ""),
+                "product":      data.get("product", ""),
+                "amount":       data.get("amount", ""),
+                "cpf_verified": data.get("cpf_verified", False),
+                "ua":           data.get("ua", "")[:80],
             })
 
-        # Conversion rate
+        # Conversion rate using correct event type
         total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"] or 1
-        total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type='LEAD_SUBMIT'").fetchone()["c"]
+        total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type='LEAD_CAPTURED'").fetchone()["c"]
         conv_rate = round((total_leads / total_sessions) * 100, 1)
 
         return jsonify({
-            "ok": True,
-            "leads": leads,
+            "ok":          True,
+            "leads":       leads,
             "today_count": today_count,
             "total_leads": total_leads,
-            "conv_rate": conv_rate,
+            "conv_rate":   conv_rate,
         })
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500

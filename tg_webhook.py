@@ -558,13 +558,15 @@ def get_tg_stats(tg_id, hours):
     def c(et): return conn.execute(
         "SELECT COUNT(*) FROM tg_events WHERE tg_id=? AND event_type=? AND created_at>=?",
         (tg_id, et, since)).fetchone()[0]
-    entries = c("PAGE_ENTRY"); click_buy = c("CLICK_BUY")
-    pix = c("PIX_GENERATED"); paid = c("PAYMENT_CONFIRMED")
+    entries   = c("PAGE_ENTRY"); click_buy = c("CLICK_BUY")
+    pix       = c("PIX_GENERATED"); paid = c("PAYMENT_CONFIRMED")
+    leads     = c("LEAD_CAPTURED")
     sess = conn.execute("SELECT COUNT(*) FROM tg_sessions WHERE tg_id=? AND entered_at>=?", (tg_id, since)).fetchone()[0]
     conv = conn.execute("SELECT COUNT(*) FROM tg_sessions WHERE tg_id=? AND converted=1 AND entered_at>=?", (tg_id, since)).fetchone()[0]
     conn.close()
     return dict(entries=entries, click_buy=click_buy, pix_generated=pix, paid=paid,
-                sessions=sess, converted=conv, conv_rate=round((conv/sess*100) if sess>0 else 0, 1))
+                leads=leads, sessions=sess, converted=conv,
+                conv_rate=round((conv/sess*100) if sess>0 else 0, 1))
 
 def get_tg_events(tg_id, limit=10):
     conn = _get_db()
