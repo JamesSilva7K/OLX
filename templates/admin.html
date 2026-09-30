@@ -21,43 +21,62 @@
       --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
       --font-main: 'Nunito Sans','Inter',-apple-system,sans-serif;
     }
-    body { font-family: var(--font-main); background: var(--bg-light); color: var(--text-primary); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    body { 
+      font-family: var(--font-main); 
+      background: #110022; 
+      color: var(--text-primary); 
+      min-height: 100vh; 
+      -webkit-font-smoothing: antialiased; 
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+      margin: 0;
+    }
 
-    /* HEADER */
+    /* CONTAINER ESTÁTICO MOBILE — Garantia de funcionamento 100% Mobile */
+    .mobile-app-wrapper {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--bg-light);
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* HEADER MOBILE */
     header { background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; box-shadow:0 1px 6px rgba(0,0,0,0.05); }
-    .header-inner { max-width:1280px; margin:0 auto; padding:0 20px; height:64px; display:flex; align-items:center; gap:20px; }
-    .logo-container { display:flex; align-items:center; text-decoration:none; flex-shrink:0; gap:12px; }
-    .logo-container svg { width:66px; height:auto; display:block; }
-    .logo-admin-badge { background:var(--olx-purple); color:#fff; font-size:11px; font-weight:800; padding:3px 10px; border-radius:12px; letter-spacing:0.5px; }
-    .header-nav { display:flex; align-items:center; gap:4px; margin-left:auto; }
-    .nav-link { display:flex; align-items:center; gap:6px; padding:6px 12px; color:var(--text-primary); font-size:13px; font-weight:700; border-radius:8px; white-space:nowrap; cursor:pointer; text-decoration:none; transition:background .15s; }
+    .header-inner { max-width:480px; margin:0 auto; padding:0 14px; height:58px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .logo-container { display:flex; align-items:center; text-decoration:none; flex-shrink:0; gap:8px; }
+    .logo-container svg { width:54px; height:auto; display:block; }
+    .logo-admin-badge { background:var(--olx-purple); color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px; letter-spacing:0.5px; }
+    .header-nav { display:flex; align-items:center; gap:4px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+    .header-nav::-webkit-scrollbar { display:none; }
+    .nav-link { display:flex; align-items:center; gap:4px; padding:6px 10px; color:var(--text-primary); font-size:12px; font-weight:700; border-radius:8px; white-space:nowrap; cursor:pointer; text-decoration:none; transition:background .15s; }
     .nav-link:hover { background:#f0e6ff; color:var(--olx-purple); }
     .nav-link.active { color:var(--olx-purple); background:#f3e8ff; }
-    .btn-view-product { padding:8px 18px; background:var(--olx-purple-btn); border:none; border-radius:24px; color:#fff; font-size:13px; font-weight:700; font-family:inherit; display:flex; align-items:center; gap:6px; cursor:pointer; text-decoration:none; transition:background .15s; }
-    .btn-view-product:hover { background:var(--olx-purple-dark); }
+    .btn-view-product { padding:6px 12px; background:var(--olx-purple-btn); border:none; border-radius:20px; color:#fff; font-size:11px; font-weight:700; font-family:inherit; display:flex; align-items:center; gap:4px; cursor:pointer; text-decoration:none; flex-shrink:0; }
 
-    /* BREADCRUMB */
+    /* BREADCRUMB MOBILE */
     .breadcrumb-bar { background:#fff; border-bottom:1px solid var(--border); }
-    .breadcrumb-inner { max-width:1280px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
-    .breadcrumb { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-    .breadcrumb-item { color:var(--text-secondary); font-size:13px; cursor:default; }
-    .breadcrumb .sep { color:var(--text-muted); font-size:12px; }
-    .breadcrumb span.current { color:var(--text-muted); font-size:13px; }
-    .live-badge { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:var(--olx-green); }
-    .live-dot { width:8px; height:8px; border-radius:50%; background:var(--olx-green); animation:pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.2)} }
+    .breadcrumb-inner { max-width:480px; margin:0 auto; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; }
+    .breadcrumb { display:flex; align-items:center; gap:4px; flex-wrap:wrap; font-size:12px; }
+    .breadcrumb-item { color:var(--text-secondary); font-size:12px; cursor:default; }
+    .breadcrumb .sep { color:var(--text-muted); font-size:11px; }
+    .breadcrumb span.current { color:var(--text-muted); font-size:12px; }
+    .live-badge { display:flex; align-items:center; gap:4px; font-size:11px; font-weight:800; color:var(--olx-green); }
+    .live-dot { width:7px; height:7px; border-radius:50%; background:var(--olx-green); animation:pulse 1.5s ease-in-out infinite; }
 
-    /* MAIN LAYOUT */
-    .page-main { max-width:1280px; margin:20px auto; padding:0 20px 40px; display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start; }
-    .left-col  { display:flex; flex-direction:column; gap:20px; }
-    .right-col { display:flex; flex-direction:column; gap:16px; }
+    /* MAIN LAYOUT MOBILE ESTÁTICO */
+    .page-main { width:100%; max-width:480px; margin:10px auto; padding:0 12px 30px; display:flex; flex-direction:column; gap:14px; align-items:stretch; }
+    .left-col  { display:flex; flex-direction:column; gap:14px; width:100%; }
+    .right-col { display:flex; flex-direction:column; gap:14px; width:100%; }
 
-    /* CARDS */
-    .card { background:#fff; border-radius:var(--radius-md); padding:24px; box-shadow:var(--shadow-sm); border:1px solid var(--border); }
-    .section-title { font-size:20px; font-weight:800; color:#1a1a1a; margin-bottom:18px; display:flex; align-items:center; gap:10px; }
-
-    /* STATS */
-    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    /* STATS MOBILE 2x2 */
+    .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .stat-card { background:#fff; border-radius:var(--radius-md); padding:18px 16px; box-shadow:var(--shadow-sm); border:1px solid var(--border); display:flex; flex-direction:column; gap:6px; position:relative; overflow:hidden; }
     .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
     .stat-card.purple::before { background:var(--olx-purple); }
@@ -1319,9 +1338,16 @@
   // CONFIG
   async function loadConfig(){
     try{
-      const r=await fetch('/api/config');
-      if(!r.ok)return;
-      const d=await r.json();
+      const r = await fetch('/api/admin/load-config', {
+        headers: { 'Authorization': 'Bearer ' + _ADMIN_TOKEN }
+      });
+      if(!r.ok) return;
+      const res = await r.json();
+      if(!res.ok || !res.config) return;
+      const d = res.config;
+      if (res.plan && document.getElementById('user-plan-badge')) {
+        document.getElementById('user-plan-badge').textContent = res.plan.name || 'Plano Admin';
+      }
       // Sidebar preview
       document.getElementById('preview-price').textContent=d.product_price||'—';
       document.getElementById('preview-original').textContent='R$ '+(d.product_price||'—');
@@ -2007,6 +2033,18 @@
     navigator.clipboard.writeText(input.value);
     showToast('Número WhatsApp copiado!', 'check');
   }
+
+  // ─── BLINDAGEM MILITAR ANTI-CÓPIA, ANTI-INSPEÇÃO & PROTEÇÃO DE SISTEMA ─────
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    // Bloqueia F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S
+    if (e.key === 'F12' || 
+       (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) || 
+       (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) {
+      e.preventDefault();
+      showToast('🛡️ Sistema protegido contra cópia e inspeção.', 'error');
+    }
+  });
 
   // ─── INITIAL LOAD + AUTO-REFRESH ─────────────────────────────────────────
   async function fullRefresh() {

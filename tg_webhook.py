@@ -131,11 +131,43 @@ def init_tenant_tables():
         CREATE TABLE IF NOT EXISTS tg_states (
             chat_id INTEGER PRIMARY KEY, state TEXT NOT NULL, updated_at REAL NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS tg_profiles (
+            tg_id INTEGER PRIMARY KEY,
+            display_name TEXT, avatar_url TEXT, bio TEXT, contact TEXT, updated_at REAL NOT NULL
+        );
         CREATE INDEX IF NOT EXISTS idx_tge_id   ON tg_events(tg_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_tgs_id   ON tg_sessions(tg_id, entered_at);
         CREATE INDEX IF NOT EXISTS idx_tg_slug  ON tg_users(slug);
     """)
     conn.commit(); conn.close()
+
+def get_tenant_profile(tg_id):
+    conn = _get_db()
+    r = conn.execute("SELECT tg_id, display_name, avatar_url, bio, contact, updated_at FROM tg_profiles WHERE tg_id=?", (tg_id,)).fetchone()
+    conn.close()
+    if r: return dict(r)
+    return {"tg_id": tg_id, "display_name": f"Admin #{tg_id}", "avatar_url": "", "bio": "Admin OLPG", "contact": ""}
+
+def set_tenant_profile(tg_id, display_name="", avatar_url="", bio="", contact=""):
+    conn = _get_db()
+    conn.execute("""
+        INSERT INTO tg_profiles(tg_id, display_name, avatar_url, bio, contact, updated_at)
+        VALUES(?,?,?,?,?,?)
+        ON CONFLICT(tg_id) DO UPDATE SET
+            display_name=excluded.display_name, avatar_url=excluded.avatar_url,
+            bio=excluded.bio, contact=excluded.contact, updated_at=excluded.updated_at
+    """, (tg_id, display_name, avatar_url, bio, contact, time.time()))
+    conn.commit(); conn.close()
+
+def get_all_tenant_profiles():
+    conn = _get_db()
+    rows = conn.execute("""
+        SELECT u.tg_id, u.username, u.slug, p.display_name, p.avatar_url, p.bio, p.contact 
+        FROM tg_users u LEFT JOIN tg_profiles p ON u.tg_id = p.tg_id 
+        ORDER BY u.created_at DESC
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 # ─── USER MANAGEMENT ──────────────────────────────────────────────────────────
 def user_exists(tg_id):
