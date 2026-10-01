@@ -1319,27 +1319,58 @@
       <!-- Configurações de Frete & Modais -->
       <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-        Etapas de Frete & Checkout
+        Etapas de Frete & Checkout Inteligente
       </div>
 
       <div class="fr">
         <div class="fg">
           <label class="flbl">Modo de Entrega</label>
           <select class="fsel" id="edit-shipping-mode">
-            <option value="full">Garantia OLX Full (Frete Grátis com Seguro)</option>
+            <option value="full">Garantia OLX Full (Com Seguro)</option>
             <option value="sedex">Sedex Expresso Correios</option>
             <option value="local">Retirada em Mãos / Local</option>
           </select>
         </div>
         <div class="fg">
-          <label class="flbl">Taxa de Frete (R$)</label>
-          <input type="text" class="fi" id="edit-shipping-fee" placeholder="0.00 ou 19.90" value="19.90"/>
+          <label class="flbl">Taxa de Frete a Cobrar (R$)</label>
+          <input type="text" class="fi" id="edit-shipping-fee" placeholder="19.90" value="19.90"/>
         </div>
       </div>
 
-      <div class="fg">
-        <label class="flbl">Cupom de Desconto Automático</label>
-        <input type="text" class="fi" id="edit-shipping-coupon" placeholder="Ex: FRETEGRATIS ou OLX10"/>
+      <!-- Configuração Avançada de Cupom & Apenas Frete -->
+      <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:12px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--c-purple3);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Cupom Específico & Cobrança de Apenas Frete
+        </div>
+
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Código do Cupom para este Produto</label>
+          <input type="text" class="fi" id="edit-shipping-coupon" placeholder="Ex: FRETEGRATIS ou OLX10" style="text-transform:uppercase;font-weight:700;letter-spacing:1px" />
+          <span class="fhint">Código que o cliente usará no checkout para pagar apenas o frete.</span>
+        </div>
+
+        <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06)">
+          <div class="tgl-info">
+            <div class="tgl-name">Ativar Cupom para este Produto</div>
+            <div class="tgl-desc">Habilita a validação e uso do cupom neste anúncio.</div>
+          </div>
+          <label class="tgl">
+            <input type="checkbox" id="edit-coupon-active" checked />
+            <span class="tgl-sl"></span>
+          </label>
+        </div>
+
+        <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px">
+          <div class="tgl-info">
+            <div class="tgl-name">Cobrar Apenas o Frete com o Cupom</div>
+            <div class="tgl-desc">Ao aplicar o cupom, zera o valor do produto e cobra apenas a taxa de frete.</div>
+          </div>
+          <label class="tgl">
+            <input type="checkbox" id="edit-coupon-only-shipping" checked />
+            <span class="tgl-sl"></span>
+          </label>
+        </div>
       </div>
 
       <!-- Link Box (se estiver editando) -->
@@ -2004,6 +2035,16 @@ async function loadProducts(){
       const shipMode = p.shipping_mode === 'sedex' ? 'Sedex' : p.shipping_mode === 'local' ? 'Local' : 'Garantia Full';
       const prodLink = window.location.origin + '/p/' + (_SLUG || 'item') + '/' + code;
       
+      const isCouponActive = p.coupon_active !== undefined ? (p.coupon_active == 1 || p.coupon_active === true) : true;
+      let couponBadge = '';
+      if(p.shipping_coupon && p.shipping_coupon.trim()){
+        if(isCouponActive){
+          couponBadge = '<span class="chip chip-g" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 0)" title="Clique para Desativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Apenas Frete: Ativo ✅)</span>';
+        } else {
+          couponBadge = '<span class="chip chip-o" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 1)" title="Clique para Ativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Cupom Pausado ⏸)</span>';
+        }
+      }
+      
       return '<div class="prod-card" style="position:relative">'+
         '<div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+title+'" onerror="this.style.display=\'none\'"/>':'')+
         '<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'+
@@ -2013,6 +2054,7 @@ async function loadProducts(){
         '<div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div>'+
         '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">'+
           '<span class="chip chip-p" style="font-size:10px">'+shipMode+'</span>'+
+          couponBadge+
           '<span class="prod-code" style="margin:0">Cod: '+code+'</span>'+
         '</div>'+
         '<div style="margin-top:8px;display:flex;gap:4px">'+
@@ -2033,6 +2075,36 @@ async function loadProducts(){
   }
 }
 
+async function toggleProdCoupon(code, newActive){
+  if(!code) return;
+  const p = _pmap ? _pmap[code] : null;
+  const curFee = p ? p.shipping_fee || '19.90' : '19.90';
+  const curCoupon = p ? p.shipping_coupon || '' : '';
+  const curMode = p ? p.shipping_mode || 'full' : 'full';
+
+  try {
+    const r = await apiFetch('/api/admin/my-products/' + code + '/shipping', {
+      method: 'POST',
+      body: JSON.stringify({
+        shipping_mode: curMode,
+        shipping_fee: curFee,
+        shipping_coupon: curCoupon,
+        coupon_active: newActive ? 1 : 0,
+        coupon_only_shipping: 1
+      })
+    });
+    const d = await r.json();
+    if(d.ok){
+      toast(newActive ? 'Cupom ativado com sucesso!' : 'Cupom desativado com sucesso!', 'ok');
+      loadProducts();
+    } else {
+      toast(d.error || 'Erro ao alterar status do cupom.', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão ao alterar cupom.', 'err');
+  }
+}
+
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
   ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon'].forEach(id=>{
@@ -2043,6 +2115,11 @@ function openAddProd(){
   if(sm) sm.value = 'full';
   const sf = document.getElementById('edit-shipping-fee');
   if(sf) sf.value = '19.90';
+  const ca = document.getElementById('edit-coupon-active');
+  if(ca) ca.checked = true;
+  const cos = document.getElementById('edit-coupon-only-shipping');
+  if(cos) cos.checked = true;
+
   document.getElementById('edit-slug').disabled=false;
   document.getElementById('edit-lnk-box').style.display='none';
   prevProdPhoto(1, '');
@@ -2080,6 +2157,11 @@ function openEditProd(p){
   const sc = document.getElementById('edit-shipping-coupon');
   if(sc) sc.value = p.shipping_coupon || '';
   
+  const ca = document.getElementById('edit-coupon-active');
+  if(ca) ca.checked = p.coupon_active !== undefined ? (p.coupon_active == 1 || p.coupon_active === true) : true;
+  const cos = document.getElementById('edit-coupon-only-shipping');
+  if(cos) cos.checked = p.coupon_only_shipping !== undefined ? (p.coupon_only_shipping == 1 || p.coupon_only_shipping === true) : true;
+
   if(code){
     document.getElementById('edit-lnk').value=window.location.origin+'/p/'+(_SLUG||'item')+'/'+code;
     document.getElementById('edit-lnk-box').style.display='flex';
@@ -2103,6 +2185,8 @@ async function saveProd(){
   const shipping_mode=document.getElementById('edit-shipping-mode').value;
   const shipping_fee=document.getElementById('edit-shipping-fee').value.trim();
   const shipping_coupon=document.getElementById('edit-shipping-coupon').value.trim();
+  const coupon_active=document.getElementById('edit-coupon-active') ? (document.getElementById('edit-coupon-active').checked ? 1 : 0) : 1;
+  const coupon_only_shipping=document.getElementById('edit-coupon-only-shipping') ? (document.getElementById('edit-coupon-only-shipping').checked ? 1 : 0) : 1;
 
   if(!name||!price){toast('Nome e Preço são obrigatórios.','err');return;}
   
@@ -2122,6 +2206,8 @@ async function saveProd(){
     shipping_mode: shipping_mode,
     shipping_fee: shipping_fee,
     shipping_coupon: shipping_coupon,
+    coupon_active: coupon_active,
+    coupon_only_shipping: coupon_only_shipping,
     product_code: slugInp || code
   };
 

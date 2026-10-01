@@ -166,10 +166,12 @@ def init_tenant_tables():
         CREATE INDEX IF NOT EXISTS idx_tgs_id   ON tg_sessions(tg_id, entered_at);
         CREATE INDEX IF NOT EXISTS idx_tg_slug  ON tg_users(slug);
     """)
-    # ── Migração segura: adiciona colunas de modo taxa se ainda não existirem ──
+    # ── Migração segura: adiciona colunas de modo taxa e cupom se ainda não existirem ──
     _safe_add_column(conn, "tenant_products", "shipping_mode",   "TEXT NOT NULL DEFAULT 'full'")
     _safe_add_column(conn, "tenant_products", "shipping_fee",    "TEXT NOT NULL DEFAULT '19.90'")
     _safe_add_column(conn, "tenant_products", "shipping_coupon", "TEXT NOT NULL DEFAULT ''")
+    _safe_add_column(conn, "tenant_products", "coupon_active",   "INTEGER NOT NULL DEFAULT 1")
+    _safe_add_column(conn, "tenant_products", "coupon_only_shipping", "INTEGER NOT NULL DEFAULT 1")
     _safe_add_column(conn, "tg_sessions",     "lat",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
@@ -401,7 +403,7 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
         logger.error(f'[NOTIFY ACCESS ERROR] {e}')
 
 # ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
-def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon=""):
+def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon="", coupon_active=1, coupon_only_shipping=1):
     conn = _get_db()
     code = (re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30]) if product_code else secrets.token_urlsafe(8).lower()
     if not code:
@@ -413,10 +415,13 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     img2 = image2 or ""
     img3 = image3 or ""
 
+    c_active = 1 if (coupon_active in (1, "1", True, "true")) else 0
+    c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
+
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, time.time()))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, created_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, time.time()))
     conn.commit(); conn.close()
     return code
 
@@ -424,7 +429,10 @@ def get_tenant_products(tg_id: int):
     conn = _get_db()
     rows = conn.execute("""
         SELECT id, product_code, title, price, old_price, description, 
-               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, created_at 
+               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
+               COALESCE(coupon_active, 1) AS coupon_active,
+               COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
+               created_at 
         FROM tenant_products WHERE tg_id=? ORDER BY id DESC
     """, (tg_id,)).fetchall()
     conn.close()
@@ -434,7 +442,10 @@ def get_product_by_code(code: str):
     conn = _get_db()
     r = conn.execute("""
         SELECT id, tg_id, product_code, title, price, old_price, description, 
-               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, created_at 
+               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
+               COALESCE(coupon_active, 1) AS coupon_active,
+               COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
+               created_at 
         FROM tenant_products WHERE product_code=?
     """, (code,)).fetchone()
     conn.close()
@@ -446,13 +457,20 @@ def delete_tenant_product(tg_id: int, product_code: str):
     conn.commit(); conn.close()
 
 def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
-    """Atualiza campos de um produto (incluindo todas as fotos, shipping_mode, shipping_fee, shipping_coupon)."""
+    """Atualiza campos de um produto (incluindo todas as fotos, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping)."""
     product_code = re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30]
     if not product_code:
         return False
     ALLOWED = {"title", "price", "old_price", "description", "image_url",
-               "image1", "image2", "image3", "shipping_mode", "shipping_fee", "shipping_coupon"}
-    updates = {k: v for k, v in fields.items() if k in ALLOWED}
+               "image1", "image2", "image3", "shipping_mode", "shipping_fee",
+               "shipping_coupon", "coupon_active", "coupon_only_shipping"}
+    updates = {}
+    for k, v in fields.items():
+        if k in ALLOWED:
+            if k in ("coupon_active", "coupon_only_shipping"):
+                updates[k] = 1 if (v in (1, "1", True, "true")) else 0
+            else:
+                updates[k] = v
     if not updates:
         return False
     cols = ", ".join(f"{k}=?" for k in updates)
@@ -461,6 +479,103 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
     conn.execute(f"UPDATE tenant_products SET {cols} WHERE tg_id=? AND product_code=?", vals)
     conn.commit(); conn.close()
     return True
+
+def validate_product_coupon(product_code: str, coupon_code: str, slug: str = None) -> dict:
+    """
+    Validação inteligente e 100% real do cupom específico de um produto.
+    Verifica se o cupom está ativo, confere o código exato sem case-sensitivity,
+    e calcula o valor real do frete e desconto total do produto.
+    """
+    if not coupon_code or not str(coupon_code).strip():
+        return {"valid": False, "message": "Por favor, digite um código de cupom."}
+
+    coupon_input = str(coupon_code).strip().upper()
+    product = None
+    
+    if product_code:
+        product = get_product_by_code(product_code)
+    
+    # Se não achou por product_code direto e tem slug, tenta buscar primeiro produto do admin
+    if not product and slug:
+        tg_id = get_tg_id_by_slug(slug)
+        if tg_id:
+            prods = get_tenant_products(tg_id)
+            if prods:
+                product = prods[0]
+
+    if not product:
+        # Fallback para cupom global se não for produto específico
+        if coupon_input in ("FRETEGRATIS", "OLX26OFF", "PROMO100"):
+            return {
+                "valid": True,
+                "message": "Cupom válido! Cobrança reduzida para taxa de envio.",
+                "coupon": coupon_input,
+                "original_price": 630.00,
+                "shipping_fee": 19.90,
+                "discount_amount": 630.00,
+                "final_amount": 19.90,
+                "formatted_original": "R$ 630,00",
+                "formatted_discount": "R$ 630,00",
+                "formatted_shipping": "R$ 19,90",
+                "formatted_final": "R$ 19,90",
+                "shipping_only": True
+            }
+        return {"valid": False, "message": "Cupom inválido para este anúncio."}
+
+    # 1. Verifica se o cupom está ativado para este produto
+    coupon_active = int(product.get("coupon_active", 1) or 0)
+    if not coupon_active:
+        return {"valid": False, "message": "Os cupons de desconto estão temporariamente desativados para este produto."}
+
+    # 2. Verifica o código configurado pelo admin para o produto
+    expected_coupon = (product.get("shipping_coupon") or "").strip().upper()
+    if not expected_coupon:
+        # Se o admin não digitou um código específico mas ativou o cupom, aceita FRETEGRATIS ou OLX26OFF como padrão inteligente
+        accepted_coupons = ["FRETEGRATIS", "OLX26OFF", "PROMO100"]
+    else:
+        accepted_coupons = [expected_coupon]
+
+    if coupon_input not in accepted_coupons:
+        return {"valid": False, "message": f"Cupom '{coupon_code}' não é válido para este produto."}
+
+    # 3. Calcula valores reais sem erros
+    try:
+        raw_price = str(product.get("price", "630.00")).replace("R$", "").replace(" ", "").replace(".", "").replace(",", ".")
+        # Se tinha formato 630.00 inicial:
+        if "." not in str(product.get("price", "")):
+            orig_price = float(raw_price)
+        else:
+            orig_price = float(str(product.get("price", "630.00")).replace(",", "."))
+    except Exception:
+        orig_price = 630.00
+
+    try:
+        raw_fee = str(product.get("shipping_fee", "19.90")).replace("R$", "").replace(" ", "").replace(",", ".")
+        ship_fee = float(raw_fee)
+    except Exception:
+        ship_fee = 19.90
+
+    # Desconto de 100% no valor do produto -> cliente paga apenas o valor do frete
+    discount_val = orig_price
+    final_val = ship_fee
+
+    return {
+        "valid": True,
+        "message": f"Cupom {coupon_input} aplicado com sucesso! Desconto de 100% no produto — você paga apenas a taxa de frete de R$ {ship_fee:.2f}".replace(".", ","),
+        "coupon": coupon_input,
+        "product_code": product.get("product_code", ""),
+        "product_title": product.get("title", ""),
+        "original_price": orig_price,
+        "shipping_fee": ship_fee,
+        "discount_amount": discount_val,
+        "final_amount": final_val,
+        "formatted_original": f"R$ {orig_price:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+        "formatted_discount": f"R$ {discount_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+        "formatted_shipping": f"R$ {ship_fee:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+        "formatted_final": f"R$ {final_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+        "shipping_only": True
+    }
+
 
 # ─── GEOLOCALIZACÃO REAL POR IP ───────────────────────────────────────────────────
 _GEO_CACHE = {}  # max 1000 IPs

