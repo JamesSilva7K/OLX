@@ -1036,10 +1036,18 @@ def api_admin_request_code():
     name    = prof.get("display_name") or f"Admin #{tg_id}"
     avatar  = prof.get("avatar_url", "")
 
-    # Envia código via Telegram
-    if TG_WH_AVAILABLE:
+    # Envia código via bot.py (instância ativa ou REST API direta — sempre funciona)
+    sent_ok = False
+    if BOT_AVAILABLE:
         try:
-            msg = (
+            sent_ok = admin_bot.send_otp_to_admin(tg_id, code, name)
+        except Exception as e:
+            print(f"[OTP] Erro ao chamar send_otp_to_admin: {e}")
+
+    # Fallback/complemento: tg_wh (webhook multi-tenant)
+    if TG_WH_AVAILABLE and not sent_ok:
+        try:
+            msg_html = (
                 f"<b>🔐 Código de Acesso ao Painel Web</b>\n\n"
                 f"Olá, <b>{name}</b>!\n\n"
                 f"<b>Seu código de 6 dígitos:</b>\n"
@@ -1047,9 +1055,17 @@ def api_admin_request_code():
                 f"<i>⏳ Válido por 10 minutos. Uso único.</i>\n"
                 f"<i>🔒 Nunca compartilhe este código.</i>"
             )
-            tg_wh.send_msg(tg_id, msg)
+            tg_wh.send_msg(tg_id, msg_html)
+            sent_ok = True
         except Exception as e:
-            print(f"[OTP] Erro ao enviar código Telegram: {e}")
+            print(f"[OTP] Erro ao enviar via tg_wh: {e}")
+
+    if not sent_ok:
+        return jsonify({
+            "ok": False,
+            "error": "telegram_unreachable",
+            "message": "Não foi possível enviar o código. Verifique se você já iniciou uma conversa com o bot (@olxrlkbot)."
+        }), 503
 
     return jsonify({
         "ok":      True,

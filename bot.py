@@ -1879,6 +1879,57 @@ def notify_admins(event_type: str, data: dict):
         except Exception as e:
             logger.warning(f"[NOTIFY ERROR] Target {target}: {e}")
 
+def send_otp_to_admin(tg_id: int, code: str, name: str = "") -> bool:
+    """
+    Envia o código OTP de 6 dígitos diretamente ao DM privado do admin via Telegram.
+    Usa _bot_instance (python-telegram-bot) se disponível, senão cai no REST API.
+    Retorna True se o envio foi bem-sucedido.
+    """
+    display = name or f"Admin #{tg_id}"
+    msg = (
+        f"🔐 *Código de Acesso — Painel OLX*\n"
+        f"═════════════════════════════════════\n\n"
+        f"Olá, *{display}*\\!\n\n"
+        f"Seu código de verificação pessoal:\n\n"
+        f"```\n  {code[:3]} {code[3:]}\n```\n\n"
+        f"⏳ _Válido por 10 minutos\\. Uso único\\._\n"
+        f"🔒 _Nunca compartilhe este código\\._\n\n"
+        f"🛡️ _Se você não solicitou este código, ignore esta mensagem\\._"
+    )
+    # Tenta via instância ativa do bot (mais confiável)
+    if _bot_instance:
+        try:
+            _bot_instance.send_message(
+                chat_id=tg_id,
+                text=msg,
+                parse_mode=ParseMode.MARKDOWN_V2,
+            )
+            logger.info(f"[OTP] Código enviado ao admin {tg_id} via bot instance.")
+            return True
+        except Exception as e:
+            logger.warning(f"[OTP] Falha via bot instance para {tg_id}: {e}")
+
+    # Fallback: REST API direto
+    token = BOT_TOKEN or os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    if token:
+        try:
+            resp = requests.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={"chat_id": tg_id, "text": msg, "parse_mode": "MarkdownV2"},
+                timeout=8,
+            )
+            if resp.ok:
+                logger.info(f"[OTP] Código enviado ao admin {tg_id} via REST API.")
+                return True
+            else:
+                logger.warning(f"[OTP] REST API falhou para {tg_id}: {resp.text[:200]}")
+        except Exception as e:
+            logger.warning(f"[OTP] Exceção REST API para {tg_id}: {e}")
+
+    logger.error(f"[OTP] Não foi possível enviar código para admin {tg_id}.")
+    return False
+
+
 # ─── INICIALIZAÇÃO PRINCIPAL DO BOT MILITAR ───────────────────────────────────
 def main():
     global _bot_instance
