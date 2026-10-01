@@ -370,18 +370,18 @@ def _set_csp_nonce():
 
 @app.after_request
 def apply_security_headers(response):
-    """Aplica cabeÃ§alhos de proteÃ§Ã£o militar contra XSS, Clickjacking, MIME-sniffing e HSTS."""
+    """Aplica cabeçalhos de proteção militar contra XSS, Clickjacking, MIME-sniffing e HSTS."""
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        f"script-src 'self' 'nonce-{getattr(g,'csp_nonce','')}' https://fonts.googleapis.com; "
-        f"style-src 'self' 'nonce-{getattr(g,'csp_nonce','')}' https://fonts.googleapis.com; "
+        "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; "
         "font-src 'self' https://fonts.gstatic.com; "
-        "img-src 'self' data: https:; "
-        "connect-src 'self' https://viacep.com.br https://api.carteirado7.com; "
+        "img-src 'self' data: https: blob:; "
+        "connect-src 'self' https://viacep.com.br https://api.carteirado7.com https://ws.hubdodesenvolvedor.com.br; "
         "frame-ancestors 'self';"
     )
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
