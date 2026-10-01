@@ -1688,99 +1688,234 @@ def handle_incoming_messages(update: Update, context: CallbackContext):
             )
 
 
-# ─── API PÚBLICA DE NOTIFICAÇÕES SEGURO (Chamada por app.py) ─────────────────
+# ─── API PÚBLICA DE NOTIFICAÇÕES INTELIGENTES (Chamada por app.py) ──────────────
 
-_NOTIF_TEMPLATES = {
-    "PAGE_ENTRY": (
-        "👁️ *Nova Visita ao Anúncio*\n"
-        "═════════════════════════════════════\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "CLICK_BUY": (
-        "🛒 *Clique em Comprar!*\n"
-        "═════════════════════════════════════\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "LEAD_CAPTURED": (
-        "🔥 *Lead Capturado!*\n"
-        "═════════════════════════════════════\n"
-        "📛 Nome: `{name}`\n"
-        "📱 Telefone: `{phone}`\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "PIX_GENERATED": (
-        "💰 *PIX Gerado!*\n"
-        "═════════════════════════════════════\n"
-        "💵 Valor: `R$ {amount}`\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "PIX_PAID": (
-        "✅ *Pagamento via PIX Confirmado!*\n"
-        "═════════════════════════════════════\n"
-        "💵 Valor: `R$ {amount}`\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "PAYMENT_CONFIRMED": (
-        "🎉 *Pagamento Confirmado!*\n"
-        "═════════════════════════════════════\n"
-        "💵 Valor: `R$ {amount}`\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "WHATSAPP_REDIRECT": (
-        "📱 *Redirecionado para WhatsApp!*\n"
-        "═════════════════════════════════════\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-    "PAGE_EXIT": (
-        "🚪 *Saída de Página*\n"
-        "═════════════════════════════════════\n"
-        "🌐 IP: `{ip}`\n"
-        "📦 Slug: `{slug}`\n"
-        "🕐 {ts}"
-    ),
-}
+_BOT_GEO_CACHE: dict = {}
+
+def parse_user_agent(ua_str: str) -> str:
+    """Extrai dispositivo, sistema operacional e navegador a partir do User-Agent."""
+    if not ua_str or ua_str in ("—", "unknown", "", "None"):
+        return "📱 Mobile / Web"
+    ua = ua_str.lower()
+    
+    # Dispositivo / SO
+    if "iphone" in ua:
+        dev = "📱 iPhone"
+    elif "ipad" in ua:
+        dev = "📱 iPad"
+    elif "android" in ua:
+        dev = "🤖 Android Mobile" if "mobile" in ua else "🤖 Android Tablet"
+    elif "windows" in ua:
+        dev = "💻 Windows PC"
+    elif "macintosh" in ua or "mac os" in ua:
+        dev = "🍏 Mac"
+    elif "linux" in ua:
+        dev = "🐧 Linux"
+    else:
+        dev = "🌐 Web"
+        
+    # Navegador / In-App
+    if "whatsapp" in ua:
+        app = "WhatsApp In-App"
+    elif "instagram" in ua:
+        app = "Instagram In-App"
+    elif "fban" in ua or "fbav" in ua:
+        app = "Facebook In-App"
+    elif "edg" in ua:
+        app = "Edge"
+    elif "chrome" in ua and "safari" in ua and "edg" not in ua and "opr" not in ua:
+        app = "Chrome"
+    elif "safari" in ua and "chrome" not in ua:
+        app = "Safari"
+    elif "firefox" in ua:
+        app = "Firefox"
+    elif "opera" in ua or "opr" in ua:
+        app = "Opera"
+    else:
+        app = "Navegador"
+        
+    return f"{dev} • {app}"
+
+
+def get_geo_info(ip: str) -> dict:
+    """Busca localização detalhada por IP com cache em memória."""
+    if not ip or ip in ("127.0.0.1", "localhost", "—", "") or ip.startswith("192.168.") or ip.startswith("10."):
+        return {"city": "Rede Local / Teste", "region": "", "country": "BR", "flag": "🌐", "isp": "Localhost"}
+    
+    if ip in _BOT_GEO_CACHE:
+        cached = _BOT_GEO_CACHE[ip]
+        if time.time() - cached.get("ts", 0) < 3600:
+            return cached
+
+    try:
+        r = requests.get(f"http://ip-api.com/json/{ip}?fields=status,city,regionName,country,countryCode,isp", timeout=2)
+        d = r.json()
+        if d.get("status") == "success":
+            cc = d.get("countryCode", "BR").upper()
+            flag = "".join(chr(127397 + ord(c)) for c in cc) if len(cc) == 2 else "🌐"
+            res = {
+                "city": d.get("city", ""),
+                "region": d.get("regionName", ""),
+                "country": d.get("country", ""),
+                "flag": flag,
+                "isp": d.get("isp", ""),
+                "ts": time.time()
+            }
+            _BOT_GEO_CACHE[ip] = res
+            return res
+    except Exception:
+        pass
+    
+    return {"city": "Brasil", "region": "", "country": "BR", "flag": "🇧🇷", "isp": ""}
+
 
 def build_notification(event_type: str, data: dict) -> str:
     """
-    Constrói a mensagem Markdown para o evento dado.
-    Retorna None (string vazia) para tipos que não precisam de notificação silenciosa.
+    Constrói mensagem Markdown completa, rica e contextualizada com Geolocalização, Dispositivo e Produto.
     """
     import datetime
-    template = _NOTIF_TEMPLATES.get(event_type)
-    if not template:
-        # Evento genérico desconhecido — notifica de forma simples
-        template = (
-            "⚡ *Evento: {event_type}*\n"
-            "═════════════════════════════════════\n"
-            "🌐 IP: `{ip}`\n"
-            "📦 Slug: `{slug}`\n"
-            "🕐 {ts}"
-        )
+    ip = data.get("ip") or "—"
+    geo = get_geo_info(ip) if ip != "—" else {}
+    
+    # Localização formatada
+    loc_parts = []
+    if geo.get("city") and geo["city"] != "?":
+        loc_parts.append(geo["city"])
+    if geo.get("region") and geo["region"] not in loc_parts and geo["region"] != "?":
+        loc_parts.append(geo["region"])
+    loc_str = ", ".join(loc_parts)
+    flag = geo.get("flag", "🇧🇷")
+    isp = geo.get("isp", "")
+    
+    if loc_str:
+        geo_line = f"📍 Local: `{loc_str} {flag}`"
+        if isp and isp not in ("Localhost", "?", ""):
+            geo_line += f" _({isp})_"
+    else:
+        geo_line = f"📍 Local: `Brasil {flag}`"
+
+    # Dispositivo & Navegador
+    ua_str = data.get("ua") or ""
+    dev_str = parse_user_agent(ua_str)
+    
+    # Slug & Produto
+    slug = data.get("slug") or "principal"
+    if slug in ("—", "", "None", None, "-"):
+        slug = "principal"
+    
+    prod_name = data.get("product_name") or data.get("item") or ""
+    prod_price = data.get("product_price") or data.get("price") or data.get("amount") or ""
+    
+    prod_line = ""
+    if prod_name and prod_name not in ("default", "—", "item"):
+        if prod_price and prod_price not in ("—", ""):
+            prod_line = f"🏷️ Produto: `{prod_name}` — `R$ {prod_price}`\n"
+        else:
+            prod_line = f"🏷️ Produto: `{prod_name}`\n"
+            
     ts = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    ctx = {
-        "ip":         data.get("ip", "—"),
-        "slug":       data.get("slug", "—"),
-        "name":       data.get("name", "—"),
-        "phone":      data.get("phone", "—"),
-        "amount":     data.get("amount") or data.get("value") or "—",
-        "event_type": event_type,
-        "ts":         ts,
-    }
-    return template.format_map(ctx)
+
+    if event_type == "PAGE_ENTRY":
+        msg = (
+            "👁️ *Nova Visita ao Anúncio*\n"
+            "═════════════════════════════════════\n"
+            f"{prod_line}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"📱 Aparelho: `{dev_str}`\n"
+            f"🕐 {ts}"
+        )
+    elif event_type == "CLICK_BUY":
+        msg = (
+            "🛒 *Clique em Comprar!*\n"
+            "═════════════════════════════════════\n"
+            f"{prod_line}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"📱 Aparelho: `{dev_str}`\n"
+            f"🕐 {ts}"
+        )
+    elif event_type == "LEAD_CAPTURED":
+        name = data.get("name") or "—"
+        phone = data.get("phone") or "—"
+        cpf = data.get("cpf") or ""
+        cep = data.get("cep") or ""
+        address = data.get("address") or ""
+        
+        lead_extra = []
+        if cpf: lead_extra.append(f"📄 CPF: `{cpf}`")
+        if cep: lead_extra.append(f"📬 CEP: `{cep}`")
+        if address: lead_extra.append(f"🏠 Endereço: `{address}`")
+        extra_str = ("\n" + "\n".join(lead_extra) + "\n") if lead_extra else "\n"
+        
+        msg = (
+            "🔥 *Lead Capturado Real!*\n"
+            "═════════════════════════════════════\n"
+            f"👤 Nome: `{name}`\n"
+            f"📱 WhatsApp: `{phone}`\n"
+            f"{prod_line.rstrip()}\n"
+            f"{extra_str}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"📱 Aparelho: `{dev_str}`\n"
+            f"🕐 {ts}"
+        )
+    elif event_type in ("PIX_GENERATED", "PIX_PAID", "PAYMENT_CONFIRMED"):
+        amount = data.get("amount") or data.get("value") or "—"
+        name = data.get("name") or data.get("payer_name") or ""
+        payer_line = f"👤 Pagador: `{name}`\n" if name and name != "—" else ""
+        
+        title = "🎉 *Pagamento Confirmado!*" if event_type in ("PIX_PAID", "PAYMENT_CONFIRMED") else "💰 *PIX Gerado!*"
+        msg = (
+            f"{title}\n"
+            "═════════════════════════════════════\n"
+            f"💵 Valor: `R$ {amount}`\n"
+            f"{payer_line}"
+            f"{prod_line}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"📱 Aparelho: `{dev_str}`\n"
+            f"🕐 {ts}"
+        )
+    elif event_type == "WHATSAPP_REDIRECT":
+        msg = (
+            "📲 *Redirecionado para WhatsApp!*\n"
+            "═════════════════════════════════════\n"
+            f"{prod_line}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"📱 Aparelho: `{dev_str}`\n"
+            f"🕐 {ts}"
+        )
+    elif event_type == "PAGE_EXIT":
+        dur = data.get("duration") or ""
+        dur_line = f"⏱️ Tempo no site: `{dur}s`\n" if dur else ""
+        msg = (
+            "🚪 *Saída de Página*\n"
+            "═════════════════════════════════════\n"
+            f"{dur_line}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"🕐 {ts}"
+        )
+    else:
+        msg = (
+            f"⚡ *Evento: {event_type}*\n"
+            "═════════════════════════════════════\n"
+            f"{prod_line}"
+            f"📦 Slug: `@{slug}`\n"
+            f"🌐 IP: `{ip}`\n"
+            f"{geo_line}\n"
+            f"📱 Aparelho: `{dev_str}`\n"
+            f"🕐 {ts}"
+        )
+    return msg
 
 
 def build_notification_keyboard(event_type: str, data: dict) -> Optional[InlineKeyboardMarkup]:

