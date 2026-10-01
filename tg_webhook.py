@@ -693,7 +693,7 @@ def get_tg_events(tg_id, limit=10):
 def get_tg_sessions(tg_id, limit=10):
     conn = _get_db()
     rows = conn.execute(
-        "SELECT session_id,ip,entered_at,left_at,converted FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC LIMIT ?",
+        "SELECT session_id,ip,ua,entered_at,left_at,converted FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC LIMIT ?",
         (tg_id, limit)).fetchall()
     conn.close(); return [dict(r) for r in rows]
 

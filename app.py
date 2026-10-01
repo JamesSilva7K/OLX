@@ -1400,14 +1400,14 @@ def api_admin_stats():
         else:
             h24 = tg_wh.get_tenant_stats(admin_id, 24)
             h168 = tg_wh.get_tenant_stats(admin_id, 168)
-        return jsonify({"h24": h24, "h168": h168})
+        return jsonify({"ok": True, "stats": h24, "h24": h24, "h168": h168})
 
     if not BOT_AVAILABLE:
         return jsonify({"error": "bot_not_available"}), 503
     try:
         h24  = admin_bot.get_stats(24)
         h168 = admin_bot.get_stats(168)
-        return jsonify({"h24": h24, "h168": h168})
+        return jsonify({"ok": True, "stats": h24, "h24": h24, "h168": h168})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1543,13 +1543,13 @@ def api_admin_events():
     limit = min(int(request.args.get('limit', 40)), 200)
     try:
         if TG_WH_AVAILABLE and role != "supreme_admin":
-            # Admin normal: sÃ³ vÃª seus prÃ³prios eventos
+            # Admin normal: só vê seus próprios eventos
             events = tg_wh.get_tg_events(admin_id, limit)
-            return jsonify({"events": events, "count": len(events)})
+            return jsonify({"ok": True, "events": events, "count": len(events)})
         if not BOT_AVAILABLE:
             return jsonify({"error": "bot_not_available"}), 503
         events = admin_bot.get_recent_events(limit)
-        return jsonify({"events": events, "count": len(events)})
+        return jsonify({"ok": True, "events": events, "count": len(events)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1565,7 +1565,7 @@ def api_admin_sessions():
     try:
         if TG_WH_AVAILABLE and role != "supreme_admin":
             sessions = tg_wh.get_tg_sessions(admin_id, limit)
-            return jsonify({"sessions": sessions, "count": len(sessions)})
+            return jsonify({"ok": True, "sessions": sessions, "count": len(sessions)})
         if not BOT_AVAILABLE:
             return jsonify({"error": "bot_not_available"}), 503
         conn = admin_bot.get_db()
@@ -1575,7 +1575,7 @@ def api_admin_sessions():
         ).fetchall()
         conn.close()
         sessions = [dict(row) for row in rows]
-        return jsonify({"sessions": sessions, "count": len(sessions)})
+        return jsonify({"ok": True, "sessions": sessions, "count": len(sessions)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
