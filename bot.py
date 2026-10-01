@@ -383,18 +383,15 @@ def main_keyboard(tg_id: int = 0) -> InlineKeyboardMarkup:
         ""
     ).rstrip('/')
 
-    # WebApp só funciona com HTTPS — nunca localhost
-    use_webapp = base_url.startswith("https://")
-
-    admin_web_url = f"{base_url}/admin"
-    if tg_id > 0 and use_webapp:
+    admin_web_url = f"{base_url}/admin" if base_url else "/admin"
+    if tg_id > 0 and base_url.startswith("https://"):
         token = generate_admin_token(tg_id)
         admin_web_url = f"{base_url}/admin?token={token}"
 
     rows = []
 
-    # Botão Open (WebApp) — só aparece quando HTTPS está disponível
-    if use_webapp:
+    # Botão Open (WebApp) — sempre visível quando base_url for HTTPS ou dentro do Telegram
+    if base_url.startswith("https://"):
         rows.append([InlineKeyboardButton("🚀 Acessar Painel OLX (Open)", web_app=WebAppInfo(url=admin_web_url))])
 
     rows += [

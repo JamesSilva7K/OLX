@@ -941,9 +941,36 @@ def _otp_validate(tg_id: int, code: str) -> bool:
     return False
 
 
+def check_is_supreme(tg_id: int) -> bool:
+    """
+    Retorna True se o Telegram ID for o Admin Supremo do sistema:
+    1. Se constar em SUPER_ADMIN_IDS
+    2. Se for o primeiro id de ADMIN_IDS
+    3. Se for o admin_telegram_id salvo no banco (primeiro a se cadastrar)
+    4. Se for o ID master de fallback 999999999
+    """
+    if not tg_id:
+        return False
+    if tg_id == 999999999:
+        return True
+    if SUPER_ADMIN_IDS and tg_id in SUPER_ADMIN_IDS:
+        return True
+    if ADMIN_IDS and tg_id == ADMIN_IDS[0]:
+        return True
+    # Verifica se é o admin master registrado dinamicamente no banco
+    if BOT_AVAILABLE:
+        try:
+            saved_admin = admin_bot.get_config("admin_telegram_id", "")
+            if saved_admin and saved_admin.isdigit() and int(saved_admin) == tg_id:
+                return True
+        except Exception:
+            pass
+    return False
+
+
 def verify_admin_access(req) -> tuple[Optional[int], str]:
     """
-    Valida acesso ao painel admin com criptografia e validaÃ§Ã£o de tokens.
+    Valida acesso ao painel admin com criptografia e validação de tokens.
     Retorna uma tupla: (tg_id, role)
     """
     token = (
@@ -957,7 +984,7 @@ def verify_admin_access(req) -> tuple[Optional[int], str]:
     if BOT_AVAILABLE and len(token) >= 48:
         tg_id = admin_bot.validate_admin_token(token)
         if tg_id:
-            is_supreme = (tg_id in SUPER_ADMIN_IDS) or (ADMIN_IDS and tg_id in ADMIN_IDS and tg_id == ADMIN_IDS[0]) or (tg_id == 999999999)
+            is_supreme = check_is_supreme(tg_id)
             role = "supreme_admin" if is_supreme else "admin"
             return tg_id, role
 
@@ -1138,7 +1165,7 @@ def api_admin_verify_code():
         except Exception:
             session_token = ""
 
-    is_supreme = (tg_id in SUPER_ADMIN_IDS) or (ADMIN_IDS and tg_id in ADMIN_IDS and tg_id == ADMIN_IDS[0])
+    is_supreme = check_is_supreme(tg_id)
     role = "supreme_admin" if is_supreme else "admin"
 
     prof = {}
@@ -3198,7 +3225,7 @@ def api_admin_twa_login():
         except Exception as e:
             print(f"[TWA-LOGIN] Erro ao gerar token: {e}")
 
-    is_supreme = (tg_id in SUPER_ADMIN_IDS) or (ADMIN_IDS and tg_id in ADMIN_IDS and tg_id == ADMIN_IDS[0]) or (tg_id == 999999999)
+    is_supreme = check_is_supreme(tg_id)
     role = "supreme_admin" if is_supreme else "admin"
 
     prof = {}
