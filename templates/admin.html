@@ -1690,6 +1690,29 @@ function doLogout(){
   applyTheme();
   // Start loader
   setLoader('Iniciando painel...', 10);
+
+  // ── AUTO-LOGIN INTELIGENTE TELEGRAM WEBAPP ─────────────────────
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+    try {
+      setLoader('Conectando perfil do Telegram...', 25);
+      const twaRes = await fetch('/api/admin/twa-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ initData: window.Telegram.WebApp.initData })
+      });
+      const twaData = await twaRes.json();
+      if (twaData && twaData.ok && twaData.token) {
+        localStorage.setItem(SK, twaData.token);
+        _TK = twaData.token; _ID = twaData.admin_id; _ROLE = twaData.role; _SUP = twaData.is_supreme;
+        setLoader('Perfil conectado!', 100);
+        setTimeout(() => bootWithSession(twaData), 200);
+        return;
+      }
+    } catch(err) {
+      console.warn('[TWA Auto-Login]', err);
+    }
+  }
+
   const saved=localStorage.getItem(SK);
   if(saved){document.getElementById('auth-saved').style.display='block';document.getElementById('saved-prev').textContent=saved.slice(0,12)+'...'+saved.slice(-4);}
   let tk=(_JINJA_TOKEN||'').trim();
