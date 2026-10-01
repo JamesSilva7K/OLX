@@ -506,6 +506,33 @@ def build_stats_msg(s: dict) -> str:
         f"🔒 _Relatório gerado sob criptografia de canal seguro._"
     )
 
+def build_logs_msg(events: list) -> str:
+    if not events:
+        return (
+            "📋 *LOGS DE EVENTOS RECENTES*\n"
+            "═════════════════════════════════════\n\n"
+            "⚠️ _Nenhum evento registrado ainda._"
+        )
+    lines = [
+        "📋 *LOGS DE EVENTOS RECENTES*\n"
+        "═════════════════════════════════════\n"
+    ]
+    for i, ev in enumerate(events, 1):
+        ts = ev.get("ts", "—")
+        ev_type = ev.get("type", "?").upper()
+        session = str(ev.get("session", "—"))[:8]
+        ip = ev.get("ip", "—")
+        data = ev.get("data") or {}
+        detail = ", ".join(f"{k}: `{v}`" for k, v in data.items()) if isinstance(data, dict) and data else "—"
+        lines.append(
+            f"*{i}.* `{ev_type}` — {ts}\n"
+            f"   🌐 IP: `{ip}` | 🆔 Sessão: `{session}…`\n"
+            f"   📦 {detail}\n"
+        )
+    lines.append("🔒 _Log gerado sob canal seguro._")
+    return "\n".join(lines)
+
+
 # ─── AUTHENTICATION DE CORPO ADMINISTRATIVO ───────────────────────────────────
 def admin_only(func):
     def wrapper(update: Update, context: CallbackContext):
@@ -1662,6 +1689,118 @@ def handle_incoming_messages(update: Update, context: CallbackContext):
 
 
 # ─── API PÚBLICA DE NOTIFICAÇÕES SEGURO (Chamada por app.py) ─────────────────
+
+_NOTIF_TEMPLATES = {
+    "PAGE_ENTRY": (
+        "👁️ *Nova Visita ao Anúncio*\n"
+        "═════════════════════════════════════\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "CLICK_BUY": (
+        "🛒 *Clique em Comprar!*\n"
+        "═════════════════════════════════════\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "LEAD_CAPTURED": (
+        "🔥 *Lead Capturado!*\n"
+        "═════════════════════════════════════\n"
+        "📛 Nome: `{name}`\n"
+        "📱 Telefone: `{phone}`\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "PIX_GENERATED": (
+        "💰 *PIX Gerado!*\n"
+        "═════════════════════════════════════\n"
+        "💵 Valor: `R$ {amount}`\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "PIX_PAID": (
+        "✅ *Pagamento via PIX Confirmado!*\n"
+        "═════════════════════════════════════\n"
+        "💵 Valor: `R$ {amount}`\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "PAYMENT_CONFIRMED": (
+        "🎉 *Pagamento Confirmado!*\n"
+        "═════════════════════════════════════\n"
+        "💵 Valor: `R$ {amount}`\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "WHATSAPP_REDIRECT": (
+        "📱 *Redirecionado para WhatsApp!*\n"
+        "═════════════════════════════════════\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+    "PAGE_EXIT": (
+        "🚪 *Saída de Página*\n"
+        "═════════════════════════════════════\n"
+        "🌐 IP: `{ip}`\n"
+        "📦 Slug: `{slug}`\n"
+        "🕐 {ts}"
+    ),
+}
+
+def build_notification(event_type: str, data: dict) -> str:
+    """
+    Constrói a mensagem Markdown para o evento dado.
+    Retorna None (string vazia) para tipos que não precisam de notificação silenciosa.
+    """
+    import datetime
+    template = _NOTIF_TEMPLATES.get(event_type)
+    if not template:
+        # Evento genérico desconhecido — notifica de forma simples
+        template = (
+            "⚡ *Evento: {event_type}*\n"
+            "═════════════════════════════════════\n"
+            "🌐 IP: `{ip}`\n"
+            "📦 Slug: `{slug}`\n"
+            "🕐 {ts}"
+        )
+    ts = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    ctx = {
+        "ip":         data.get("ip", "—"),
+        "slug":       data.get("slug", "—"),
+        "name":       data.get("name", "—"),
+        "phone":      data.get("phone", "—"),
+        "amount":     data.get("amount") or data.get("value") or "—",
+        "event_type": event_type,
+        "ts":         ts,
+    }
+    return template.format_map(ctx)
+
+
+def build_notification_keyboard(event_type: str, data: dict) -> Optional[InlineKeyboardMarkup]:
+    """
+    Retorna um teclado inline contextual para a notificação, ou None se não houver ação relevante.
+    """
+    # Para eventos de conversão, oferece atalho para o relatório de stats
+    if event_type in ("LEAD_CAPTURED", "PAYMENT_CONFIRMED", "PIX_PAID", "PIX_GENERATED"):
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton("📊 Ver Stats (24h)", callback_data="stats_24")],
+            [InlineKeyboardButton("📋 Ver Logs Recentes", callback_data="recent_logs")],
+        ])
+    # Para visitas e cliques — atalho rápido para logs
+    if event_type in ("PAGE_ENTRY", "CLICK_BUY", "WHATSAPP_REDIRECT"):
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton("📋 Ver Logs Recentes", callback_data="recent_logs")],
+        ])
+    # Para eventos silenciosos (PAGE_EXIT etc.) — sem teclado
+    return None
+
 
 _bot_instance = None
 
