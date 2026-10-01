@@ -1479,34 +1479,6 @@ def api_admin_load_config():
 
 # â”€â”€â”€ CATÃLOGO DE MULTI-PRODUTOS POR ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # ─── CATÁLOGO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────────────
-@app.route('/api/admin/upload', methods=['POST'])
-def api_admin_upload():
-    """Upload seguro de imagens para fotos de produtos e perfil."""
-    admin_id, role = verify_admin_access(request)
-    if not admin_id:
-        return jsonify({"ok": False, "error": "unauthorized"}), 401
-
-    if 'file' not in request.files:
-        return jsonify({"ok": False, "error": "Nenhum arquivo enviado."}), 400
-
-    file = request.files['file']
-    if not file or not file.filename:
-        return jsonify({"ok": False, "error": "Arquivo inválido."}), 400
-
-    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
-    allowed = {'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'}
-    if ext not in allowed:
-        return jsonify({"ok": False, "error": "Formato não suportado. Use JPG, PNG, WEBP ou GIF."}), 400
-
-    upload_dir = os.path.join(app.root_path, 'static', 'uploads')
-    os.makedirs(upload_dir, exist_ok=True)
-
-    filename = f"img_{admin_id}_{int(time.time())}_{secrets.token_hex(4)}.{ext}"
-    dest = os.path.join(upload_dir, filename)
-    file.save(dest)
-
-    url = f"/static/uploads/{filename}"
-    return jsonify({"ok": True, "url": url, "filename": filename})
 
 
 @app.route('/api/admin/my-products', methods=['GET', 'POST'])
