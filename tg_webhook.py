@@ -401,25 +401,42 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
         logger.error(f'[NOTIFY ACCESS ERROR] {e}')
 
 # ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
-def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3=""):
+def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon=""):
     conn = _get_db()
-    code = secrets.token_urlsafe(8).lower()
+    code = (re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30]) if product_code else secrets.token_urlsafe(8).lower()
+    if not code:
+        code = secrets.token_urlsafe(8).lower()
+    
+    # Se image_url estiver preenchida e image1 não, sincroniza
+    img_main = image_url or image1 or ""
+    img1 = image1 or img_main
+    img2 = image2 or ""
+    img3 = image3 or ""
+
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, image_url, image1, image2, image3, time.time()))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, created_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, time.time()))
     conn.commit(); conn.close()
     return code
 
 def get_tenant_products(tg_id: int):
     conn = _get_db()
-    rows = conn.execute("SELECT id, product_code, title, price, old_price, description, image_url, created_at FROM tenant_products WHERE tg_id=? ORDER BY id DESC", (tg_id,)).fetchall()
+    rows = conn.execute("""
+        SELECT id, product_code, title, price, old_price, description, 
+               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, created_at 
+        FROM tenant_products WHERE tg_id=? ORDER BY id DESC
+    """, (tg_id,)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
 def get_product_by_code(code: str):
     conn = _get_db()
-    r = conn.execute("SELECT * FROM tenant_products WHERE product_code=?", (code,)).fetchone()
+    r = conn.execute("""
+        SELECT id, tg_id, product_code, title, price, old_price, description, 
+               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, created_at 
+        FROM tenant_products WHERE product_code=?
+    """, (code,)).fetchone()
     conn.close()
     return dict(r) if r else None
 
@@ -429,7 +446,7 @@ def delete_tenant_product(tg_id: int, product_code: str):
     conn.commit(); conn.close()
 
 def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
-    """Atualiza campos de um produto (incluindo shipping_mode, shipping_fee, shipping_coupon)."""
+    """Atualiza campos de um produto (incluindo todas as fotos, shipping_mode, shipping_fee, shipping_coupon)."""
     product_code = re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30]
     if not product_code:
         return False

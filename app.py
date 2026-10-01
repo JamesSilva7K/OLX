@@ -1472,9 +1472,40 @@ def api_admin_load_config():
 
 
 # â”€â”€â”€ CATÃLOGO DE MULTI-PRODUTOS POR ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── CATÁLOGO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────────────
+@app.route('/api/admin/upload', methods=['POST'])
+def api_admin_upload():
+    """Upload seguro de imagens para fotos de produtos e perfil."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    if 'file' not in request.files:
+        return jsonify({"ok": False, "error": "Nenhum arquivo enviado."}), 400
+
+    file = request.files['file']
+    if not file or not file.filename:
+        return jsonify({"ok": False, "error": "Arquivo inválido."}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    allowed = {'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'}
+    if ext not in allowed:
+        return jsonify({"ok": False, "error": "Formato não suportado. Use JPG, PNG, WEBP ou GIF."}), 400
+
+    upload_dir = os.path.join(app.root_path, 'static', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    filename = f"img_{admin_id}_{int(time.time())}_{secrets.token_hex(4)}.{ext}"
+    dest = os.path.join(upload_dir, filename)
+    file.save(dest)
+
+    url = f"/static/uploads/{filename}"
+    return jsonify({"ok": True, "url": url, "filename": filename})
+
+
 @app.route('/api/admin/my-products', methods=['GET', 'POST'])
 def api_admin_my_products():
-    """Listar ou criar produtos no catÃ¡logo prÃ³prio do admin logado."""
+    """Listar ou criar produtos no catálogo próprio do admin logado."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
@@ -1486,21 +1517,32 @@ def api_admin_my_products():
         old_price = data.get("old_price", "").strip()
         description = data.get("description", "").strip()
         image_url = data.get("image_url", "").strip()
-        image1 = data.get("image1", "").strip()
+        image1 = data.get("image1", "").strip() or image_url
         image2 = data.get("image2", "").strip()
         image3 = data.get("image3", "").strip()
+        product_code = data.get("product_code", "").strip()
+        shipping_mode = data.get("shipping_mode", "full").strip()
+        shipping_fee = data.get("shipping_fee", "19.90").strip()
+        shipping_coupon = data.get("shipping_coupon", "").strip()
 
         if not title:
-            return jsonify({"ok": False, "error": "TÃ­tulo Ã© obrigatÃ³rio"}), 400
+            return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
 
         if TG_WH_AVAILABLE:
-            code = tg_wh.create_tenant_product(admin_id, title, price, old_price, description, image_url, image1, image2, image3)
+            code = tg_wh.create_tenant_product(
+                admin_id, title, price, old_price, description, 
+                image_url, image1, image2, image3, 
+                product_code=product_code, 
+                shipping_mode=shipping_mode, 
+                shipping_fee=shipping_fee, 
+                shipping_coupon=shipping_coupon
+            )
             slug = tg_wh.get_slug(admin_id)
             unique_link = f"{BASE_URL}/p/{slug}/{code}" if slug else f"{BASE_URL}/p/{code}"
             if VALIDATORS_AVAILABLE:
                 ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
                                   slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link})
-            return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado no catÃ¡logo!"})
+            return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado com sucesso no catálogo!"})
 
     products = []
     if TG_WH_AVAILABLE:
@@ -1513,20 +1555,32 @@ def api_admin_my_products():
     return jsonify({"ok": True, "products": products})
 
 
-@app.route('/api/admin/my-products/<product_code>', methods=['DELETE'])
-def api_admin_delete_product(product_code):
-    """Deletar produto do catÃ¡logo do admin."""
+@app.route('/api/admin/my-products/<product_code>', methods=['PUT', 'DELETE'])
+def api_admin_manage_product(product_code):
+    """Editar ou deletar produto específico do catálogo do admin."""
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
-    if TG_WH_AVAILABLE:
-        tg_wh.delete_tenant_product(admin_id, product_code)
-        if VALIDATORS_AVAILABLE:
-            ActivityAudit.log('admin_product_delete', actor_id=admin_id, ip=_user_ip(),
-                              details={'product_code': product_code})
-        return jsonify({"ok": True, "message": "Produto excluÃ­do."})
-    return jsonify({"ok": False, "error": "Recurso indisponÃ­vel"}), 400
+    if request.method == 'DELETE':
+        if TG_WH_AVAILABLE:
+            tg_wh.delete_tenant_product(admin_id, product_code)
+            if VALIDATORS_AVAILABLE:
+                ActivityAudit.log('admin_product_delete', actor_id=admin_id, ip=_user_ip(),
+                                  details={'product_code': product_code})
+            return jsonify({"ok": True, "message": "Produto excluído."})
+        return jsonify({"ok": False, "error": "Recurso indisponível."}), 400
+
+    if request.method == 'PUT':
+        data = request.json or {}
+        if TG_WH_AVAILABLE:
+            ok = tg_wh.update_tenant_product(admin_id, product_code, data)
+            if ok:
+                slug = tg_wh.get_slug(admin_id)
+                unique_link = f"{BASE_URL}/p/{slug}/{product_code}" if slug else f"{BASE_URL}/p/{product_code}"
+                return jsonify({"ok": True, "unique_link": unique_link, "message": "Produto atualizado com sucesso!"})
+            return jsonify({"ok": False, "error": "Produto não encontrado ou sem permissão."}), 404
+        return jsonify({"ok": False, "error": "Recurso indisponível."}), 400
 
 
 # â”€â”€â”€ CANAIS DE LOGS CONFIGURÃVEIS DO ADMIN SUPREMO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

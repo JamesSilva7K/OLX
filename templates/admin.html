@@ -1244,20 +1244,119 @@
 
 </div>
 
-<!-- PRODUCT MODAL -->
+<!-- PRODUCT MODAL (AVANÇADO & COMPLETO) -->
 <div class="modal" id="prod-modal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto">
     <div class="modal-handle"></div>
-    <div class="modal-hdr"><span class="modal-ttl" id="prod-modal-ttl">Novo Produto</span><button class="modal-cls" onclick="closeProdModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-hdr">
+      <span class="modal-ttl" id="prod-modal-ttl">Novo Produto no Catálogo</span>
+      <button class="modal-cls" onclick="closeProdModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
     <div class="modal-body">
       <input type="hidden" id="edit-code"/>
-      <div class="fg"><label class="flbl">Nome *</label><input type="text" class="fi" id="edit-name" placeholder="Ex: iPhone 11 64GB"/></div>
-      <div class="fr"><div class="fg"><label class="flbl">Preço *</label><input type="text" class="fi" id="edit-price" placeholder="630.00"/></div><div class="fg"><label class="flbl">Preço Antigo</label><input type="text" class="fi" id="edit-oldp" placeholder="999.00"/></div></div>
-      <div class="fg"><label class="flbl">Descrição</label><textarea class="fta" id="edit-desc" placeholder="..."></textarea></div>
-      <div class="fg"><label class="flbl">URL Imagem</label><input type="url" class="fi" id="edit-img" placeholder="https://..."/></div>
-      <div class="fg"><label class="flbl">Código (slug único)</label><input type="text" class="fi" id="edit-slug" placeholder="iphone_11"/><span class="fhint">Apenas letras, números e _. Imutável após criação.</span></div>
-      <div class="link-box mb-12" id="edit-lnk-box" style="display:none"><input type="text" id="edit-lnk" readonly/><button class="link-copy" onclick="cpEditLnk()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
-      <div style="display:flex;gap:10px"><button class="btn btn-p" onclick="saveProd()" id="save-prod-btn" style="flex:1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span id="save-prod-txt">Salvar</span></button><button class="btn btn-g" onclick="closeProdModal()">Cancelar</button></div>
+      
+      <!-- Informações Principais -->
+      <div class="fg">
+        <label class="flbl">Nome do Anúncio *</label>
+        <input type="text" class="fi" id="edit-name" placeholder="Ex: iPhone 11 64GB Branco (Seminovo)"/>
+      </div>
+
+      <div class="fr">
+        <div class="fg">
+          <label class="flbl">Preço à Vista (R$) *</label>
+          <input type="text" class="fi" id="edit-price" placeholder="630.00"/>
+        </div>
+        <div class="fg">
+          <label class="flbl">Preço Riscado (R$)</label>
+          <input type="text" class="fi" id="edit-oldp" placeholder="999.00"/>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flbl">Slug / Código do Link (Único)</label>
+        <input type="text" class="fi" id="edit-slug" placeholder="iphone_11_branco"/>
+        <span class="fhint">Deixe em branco para gerar automático ou digite um código único.</span>
+      </div>
+
+      <div class="fg">
+        <label class="flbl">Descrição do Produto</label>
+        <textarea class="fta" id="edit-desc" placeholder="Descreva os detalhes, estado de conservação, itens inclusos..." style="min-height:80px"></textarea>
+      </div>
+
+      <!-- Fotos do Produto com Upload & Preview -->
+      <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Fotos do Produto (Galeria de Imagens)
+      </div>
+      
+      <div class="photo-grid mb-12">
+        <div class="dz" id="p_dz1">
+          <input type="file" accept="image/*" onchange="uploadProdFile(1, this)"/>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Foto 1 (Principal)</span>
+        </div>
+        <div class="dz" id="p_dz2">
+          <input type="file" accept="image/*" onchange="uploadProdFile(2, this)"/>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Foto 2</span>
+        </div>
+        <div class="dz" id="p_dz3">
+          <input type="file" accept="image/*" onchange="uploadProdFile(3, this)"/>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Foto 3</span>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flbl">URLs Diretas das Fotos (Opcional)</label>
+        <input type="url" class="fi mb-8" id="edit-img1" placeholder="URL Foto 1 (Principal)" oninput="prevProdPhoto(1, this.value)"/>
+        <input type="url" class="fi mb-8" id="edit-img2" placeholder="URL Foto 2" oninput="prevProdPhoto(2, this.value)"/>
+        <input type="url" class="fi" id="edit-img3" placeholder="URL Foto 3" oninput="prevProdPhoto(3, this.value)"/>
+      </div>
+
+      <!-- Configurações de Frete & Modais -->
+      <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Etapas de Frete & Checkout
+      </div>
+
+      <div class="fr">
+        <div class="fg">
+          <label class="flbl">Modo de Entrega</label>
+          <select class="fsel" id="edit-shipping-mode">
+            <option value="full">Garantia OLX Full (Frete Grátis com Seguro)</option>
+            <option value="sedex">Sedex Expresso Correios</option>
+            <option value="local">Retirada em Mãos / Local</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flbl">Taxa de Frete (R$)</label>
+          <input type="text" class="fi" id="edit-shipping-fee" placeholder="0.00 ou 19.90" value="19.90"/>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flbl">Cupom de Desconto Automático</label>
+        <input type="text" class="fi" id="edit-shipping-coupon" placeholder="Ex: FRETEGRATIS ou OLX10"/>
+      </div>
+
+      <!-- Link Box (se estiver editando) -->
+      <div class="link-box mb-12" id="edit-lnk-box" style="display:none">
+        <input type="text" id="edit-lnk" readonly style="font-size:12px"/>
+        <button class="link-copy" onclick="cpEditLnk()" title="Copiar Link">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-p" onclick="saveProd()" id="save-prod-btn" style="flex:1">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="save-prod-txt">Salvar Produto</span>
+        </button>
+        <button class="btn btn-g" onclick="closeProdModal()">Cancelar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1838,39 +1937,94 @@ async function loadSessions(){
   try{const url=_SLUG?'/api/admin/sessions?slug='+_SLUG+'&limit=15':'/api/admin/sessions?limit=15';const r=await apiFetch(url);const d=await r.json();const list=d.sessions||[];const el=document.getElementById('sess-list');if(!list.length){el.innerHTML='<div class="empty"><p>Nenhuma sessão.</p></div>';return;}const _sessIco='<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';el.innerHTML=list.slice(0,12).map((s,i)=>{const dt=new Date((s.entered_at||s.ts||0)*1000);const tm=dt.toLocaleDateString('pt-BR')+' '+dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');const cv=s.converted?'<span class="chip chip-g" style="font-size:10px">Convertido</span>':'';const initials=((s.ip||'?').split('.').slice(-2).join(''));return '<div class="sess"><div class="sess-av" style="color:var(--c-purple3)">'+_sessIco+'</div><div class="sess-info"><div class="sess-ip">'+(s.ip||'—')+'</div><div class="sess-meta">'+((s.ua||'').slice(0,50)||'Desconhecido')+' '+cv+'</div></div><span class="sess-time">'+tm+'</span></div>';}).join('');}catch(e){}
 }
 
+function uploadProdFile(idx, inp){
+  const file = inp.files && inp.files[0];
+  if(!file) return;
+  const dz = document.getElementById('p_dz'+idx);
+  if(dz) dz.classList.add('loading');
+  const fd = new FormData();
+  fd.append('file', file);
+  fetch('/api/admin/upload', {
+    method: 'POST',
+    headers: {'Authorization': 'Bearer '+_TK},
+    body: fd
+  }).then(r=>r.json()).then(d=>{
+    if(dz) dz.classList.remove('loading');
+    if(d.ok && d.url){
+      document.getElementById('edit-img'+idx).value = d.url;
+      prevProdPhoto(idx, d.url);
+      toast('Foto '+idx+' enviada com sucesso!','ok');
+    } else {
+      toast(d.error || 'Erro no upload.','err');
+    }
+  }).catch(()=>{
+    if(dz) dz.classList.remove('loading');
+    toast('Erro de conexão no upload.','err');
+  });
+}
+
+function prevProdPhoto(idx, url){
+  const dz = document.getElementById('p_dz'+idx);
+  if(!dz) return;
+  if(url && url.trim()){
+    dz.innerHTML = '<input type="file" accept="image/*" onchange="uploadProdFile('+idx+', this)"/><img src="'+url+'" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>';
+    dz.classList.add('dz-done');
+  } else {
+    dz.innerHTML = '<input type="file" accept="image/*" onchange="uploadProdFile('+idx+', this)"/><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Foto '+idx+(idx===1?' (Principal)':'')+'</span>';
+    dz.classList.remove('dz-done');
+  }
+}
+
 async function loadProducts(){
   const g=document.getElementById('prods-grid');
   if(g) g.innerHTML = skelCards(3);
   try{
-    const url=_SLUG?'/api/products?slug='+_SLUG:'/api/products';
-    const r=await apiFetch(url);
+    const r=await apiFetch('/api/admin/my-products');
     if(r.status===401){handleUnauth();return;}
     const d=await r.json();
-    const list=d.products||d.items||[];
+    let list = d.products || [];
     if(!list.length){
-      g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para criar.</p></div>';
+      const r2 = await apiFetch(_SLUG?'/api/products?slug='+_SLUG:'/api/products');
+      const d2 = await r2.json();
+      list = d2.products || d2.items || [];
+    }
+    if(!list.length){
+      g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para cadastrar seu primeiro produto.</p></div>';
       return;
     }
     _pmap={};
-    list.forEach(function(px){_pmap[px.code||px.product_code||'']=px;});
+    list.forEach(function(px){_pmap[px.product_code||px.code||'']=px;});
     g.innerHTML=list.map(p=>{
-      const img=p.image_url||p.image||'';
-      const code=p.code||p.product_code||'';
+      const img=p.image1||p.image_url||p.image||'';
+      const code=p.product_code||p.code||'';
+      const title=p.title||p.name||'Produto Sem Nome';
       const oldp=p.old_price?'<span class="prod-oldp">R$ '+p.old_price+'</span>':'';
       const isActive=p.is_active||p.active;
-      const activeBadge=isActive?'<span class="chip chip-g" style="font-size:10px;position:absolute;top:8px;right:8px">Ativo</span>':'';
+      const activeBadge=isActive?'<span class="chip chip-g" style="font-size:10px;position:absolute;top:8px;right:8px">Principal</span>':'';
+      const shipMode = p.shipping_mode === 'sedex' ? 'Sedex' : p.shipping_mode === 'local' ? 'Local' : 'Garantia Full';
+      const prodLink = window.location.origin + '/p/' + (_SLUG || 'item') + '/' + code;
+      
       return '<div class="prod-card" style="position:relative">'+
-        '<div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+p.name+'" onerror="this.style.display=\'none\'"/>':'')+
+        '<div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+title+'" onerror="this.style.display=\'none\'"/>':'')+
         '<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'+
         activeBadge+
         '</div>'+
-        '<div class="prod-info"><div class="prod-name">'+(p.name||p.title)+'</div>'+
+        '<div class="prod-info"><div class="prod-name">'+title+'</div>'+
         '<div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div>'+
-        '<div class="prod-code">Código: '+code+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">'+
+          '<span class="chip chip-p" style="font-size:10px">'+shipMode+'</span>'+
+          '<span class="prod-code" style="margin:0">Cod: '+code+'</span>'+
+        '</div>'+
+        '<div style="margin-top:8px;display:flex;gap:4px">'+
+          '<input type="text" readonly value="'+prodLink+'" style="flex:1;font-size:10px;background:rgba(255,255,255,0.05);border:1px solid var(--c-border);border-radius:6px;padding:3px 6px;color:var(--c-t2);font-family:monospace" />'+
+          '<button class="btn btn-g btn-xs" onclick="navigator.clipboard?.writeText(\''+prodLink+'\');toast(\'Link direto copiado!\',\'ok\')" title="Copiar Link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
+          '<a href="'+prodLink+'" target="_blank" class="btn btn-g btn-xs" title="Abrir Link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'+
+        '</div>'+
+        '</div>'+
         '<div class="prod-acts">'+
-        '<button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
+        '<button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
         '<button class="btn btn-g btn-xs" onclick="openEditProd(_pmap['+JSON.stringify(code)+'])">Editar</button>'+
-        '<button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(p.name||p.title)+')" title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
+        '<button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(title)+')" title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
         '</div></div>';
     }).join('');
   }catch(e){
@@ -1879,18 +2033,139 @@ async function loadProducts(){
   }
 }
 
-function openAddProd(){document.getElementById('prod-modal-ttl').textContent='Novo Produto';['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-img','edit-slug'].forEach(id=>{document.getElementById(id).value='';});document.getElementById('edit-slug').disabled=false;document.getElementById('edit-lnk-box').style.display='none';document.getElementById('prod-modal').classList.add('open');}
-function openEditProd(p){document.getElementById('prod-modal-ttl').textContent='Editar Produto';const code=p.code||p.product_code||'';document.getElementById('edit-code').value=code;document.getElementById('edit-name').value=p.name||p.title||'';document.getElementById('edit-price').value=p.price||'';document.getElementById('edit-oldp').value=p.old_price||'';document.getElementById('edit-desc').value=p.description||'';document.getElementById('edit-img').value=p.image_url||p.image||'';document.getElementById('edit-slug').value=code;document.getElementById('edit-slug').disabled=true;if(code){document.getElementById('edit-lnk').value=window.location.origin+'/p/'+code;document.getElementById('edit-lnk-box').style.display='flex';}document.getElementById('prod-modal').classList.add('open');}
+function openAddProd(){
+  document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
+  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const sm = document.getElementById('edit-shipping-mode');
+  if(sm) sm.value = 'full';
+  const sf = document.getElementById('edit-shipping-fee');
+  if(sf) sf.value = '19.90';
+  document.getElementById('edit-slug').disabled=false;
+  document.getElementById('edit-lnk-box').style.display='none';
+  prevProdPhoto(1, '');
+  prevProdPhoto(2, '');
+  prevProdPhoto(3, '');
+  document.getElementById('prod-modal').classList.add('open');
+}
+
+function openEditProd(p){
+  if(!p) return;
+  document.getElementById('prod-modal-ttl').textContent='Editar Produto';
+  const code=p.product_code||p.code||'';
+  document.getElementById('edit-code').value=code;
+  document.getElementById('edit-name').value=p.title||p.name||'';
+  document.getElementById('edit-price').value=p.price||'';
+  document.getElementById('edit-oldp').value=p.old_price||'';
+  document.getElementById('edit-desc').value=p.description||'';
+  document.getElementById('edit-slug').value=code;
+  document.getElementById('edit-slug').disabled=true;
+  
+  const img1 = p.image1 || p.image_url || p.image || '';
+  const img2 = p.image2 || '';
+  const img3 = p.image3 || '';
+  document.getElementById('edit-img1').value = img1;
+  document.getElementById('edit-img2').value = img2;
+  document.getElementById('edit-img3').value = img3;
+  prevProdPhoto(1, img1);
+  prevProdPhoto(2, img2);
+  prevProdPhoto(3, img3);
+  
+  const sm = document.getElementById('edit-shipping-mode');
+  if(sm) sm.value = p.shipping_mode || 'full';
+  const sf = document.getElementById('edit-shipping-fee');
+  if(sf) sf.value = p.shipping_fee || '19.90';
+  const sc = document.getElementById('edit-shipping-coupon');
+  if(sc) sc.value = p.shipping_coupon || '';
+  
+  if(code){
+    document.getElementById('edit-lnk').value=window.location.origin+'/p/'+(_SLUG||'item')+'/'+code;
+    document.getElementById('edit-lnk-box').style.display='flex';
+  }
+  document.getElementById('prod-modal').classList.add('open');
+}
+
 function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
 function cpEditLnk(){navigator.clipboard?.writeText(document.getElementById('edit-lnk').value);toast('Link copiado!','ok');}
+
 async function saveProd(){
-  const code=document.getElementById('edit-code').value;const slug=document.getElementById('edit-slug').value.trim().replace(/[^a-z0-9_]/gi,'_').toLowerCase();const name=document.getElementById('edit-name').value.trim();const price=document.getElementById('edit-price').value.trim();const oldp=document.getElementById('edit-oldp').value.trim();const desc=document.getElementById('edit-desc').value.trim();const img=document.getElementById('edit-img').value.trim();
-  if(!name||!price){toast('Nome e Preço obrigatórios.','err');return;}
-  const btn=document.getElementById('save-prod-btn'),sp=document.getElementById('save-prod-txt');btn.disabled=true;sp.textContent='Salvando...';
-  try{let r;if(code){r=await apiFetch('/api/products/'+code,{method:'PUT',body:JSON.stringify({name,price,old_price:oldp,description:desc,image_url:img})});}else{r=await apiFetch('/api/products',{method:'POST',body:JSON.stringify({code:slug,name,price,old_price:oldp,description:desc,image_url:img})});}const d=await r.json();if(d.ok){toast(code?'Produto atualizado!':'Produto criado!','ok');closeProdModal();loadProducts();}else toast(d.error||'Erro.','err');}catch{toast('Erro de conexão.','err');}finally{btn.disabled=false;sp.textContent='Salvar';}
+  const code=document.getElementById('edit-code').value;
+  const slugInp=document.getElementById('edit-slug').value.trim().replace(/[^a-z0-9_]/gi,'_').toLowerCase();
+  const name=document.getElementById('edit-name').value.trim();
+  const price=document.getElementById('edit-price').value.trim();
+  const oldp=document.getElementById('edit-oldp').value.trim();
+  const desc=document.getElementById('edit-desc').value.trim();
+  const img1=document.getElementById('edit-img1').value.trim();
+  const img2=document.getElementById('edit-img2').value.trim();
+  const img3=document.getElementById('edit-img3').value.trim();
+  const shipping_mode=document.getElementById('edit-shipping-mode').value;
+  const shipping_fee=document.getElementById('edit-shipping-fee').value.trim();
+  const shipping_coupon=document.getElementById('edit-shipping-coupon').value.trim();
+
+  if(!name||!price){toast('Nome e Preço são obrigatórios.','err');return;}
+  
+  const btn=document.getElementById('save-prod-btn'),sp=document.getElementById('save-prod-txt');
+  btn.disabled=true;sp.textContent='Salvando...';
+  
+  const payload = {
+    title: name,
+    name: name,
+    price: price,
+    old_price: oldp,
+    description: desc,
+    image1: img1,
+    image2: img2,
+    image3: img3,
+    image_url: img1,
+    shipping_mode: shipping_mode,
+    shipping_fee: shipping_fee,
+    shipping_coupon: shipping_coupon,
+    product_code: slugInp || code
+  };
+
+  try{
+    let r;
+    if(code){
+      r=await apiFetch('/api/admin/my-products/'+code, {method:'PUT', body:JSON.stringify(payload)});
+    }else{
+      r=await apiFetch('/api/admin/my-products', {method:'POST', body:JSON.stringify(payload)});
+    }
+    const d=await r.json();
+    if(d.ok){
+      toast(code?'Produto atualizado com sucesso!':'Produto criado com sucesso!','ok');
+      closeProdModal();
+      loadProducts();
+    }else{
+      toast(d.error||'Erro ao salvar produto.','err');
+    }
+  }catch{
+    toast('Erro de conexão.','err');
+  }finally{
+    btn.disabled=false;sp.textContent='Salvar Produto';
+  }
 }
-async function applyProd(code,name){if(!confirm('Definir "'+name+'" como produto principal?'))return;try{const r=await apiFetch('/api/products/'+code+'/apply',{method:'POST'});const d=await r.json();if(d.ok)toast('"'+name+'" ativado como produto principal!','ok',4000);else toast(d.error||'Erro.','err');}catch{toast('Erro.','err');}}
-async function delProd(code,name){if(!confirm('Excluir "'+name+'"?'))return;try{const r=await apiFetch('/api/products/'+code,{method:'DELETE'});const d=await r.json();if(d.ok){toast('Produto excluído.','info');loadProducts();}else toast(d.error||'Erro.','err');}catch{toast('Erro.','err');}}
+
+async function applyProd(code,name){
+  if(!confirm('Definir "'+name+'" como produto principal?'))return;
+  try{
+    const r=await apiFetch('/api/products/'+code+'/apply',{method:'POST'});
+    const d=await r.json();
+    if(d.ok)toast('"'+name+'" ativado como produto principal!','ok',4000);
+    else toast(d.error||'Erro.','err');
+  }catch{toast('Erro.','err');}
+}
+
+async function delProd(code,name){
+  if(!confirm('Excluir produto "'+name+'"?'))return;
+  try{
+    const r=await apiFetch('/api/admin/my-products/'+code,{method:'DELETE'});
+    const d=await r.json();
+    if(d.ok){toast('Produto excluído com sucesso!','info');loadProducts();}
+    else toast(d.error||'Erro ao excluir.','err');
+  }catch{toast('Erro.','err');}
+}
 
 async function loadCfg(){
   try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);if(d.payment_badges){try{_BADGES=JSON.parse(d.payment_badges);if(!Array.isArray(_BADGES))_BADGES=[];}catch(e){_BADGES=[];}renderBadges();}loadTgls();}catch(e){}
