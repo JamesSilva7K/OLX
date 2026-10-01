@@ -123,25 +123,13 @@
     .auth-logo-badge{font-size:10px;font-weight:700;padding:2px 8px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);border-radius:20px;color:var(--c-purple3);letter-spacing:1px}
     .auth-card{background:rgba(22,0,36,0.9);border:1px solid rgba(139,92,246,0.2);border-radius:var(--r-xl);padding:36px 28px;box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(139,92,246,0.08);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);animation:authIn .5s cubic-bezier(0.16,1,0.3,1)}
     @keyframes authIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
-    .auth-head{text-align:center;margin-bottom:28px}
+    /* ── Auth General ── */
+    .auth-head{text-align:center;margin-bottom:24px}
     .auth-shield{width:60px;height:60px;margin:0 auto 16px;border-radius:20px;background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(167,139,250,0.08));border:1px solid rgba(139,92,246,0.25);display:flex;align-items:center;justify-content:center;color:var(--c-purple3);box-shadow:0 8px 32px rgba(139,92,246,0.2)}
     .auth-shield svg{width:28px;height:28px}
     .auth-head h1{font-size:22px;font-weight:800;color:#fff;margin-bottom:8px}
     .auth-head p{font-size:13px;color:var(--c-t2);line-height:1.6}
     .auth-head strong{color:var(--c-purple3);font-weight:600}
-    .auth-step{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--r-sm);background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.12);margin-bottom:10px;font-size:12.5px;color:var(--c-t2);transition:all .2s}
-    .auth-step.act{background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.3);color:var(--c-text)}
-    .auth-step-n{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--c-purple3)}
-    .auth-div{margin:20px 0;text-align:center;position:relative}
-    .auth-div::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,0.07)}
-    .auth-div span{position:relative;background:rgba(22,0,36,0.9);padding:0 12px;font-size:11px;color:var(--c-t3)}
-    .auth-inp-wrap{position:relative;margin-bottom:14px}
-    .auth-inp-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--c-t3);pointer-events:none}
-    .auth-inp{width:100%;height:52px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--r-md);padding:0 48px 0 46px;color:var(--c-text);font-size:14px;font-family:var(--font);outline:none;transition:all .2s}
-    .auth-inp::placeholder{color:var(--c-t3)}
-    .auth-inp:focus{border-color:var(--c-purple);background:rgba(139,92,246,0.06);box-shadow:0 0 0 4px rgba(139,92,246,0.12)}
-    .auth-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--c-t3);cursor:pointer;padding:4px;transition:color .2s}
-    .auth-eye:hover{color:var(--c-purple3)}
     .auth-btn{width:100%;height:52px;background:linear-gradient(135deg,#7C3AED,#A855F7);border:none;border-radius:var(--r-md);color:#fff;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 8px 24px rgba(124,58,237,0.4);transition:all .2s;margin-bottom:12px}
     .auth-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(124,58,237,0.55)}
     .auth-btn:active{transform:translateY(0)}
@@ -149,11 +137,40 @@
     .auth-err{display:none;margin-top:12px;padding:11px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:var(--r-sm);font-size:13px;color:#FCA5A5;align-items:center;gap:8px;font-weight:500}
     .auth-ok{display:none;margin-top:12px;padding:11px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:var(--r-sm);font-size:13px;color:#6EE7B7;align-items:center;gap:8px;font-weight:500}
     .auth-info{margin-top:20px;display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(255,255,255,0.03);font-size:11.5px;color:var(--c-t3);line-height:1.6}
-    .auth-saved{display:none;margin-bottom:16px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);font-size:12px;color:var(--c-t2)}
+    .auth-inp-wrap{position:relative;margin-bottom:14px}
+    .auth-inp-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--c-t3);pointer-events:none}
+    .auth-inp{width:100%;height:52px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--r-md);padding:0 16px 0 46px;color:var(--c-text);font-size:14px;font-family:var(--font);outline:none;transition:all .2s}
+    .auth-inp::placeholder{color:var(--c-t3)}
+    .auth-inp:focus{border-color:var(--c-purple);background:rgba(139,92,246,0.06);box-shadow:0 0 0 4px rgba(139,92,246,0.12)}
+    /* ── Step 1: TG ID input ── */
+    #auth-step1{}
+    /* ── Step 2: Admin Profile Card + PIN ── */
+    #auth-step2{display:none}
+    .admin-profile-card{display:flex;align-items:center;gap:14px;padding:16px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(167,139,250,0.05));border:1px solid rgba(139,92,246,0.25);border-radius:var(--r-md);margin-bottom:20px;animation:authIn .4s ease}
+    .admin-profile-av{width:54px;height:54px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid rgba(139,92,246,0.5);background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.35)}
+    .admin-profile-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .admin-profile-info{flex:1;min-width:0}
+    .admin-profile-name{font-size:16px;font-weight:800;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .admin-profile-sub{font-size:12px;color:var(--c-purple3);margin-top:3px;font-weight:600}
+    .admin-profile-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:20px;color:var(--c-purple3);font-weight:700;margin-top:5px}
+    /* ── 6-digit PIN boxes ── */
+    .pin-label{text-align:center;font-size:12.5px;color:var(--c-t2);margin-bottom:14px;line-height:1.5}
+    .pin-label strong{color:var(--c-purple3)}
+    .pin-boxes{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+    .pin-box{width:48px;height:58px;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.12);border-radius:12px;text-align:center;font-size:26px;font-weight:800;color:var(--c-text);font-family:var(--font);outline:none;caret-color:var(--c-purple);transition:all .2s;-webkit-appearance:none;appearance:none}
+    .pin-box:focus{border-color:var(--c-purple);background:rgba(139,92,246,0.08);box-shadow:0 0 0 4px rgba(139,92,246,0.15)}
+    .pin-box.filled{border-color:rgba(139,92,246,0.5)}
+    .pin-timer{text-align:center;font-size:11.5px;color:var(--c-t3);margin-bottom:16px}
+    .pin-timer span{color:var(--c-orange);font-weight:700}
+    /* ── Recovery modal ── */
+    .auth-link{text-align:center;margin-top:14px;font-size:12px;color:var(--c-t3)}
+    .auth-link button{background:none;border:none;color:var(--c-purple3);cursor:pointer;font-size:12px;text-decoration:underline;font-family:var(--font);padding:0}
+    #auth-recovery{display:none;margin-top:16px;padding:16px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r-md);animation:authIn .3s ease}
     .saved-chip{display:flex;align-items:center;justify-content:space-between;gap:8px}
     .saved-lbl{font-weight:700;color:#6EE7B7;font-size:11.5px}
     .saved-val{font-family:monospace;font-size:11px;color:var(--c-t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
     .saved-clr{background:none;border:none;color:var(--c-t3);cursor:pointer;font-size:11px;text-decoration:underline;padding:0;flex-shrink:0}
+    .auth-saved{display:none;margin-bottom:16px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);font-size:12px;color:var(--c-t2)}
 
     /* APP SHELL */
     #app-shell{display:none;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;position:relative;background:var(--c-surface)}
@@ -583,54 +600,98 @@
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <h1>Verificação de Identidade</h1>
-        <p>Acesse com o token criptografado gerado pelo bot via <strong>/admin_link</strong> no Telegram</p>
+        <p>Informe seu <strong>ID do Telegram</strong> para receber o código de acesso de 6 dígitos</p>
       </div>
 
-      <div id="auth-saved" class="auth-saved">
-        <div class="saved-chip">
-          <span class="saved-lbl">🔑 Token salvo encontrado</span>
-          <span class="saved-val" id="saved-prev">—</span>
-          <button class="saved-clr" onclick="clearSaved()">Remover</button>
+      <!-- STEP 1: Solicitar Código -->
+      <div id="auth-step1">
+        <div class="auth-inp-wrap">
+          <div class="auth-inp-ico">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <input type="number" id="auth-tgid" class="auth-inp" placeholder="Seu Telegram ID (ex: 123456789)" autocomplete="off" inputmode="numeric" />
         </div>
-      </div>
-
-      <div class="auth-step act"><div class="auth-step-n">1</div>Abra o Telegram e envie <strong style="color:var(--c-purple3);margin:0 4px">/admin_link</strong> ao bot</div>
-      <div class="auth-step"><div class="auth-step-n">2</div>Copie o token criptografado enviado pelo bot</div>
-      <div class="auth-step"><div class="auth-step-n">3</div>Cole abaixo e clique em Autenticar</div>
-
-      <div class="auth-div"><span>Cole seu token abaixo</span></div>
-
-      <div class="auth-inp-wrap">
-        <div class="auth-inp-ico">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7 5l-4.5 4.5a1.7 1.7 0 0 0 2.4 2.4L14 11m-7 5l-3 3m9-15l2.5 2.5"/></svg>
-        </div>
-        <input type="password" id="auth-inp" class="auth-inp" placeholder="Cole o token do bot (48+ chars)..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
-        <button class="auth-eye" id="eye-btn" onclick="toggleEye()" type="button" title="Mostrar/ocultar token" aria-label="Mostrar/ocultar token">
-          <svg id="eye-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-          </svg>
+        <button class="auth-btn" id="auth-req-btn" onclick="requestOTP()">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span id="auth-req-txt">Enviar Código pelo Telegram</span>
         </button>
+        <div id="auth-err" class="auth-err">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="auth-err-msg">ID inválido. Verifique e tente novamente.</span>
+        </div>
       </div>
 
-      <button class="auth-btn" id="auth-btn" onclick="doLogin()">
-        <svg id="auth-btn-ico" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-        </svg>
-        <span id="auth-btn-txt">Autenticar Acesso Seguro</span>
-      </button>
+      <!-- STEP 2: Perfil do Admin + PIN 6 dígitos -->
+      <div id="auth-step2">
+        <!-- Admin Profile Card -->
+        <div class="admin-profile-card">
+          <div class="admin-profile-av" id="auth-av">
+            <span id="auth-av-letter">A</span>
+          </div>
+          <div class="admin-profile-info">
+            <div class="admin-profile-name" id="auth-admin-name">Administrador</div>
+            <div class="admin-profile-sub">Telegram Admin</div>
+            <div class="admin-profile-badge">🔐 Aguardando código</div>
+          </div>
+        </div>
 
-      <div id="auth-err" class="auth-err">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="auth-err-msg">Token inválido ou expirado. Use /admin_link no bot.</span>
+        <div class="pin-label">Código enviado para o seu Telegram.<br><strong>Digite os 6 dígitos abaixo:</strong></div>
+
+        <div class="pin-boxes" id="pin-boxes">
+          <input class="pin-box" type="text" inputmode="numeric" maxlength="1" id="pin0" />
+          <input class="pin-box" type="text" inputmode="numeric" maxlength="1" id="pin1" />
+          <input class="pin-box" type="text" inputmode="numeric" maxlength="1" id="pin2" />
+          <input class="pin-box" type="text" inputmode="numeric" maxlength="1" id="pin3" />
+          <input class="pin-box" type="text" inputmode="numeric" maxlength="1" id="pin4" />
+          <input class="pin-box" type="text" inputmode="numeric" maxlength="1" id="pin5" />
+        </div>
+
+        <div class="pin-timer">Código expira em <span id="pin-countdown">10:00</span></div>
+
+        <button class="auth-btn" id="auth-pin-btn" onclick="verifyOTP()" disabled>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <span id="auth-pin-txt">Verificar Código</span>
+        </button>
+
+        <div id="auth-ok-msg" class="auth-ok">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Identidade verificada! Carregando painel...
+        </div>
+        <div id="auth-pin-err" class="auth-err">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="auth-pin-err-msg">Código inválido ou expirado.</span>
+        </div>
+        <div class="auth-link">
+          <button onclick="backToStep1()">← Usar outro ID</button>
+          &nbsp;·&nbsp;
+          <button onclick="requestOTPAgain()">Reenviar código</button>
+        </div>
       </div>
-      <div id="auth-ok-msg" class="auth-ok">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        Identidade verificada! Carregando painel...
+
+      <!-- Recuperação de Conta -->
+      <div class="auth-link" style="margin-top:18px">
+        <button onclick="toggleRecovery()">🔑 Problemas para acessar?</button>
+      </div>
+      <div id="auth-recovery">
+        <div style="font-size:12px;color:var(--c-t2);margin-bottom:12px;font-weight:600">⚠️ Recuperação de Conta — Apenas Admin Supremo</div>
+        <div class="auth-inp-wrap" style="margin-bottom:10px">
+          <div class="auth-inp-ico"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <input type="number" id="rec-tgid" class="auth-inp" placeholder="Seu Telegram ID" inputmode="numeric" autocomplete="off" />
+        </div>
+        <div class="auth-inp-wrap" style="margin-bottom:12px">
+          <div class="auth-inp-ico"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <input type="password" id="rec-keyword" class="auth-inp" placeholder="Palavra-chave secreta" autocomplete="off" />
+        </div>
+        <button class="auth-btn" style="background:linear-gradient(135deg,#EF4444,#DC2626);box-shadow:0 8px 24px rgba(239,68,68,0.35);margin-bottom:0" onclick="doRecovery()">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7 5l-4.5 4.5a1.7 1.7 0 0 0 2.4 2.4L14 11m-7 5l-3 3m9-15l2.5 2.5"/></svg>
+          <span>Recuperar Acesso</span>
+        </button>
+        <div id="rec-err" class="auth-err"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="rec-err-msg">Palavra-chave incorreta.</span></div>
       </div>
 
       <div class="auth-info">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Token AES-256 + PBKDF2 SHA-256. Válido 24h. Cada admin recebe seu token individual via Telegram.
+        Código OTP único AES-256 + SHA-256. Válido 10min. Cada sessão gera token de 48 chars criptografado.
       </div>
     </div>
   </div>
@@ -1297,42 +1358,236 @@ function goTo(n){
   else done();
 }
 
-function toggleEye(){
-  const i=document.getElementById('auth-inp'),ico=document.getElementById('eye-icon');
-  if(i.type==='password'){i.type='text';ico.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';}
-  else{i.type='password';ico.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
-}
-function clearSaved(){localStorage.removeItem(SK);document.getElementById('auth-saved').style.display='none';toast('Token removido.','info');}
+// ─── OTP AUTH STATE ─────────────────────────────────────────────
+let _OTP_TG_ID = 0;
+let _OTP_TIMER_INT = null;
 
-async function doLogin(){
-  const tk=document.getElementById('auth-inp').value.trim();
-  if(!tk){toast('Cole o token primeiro.','err');return;}
-  const btn=document.getElementById('auth-btn'),errEl=document.getElementById('auth-err'),okEl=document.getElementById('auth-ok-msg');
-  errEl.style.display='none';okEl.style.display='none';btn.disabled=true;
-  document.getElementById('auth-btn-txt').textContent='Verificando...';document.getElementById('auth-btn-ico').style.display='none';
-  const res=await verifyTk(tk);
-  if(res&&res.ok){
-    okEl.style.display='flex';_TK=tk;_ID=res.admin_id;_ROLE=res.role;_SUP=res.is_supreme;
-    localStorage.setItem(SK,tk);
-    setLoader('Autenticando...', 60);
-    document.getElementById('auth-gate').style.display='none';
-    document.getElementById('global-loader').style.display='flex';
-    document.getElementById('global-loader').classList.remove('hidden');
-    setTimeout(()=>{setLoader('Carregando painel...',90);setTimeout(()=>bootApp(res),300);},400);
-  }else{
-    errEl.style.display='flex';
-    document.getElementById('auth-err-msg').textContent=(res&&res.message)||'Token inválido ou expirado.';
-    btn.disabled=false;document.getElementById('auth-btn-txt').textContent='Autenticar Acesso Seguro';
+async function requestOTP() {
+  const tgIdVal = document.getElementById('auth-tgid').value.trim();
+  const errEl = document.getElementById('auth-err');
+  const btn = document.getElementById('auth-req-btn');
+  const txt = document.getElementById('auth-req-txt');
+  errEl.style.display = 'none';
+  if (!tgIdVal || isNaN(tgIdVal) || tgIdVal.length < 5) {
+    errEl.style.display = 'flex';
+    document.getElementById('auth-err-msg').textContent = 'Digite seu Telegram ID (somente números, mínimo 5 dígitos).';
+    return;
+  }
+  btn.disabled = true;
+  txt.textContent = 'Enviando...';
+  try {
+    const res = await fetch('/api/admin/request-code', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({tg_id: tgIdVal})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      _OTP_TG_ID = parseInt(tgIdVal);
+      // Mostra perfil do admin
+      const nameEl = document.getElementById('auth-admin-name');
+      const avEl   = document.getElementById('auth-av');
+      const letterEl = document.getElementById('auth-av-letter');
+      if (nameEl) nameEl.textContent = data.name || 'Admin #' + tgIdVal;
+      const letter = (data.name || 'A').charAt(0).toUpperCase();
+      if (data.avatar) {
+        avEl.innerHTML = `<img src="${data.avatar}" alt="avatar" onerror="this.parentElement.innerHTML='<span>${letter}</span>'" />`;
+      } else if (letterEl) {
+        letterEl.textContent = letter;
+      }
+      // Troca de step
+      document.getElementById('auth-step1').style.display = 'none';
+      document.getElementById('auth-step2').style.display = '';
+      document.querySelectorAll('.pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
+      document.getElementById('pin0').focus();
+      // Habilita botão quando todos os dígitos estiverem preenchidos
+      document.getElementById('auth-pin-btn').disabled = true;
+      startPinCountdown(data.expires || 600);
+      toast('Código enviado pelo Telegram! Verifique seu bot. 🔐', 'ok', 5000);
+    } else {
+      errEl.style.display = 'flex';
+      document.getElementById('auth-err-msg').textContent = data.message || 'Erro ao enviar código. Tente novamente.';
+      btn.disabled = false;
+      txt.textContent = 'Enviar Código pelo Telegram';
+    }
+  } catch {
+    errEl.style.display = 'flex';
+    document.getElementById('auth-err-msg').textContent = 'Erro de conexão. Verifique sua internet.';
+    btn.disabled = false;
+    txt.textContent = 'Enviar Código pelo Telegram';
   }
 }
-document.getElementById('auth-inp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function setupPinBoxes() {
+  const boxes = document.querySelectorAll('.pin-box');
+  boxes.forEach((box, idx) => {
+    box.addEventListener('input', e => {
+      const val = e.target.value.replace(/\D/g, '');
+      e.target.value = val.slice(-1);
+      e.target.classList.toggle('filled', !!e.target.value);
+      if (e.target.value && idx < boxes.length - 1) boxes[idx+1].focus();
+      checkPinComplete();
+    });
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value && idx > 0) boxes[idx-1].focus();
+      if (e.key === 'Enter') verifyOTP();
+    });
+    box.addEventListener('paste', e => {
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+      if (paste.length >= 6) {
+        [...paste.slice(0,6)].forEach((d,i) => { boxes[i].value = d; boxes[i].classList.add('filled'); });
+        boxes[5].focus();
+        checkPinComplete();
+        e.preventDefault();
+      }
+    });
+  });
+}
+
+function checkPinComplete() {
+  const code = getPinCode();
+  const btn = document.getElementById('auth-pin-btn');
+  if (btn) btn.disabled = code.length < 6;
+  if (code.length === 6) verifyOTP();
+}
+
+function getPinCode() {
+  return [...document.querySelectorAll('.pin-box')].map(b => b.value).join('');
+}
+
+function startPinCountdown(secs) {
+  if (_OTP_TIMER_INT) clearInterval(_OTP_TIMER_INT);
+  let remaining = secs;
+  const el = document.getElementById('pin-countdown');
+  const update = () => {
+    if (!el) return;
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+    if (remaining <= 0) {
+      clearInterval(_OTP_TIMER_INT);
+      el.textContent = 'Expirado';
+      el.style.color = 'var(--c-red, #EF4444)';
+    }
+    remaining--;
+  };
+  update();
+  _OTP_TIMER_INT = setInterval(update, 1000);
+}
+
+async function verifyOTP() {
+  const code = getPinCode();
+  if (code.length < 6) return;
+  const btn = document.getElementById('auth-pin-btn');
+  const errEl = document.getElementById('auth-pin-err');
+  const okEl = document.getElementById('auth-ok-msg');
+  const txt = document.getElementById('auth-pin-txt');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  btn.disabled = true; txt.textContent = 'Verificando...';
+  try {
+    const res = await fetch('/api/admin/verify-code', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({tg_id: _OTP_TG_ID, code: code})
+    });
+    const data = await res.json();
+    if (data.ok && data.token) {
+      okEl.style.display = 'flex';
+      if (_OTP_TIMER_INT) clearInterval(_OTP_TIMER_INT);
+      localStorage.setItem(SK, data.token);
+      bootWithSession(data);
+    } else {
+      errEl.style.display = 'flex';
+      document.getElementById('auth-pin-err-msg').textContent = data.message || 'Código inválido ou expirado.';
+      document.querySelectorAll('.pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
+      document.getElementById('pin0').focus();
+      btn.disabled = false; txt.textContent = 'Verificar Código';
+    }
+  } catch {
+    errEl.style.display = 'flex';
+    document.getElementById('auth-pin-err-msg').textContent = 'Erro de conexão.';
+    btn.disabled = false; txt.textContent = 'Verificar Código';
+  }
+}
+
+function bootWithSession(res) {
+  _TK = res.token; _ID = res.admin_id; _ROLE = res.role; _SUP = res.is_supreme;
+  setLoader('Autenticando...', 60);
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('global-loader').style.display = 'flex';
+  document.getElementById('global-loader').classList.remove('hidden');
+  setTimeout(() => { setLoader('Carregando painel...', 90); setTimeout(() => bootApp(res), 300); }, 400);
+}
+
+function backToStep1() {
+  if (_OTP_TIMER_INT) clearInterval(_OTP_TIMER_INT);
+  _OTP_TG_ID = 0;
+  document.getElementById('auth-step2').style.display = 'none';
+  document.getElementById('auth-step1').style.display = '';
+  document.getElementById('auth-req-btn').disabled = false;
+  document.getElementById('auth-req-txt').textContent = 'Enviar Código pelo Telegram';
+}
+
+function requestOTPAgain() {
+  if (!_OTP_TG_ID) { backToStep1(); return; }
+  document.getElementById('auth-tgid').value = _OTP_TG_ID;
+  backToStep1();
+  requestOTP();
+}
+
+function toggleRecovery() {
+  const el = document.getElementById('auth-recovery');
+  el.style.display = el.style.display === 'none' || !el.style.display ? '' : 'none';
+}
+
+async function doRecovery() {
+  const tgId = document.getElementById('rec-tgid').value.trim();
+  const kw   = document.getElementById('rec-keyword').value.trim();
+  const errEl = document.getElementById('rec-err');
+  errEl.style.display = 'none';
+  if (!tgId || !kw) { errEl.style.display = 'flex'; document.getElementById('rec-err-msg').textContent = 'Preencha todos os campos.'; return; }
+  try {
+    const res = await fetch('/api/admin/recover', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({tg_id: tgId, keyword: kw})
+    });
+    const data = await res.json();
+    if (data.ok && data.token) {
+      toast('Acesso recuperado!', 'ok', 3000);
+      localStorage.setItem(SK, data.token);
+      bootWithSession(data);
+    } else {
+      errEl.style.display = 'flex';
+      document.getElementById('rec-err-msg').textContent = data.message || 'Palavra-chave incorreta.';
+    }
+  } catch {
+    errEl.style.display = 'flex';
+    document.getElementById('rec-err-msg').textContent = 'Erro de conexão.';
+  }
+}
 
 async function verifyTk(tk){
   try{const r=await fetch('/api/admin/verify-token',{headers:{'Authorization':'Bearer '+tk}});if(!r.ok&&r.status===429)return{ok:false,message:'Muitas tentativas. Aguarde 30min.'};return await r.json();}catch{return null;}
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  setupPinBoxes();
+  // Auto-login from saved token
+  const saved = localStorage.getItem(SK);
+  if (saved) {
+    verifyTk(saved).then(res => {
+      if (res && res.ok) {
+        _TK = saved;
+        bootWithSession({token: saved, admin_id: res.admin_id, role: res.role, is_supreme: res.is_supreme, profile: res.profile, plan: res.plan});
+      }
+    });
+  }
+});
+
 // Store profile globally
 let _PROF = {};
+
 
 function applyProfileUI(prof, id, sup, role, slug) {
   const name = (prof && prof.display_name && !prof.display_name.startsWith('Admin #')) 

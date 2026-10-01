@@ -667,6 +667,33 @@ def api_config(slug=None):
 ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "0").split(",") if x.strip().isdigit()]
 SUPER_ADMIN_IDS = [int(x) for x in os.environ.get("SUPER_ADMIN_IDS", os.environ.get("ADMIN_IDS", "0")).split(",") if x.strip().isdigit()]
 
+# ─── 6-DIGIT OTP STORE (TTL 10min, uso único) ─────────────────────────────────
+_OTP_STORE: dict = {}
+_OTP_TTL = 600  # 10 minutos
+
+def _otp_generate(tg_id: int) -> str:
+    import random
+    code = str(random.randint(100000, 999999))
+    _OTP_STORE[tg_id] = {"code": code, "expires": time.time() + _OTP_TTL, "attempts": 0}
+    for k in [k for k, v in list(_OTP_STORE.items()) if v["expires"] < time.time()]:
+        _OTP_STORE.pop(k, None)
+    return code
+
+def _otp_validate(tg_id: int, code: str) -> bool:
+    rec = _OTP_STORE.get(tg_id)
+    if not rec or rec["expires"] < time.time():
+        _OTP_STORE.pop(tg_id, None)
+        return False
+    rec["attempts"] += 1
+    if rec["attempts"] > 5:
+        _OTP_STORE.pop(tg_id, None)
+        return False
+    if rec["code"] == code.strip():
+        _OTP_STORE.pop(tg_id, None)
+        return True
+    return False
+
+
 def verify_admin_access(req) -> tuple[Optional[int], str]:
     """
     Valida acesso ao painel admin com criptografia e validaÃ§Ã£o de tokens.
@@ -755,6 +782,177 @@ def api_admin_verify_token():
             "avatar_url":   prof.get("avatar_url", ""),
             "bio":          prof.get("bio", ""),
             "contact":      prof.get("contact", ""),
+        }
+    })
+
+
+@app.route('/api/admin/request-code', methods=['POST'])
+def api_admin_request_code():
+    """
+    Recebe o Telegram ID do admin, gera um código OTP de 6 dígitos,
+    envia via Telegram e retorna o perfil (nome + avatar) para a tela de login.
+    """
+    ip = _user_ip()
+    if is_rate_limited(ip, limit=5, window=60):
+        return jsonify({"ok": False, "error": "rate_limit", "message": "Muitas requisições. Aguarde 1 minuto."}), 429
+
+    data = request.get_json(silent=True) or {}
+    tg_id_raw = str(data.get("tg_id", "")).strip()
+
+    if not tg_id_raw or not tg_id_raw.isdigit():
+        return jsonify({"ok": False, "error": "tg_id_invalido"}), 400
+
+    tg_id = int(tg_id_raw)
+
+    # Gera o código OTP
+    code = _otp_generate(tg_id)
+
+    # Busca perfil do admin para mostrar na tela de login
+    prof = {}
+    if TG_WH_AVAILABLE:
+        try:
+            prof = tg_wh.get_tenant_profile(tg_id) or {}
+        except Exception:
+            prof = {}
+
+    name    = prof.get("display_name") or f"Admin #{tg_id}"
+    avatar  = prof.get("avatar_url", "")
+
+    # Envia código via Telegram
+    if TG_WH_AVAILABLE:
+        try:
+            msg = (
+                f"<b>🔐 Código de Acesso ao Painel Web</b>\n\n"
+                f"Olá, <b>{name}</b>!\n\n"
+                f"<b>Seu código de 6 dígitos:</b>\n"
+                f"<code>  {code[:3]} {code[3:]}</code>\n\n"
+                f"<i>⏳ Válido por 10 minutos. Uso único.</i>\n"
+                f"<i>🔒 Nunca compartilhe este código.</i>"
+            )
+            tg_wh.send_msg(tg_id, msg)
+        except Exception as e:
+            print(f"[OTP] Erro ao enviar código Telegram: {e}")
+
+    return jsonify({
+        "ok":      True,
+        "name":    name,
+        "avatar":  avatar,
+        "expires": 600,
+    })
+
+
+@app.route('/api/admin/verify-code', methods=['POST'])
+def api_admin_verify_code():
+    """
+    Valida o código OTP de 6 dígitos.
+    Se válido, gera e retorna o token de sessão completo (48 chars) + perfil.
+    """
+    ip = _user_ip()
+    if is_auth_brute_forced(ip):
+        return jsonify({"ok": False, "message": "IP bloqueado por muitas tentativas."}), 429
+    if is_rate_limited(ip, limit=15, window=60):
+        return jsonify({"ok": False, "error": "rate_limit"}), 429
+
+    data   = request.get_json(silent=True) or {}
+    tg_id  = int(data.get("tg_id", 0) or 0)
+    code   = str(data.get("code", "")).strip()
+
+    if not tg_id or not code:
+        record_auth_failure(ip)
+        return jsonify({"ok": False, "error": "dados_invalidos"}), 400
+
+    if not _otp_validate(tg_id, code):
+        record_auth_failure(ip)
+        return jsonify({"ok": False, "message": "Código inválido ou expirado. Solicite um novo."}), 401
+
+    reset_auth_failures(ip)
+
+    # Gera token de sessão completo
+    session_token = ""
+    if BOT_AVAILABLE:
+        try:
+            session_token = admin_bot.generate_admin_token(tg_id)
+        except Exception:
+            session_token = ""
+
+    is_supreme = (tg_id in SUPER_ADMIN_IDS) or (ADMIN_IDS and tg_id in ADMIN_IDS and tg_id == ADMIN_IDS[0])
+    role = "supreme_admin" if is_supreme else "admin"
+
+    prof = {}
+    plan = {}
+    if TG_WH_AVAILABLE:
+        try:
+            prof = tg_wh.get_tenant_profile(tg_id) or {}
+            plan = tg_wh.get_user_plan(tg_id) or {}
+            tg_wh.notify_admin_access(tg_id, role, ip, str(request.user_agent))
+        except Exception:
+            pass
+
+    return jsonify({
+        "ok":        True,
+        "token":     session_token,
+        "admin_id":  tg_id,
+        "role":      role,
+        "is_supreme": is_supreme,
+        "plan":      plan,
+        "profile": {
+            "display_name": prof.get("display_name", ""),
+            "avatar_url":   prof.get("avatar_url", ""),
+            "bio":          prof.get("bio", ""),
+            "contact":      prof.get("contact", ""),
+        }
+    })
+
+
+@app.route('/api/admin/recover', methods=['POST'])
+def api_admin_recover():
+    """
+    Recuperação de conta: admin informa seu tg_id + palavra-chave suprema.
+    Se correta, gera novo token de acesso sem precisar de OTP.
+    Palavra-chave definida via env RECOVERY_KEYWORD (apenas o Admin Supremo sabe).
+    """
+    ip = _user_ip()
+    if is_auth_brute_forced(ip):
+        return jsonify({"ok": False, "message": "IP bloqueado."}), 429
+
+    data    = request.get_json(silent=True) or {}
+    tg_id   = int(data.get("tg_id", 0) or 0)
+    keyword = str(data.get("keyword", "")).strip()
+
+    recovery_kw = os.environ.get("RECOVERY_KEYWORD", "")
+    if not recovery_kw or not keyword or keyword != recovery_kw:
+        record_auth_failure(ip)
+        return jsonify({"ok": False, "message": "Palavra-chave incorreta."}), 401
+
+    reset_auth_failures(ip)
+
+    session_token = ""
+    if BOT_AVAILABLE:
+        try:
+            session_token = admin_bot.generate_admin_token(tg_id)
+        except Exception:
+            pass
+
+    is_supreme = (tg_id in SUPER_ADMIN_IDS) or (ADMIN_IDS and tg_id in ADMIN_IDS and tg_id == ADMIN_IDS[0])
+    role = "supreme_admin" if is_supreme else "admin"
+
+    prof = {}
+    if TG_WH_AVAILABLE:
+        try:
+            prof = tg_wh.get_tenant_profile(tg_id) or {}
+            tg_wh.notify_admin_access(tg_id, role, ip, f"RECOVERY via palavra-chave - {str(request.user_agent)}")
+        except Exception:
+            pass
+
+    return jsonify({
+        "ok":        True,
+        "token":     session_token,
+        "admin_id":  tg_id,
+        "role":      role,
+        "is_supreme": is_supreme,
+        "profile": {
+            "display_name": prof.get("display_name", ""),
+            "avatar_url":   prof.get("avatar_url", ""),
         }
     })
 
