@@ -219,6 +219,50 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
         CREATE INDEX IF NOT EXISTS idx_events_time ON events(created_at);
         CREATE INDEX IF NOT EXISTS idx_sessions_sid ON sessions(session_id);
+        CREATE TABLE IF NOT EXISTS payments (
+            payment_id    TEXT PRIMARY KEY,
+            c7_id         TEXT,
+            external_id   TEXT,
+            amount        REAL NOT NULL DEFAULT 0,
+            status        TEXT NOT NULL DEFAULT 'pending',
+            pix_code      TEXT,
+            qr_code_url   TEXT,
+            expires_at    TEXT,
+            payer_name    TEXT,
+            payer_cpf     TEXT,
+            ip            TEXT,
+            end_to_end_id TEXT,
+            net_amount    REAL,
+            fee_amount    REAL,
+            created_at    REAL NOT NULL,
+            confirmed_at  REAL
+        );
+        CREATE TABLE IF NOT EXISTS processed_webhooks (
+            webhook_id    TEXT PRIMARY KEY,
+            processed_at  REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS auth_failures (
+            ip            TEXT PRIMARY KEY,
+            count         INTEGER NOT NULL DEFAULT 0,
+            blocked_until REAL NOT NULL DEFAULT 0,
+            first_fail    REAL NOT NULL,
+            updated_at    REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS activity_log (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type    TEXT NOT NULL,
+            actor_id      INTEGER,
+            session_id    TEXT,
+            ip            TEXT,
+            slug          TEXT,
+            details_enc   TEXT,
+            created_at    REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_pay_c7id   ON payments(c7_id);
+        CREATE INDEX IF NOT EXISTS idx_pay_status  ON payments(status, created_at);
+        CREATE INDEX IF NOT EXISTS idx_pw_proc     ON processed_webhooks(processed_at);
+        CREATE INDEX IF NOT EXISTS idx_act_type    ON activity_log(event_type, created_at);
+        CREATE INDEX IF NOT EXISTS idx_act_actor   ON activity_log(actor_id, created_at);
     """)
     # Migrações seguras para colunas novas (caso tabela já exista sem elas)
     for col, default in [("old_price","''"),("image1","''"),("image2","''"),("image3","''")]:
@@ -1351,28 +1395,58 @@ def handle_incoming_messages(update: Update, context: CallbackContext):
     waiting = context.user_data.get("waiting_for")
     draft = context.user_data.get("embed_draft", {})
 
-    # Processamento de arquivos de mídia diretos enviados pelo usuário
+    # ─── MÍDIA PARA EMBED BUILDER ──────────────────────────────────────────────
     if waiting == "eb_media_url":
         media_file_id = None
-        media_type = None
+        media_type    = None
 
         if update.message.photo:
             media_file_id = update.message.photo[-1].file_id
-            media_type = "photo"
+            media_type    = "photo"
         elif update.message.video:
             media_file_id = update.message.video.file_id
-            media_type = "video"
+            media_type    = "video"
         elif update.message.animation:
             media_file_id = update.message.animation.file_id
-            media_type = "animation"
+            media_type    = "animation"
+        elif update.message.text and InputValidator.validate_url(update.message.text.strip()):
+            url = update.message.text.strip()
+            ext = url.split("?")[0].lower()
+            if any(ext.endswith(e) for e in (".mp4", ".mov", ".webm")):
+                media_file_id, media_type = url, "video"
+            elif any(ext.endswith(e) for e in (".gif",)):
+                media_file_id, media_type = url, "animation"
+            else:
+                media_file_id, media_type = url, "photo"
+
+        if media_file_id and media_type:
+            # ✅ CORRIÇÃO DO BUG: salva no draft corretamente
+            draft["media_url"]  = media_file_id
+            draft["media_type"] = media_type
+            context.user_data["embed_draft"] = draft
+            context.user_data.pop("waiting_for", None)
+            type_label = {"photo": "🖼 Imagem", "video": "🎬 Vídeo", "animation": "🎞 GIF/Animação"}.get(media_type, "Mídia")
+            update.message.reply_text(
+                f"✅ *{type_label} salva no rascunho!*\n`{str(media_file_id)[:60]}`",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=embed_builder_keyboard(draft)
+            )
+        else:
+            update.message.reply_text(
+                "❌ Envie uma foto, vídeo, GIF ou link direto de mídia (https://...png/mp4).",
+                reply_markup=embed_builder_keyboard(draft)
+            )
+        return
+
+    # ─── FOTO DE PRODUTO POR SLOT ──────────────────────────────────────────────
     if waiting and waiting.startswith("product_photo_slot_"):
-        slot_num = waiting.replace("product_photo_slot_", "")
+        slot_num  = waiting.replace("product_photo_slot_", "")
         photo_url = None
 
         if update.message.photo:
             file_id = update.message.photo[-1].file_id
             try:
-                bot_file = context.bot.get_file(file_id)
+                bot_file  = context.bot.get_file(file_id)
                 photo_url = bot_file.file_path
             except Exception:
                 photo_url = file_id
@@ -1394,7 +1468,7 @@ def handle_incoming_messages(update: Update, context: CallbackContext):
             update.message.reply_text("❌ Envie uma foto válida ou um link de imagem válido.")
             return
 
-    # Processamento de texto
+    # ─── PROCESSAMENTO DE TEXTO ────────────────────────────────────────────────
     if not update.message.text:
         return
 

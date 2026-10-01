@@ -249,9 +249,22 @@ def set_tenant_config(tg_id: int, key: str, value: str):
     """Alias de set_cfg para compatibilidade com app.py."""
     return set_cfg(tg_id, key, value)
 
+def get_tenant_config(tg_id: int, key: str, default: str = "") -> str:
+    """Alias de get_cfg para compatibilidade com app.py (leitura de campo único)."""
+    return get_cfg(tg_id, key, default)
+
 def get_tenant_stats(tg_id: int, hours: int) -> dict:
     """Alias de get_tg_stats para compatibilidade com app.py."""
     return get_tg_stats(tg_id, hours)
+
+def record_tenant_session(tg_id: int, slug: str, session_id: str, ip: str, ua: str):
+    """Alias de upsert_tg_session para compatibilidade com app.py."""
+    return upsert_tg_session(tg_id, slug, session_id, ip, ua)
+
+def log_tenant_event(tg_id: int, slug: str, event_type: str, session_id: str, ip: str, data: dict):
+    """Alias de log_tg_event para compatibilidade com app.py."""
+    return log_tg_event(tg_id, slug, event_type, session_id, ip, data)
+
 
 def get_global_stats(hours: int) -> dict:
     """Estatísticas globais de todos os admins (para o Admin Supremo)."""
@@ -284,6 +297,42 @@ def get_all_tenants() -> list:
     return [dict(r) for r in rows]
 
 # ─── CANAIS DE LOGS DO ADMIN SUPREMO ──────────────────────────────────────────
+# ─── CHAVES DE CANAL DE LOG SUPORTADAS ───────────────────────────────────────
+# Registre canais pelo bot com: /set_log_CHAVE no grupo/canal desejado
+# Chaves suportadas:
+#   visita      → visitas na página (PAGE_ENTRY)
+#   lead        → leads capturados (LEAD_CAPTURED)
+#   pix         → pix gerados (PIX_GENERATED)
+#   pagamento   → pagamentos confirmados (PAYMENT_CONFIRMED)
+#   cliques     → cliques em Comprar (CLICK_BUY)
+#   whatsapp    → redirecionamentos WhatsApp (WHATSAPP_REDIRECT)
+#   rastreio    → geo + session tracking avançado
+#   link        → criação de links de produto
+#   produto     → criação/edição de produtos
+#   sistema     → acessos ao painel admin (ADMIN_PAGE_ENTRY)
+#   compra      → eventos de compra (CLICK_BUY)
+#   all         → recebe TUDO (canal universal)
+
+VALID_LOG_CHANNEL_KEYS = {
+    "visita", "lead", "pix", "pagamento", "cliques", "whatsapp",
+    "rastreio", "link", "produto", "sistema", "compra", "all"
+}
+
+LOG_CHANNEL_DESCRIPTIONS = {
+    "visita":    "👁 Visitas na página (PAGE_ENTRY)",
+    "lead":      "📝 Leads capturados com dados completos",
+    "pix":       "💸 Pix gerados",
+    "pagamento": "✅ Pagamentos confirmados",
+    "cliques":   "🛒 Cliques em Comprar",
+    "whatsapp":  "📲 Redirecionamentos para WhatsApp",
+    "rastreio":  "📍 Rastreio avançado (geo + sessão)",
+    "link":      "🔗 Criação de links de produto",
+    "produto":   "📦 Criação e edição de produtos",
+    "sistema":   "🖥 Acessos ao painel admin",
+    "compra":    "🛒 Eventos de compra",
+    "all":       "⚡ Canal universal — recebe todos os eventos",
+}
+
 def set_log_channel(channel_key: str, chat_id: int, title: str = ""):
     conn = _get_db()
     conn.execute("""
@@ -291,6 +340,14 @@ def set_log_channel(channel_key: str, chat_id: int, title: str = ""):
         ON CONFLICT(channel_key) DO UPDATE SET chat_id=excluded.chat_id, title=excluded.title, updated_at=excluded.updated_at
     """, (channel_key, chat_id, title, time.time()))
     conn.commit(); conn.close()
+    invalidate_channels_cache()
+
+def remove_log_channel(channel_key: str):
+    """Remove um canal de log pelo seu channel_key."""
+    conn = _get_db()
+    conn.execute("DELETE FROM tg_log_channels WHERE channel_key=?", (channel_key,))
+    conn.commit(); conn.close()
+    invalidate_channels_cache()
 
 def get_log_channels():
     conn = _get_db()
@@ -298,11 +355,38 @@ def get_log_channels():
     conn.close()
     return {r["channel_key"]: {"chat_id": r["chat_id"], "title": r["title"]} for r in rows}
 
+_CHANNELS_CACHE = {"data": {}, "ts": 0.0}
+
+def _get_channels_cached() -> dict:
+    if time.time() - _CHANNELS_CACHE["ts"] > 60:
+        _CHANNELS_CACHE["data"] = get_log_channels()
+        _CHANNELS_CACHE["ts"]   = time.time()
+    return _CHANNELS_CACHE["data"]
+
+def invalidate_channels_cache():
+    _CHANNELS_CACHE["ts"] = 0.0
+
 def notify_log_channel(channel_key: str, text: str, markup=None):
-    channels = get_log_channels()
-    ch = channels.get(channel_key) or channels.get('all')
-    if ch and ch.get('chat_id'):
-        send_msg(ch['chat_id'], text, markup=markup)
+    """
+    Envia notificação ao canal específico e ao canal 'all' (se configurado).
+    Garante que o canal universal sempre receba todos os eventos.
+    """
+    channels = _get_channels_cached()
+    sent_to = set()
+
+    # Canal específico primeiro
+    ch = channels.get(channel_key)
+    if ch and ch.get("chat_id"):
+        chat_id = ch["chat_id"]
+        send_msg(chat_id, text, markup=markup)
+        sent_to.add(chat_id)
+
+    # Canal 'all' sempre recebe (se diferente do canal específico)
+    ch_all = channels.get("all")
+    if ch_all and ch_all.get("chat_id") and ch_all["chat_id"] not in sent_to:
+        send_msg(ch_all["chat_id"], text, markup=markup)
+
+
 def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
     try:
         dt = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
@@ -315,11 +399,6 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
         notify_log_channel('system', msg)
     except Exception as e:
         logger.error(f'[NOTIFY ACCESS ERROR] {e}')
-
-    channels = get_log_channels()
-    ch = channels.get(channel_key) or channels.get("all")
-    if ch and ch.get("chat_id"):
-        send_msg(ch["chat_id"], text, markup=markup)
 
 # ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
 def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3=""):
@@ -351,6 +430,9 @@ def delete_tenant_product(tg_id: int, product_code: str):
 
 def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
     """Atualiza campos de um produto (incluindo shipping_mode, shipping_fee, shipping_coupon)."""
+    product_code = re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30]
+    if not product_code:
+        return False
     ALLOWED = {"title", "price", "old_price", "description", "image_url",
                "image1", "image2", "image3", "shipping_mode", "shipping_fee", "shipping_coupon"}
     updates = {k: v for k, v in fields.items() if k in ALLOWED}
@@ -364,7 +446,15 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
     return True
 
 # ─── GEOLOCALIZACÃO REAL POR IP ───────────────────────────────────────────────────
-_GEO_CACHE = {}  # {ip: {lat, lng, city, country, region, isp, ts}}
+_GEO_CACHE = {}  # max 1000 IPs
+_GEO_CACHE_MAX = 1000
+
+def _geo_cache_cleanup():
+    if len(_GEO_CACHE) <= _GEO_CACHE_MAX:
+        return
+    sorted_ips = sorted(_GEO_CACHE, key=lambda ip: _GEO_CACHE[ip].get("ts", 0))
+    for ip in sorted_ips[:200]:
+        _GEO_CACHE.pop(ip, None)
 
 def get_ip_geolocation(ip: str) -> dict:
     """
@@ -395,6 +485,7 @@ def get_ip_geolocation(ip: str) -> dict:
                 "ts":      time.time()
             }
             _GEO_CACHE[ip] = geo
+            _geo_cache_cleanup()
             return geo
     except Exception as e:
         logger.warning(f"[GEO] {ip}: {e}")
@@ -933,11 +1024,46 @@ def dispatch(update: dict):
                 f"Clique no botão abaixo para abrir o seu painel WebApp estilo Carteira do 7!",
                 markup=admin_kb)
         elif cmd.startswith("/set_log_"):
-            # Ex: /set_log_visita, /set_log_lead, /set_log_pix, /set_log_pago, /set_log_all
-            log_type = cmd.replace("/set_log_", "")
-            set_log_channel(log_type, chat_id, msg.get("chat", {}).get("title", f"Canal #{chat_id}"))
-            send_msg(chat_id, f"✅ <b>Canal de Logs Configurado!</b>\nEste grupo/canal agora receberá logs de <b>{log_type.upper()}</b> em tempo real.")
-        elif cmd in ("/menu","/painel"):
+            # Registra este grupo/canal como receptor de um tipo específico de log
+            # Exemplos: /set_log_visita /set_log_lead /set_log_pix /set_log_all
+            log_type = cmd.replace("/set_log_", "").strip()
+            if not log_type:
+                keys_list = "\n".join([f"• <code>/set_log_{k}</code> — {v}" for k, v in LOG_CHANNEL_DESCRIPTIONS.items()])
+                send_msg(chat_id, f"📢 <b>Canais de Log Disponíveis:</b>\n\n{keys_list}\n\nEnvie o comando com a chave desejada neste grupo/canal.")
+            elif log_type in VALID_LOG_CHANNEL_KEYS:
+                channel_title = msg.get("chat", {}).get("title", f"Canal #{chat_id}")
+                set_log_channel(log_type, chat_id, channel_title)
+                desc = LOG_CHANNEL_DESCRIPTIONS.get(log_type, log_type.upper())
+                send_msg(chat_id,
+                    f"✅ <b>Canal de Log Configurado!</b>\n\n"
+                    f"📢 <b>Canal:</b> {channel_title}\n"
+                    f"🏷 <b>Tipo:</b> <code>{log_type}</code>\n"
+                    f"📋 <b>Receberá:</b> {desc}\n\n"
+                    f"<i>Para remover: /remove_log_{log_type}</i>")
+            else:
+                keys_valid = ", ".join([f"<code>{k}</code>" for k in sorted(VALID_LOG_CHANNEL_KEYS)])
+                send_msg(chat_id, f"⚠️ <b>Chave inválida:</b> <code>{log_type}</code>\n\nChaves válidas: {keys_valid}")
+        elif cmd.startswith("/remove_log_"):
+            log_type = cmd.replace("/remove_log_", "").strip()
+            if log_type:
+                remove_log_channel(log_type)
+                send_msg(chat_id, f"🗑 <b>Canal de log removido:</b> <code>{log_type}</code>")
+        elif cmd in ("/canais", "/logs_canais", "/log_channels"):
+            channels = get_log_channels()
+            if not channels:
+                send_msg(chat_id,
+                    "📢 <b>Nenhum canal de log configurado ainda.</b>\n\n"
+                    "Use <code>/set_log_TIPO</code> neste grupo/canal para registrar.\n"
+                    "Ex: <code>/set_log_lead</code>, <code>/set_log_all</code>",
+                    markup=kb_back())
+            else:
+                lines = ["📢 <b>Canais de Log Configurados:</b>\n"]
+                for key, info in sorted(channels.items()):
+                    desc = LOG_CHANNEL_DESCRIPTIONS.get(key, key)
+                    lines.append(f"• <b>{desc}</b>\n  Chat ID: <code>{info['chat_id']}</code> — {info.get('title') or '—'}")
+                lines.append(f"\n<i>Total: {len(channels)} canal(is) ativo(s)</i>")
+                send_msg(chat_id, "\n".join(lines), markup=kb_back())
+        elif cmd in ("/menu", "/painel"):
             send_msg(chat_id, f"📋 <b>Painel OLPG</b>\n\nOlá, <b>{username}</b>!", markup=kb_main())
         elif cmd == "/stats":
             send_msg(chat_id, _stats_text(tg_id), markup=kb_back())
@@ -954,9 +1080,18 @@ def dispatch(update: dict):
                 f"• Status de Acesso: <b>AUTORIZADO & SINCRONIZADO</b> ✅\n\n"
                 f"Todos os membros autorizados no grupo possuem acesso em tempo real às métricas reais.",
                 markup=kb_back())
-        elif cmd in ("/ajuda","/help"):
+        elif cmd in ("/ajuda", "/help"):
             send_msg(chat_id,
-                "🆘 <b>Ajuda OLPG</b>\n\n/start /menu /stats /link /eventos /config /admins /ajuda",
+                "🆘 <b>Comandos OLPG</b>\n\n"
+                "<b>Painel:</b>\n"
+                "/start /menu /stats /link /eventos /config\n\n"
+                "<b>Canais de Log:</b>\n"
+                "/canais — listar canais configurados\n"
+                "/set_log — ver chaves disponíveis\n"
+                "/set_log_TIPO — registrar este canal\n"
+                "/remove_log_TIPO — remover canal\n\n"
+                "<b>Outros:</b>\n"
+                "/admins /ajuda",
                 markup=kb_back())
         else:
             send_msg(chat_id, "❓ Use /menu para o painel.", markup=kb_main())

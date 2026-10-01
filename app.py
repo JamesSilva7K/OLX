@@ -193,7 +193,7 @@ def _update_payment_status(payment_id: str, status: str, **extra):
                     "UPDATE payments SET status=?,end_to_end_id=?,net_amount=?,"
                     "fee_amount=?,confirmed_at=? WHERE payment_id=? OR c7_id=?",
                     (status, extra.get("end_to_end_id",""), extra.get("net_amount"),
-                     extra.get("fee_amount"), import_time := time.time(),
+                     extra.get("fee_amount"), time.time(),
                      payment_id, payment_id))
             else:
                 conn.execute("UPDATE payments SET status=? WHERE payment_id=? OR c7_id=?",
@@ -214,17 +214,64 @@ def _mark_webhook_processed(key: str):
     except Exception:
         pass
 
+def _ensure_payment_tables(conn):
+    """Migracao segura: cria tabelas de pagamento se ainda nao existirem no DB legado."""
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS payments (
+            payment_id    TEXT PRIMARY KEY,
+            c7_id         TEXT,
+            external_id   TEXT,
+            amount        REAL NOT NULL DEFAULT 0,
+            status        TEXT NOT NULL DEFAULT 'pending',
+            pix_code      TEXT,
+            qr_code_url   TEXT,
+            expires_at    TEXT,
+            payer_name    TEXT,
+            payer_cpf     TEXT,
+            ip            TEXT,
+            end_to_end_id TEXT,
+            net_amount    REAL,
+            fee_amount    REAL,
+            created_at    REAL NOT NULL,
+            confirmed_at  REAL
+        );
+        CREATE TABLE IF NOT EXISTS processed_webhooks (
+            webhook_id    TEXT PRIMARY KEY,
+            processed_at  REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS auth_failures (
+            ip            TEXT PRIMARY KEY,
+            count         INTEGER NOT NULL DEFAULT 0,
+            blocked_until REAL NOT NULL DEFAULT 0,
+            first_fail    REAL NOT NULL,
+            updated_at    REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS activity_log (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type    TEXT NOT NULL,
+            actor_id      INTEGER,
+            session_id    TEXT,
+            ip            TEXT,
+            slug          TEXT,
+            details_enc   TEXT,
+            created_at    REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_pay_status ON payments(status, created_at);
+        CREATE INDEX IF NOT EXISTS idx_pw_proc    ON processed_webhooks(processed_at);
+    """)
+
 def _load_payments_from_db():
     if not BOT_AVAILABLE: return
     try:
         conn = admin_bot.get_db()
+        _ensure_payment_tables(conn)  # migracao segura: cria se nao existir
         rows = conn.execute(
             "SELECT * FROM payments WHERE status='pending' AND created_at>?",
             (time.time() - 86400,)).fetchall()
         for r in rows:
             d = dict(r)
-            pid = d.get("payment_id","")
-            c7id= d.get("c7_id","")
+            pid  = d.get("payment_id","")
+            c7id = d.get("c7_id","")
             if pid:  PAYMENTS_DB[pid]  = d
             if c7id: PAYMENTS_DB[c7id] = d
         prows = conn.execute(
