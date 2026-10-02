@@ -1638,7 +1638,7 @@ function applyProfileUI(prof, id, sup, role, slug) {
   // Session info in profile
   const ti = document.getElementById('prof-tok-id'); if (ti) ti.textContent = id || '—';
   const tr = document.getElementById('prof-tok-role'); if (tr) tr.textContent = role || '—';
-  const ts = document.getElementById('prof-tok-slug'); if (ts) ts.textContent = slug || '—';
+  const ts = document.getElementById('prof-tok-slug'); if (ts) ts.textContent = slug ? slug : (role==='supreme_admin' ? 'Master (S/ Slug)' : 'N/A');
 
   // Token security tab
   const tokPrev = document.getElementById('tok-prev'); if (tokPrev && _TK) tokPrev.textContent = _TK.slice(0,12)+'...'+_TK.slice(-4);
@@ -2578,9 +2578,8 @@ const GW_FIELDS = {
   pix_manual: [{key:'pix_key',label:'Chave Pix',pw:false,hint:'CPF, CNPJ, e-mail...'},{key:'pix_name',label:'Nome Recebedor',pw:false,hint:'Nome completo'},{key:'pix_city',label:'Cidade',pw:false,hint:'Sao Paulo'}],
   custom:     [{key:'raw_credentials',label:'Credenciais JSON',pw:false,hint:'{"key":"..."}'},{key:'base_url',label:'URL Base',pw:false,hint:'https://...'}],
 };
-const _origCfgTab = cfgTab;
 cfgTab = function(n, btn) {
-  ['produto','vendedor','whatsapp','badges','fotos','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});
+  ['visual','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});
   document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));
   const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');
   if(n==='sistema')loadStatus();
