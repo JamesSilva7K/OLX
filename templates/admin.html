@@ -257,8 +257,7 @@
     .sec-ttl svg{width:14px;height:14px;color:var(--c-purple3)}
 
     /* TABS */
-    .tabs-pill{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,0.04);border-radius:var(--r-md);overflow-x:auto;scrollbar-width:none}
-    .tabs-pill::-webkit-scrollbar{display:none}
+    .tabs-pill{display:flex;gap:6px;padding:4px;background:rgba(255,255,255,0.04);border-radius:var(--r-md);flex-wrap:wrap;justify-content:flex-start}
     .tp{flex-shrink:0;padding:7px 14px;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;color:var(--c-t3);background:transparent;transition:all .18s;white-space:nowrap}
     .tp.active{background:rgba(139,92,246,0.18);color:var(--c-purple3);box-shadow:0 0 0 1px rgba(139,92,246,0.3)}
 
@@ -477,10 +476,10 @@
     .prof-hero-slug{font-size:11px;color:var(--c-t3);font-family:monospace;margin-top:2px}
 
     /* PERSONAL STATS */
-    .pstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .pstat{background:var(--c-card2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:12px 14px;text-align:center}
-    .pstat-val{font-size:22px;font-weight:900;color:var(--c-text);letter-spacing:-0.5px;line-height:1}
-    .pstat-lbl{font-size:10px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.6px;margin-top:4px}
+    .pstat-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(70px, 1fr));gap:8px}
+    .pstat{background:var(--c-card2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:12px 6px;text-align:center}
+    .pstat-val{font-size:20px;font-weight:900;color:var(--c-text);letter-spacing:-0.5px;line-height:1}
+    .pstat-lbl{font-size:9.5px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.4px;margin-top:6px}
 
     /* SUPREME ADMIN PANEL */
     .sup-admin-card{background:var(--c-card2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px 16px;transition:all .18s}
@@ -2019,11 +2018,11 @@ async function loadProducts(){
           '<a href="'+prodLink+'" target="_blank" class="btn btn-g btn-xs" title="Abrir Link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'+
         '</div>'+
         '</div>'+
-        '<div class="prod-acts">'+
-        '<button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
-        '<button class="btn btn-g btn-xs" onclick="openEditProd(_pmap['+JSON.stringify(code)+'])">Editar</button>'+
-        '<button class="btn btn-g btn-xs" onclick="openLivePreview('+JSON.stringify(code)+')" title="Preview da página do cliente" style="color:var(--c-purple3);border-color:rgba(139,92,246,0.3)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
-        '<button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(title)+')" title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
+        '<div class="prod-acts" style="flex-wrap:wrap">'+
+        '<button class="btn btn-s btn-xs" onclick=\'applyProd('+JSON.stringify(code)+','+JSON.stringify(title)+')\'><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
+        '<button class="btn btn-g btn-xs" onclick=\'openEditProd(_pmap['+JSON.stringify(code)+'])\'>Editar</button>'+
+        '<button class="btn btn-g btn-xs" onclick=\'openLivePreview('+JSON.stringify(code)+')\' title="Preview da página do cliente" style="color:var(--c-purple3);border-color:rgba(139,92,246,0.3)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
+        '<button class="btn btn-d btn-xs" onclick=\'delProd('+JSON.stringify(code)+','+JSON.stringify(title)+')\' title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
         '</div></div>';
     }).join('');
   }catch(e){
