@@ -205,7 +205,7 @@
 
     /* PAGES */
     .app-pages{flex:1;overflow:hidden;position:relative}
-    .page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px calc(var(--nav-h) + var(--safe-b) + 16px);display:none;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,0.3) transparent}
+    .page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px calc(var(--nav-h) + var(--twa-safe-bottom, 0px) + 40px);display:none;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,0.3) transparent}
     .page.active{display:flex;animation:pageIn .25s ease}
     @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
@@ -645,33 +645,7 @@
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Responsive Desktop Enhancements */
-@media (min-width: 768px) {
-  #app-shell {
-    max-width: 1024px;
-    margin: 2vh auto;
-    height: 96vh;
-    border-radius: 24px;
-    border: 1px solid var(--c-border);
-    box-shadow: 0 20px 80px rgba(0,0,0,0.6);
-    overflow: hidden;
-  }
-  .bnav {
-    position: absolute;
-    max-width: 1024px;
-    border-radius: 0 0 24px 24px;
-  }
-  .page {
-    padding: 30px 40px calc(var(--nav-h) + 40px);
-    gap: 20px;
-  }
-  .kpi-grid, .qas, .pstat-grid, .fin-sub-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .card-body {
-    padding: 24px;
-  }
-}
+/* END RESPONSIVE CSS */
 </style>
 
   <!-- Telegram WebApp SDK -->
@@ -1149,8 +1123,6 @@
         <button class="btn btn-d btn-w mt-12" onclick="doLogout()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair do Painel</button>
       </div>
 
-    </section>
-
     <!-- PROFILE -->
     <!-- ct-financeiro is managed by cfgTab inside page-config -->
       <div id="ct-financeiro" class="hidden">
@@ -1259,6 +1231,7 @@
           <div class="card-body" id="vault-audit-list" style="padding:8px 16px"><div class="empty"><p>Carregando...</p></div></div>
         </div>
       </div>
+    </section>
 
     <section class="page" id="page-profile">
 
