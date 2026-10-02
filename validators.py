@@ -23,7 +23,7 @@ _ALLOWED = {
     "cep":          re.compile(r"^\d{8}$"),
     "email":        re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,10}$"),
     "price":        re.compile(r"^\d{1,8}([.,]\d{1,2})?$"),
-    "url":          re.compile(r"^https?://[^\s<>\"]{5,500}$"),
+    "url":          re.compile(r"^(https?://|/)[^\s<>\"]{5,500}$"),
     "slug":         re.compile(r"^[a-z0-9_\-]{2,60}$"),
     "product_name": re.compile(r"^[\w\s\.\-\+\/\(\)&%!,]{2,200}$"),
     "wa_number":    re.compile(r"^55\d{10,11}$"),
@@ -120,8 +120,8 @@ class FieldValidator:
     def validate_url(cls, value):
         v = cls.sanitize(value, field_type="url").strip()
         if not v: return True, ""
-        if not re.match(r"^https?://[^\s<>\"]{5,500}$", v):
-            return False, "URL invalida. Deve comecar com https://"
+        if not re.match(r"^(https?://|/)[^\s<>\"]{5,500}$", v):
+            return False, "URL invalida. Deve comecar com https:// ou /"
         if cls.has_injection(v): return False, "URL contem conteudo suspeito."
         return True, v
 

@@ -1069,7 +1069,7 @@
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </button>
           </div>
-          <div class="mt-12" style="display:flex;gap:8px"><button class="btn btn-p" onclick="saveSellerCfg();saveBadges()" style="flex:1">Salvar Visual</button><button class="btn btn-d btn-sm" onclick="clearBadges()">Limpar</button></div>
+          <div class="mt-12" style="display:flex;gap:8px"><button class="btn btn-p" onclick="saveVisualCfg()" style="flex:1">Salvar Visual</button><button class="btn btn-d btn-sm" onclick="clearBadges()">Limpar</button></div>
         </div></div>
       </div>
 
@@ -2186,10 +2186,10 @@ async function loadTgls(){try{const r=await apiFetch('/api/admin/config');const 
 
 async function saveCfg(u){try{const r=await apiFetch('/api/admin/config',{method:'POST',body:JSON.stringify(u)});const d=await r.json();if(d.ok)toast('Configurações salvas!','ok');else toast(d.error||d.message||'Erro.','err');}catch{toast('Erro.','err');}}
 function saveProdCfg(){saveCfg({product_name:document.getElementById('cfg-pname').value,product_price:document.getElementById('cfg-price').value,product_old_price:document.getElementById('cfg-oldp').value,product_description:document.getElementById('cfg-desc').value,product_image:document.getElementById('cfg-img').value});}
-function saveSellerCfg(){saveCfg({seller_name:document.getElementById('cfg-sname').value,seller_since:document.getElementById('cfg-ssince').value,seller_status:document.getElementById('cfg-sstatus').value,logo_url:document.getElementById('cfg-logo').value});}
+function saveSellerCfg(){saveCfg({seller_name:document.getElementById('cfg-sname').value,seller_since:document.getElementById('cfg-ssince').value,seller_status:document.getElementById('cfg-sstatus').value});}
 function saveWaCfg(){saveCfg({whatsapp_number:document.getElementById('cfg-wa').value,whatsapp_message:document.getElementById('cfg-wa-msg').value});}
 function saveTgl(k,v){saveCfg({[k]:v?'1':'0'});}
-function saveBadges(){saveCfg({payment_badges:JSON.stringify(_BADGES)});}
+function saveVisualCfg(){saveCfg({logo_url:document.getElementById('cfg-logo').value, payment_badges:JSON.stringify(_BADGES)});}
 function savePhotos(){saveCfg({product_image1:document.getElementById('pu1').value,product_image2:document.getElementById('pu2').value,product_image3:document.getElementById('pu3').value});}
 
 function cfgTab(n,btn){
