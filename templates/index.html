@@ -1698,8 +1698,71 @@
   const leadPhone = document.getElementById('lead-phone');
   const leadCep = document.getElementById('lead-cep');
 
-  leadCpf.addEventListener('input', e => e.target.value = maskCPF(e.target.value));
-  leadPhone.addEventListener('input', e => e.target.value = maskPhone(e.target.value));
+
+  // === VALIDAÇÃO AVANÇADA (REAL-TIME) ===
+  const AdvancedValidator = {
+    isValidCPF(cpf) {
+      cpf = cpf.replace(/\D/g, '');
+      if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+      let sum = 0, rest;
+      for (let i = 1; i <= 9; i++) sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+      rest = (sum * 10) % 11;
+      if (rest === 10 || rest === 11) rest = 0;
+      if (rest !== parseInt(cpf.substring(9, 10))) return false;
+      sum = 0;
+      for (let i = 1; i <= 10; i++) sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+      rest = (sum * 10) % 11;
+      if (rest === 10 || rest === 11) rest = 0;
+      return rest === parseInt(cpf.substring(10, 11));
+    },
+    isValidPhone(phone) {
+      let digits = phone.replace(/\D/g, '');
+      if (digits.length < 10 || digits.length > 11) return false;
+      const validDDDs = [11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,
+                         41,42,43,44,45,46,47,48,49,51,53,54,55,61,62,63,64,65,66,67,68,
+                         69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99];
+      const ddd = parseInt(digits.substring(0, 2));
+      if (!validDDDs.includes(ddd)) return false;
+      if (digits.length === 11 && digits.substring(2, 3) !== '9') return false;
+      return true;
+    },
+    isValidName(name) {
+      let parts = name.trim().split(' ');
+      return parts.length >= 2 && parts.every(p => p.length >= 2);
+    }
+  };
+
+  function applyValidationState(inputEl, isValid, msg = '') {
+    if (!inputEl) return;
+    if (inputEl.value.trim().length === 0) {
+      inputEl.style.borderColor = 'rgba(255,255,255,0.1)';
+      inputEl.style.boxShadow = 'none';
+      return;
+    }
+    if (isValid) {
+      inputEl.style.borderColor = '#10b981';
+      inputEl.style.boxShadow = '0 0 0 1px rgba(16,185,129,0.3)';
+    } else {
+      inputEl.style.borderColor = '#ef4444';
+      inputEl.style.boxShadow = '0 0 0 1px rgba(239,68,68,0.3)';
+    }
+  }
+
+  leadCpf.addEventListener('input', e => {
+    e.target.value = maskCPF(e.target.value);
+    applyValidationState(e.target, AdvancedValidator.isValidCPF(e.target.value));
+  });
+
+  leadPhone.addEventListener('input', e => {
+    e.target.value = maskPhone(e.target.value);
+    applyValidationState(e.target, AdvancedValidator.isValidPhone(e.target.value));
+  });
+
+  leadName.addEventListener('input', e => {
+    applyValidationState(e.target, AdvancedValidator.isValidName(e.target.value));
+  });
+
+
   leadCep.addEventListener('input', e => {
     e.target.value = maskCEP(e.target.value);
     const c = e.target.value.replace(/\D/g, '');
@@ -1725,6 +1788,22 @@
   let paymentPollTimer = null;
 
   btnAdvanceLead.addEventListener('click', async () => {
+    if (!AdvancedValidator.isValidName(leadName.value)) {
+      showToast('Digite seu nome completo.', 'error');
+      leadName.focus();
+      return;
+    }
+    if (!AdvancedValidator.isValidCPF(leadCpf.value)) {
+      showToast('CPF inválido. Verifique os números.', 'error');
+      leadCpf.focus();
+      return;
+    }
+    if (!AdvancedValidator.isValidPhone(leadPhone.value)) {
+      showToast('Telefone inválido. Informe um DDD e número corretos.', 'error');
+      leadPhone.focus();
+      return;
+    }
+
     const name = document.getElementById('lead-name').value.trim();
     const cpf = document.getElementById('lead-cpf').value.trim();
     const phone = document.getElementById('lead-phone').value.trim();
