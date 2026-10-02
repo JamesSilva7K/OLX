@@ -1780,8 +1780,8 @@ async function initTWA() {
     document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #3B82F6';
 
     if(initUnsafe.user && initUnsafe.user.photo_url){
-      const av = document.getElementById('twa-avatar');
-      av.innerHTML = '<img src="' + initUnsafe.user.photo_url + '" onerror="this.style.display=\'none\'"/>';
+      const av = document.getElementById('twa-av');
+      if (av) av.innerHTML = '<img src="' + initUnsafe.user.photo_url + '" onerror="this.style.display=\'none\'"/>';
     }
 
     try {
