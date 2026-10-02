@@ -2173,6 +2173,7 @@ def api_admin_request_code():
 
         try:
 
+            tg_wh.ensure_user(tg_id, f"Admin {tg_id}")
             prof = tg_wh.get_tenant_profile(tg_id) or {}
 
         except Exception:
@@ -2347,6 +2348,7 @@ def api_admin_verify_code():
 
         try:
 
+            tg_wh.ensure_user(tg_id, f"Admin {tg_id}")
             prof = tg_wh.get_tenant_profile(tg_id) or {}
 
             plan = tg_wh.get_user_plan(tg_id) or {}
@@ -2473,6 +2475,7 @@ def api_admin_recover():
 
         try:
 
+            tg_wh.ensure_user(tg_id, f"Admin {tg_id}")
             prof = tg_wh.get_tenant_profile(tg_id) or {}
 
             tg_wh.notify_admin_access(tg_id, role, ip, f"RECOVERY via palavra-chave - {str(request.user_agent)}")
@@ -2889,7 +2892,7 @@ def api_admin_profiles_all():
 
     if TG_WH_AVAILABLE:
 
-        profiles = tg_wh.get_all_tenant_profiles()
+        profiles = tg_wh.get_all_tenant_profiles(is_supreme=(role == "supreme_admin"))
 
     return jsonify({"ok": True, "profiles": profiles})
 
@@ -6724,6 +6727,7 @@ def api_admin_twa_login():
 
         try:
 
+            tg_wh.ensure_user(tg_id, f"Admin {tg_id}")
             prof = tg_wh.get_tenant_profile(tg_id) or {}
 
             plan = tg_wh.get_user_plan(tg_id) or {}

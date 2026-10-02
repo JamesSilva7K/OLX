@@ -735,15 +735,33 @@ def set_tenant_profile(tg_id, display_name="", avatar_url="", bio="", contact=""
     """, (tg_id, display_name, avatar_url, bio, contact, time.time()))
     conn.commit(); conn.close()
 
-def get_all_tenant_profiles():
+def get_all_tenant_profiles(is_supreme=False):
     conn = _get_db()
     rows = conn.execute("""
         SELECT u.tg_id, u.username, u.slug, p.display_name, p.avatar_url, p.bio, p.contact 
         FROM tg_users u LEFT JOIN tg_profiles p ON u.tg_id = p.tg_id 
         ORDER BY u.created_at DESC
     """).fetchall()
+    
+    res = []
+    for r in rows:
+        d = dict(r)
+        tid = d["tg_id"]
+        c_prod = conn.execute("SELECT COUNT(*) FROM tenant_products WHERE tg_id=?", (tid,)).fetchone()[0]
+        c_sales = conn.execute("SELECT COUNT(*) FROM tg_events WHERE tg_id=? AND event_type='PAYMENT_CONFIRMED'", (tid,)).fetchone()[0]
+        
+        d["products_count"] = c_prod
+        d["sales_count"] = c_sales
+        
+        if not is_supreme:
+            d.pop("bio", None)
+            d.pop("contact", None)
+            d.pop("slug", None)
+        res.append(d)
+        
     conn.close()
-    return [dict(r) for r in rows]
+    return res
+
 
 # ─── USER MANAGEMENT ──────────────────────────────────────────────────────────
 def user_exists(tg_id):
