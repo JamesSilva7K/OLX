@@ -172,6 +172,7 @@ def init_tenant_tables():
     _safe_add_column(conn, "tenant_products", "shipping_coupon", "TEXT NOT NULL DEFAULT ''")
     _safe_add_column(conn, "tenant_products", "coupon_active",   "INTEGER NOT NULL DEFAULT 1")
     _safe_add_column(conn, "tenant_products", "coupon_only_shipping", "INTEGER NOT NULL DEFAULT 1")
+    _safe_add_column(conn, "tenant_products", "coupon_discount_value", "TEXT NOT NULL DEFAULT ''")
     _safe_add_column(conn, "tg_sessions",     "lat",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
