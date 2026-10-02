@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>OLX Pay Admin — Painel</title>
   <meta name="description" content="Painel executivo OLX Pay — Mobile Admin Dashboard." />
   <meta name="theme-color" content="#0f0018" />
@@ -187,7 +187,7 @@
     .auth-saved{display:none;margin-bottom:16px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);font-size:12px;color:var(--c-t2)}
 
     /* APP SHELL */
-    #app-shell{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:1000px;margin:0 auto;position:relative;background:var(--c-surface)}
+    #app-shell{display:none;flex-direction:column;height:100%;width:100%;max-width:1000px;margin:0 auto;position:relative;background:var(--c-surface)}
 
     /* HEADER */
     .hdr{height:var(--hdr-h);flex-shrink:0;background:rgba(15,0,24,0.97);border-bottom:1px solid var(--c-border);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:50}
@@ -206,7 +206,7 @@
 
     /* PAGES */
     .app-pages{flex:1;overflow:hidden;position:relative}
-    .page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px calc(var(--nav-h) + var(--twa-safe-bottom, 0px) + 40px);display:none;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,0.3) transparent}
+    .page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px calc(var(--nav-h) + var(--twa-safe-bottom, 0px) + 120px);display:none;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,0.3) transparent}
     .page.active{display:flex;animation:pageIn .25s ease}
     @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
@@ -652,6 +652,11 @@
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
+    document.addEventListener('wheel', function(e) {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    }, { passive: false });
     // TWA Init
     if (window.Telegram && window.Telegram.WebApp) {
       const twa = window.Telegram.WebApp;
