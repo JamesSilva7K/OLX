@@ -1840,7 +1840,7 @@ def api_config(slug=None):
 
 ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "0").split(",") if x.strip().isdigit()]
 
-SUPER_ADMIN_IDS = [int(x) for x in os.environ.get("SUPER_ADMIN_IDS", os.environ.get("ADMIN_IDS", "0")).split(",") if x.strip().isdigit()]
+SUPER_ADMIN_IDS = [int(x) for x in os.environ.get("SUPER_ADMIN_IDS", "").split(",") if x.strip().isdigit()]
 
 
 
@@ -1926,7 +1926,7 @@ def check_is_supreme(tg_id: int) -> bool:
 
         return True
 
-    if ADMIN_IDS and tg_id == ADMIN_IDS[0]:
+    if _SUPREME_ADMIN_ID and tg_id == _SUPREME_ADMIN_ID:
 
         return True
 
