@@ -379,12 +379,14 @@ def apply_security_headers(response):
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "script-src 'self' 'unsafe-inline' https://telegram.org https://fonts.googleapis.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: https: blob:; "
-        "connect-src 'self' https://viacep.com.br https://api.carteirado7.com https://ws.hubdodesenvolvedor.com.br; "
-        "frame-ancestors 'self';"
+        "connect-src 'self' https://viacep.com.br https://api.carteirado7.com "
+        "https://ws.hubdodesenvolvedor.com.br https://api.telegram.org https://api.qrserver.com; "
+        "frame-src 'self'; "
+        "frame-ancestors 'self' https://web.telegram.org;"
     )
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
@@ -688,9 +690,6 @@ def index(slug_or_code=None, item_code=None):
         if not allowed:
             return f"<h1>PÃ¡gina Temporariamente IndisponÃ­vel</h1><p>O limite mensal de visitas deste anÃºncio foi atingido ({current_clicks}/{max_clicks}). Contate o administrador.</p>", 429
 
-        tg_wh.record_tenant_session(tg_id, slug, sid, ip, ua[:200])
-        tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200], "item": item_code or "default"})
-
         cfgs = tg_wh.get_tenant_all_config(tg_id)
         
         # Se for um item específico do catálogo próprio do admin
@@ -703,8 +702,9 @@ def index(slug_or_code=None, item_code=None):
         p_img2 = (custom_item["image2"] if custom_item and custom_item["image2"] else cfgs.get("product_image2", ""))
         p_img3 = (custom_item["image3"] if custom_item and custom_item["image3"] else cfgs.get("product_image3", ""))
 
+        # Log de sessão e evento — feito UMA única vez após carregamento do produto
         tg_wh.record_tenant_session(tg_id, slug, sid, ip, ua[:200])
-        tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200], "item": item_code or "default"})
+        tg_wh.log_tenant_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:200], "item": item_code or "default", "product": p_name})
         _log("PAGE_ENTRY", sid, {
             "slug": slug,
             "ip": ip,
@@ -991,7 +991,7 @@ def verify_admin_access(req) -> tuple[Optional[int], str]:
             return tg_id, role
 
     admin_secret = os.environ.get("ADMIN_SECRET", "")
-    if admin_secret and token == admin_secret:
+    if admin_secret and hmac.compare_digest(token.encode(), admin_secret.encode()):
         reset_auth_failures(_user_ip())
         return 999999999, "supreme_admin"
 
@@ -1508,6 +1508,113 @@ def api_admin_load_config():
 
 # â”€â”€â”€ CATÃLOGO DE MULTI-PRODUTOS POR ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # ─── CATÁLOGO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────────────
+
+
+@app.route('/api/admin/profile', methods=['POST'])
+def api_admin_profile_save():
+    """Salva perfil público do admin (display_name, bio, contact, avatar_url)."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    data = request.json or {}
+    display_name = sanitize_input(data.get("display_name", ""), 80)
+    bio          = sanitize_input(data.get("bio", ""), 300)
+    contact      = sanitize_input(data.get("contact", ""), 100)
+    avatar_url   = sanitize_input(data.get("avatar_url", ""), 500)
+
+    if not display_name:
+        return jsonify({"ok": False, "error": "Nome de exibição é obrigatório."}), 400
+
+    prof = {
+        "display_name": display_name,
+        "bio":          bio,
+        "contact":      contact,
+        "avatar_url":   avatar_url,
+        "updated_at":   int(time.time()),
+    }
+
+    if TG_WH_AVAILABLE:
+        try:
+            tg_wh.set_tenant_profile(
+                admin_id,
+                display_name=display_name,
+                avatar_url=avatar_url,
+                bio=bio,
+                contact=contact
+            )
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Erro ao salvar perfil: {e}"}), 500
+    else:
+        return jsonify({"ok": False, "error": "Perfil indisponível neste modo."}), 503
+
+    if VALIDATORS_AVAILABLE and ActivityAudit:
+        ActivityAudit.log('admin_profile_save', actor_id=admin_id, ip=_user_ip(),
+                          details={'display_name': display_name})
+
+    return jsonify({"ok": True, "message": "Perfil salvo com sucesso!", "profile": prof})
+
+
+@app.route('/api/admin/preview', methods=['GET'])
+def api_admin_preview():
+    """
+    Retorna dados completos para preview em tempo real do produto do admin.
+    Inclui config do tenant + produto específico (por code) ou o produto ativo.
+    Usado pelo painel admin para renderizar preview ao vivo da página do cliente.
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    product_code = request.args.get("code", "").strip()
+    slug = ""
+    cfg  = {}
+    product = None
+    products = []
+
+    if TG_WH_AVAILABLE:
+        slug = tg_wh.get_slug(admin_id) or ""
+        cfg  = tg_wh.get_tenant_all_config(admin_id) or {}
+        if product_code:
+            p = tg_wh.get_product_by_code(product_code)
+            # Verifica se o produto pertence ao admin logado
+            if p and p.get("tg_id") == admin_id:
+                product = p
+        if not product:
+            prods = tg_wh.get_tenant_products(admin_id)
+            products = prods
+            # Tenta o produto marcado como ativo, fallback ao primeiro
+            product = next((p for p in prods if p.get("is_active")), prods[0] if prods else None)
+        else:
+            products = tg_wh.get_tenant_products(admin_id)
+    elif BOT_AVAILABLE:
+        cfg = {
+            "product_name":  admin_bot.get_config("product_name", "iPhone 11 64GB"),
+            "product_price": admin_bot.get_config("product_price", "630.00"),
+            "product_image": admin_bot.get_config("product_image", ""),
+            "seller_name":   admin_bot.get_config("seller_name", "Vendedor OLX"),
+            "logo_url":      admin_bot.get_config("logo_url", ""),
+            "whatsapp_number": admin_bot.get_config("whatsapp_number", ""),
+        }
+
+    # Monta URL do link público
+    if product_code and slug:
+        public_url = f"{BASE_URL}/p/{slug}/{product_code}"
+    elif product and slug:
+        code = product.get("product_code") or product.get("code") or ""
+        public_url = f"{BASE_URL}/p/{slug}/{code}" if code else f"{BASE_URL}/p/{slug}"
+    else:
+        public_url = f"{BASE_URL}/p/{slug}" if slug else BASE_URL
+
+    return jsonify({
+        "ok":         True,
+        "slug":       slug,
+        "config":     cfg,
+        "product":    product,
+        "products":   products,
+        "public_url": public_url,
+        "base_url":   BASE_URL,
+    })
 
 
 @app.route('/api/admin/my-products', methods=['GET', 'POST'])

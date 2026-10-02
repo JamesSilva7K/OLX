@@ -886,10 +886,73 @@
     <section class="page" id="page-products">
       <div class="flex-b mb-8">
         <div class="sec-ttl" style="margin:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>Produtos</div>
-        <button class="btn btn-p btn-sm" onclick="openAddProd()" style="width:auto"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-g btn-sm" onclick="openLivePreview()" id="btn-preview" style="width:auto;gap:5px" title="Ver preview em tempo real como o cliente verá">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
+          </button>
+          <button class="btn btn-p btn-sm" onclick="openAddProd()" style="width:auto"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo</button>
+        </div>
       </div>
       <div id="prods-grid" style="display:flex;flex-direction:column;gap:12px"><div class="empty"><p>Carregando...</p></div></div>
     </section>
+
+    <!-- LIVE PREVIEW OVERLAY -->
+    <div id="preview-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(8,0,16,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-direction:column;align-items:center;justify-content:flex-start;padding:12px 12px 0">
+      <!-- Preview Header -->
+      <div style="width:100%;max-width:440px;display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Preview em Tempo Real</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div id="pv-url-badge" style="font-size:11px;font-family:monospace;color:var(--c-purple3);background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);border-radius:6px;padding:2px 8px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+            <button onclick="copyPreviewUrl()" style="background:rgba(255,255,255,0.06);border:1px solid var(--c-border);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--c-t2);cursor:pointer;flex-shrink:0" title="Copiar link">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <a id="pv-open-btn" href="#" target="_blank" style="background:rgba(255,255,255,0.06);border:1px solid var(--c-border);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--c-t2);text-decoration:none;flex-shrink:0" title="Abrir página do cliente">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
+        </div>
+        <!-- Product selector -->
+        <select id="pv-product-sel" class="fsel" style="width:120px;height:32px;font-size:12px;flex-shrink:0" onchange="previewSelectProduct(this.value)" title="Selecionar produto para preview">
+          <option value="">Produto ativo</option>
+        </select>
+        <!-- Refresh -->
+        <button onclick="refreshPreview()" style="background:rgba(255,255,255,0.06);border:1px solid var(--c-border);border-radius:8px;padding:6px 10px;color:var(--c-t2);cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px" title="Atualizar preview">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <!-- Close -->
+        <button onclick="closeLivePreview()" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#F87171;cursor:pointer;flex-shrink:0" title="Fechar preview (Esc)">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <!-- Phone Frame -->
+      <div style="width:100%;max-width:390px;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center">
+        <div style="width:100%;background:#111;border-radius:28px 28px 0 0;border:2px solid rgba(255,255,255,0.12);border-bottom:none;overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,0.6)">
+          <!-- Status bar simulation -->
+          <div style="background:#0a0a0a;padding:6px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+            <span style="font-size:11px;font-weight:700;color:#fff" id="pv-time-bar">09:41</span>
+            <div style="display:flex;gap:4px;align-items:center">
+              <svg fill="currentColor" viewBox="0 0 24 24" width="12" height="12" style="color:#fff;opacity:.8"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+              <div style="width:18px;height:10px;border:1.5px solid rgba(255,255,255,0.7);border-radius:2px;padding:1px;"><div style="background:#34D399;height:100%;width:75%;border-radius:1px"></div></div>
+            </div>
+          </div>
+          <!-- Browser bar -->
+          <div style="background:#1a1a2e;padding:6px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.06)">
+            <div style="width:8px;height:8px;background:#34D399;border-radius:50%;flex-shrink:0"></div>
+            <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:6px;padding:3px 8px;font-size:10px;font-family:monospace;color:rgba(255,255,255,0.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="pv-url-bar">olx-9ee8.onrender.com/p/...</div>
+          </div>
+          <!-- iFrame content area -->
+          <div style="flex:1;min-height:0;overflow:hidden;position:relative" id="pv-frame-wrap">
+            <div id="pv-loading-overlay" style="position:absolute;inset:0;background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10">
+              <div class="spin" style="width:28px;height:28px;border-width:3px"></div>
+              <div style="font-size:12px;color:var(--c-t3);font-weight:600">Carregando página do cliente...</div>
+            </div>
+            <iframe id="pv-iframe" src="about:blank" style="width:100%;height:100%;border:none;display:block" onload="onPreviewIframeLoad(this)" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- CONFIG -->
     
@@ -1457,6 +1520,9 @@
 let _currentPage='dashboard';
 let _TK='',_ID=0,_ROLE='',_SUP=false,_SLUG=_JINJA_SLUG||'',_REF=null,_WA_T=null,_BADGES=[],_ALL_EV=[],_EV_F='all';
 const SK='blade_admin_v2';
+let _pmap = {};
+// Alias para compatibilidade: bootWithSession é a mesma coisa que bootApp
+function bootWithSession(session) { bootApp(session); }
 
 // ── ENHANCED TOAST SYSTEM ──────────────────────────────────────
 const TOAST_ICONS = {
@@ -1670,11 +1736,11 @@ function bootApp(a){
 }
 
 function doLogout(){
-  localStorage.removeItem(SK);_TK='';_ID=0;_ROLE='';_SUP=false;clearInterval(_REF);
-  document.getElementById('app-shell').style.display='none';document.getElementById('auth-gate').style.display='flex';
-  document.getElementById('auth-inp').value='';document.getElementById('auth-err').style.display='none';
-  document.getElementById('auth-ok-msg').style.display='none';document.getElementById('auth-btn').disabled=false;
-  document.getElementById('auth-btn-txt').textContent='Autenticar Acesso Seguro';toast('Sessão encerrada.','info');
+  localStorage.removeItem(SK);_TK='';_ID=0;_ROLE='';_SUP=false;
+  if(_REF){clearInterval(_REF);_REF=null;}
+  closeLivePreview();
+  toast('Sessão encerrada. Redirecionando...','info',1500);
+  setTimeout(()=>{ window.location.href=window.location.pathname; }, 1200);
 }
 
 
@@ -1766,15 +1832,11 @@ async function apiFetch(url,opts={}){return fetch(url,{...opts,headers:{...hdrs(
 
 // ── GLOBAL 401 / AUTH EXPIRY HANDLER ───────────────────────────
 function handleUnauth(){
-  clearInterval(_REF);
-  toast('Sessão expirada. Faça login novamente.','err',5000);
-  setTimeout(()=>{
-    _TK='';_ID=0;_ROLE='';_SUP=false;
-    document.getElementById('app-shell').style.display='none';
-    document.getElementById('auth-gate').style.display='flex';
-    document.getElementById('auth-inp').value='';
-    document.getElementById('auth-err').style.display='none';
-  },1500);
+  if(_REF){clearInterval(_REF);_REF=null;}
+  closeLivePreview();
+  localStorage.removeItem(SK);
+  toast('Sessão expirada. Redirecionando para login...','err',4000);
+  setTimeout(()=>{ window.location.href=window.location.pathname; },2000);
 }
 
 // ── GLOBAL API FETCH with auth + 401 handling ───────────────────
@@ -1833,7 +1895,8 @@ async function loadEvents(){
     const r=await apiFetch(url);
     if(!r||r.status===401){handleUnauth();return;}
     const d=await r.json();
-    _allEv=d.events||d.logs||[];
+  _allEv=d.events||d.logs||[];
+    _ALL_EV = _allEv;
     renderEv(_EV_F);
     const c=document.getElementById('ev-cnt');if(c)c.textContent=_allEv.length+' evento(s)';
   }catch(e){
@@ -1845,7 +1908,8 @@ async function loadEvents(){
 function filterEv(t,btn){_EV_F=t;document.querySelectorAll('#ev-tabs .tp').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');const titles={all:'Todos os Eventos',LEAD_CAPTURED:'Leads',CLICK_BUY:'Compras',PIX_GENERATED:'Pix Gerado',PAYMENT_CONFIRMED:'Pagamentos'};const el=document.getElementById('ev-title');if(el)el.textContent=titles[t]||'Eventos';renderEv(t);}
 function renderEv(f){
   const tb=document.getElementById('ev-tbody');if(!tb)return;
-  const list=f==='all'?_allEv:_allEv.filter(e=>e.type===f);
+  const src = (typeof _ALL_EV !== 'undefined' && _ALL_EV.length) ? _ALL_EV : (typeof _allEv !== 'undefined' ? _allEv : []);
+  const list=f==='all'?src:src.filter(e=>e.type===f);
   if(!list.length){tb.innerHTML='<tr><td colspan="4"><div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3>Sem eventos</h3><p>Nenhum evento nessa categoria.</p></div></td></tr>';return;}
   const bc={PAGE_ENTRY:'ev-entry',CLICK_BUY:'ev-buy',LEAD_CAPTURED:'ev-lead',PIX_GENERATED:'ev-pix',PAYMENT_CONFIRMED:'ev-paid',CLICK_CHAT:'ev-chat'};
   const lb={PAGE_ENTRY:'Visita',CLICK_BUY:'Compra',LEAD_CAPTURED:'Lead',PIX_GENERATED:'Pix',PAYMENT_CONFIRMED:'Pago',CLICK_CHAT:'Chat',WHATSAPP_REDIRECT:'WhatsApp',CEP_LOOKUP:'CEP'};
@@ -1958,6 +2022,7 @@ async function loadProducts(){
         '<div class="prod-acts">'+
         '<button class="btn btn-s btn-xs" onclick="applyProd('+JSON.stringify(code)+','+JSON.stringify(title)+')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
         '<button class="btn btn-g btn-xs" onclick="openEditProd(_pmap['+JSON.stringify(code)+'])">Editar</button>'+
+        '<button class="btn btn-g btn-xs" onclick="openLivePreview('+JSON.stringify(code)+')" title="Preview da página do cliente" style="color:var(--c-purple3);border-color:rgba(139,92,246,0.3)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
         '<button class="btn btn-d btn-xs" onclick="delProd('+JSON.stringify(code)+','+JSON.stringify(title)+')" title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
         '</div></div>';
     }).join('');
@@ -2115,6 +2180,7 @@ async function saveProd(){
       toast(code?'Produto atualizado com sucesso!':'Produto criado com sucesso!','ok');
       closeProdModal();
       loadProducts();
+      if(typeof _onProdSaved==='function') _onProdSaved();
     }else{
       toast(d.error||'Erro ao salvar produto.','err');
     }
@@ -2301,7 +2367,7 @@ async function loadLeadMonitor(){
     const badge=document.getElementById('leads-badge');
     if(badge)badge.textContent=_LEADS_CACHE.length+' leads';
     // Update today counter
-    sv('mon-leads-today',d.today_count??'—');
+    const todayEl=document.getElementById('mon-leads-today');if(todayEl)todayEl.textContent=d.today_count??'—';
     renderLeadsUI(_LEADS_CACHE);
   }catch(e){if(el)el.innerHTML='<div class="empty"><p>Erro.</p></div>';}
 }
@@ -2552,7 +2618,127 @@ function useAiDetection(){
   toast(cnt?cnt+' campo(s) preenchido(s) automaticamente!':'Gateway selecionado. Preencha os campos.','ok');
 }
 document.addEventListener('contextmenu',e=>{if(document.getElementById('auth-gate').style.display!=='flex')e.preventDefault();});
-document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','i','J','j','C','c'].includes(e.key))||(e.ctrlKey&&['u','U','s','S'].includes(e.key))){e.preventDefault();toast('Painel protegido.','inf');}});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeLivePreview();}
+  if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','i','J','j','C','c'].includes(e.key))||(e.ctrlKey&&['u','U','s','S'].includes(e.key))){e.preventDefault();toast('Painel protegido.','inf');}
+});
+
+// ── LIVE PREVIEW SYSTEM ─────────────────────────────────────────────────────
+let _pvUrl = '';
+let _pvProducts = [];
+let _pvClock = null;
+
+function _startPvClock(){
+  if(_pvClock) clearInterval(_pvClock);
+  const el = document.getElementById('pv-time-bar');
+  function tick(){const n=new Date();el.textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}
+  tick();
+  _pvClock = setInterval(tick, 10000);
+}
+
+function _stopPvClock(){if(_pvClock){clearInterval(_pvClock);_pvClock=null;}}
+
+async function openLivePreview(productCode){
+  const overlay = document.getElementById('preview-overlay');
+  if(!overlay) return;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  _startPvClock();
+  await refreshPreview(productCode);
+}
+
+function closeLivePreview(){
+  const overlay = document.getElementById('preview-overlay');
+  if(!overlay || overlay.style.display==='none') return;
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  _stopPvClock();
+  const iframe = document.getElementById('pv-iframe');
+  if(iframe) iframe.src = 'about:blank';
+}
+
+async function refreshPreview(productCode){
+  const loadingEl = document.getElementById('pv-loading-overlay');
+  if(loadingEl) loadingEl.style.display='flex';
+  try {
+    const code = productCode || document.getElementById('pv-product-sel')?.value || '';
+    const qs = code ? '?code='+encodeURIComponent(code) : '';
+    const r = await apiFetch('/api/admin/preview'+qs);
+    if(!r) { toast('Erro: sem resposta do servidor','err'); return; }
+    const d = await r.json();
+    if(!d.ok){ toast('Erro no preview: '+(d.error||'?'),'err'); return; }
+
+    _pvUrl = d.public_url || '';
+    _pvProducts = d.products || [];
+
+    // Update URL displays
+    const urlBadge = document.getElementById('pv-url-badge');
+    const urlBar = document.getElementById('pv-url-bar');
+    const openBtn = document.getElementById('pv-open-btn');
+    if(urlBadge) urlBadge.textContent = _pvUrl || '—';
+    if(urlBar){
+      try {const u=new URL(_pvUrl);urlBar.textContent=u.hostname+u.pathname;}
+      catch{urlBar.textContent=_pvUrl||'—';}
+    }
+    if(openBtn) openBtn.href = _pvUrl || '#';
+
+    // Populate product selector
+    const sel = document.getElementById('pv-product-sel');
+    if(sel && _pvProducts.length){
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">Produto ativo</option>' +
+        _pvProducts.map(p=>'<option value="'+(p.product_code||p.code||'')+'"'+(p.product_code===code?' selected':'')+'>'+((p.title||'Produto').substring(0,22))+'</option>').join('');
+      if(currentVal && !code) sel.value = currentVal;
+    }
+
+    // Load page in iframe
+    if(_pvUrl && _pvUrl !== window.location.origin){
+      const iframe = document.getElementById('pv-iframe');
+      if(iframe){
+        iframe.src = _pvUrl;
+      }
+    } else {
+      // No valid URL — show message
+      if(loadingEl){
+        loadingEl.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:28px;margin-bottom:8px">🔗</div><div style="font-size:13px;font-weight:700;color:var(--c-text);margin-bottom:6px">Configure seu link primeiro</div><div style="font-size:12px;color:var(--c-t3)">Adicione um produto no catálogo para ver o preview.</div></div>';
+        loadingEl.style.display='flex';
+      }
+    }
+  } catch(err){
+    console.error('[Preview]', err);
+    toast('Erro ao carregar preview: '+err.message,'err');
+    if(loadingEl) loadingEl.style.display='none';
+  }
+}
+
+function previewSelectProduct(code){
+  refreshPreview(code);
+}
+
+function onPreviewIframeLoad(iframe){
+  const loadingEl = document.getElementById('pv-loading-overlay');
+  if(iframe.src && iframe.src !== 'about:blank'){
+    // Small delay for page to render
+    setTimeout(()=>{if(loadingEl)loadingEl.style.display='none';}, 300);
+  }
+}
+
+function copyPreviewUrl(){
+  if(!_pvUrl){toast('Nenhum link para copiar','wrn');return;}
+  navigator.clipboard.writeText(_pvUrl).then(()=>toast('Link copiado!','ok')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=_pvUrl;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('Link copiado!','ok');
+  });
+}
+
+// Hook: refresh preview automatically after saving a product
+const _origSaveProd = typeof saveProd === 'function' ? saveProd : null;
+// We patch the global after prod save to auto-refresh the preview
+function _onProdSaved(){
+  const overlay = document.getElementById('preview-overlay');
+  if(overlay && overlay.style.display !== 'none'){
+    setTimeout(()=>refreshPreview(), 800);
+  }
+}
 </script>
 </body>
 </html>

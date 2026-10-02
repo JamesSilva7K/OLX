@@ -476,9 +476,11 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
     cols = ", ".join(f"{k}=?" for k in updates)
     vals = list(updates.values()) + [tg_id, product_code]
     conn = _get_db()
-    conn.execute(f"UPDATE tenant_products SET {cols} WHERE tg_id=? AND product_code=?", vals)
+    cur = conn.cursor()
+    cur.execute(f"UPDATE tenant_products SET {cols} WHERE tg_id=? AND product_code=?", vals)
+    updated = cur.rowcount > 0
     conn.commit(); conn.close()
-    return True
+    return updated
 
 def validate_product_coupon(product_code: str, coupon_code: str, slug: str = None) -> dict:
     """
