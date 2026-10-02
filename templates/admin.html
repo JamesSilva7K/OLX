@@ -1058,12 +1058,8 @@
           <p class="sm muted mb-12 mt-16">Adicione os cartões e opções de pagamento (badges) da sua página.</p>
           <div class="badge-grid" id="badge-grid"><span style="font-size:12px;color:var(--c-t3)">Nenhum método.</span></div>
           <div class="mt-12" style="display:flex;flex-wrap:wrap;gap:6px">
-            <button class="btn btn-g btn-xs" onclick="addPBadge('pix')">+ Pix</button>
-            <button class="btn btn-g btn-xs" onclick="addPBadge('visa')">+ Visa</button>
-            <button class="btn btn-g btn-xs" onclick="addPBadge('master')">+ Master</button>
-            <button class="btn btn-g btn-xs" onclick="addPBadge('elo')">+ Elo</button>
-            <button class="btn btn-g btn-xs" onclick="addPBadge('amex')">+ Amex</button>
-            <button class="btn btn-g btn-xs" onclick="addPBadge('boleto')">+ Boleto</button>
+            <button class="btn btn-g btn-xs" onclick="setAllBadges(true)">Ativar Todos</button>
+            <button class="btn btn-g btn-xs" onclick="setAllBadges(false)">Desativar Todos</button>
           </div>
           <div class="mt-12" style="display:flex;gap:8px">
             <input type="url" class="fi" id="badge-url" placeholder="URL badge..." style="font-size:12px;flex:1"/>
@@ -2184,7 +2180,7 @@ async function delProd(code,name){
 }
 
 async function loadCfg(){
-  try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);if(d.payment_badges){try{_BADGES=JSON.parse(d.payment_badges);if(!Array.isArray(_BADGES))_BADGES=[];}catch(e){_BADGES=[];}renderBadges();}loadTgls();}catch(e){}
+  try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);const defBadges = Object.values(PB).map(b => ({url:b.url, label:b.label, active:true}));if(d.payment_badges){try{_BADGES=JSON.parse(d.payment_badges);if(!Array.isArray(_BADGES))_BADGES=defBadges;}catch(e){_BADGES=defBadges;}}else{_BADGES=defBadges;}renderBadges();loadTgls();}catch(e){}
 }
 async function loadTgls(){try{const r=await apiFetch('/api/admin/config');const d=await r.json();if(!d.ok)return;const c=d.config||{};const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v==='1'||v===true||v===1;};sc('tgl-active',c.active);sc('tgl-pixel',c.pixel_active);sc('tgl-notif',c.notifications);}catch{}}
 
@@ -2394,6 +2390,10 @@ function toggleBadgeStatus(i) {
 }
 function delBadge(i){_BADGES.splice(i,1);renderBadges();}
 function clearBadges(){if(!confirm('Remover todas as badges?'))return;_BADGES=[];renderBadges();toast('Badges removidas.','info');}
+function setAllBadges(active) {
+  _BADGES.forEach(b => b.active = active);
+  renderBadges();
+}
 function renderBadges() {
   const g = document.getElementById('badge-grid');
   if (!g) return;
@@ -2403,13 +2403,15 @@ function renderBadges() {
   }
   g.innerHTML = _BADGES.map((b, i) => {
     const isActive = b.active !== false;
-    const op = isActive ? '1' : '0.4';
-    return `<div class="badge-chip" style="opacity:${op}">
-      <img src="${b.url}" alt="${b.label||'badge'}" onerror="this.style.opacity='0.3'"/>
+    const op = isActive ? '1' : '0.35';
+    const filter = isActive ? 'grayscale(0%)' : 'grayscale(100%)';
+    const scale = isActive ? '1.0' : '0.96';
+    return `<div class="badge-chip" style="opacity:${op}; filter:${filter}; transform:scale(${scale}); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;" onclick="document.getElementById('tgl-badge-${i}').click()">
+      <img src="${b.url}" alt="${b.label||'badge'}" onerror="this.style.opacity='0.3'" style="transition: all 0.4s ease;"/>
       ${b.label ? `<span style="font-size:10px;font-weight:700;color:var(--c-t3);margin-right:6px">${b.label}</span>` : ''}
-      <div style="display:flex;gap:4px;margin-left:auto;align-items:center">
+      <div style="display:flex;gap:4px;margin-left:auto;align-items:center" onclick="event.stopPropagation()">
         <label class="tgl" style="transform:scale(0.7);margin-bottom:0">
-          <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleBadgeStatus(${i})" />
+          <input type="checkbox" id="tgl-badge-${i}" ${isActive ? 'checked' : ''} onchange="toggleBadgeStatus(${i})" />
           <span class="tgl-sl"></span>
         </label>
         <button class="btn btn-d btn-xs" style="padding:0 6px;height:22px" onclick="delBadge(${i})">×</button>

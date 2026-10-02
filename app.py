@@ -3210,9 +3210,9 @@ def slug_page(slug):
     tg_wh.upsert_tg_session(tg_id, slug, sid, ip, ua)
     tg_wh.log_tg_event(tg_id, slug, "PAGE_ENTRY", sid, ip, {"ua": ua[:120]})
     _log("PAGE_ENTRY", sid, {"slug": slug, "ip": ip})
-    # Passa o slug para o template via JS
-    return render_template('index.html', page_slug=slug)
-
+    # Passa o slug e logo global para o template
+    logo_url = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
+    return render_template('index.html', page_slug=slug, logo_url=logo_url)
 
 @app.route('/api/event/<slug>', methods=['POST'])
 def api_event_slug(slug):
