@@ -25,26 +25,29 @@
       --nav-h:68px;--hdr-h:56px;--safe-b:env(safe-area-inset-bottom,0px)
     }
 
-    /* ── LIGHT THEME ──────────────────────────────────────────── */
+    /* ── LIGHT THEME (OTIMIZADO) ──────────────────────────────────────────── */
     [data-theme="light"] {
-      --c-bg:#F0EBF8;--c-surface:#FAF7FF;--c-card:#FFFFFF;--c-card2:#F5F0FF;
-      --c-border:rgba(124,58,237,0.12);--c-border2:rgba(124,58,237,0.22);
-      --c-text:#1A0A2E;--c-t2:rgba(26,10,46,0.65);--c-t3:rgba(26,10,46,0.38);
-      --c-glow:rgba(139,92,246,0.15);
+      --c-bg:#F4F4F8;--c-surface:#FFFFFF;--c-card:#FFFFFF;--c-card2:#F8F9FA;
+      --c-border:rgba(0,0,0,0.08);--c-border2:rgba(0,0,0,0.12);
+      --c-text:#1A1B25;--c-t2:rgba(26,27,37,0.7);--c-t3:rgba(26,27,37,0.45);
+      --c-glow:rgba(124,58,237,0.15);
     }
     [data-theme="light"] #app-shell{background:var(--c-surface)}
-    [data-theme="light"] .hdr{background:rgba(255,255,255,0.97);border-bottom-color:var(--c-border)}
-    [data-theme="light"] .bnav{background:rgba(250,247,255,0.97);border-top-color:var(--c-border)}
-    [data-theme="light"] .card{box-shadow:0 2px 12px rgba(124,58,237,0.08)}
-    [data-theme="light"] .auth-card{background:rgba(255,255,255,0.95)}
-    [data-theme="light"] #auth-gate{background:radial-gradient(ellipse at 50% 0%,#e0d4ff 0%,#f5f0ff 55%,#ede8ff 100%)}
-    [data-theme="light"] .kpi{box-shadow:0 4px 16px rgba(0,0,0,0.06)}
-    [data-theme="light"] .fi,.fta,.fsel{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.12);color:var(--c-text)}
+    [data-theme="light"] .hdr{background:rgba(255,255,255,0.9);border-bottom-color:var(--c-border)}
+    [data-theme="light"] .bnav{background:rgba(255,255,255,0.95);border-top-color:var(--c-border);box-shadow:0 -4px 24px rgba(0,0,0,0.04)}
+    [data-theme="light"] .card{box-shadow:0 8px 32px rgba(0,0,0,0.04);border:1px solid var(--c-border2)}
+    [data-theme="light"] .auth-card{background:rgba(255,255,255,0.95);box-shadow:0 24px 64px rgba(0,0,0,0.08),0 0 40px rgba(139,92,246,0.1)}
+    [data-theme="light"] #auth-gate{background:radial-gradient(ellipse at 50% 0%,#F5F0FF 0%,#FAFAFF 55%,#F0EBF8 100%)}
+    [data-theme="light"] .kpi{box-shadow:0 4px 16px rgba(0,0,0,0.03)}
+    [data-theme="light"] .fi,.fta,.fsel{background:#F8F9FA;border-color:#E2E8F0;color:var(--c-text)}
     [data-theme="light"] .fi::placeholder,.fta::placeholder{color:var(--c-t3)}
+    [data-theme="light"] .fi:focus,.fta:focus,.fsel:focus{background:#FFFFFF;border-color:var(--c-purple);box-shadow:0 0 0 3px rgba(139,92,246,0.15)}
     [data-theme="light"] .empty{color:var(--c-t3)}
     [data-theme="light"] .empty p{color:var(--c-t3)}
-    [data-theme="light"] .toast{background:rgba(255,255,255,0.98);border-color:var(--c-border2);color:var(--c-text);box-shadow:0 8px 32px rgba(0,0,0,0.15)}
-    [data-theme="light"] .stat-card{background:#fff}
+    [data-theme="light"] .toast{background:#FFFFFF;border-color:var(--c-border2);color:var(--c-text);box-shadow:0 12px 40px rgba(0,0,0,0.12)}
+    [data-theme="light"] .stat-card{background:#FFFFFF;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
+    [data-theme="light"] .dtbl th{color:var(--c-t2)}
+    [data-theme="light"] .dtbl td{border-bottom-color:rgba(0,0,0,0.04)}
 
     /* ── THEME TOGGLE BUTTON ──────────────────────────────────── */
     .theme-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;color:var(--c-t2);cursor:pointer;transition:all .2s;flex-shrink:0}
@@ -1251,28 +1254,21 @@
         <div class="pstat"><div class="pstat-val" id="ps-paid">—</div><div class="pstat-lbl">Pagos</div></div>
       </div>
 
-      <!-- EDIT PROFILE -->
-      <div class="card">
+      <!-- AUTO TELEGRAM PROFILE -->
+      <div class="card" id="profile-card-auto">
         <div class="card-hdr">
-          <div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>Editar Perfil</div>
+          <div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>Perfil do Admin</div>
+          <span class="chip chip-g" style="font-size:10px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Sincronizado</span>
         </div>
         <div class="card-body">
-          <!-- Avatar preview -->
-          <div class="av-prev-wrap mb-12" id="av-prev-wrap">
-            <div class="av-prev-img" id="av-prev"><span id="av-prev-letter">A</span></div>
-            <div style="flex:1">
-              <div style="font-size:12px;font-weight:700;color:var(--c-t2)">Foto do Perfil</div>
-              <div style="font-size:11px;color:var(--c-t3);margin-top:2px">Cole a URL do avatar do Telegram ou qualquer imagem</div>
-            </div>
-          </div>
-          <div class="fg"><label class="flbl">URL do Avatar</label><input type="url" class="fi" id="pf-avatar" placeholder="https://t.me/i/userpic/..." oninput="prevAvatar(this.value)"/></div>
-          <div class="fg"><label class="flbl">Nome de Exibição</label><input type="text" class="fi" id="pf-name" placeholder="Seu nome ou nome do canal"/></div>
-          <div class="fg"><label class="flbl">Bio</label><textarea class="fta" id="pf-bio" placeholder="Breve descrição sobre você..." style="min-height:70px"></textarea></div>
-          <div class="fg"><label class="flbl">Contato / @Username</label><input type="text" class="fi" id="pf-contact" placeholder="@seu_telegram ou número..."/></div>
-          <button class="btn btn-p" onclick="saveProf()">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <span id="save-prof-txt">Salvar Perfil</span>
-          </button>
+           <div style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(167,139,250,0.05));border:1px solid rgba(139,92,246,0.25);border-radius:16px;padding:16px">
+              <div class="av-prev-img" style="width:60px;height:60px" id="auto-pf-avatar"><span id="auto-pf-letter">?</span></div>
+              <div style="flex:1">
+                 <div id="auto-pf-name" style="font-size:16px;font-weight:800;color:var(--c-text)">Sincronizando...</div>
+                 <div id="auto-pf-user" style="font-size:12px;color:var(--c-purple3);margin-top:2px;font-family:monospace">@username</div>
+                 <div id="auto-pf-bio" style="font-size:11px;color:var(--c-t3);margin-top:6px;max-width:250px">Este perfil é vinculado automaticamente à sua conta do Telegram.</div>
+              </div>
+           </div>
         </div>
       </div>
 
@@ -1582,7 +1578,25 @@ async function verifyTk(tk){
   try{const r=await fetch('/api/admin/verify-token',{headers:{'Authorization':'Bearer '+tk}});if(!r.ok&&r.status===429)return{ok:false,message:'Muitas tentativas. Aguarde 30min.'};return await r.json();}catch{return null;}
 }
 
+function syncTelegramProfile() {
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
+  if(user) {
+    const pfName = document.getElementById('auto-pf-name');
+    const pfUser = document.getElementById('auto-pf-user');
+    const pfAv = document.getElementById('auto-pf-avatar');
+    if(pfName) pfName.textContent = (user.first_name||'') + ' ' + (user.last_name||'').trim();
+    if(pfUser) pfUser.textContent = user.username ? '@' + user.username : user.id;
+    if(pfAv && user.photo_url) {
+      pfAv.innerHTML = `<img src="${user.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`;
+    } else if (pfAv && user.first_name) {
+      pfAv.innerHTML = `<span style="font-size:24px">${user.first_name[0]}</span>`;
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  syncTelegramProfile();
   initTWA();
   setupPinBoxes();
   // Auto-login from saved token
@@ -2356,13 +2370,40 @@ async function loadLinkMonitor(){
   try{
     const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';
     const r=await apiFetch(url);const d=await r.json();const s=d.stats||d;
-    const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
-    sv('mon-total-visits',s.entries??s.page_entries??'—');
-    sv('mon-unique-visits',s.unique_visitors??'—');
-    sv('mon-leads-today',s.leads??s.lead_captured??'—');
+    const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'0';};
+    sv('mon-total-visits',s.entries??s.page_entries??'0');
+    sv('mon-unique-visits',s.unique_visitors??'0');
+    sv('mon-leads-today',s.leads??s.lead_captured??'0');
     const conv=s.conv_rate??0;sv('mon-conv-rate',conv+'%');
-    el.innerHTML='<div class="empty"><p>Dados carregados via stats.</p></div>';
-  }catch{if(el)el.innerHTML='<div class="empty"><p>Erro.</p></div>';}
+    
+    const rLinks = await apiFetch('/api/admin/monitor/links?limit=10');
+    const dLinks = await rLinks.json();
+    if(dLinks.ok && dLinks.links && dLinks.links.length){
+      el.innerHTML = '<table class="dtbl" style="width:100%;margin-top:10px"><thead><tr><th>Link/Produto</th><th>Visitas</th><th>Leads</th><th>Conversão</th></tr></thead><tbody>' + 
+      dLinks.links.map(lk => `<tr><td><span class="chip chip-p">${lk.code||'Principal'}</span></td><td style="font-weight:700">${lk.views||0}</td><td style="color:var(--c-green);font-weight:700">${lk.leads||0}</td><td>${lk.conv_rate||0}%</td></tr>`).join('') + 
+      '</tbody></table>';
+    } else {
+      el.innerHTML='<div class="empty"><p>Nenhuma performance registrada.</p></div>';
+    }
+    loadVisitorsMonitor();
+  }catch(e){console.error(e);if(el)el.innerHTML='<div class="empty"><p>Erro ao atualizar métricas.</p></div>';}
+}
+
+async function loadVisitorsMonitor() {
+  const el=document.getElementById('mon-visitors-list');if(!el)return;
+  try{
+    const r=await apiFetch('/api/admin/monitor/visitors?limit=10');
+    const d=await r.json();
+    if(d.ok && d.visitors && d.visitors.length){
+      el.innerHTML = '<div style="display:flex;flex-direction:column;">' + 
+      d.visitors.map(v => {
+        const dt = new Date((v.ts||0)*1000);
+        return `<div class="sess"><div class="sess-av">${v.ip?v.ip[0]:'?'}</div><div class="sess-info"><div class="sess-ip">${v.ip||'—'}</div><div class="sess-meta">${v.ua||'—'} &bull; Produto: ${v.product_code||'Principal'}</div></div><div class="sess-time">${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}</div></div>`;
+      }).join('') + '</div>';
+    } else {
+      el.innerHTML='<div class="empty"><p>Nenhum visitante recente.</p></div>';
+    }
+  }catch(e){if(el)el.innerHTML='<div class="empty"><p>Erro ao carregar visitantes.</p></div>';}
 }
 let _LEADS_CACHE = [];
 async function loadLeadMonitor(){
