@@ -1558,7 +1558,7 @@ async function requestOTP() {
       }
       // Troca de step
       document.getElementById('auth-step1').style.display = 'none';
-      document.getElementById('auth-step2').style.display = '';
+      document.getElementById('auth-step2').style.display = 'block';
       document.querySelectorAll('.pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
       document.getElementById('pin0').focus();
       // Habilita botão quando todos os dígitos estiverem preenchidos
@@ -1684,7 +1684,7 @@ function backToStep1() {
   if (_OTP_TIMER_INT) clearInterval(_OTP_TIMER_INT);
   _OTP_TG_ID = 0;
   document.getElementById('auth-step2').style.display = 'none';
-  document.getElementById('auth-step1').style.display = '';
+  document.getElementById('auth-step1').style.display = 'block';
   document.getElementById('auth-req-btn').disabled = false;
   document.getElementById('auth-req-txt').textContent = 'Enviar Código pelo Telegram';
 }
@@ -1698,7 +1698,7 @@ function requestOTPAgain() {
 
 function toggleRecovery() {
   const el = document.getElementById('auth-recovery');
-  el.style.display = el.style.display === 'none' || !el.style.display ? '' : 'none';
+  el.style.display = el.style.display === 'none' || !el.style.display ? 'block' : 'none';
 }
 
 async function doRecovery() {
