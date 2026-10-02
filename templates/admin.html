@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>OLX Pay Admin — Painel</title>
   <meta name="description" content="Painel executivo OLX Pay — Mobile Admin Dashboard." />
   <meta name="theme-color" content="#0f0018" />
@@ -646,6 +646,33 @@
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+/* Responsive Desktop Enhancements */
+@media (min-width: 768px) {
+  #app-shell {
+    max-width: 1024px;
+    margin: 2vh auto;
+    height: 96vh;
+    border-radius: 24px;
+    border: 1px solid var(--c-border);
+    box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .bnav {
+    position: absolute;
+    max-width: 1024px;
+    border-radius: 0 0 24px 24px;
+  }
+  .page {
+    padding: 30px 40px calc(var(--nav-h) + 40px);
+    gap: 20px;
+  }
+  .kpi-grid, .qas, .pstat-grid, .fin-sub-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .card-body {
+    padding: 24px;
+  }
+}
 </style>
 
   <!-- Telegram WebApp SDK -->
