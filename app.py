@@ -3243,6 +3243,17 @@ def api_admin_twa_login():
             prof = tg_wh.get_tenant_profile(tg_id) or {}
             plan = tg_wh.get_user_plan(tg_id) or {}
             tg_wh.notify_admin_access(tg_id, role, ip, str(request.user_agent))
+            
+            user_obj = init_unsafe.get("user") or {}
+            if isinstance(user_obj, dict) and "first_name" in user_obj:
+                cur_name = prof.get("display_name", "")
+                if not cur_name or "Admin #" in cur_name:
+                    new_name = f"{user_obj.get('first_name', '')} {user_obj.get('last_name', '')}".strip()
+                    new_avatar = user_obj.get('photo_url', prof.get('avatar_url', ''))
+                    if new_name:
+                        tg_wh.set_tenant_profile(tg_id, display_name=new_name, avatar_url=new_avatar, bio=prof.get("bio",""), contact=prof.get("contact",""))
+                        prof["display_name"] = new_name
+                        prof["avatar_url"] = new_avatar
         except Exception:
             pass
 

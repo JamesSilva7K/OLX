@@ -584,6 +584,30 @@
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6) !important;
 }
 
+
+/* Role Tags */
+.role-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.role-sup {
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(167, 139, 250, 0.2));
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}
+.role-adm {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2));
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
 </style>
 
   <!-- Telegram WebApp SDK -->
@@ -1499,7 +1523,7 @@ function applyProfileUI(prof, id, sup, role, slug) {
   // Profile page hero
   setAvEl('prof-av-lg', letter, avatar);
   const hn = document.getElementById('prof-hero-name'); if (hn) hn.textContent = name;
-  const hr = document.getElementById('prof-hero-role'); if (hr) hr.textContent = roleLabel;
+  const hr = document.getElementById('prof-hero-role'); if (hr) { hr.textContent = roleLabel; hr.className = 'role-tag ' + (sup ? 'role-sup' : 'role-adm'); }
   const hs = document.getElementById('prof-hero-slug'); if (hs) hs.textContent = slugLabel;
 
   // Profile edit form
@@ -2161,7 +2185,7 @@ async function saveProf(){
   if(btn)btn.textContent='Salvar Perfil';
 }
 
-async function loadC7(){if(!_SUP)return;try{const r=await apiFetch('/api/c7/balance',{method:'POST'});const d=await r.json();const fmt=v=>'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});if(d.ok||d.balance!==undefined){document.getElementById('c7-bal').textContent=fmt(d.balance);document.getElementById('c7-lim').textContent=fmt(d.limit_generate);const fp=parseFloat(d.fee_pct||0),ff=parseFloat(d.fee_fixed||0);document.getElementById('c7-fee').textContent=ff>0?fp+'% + '+fmt(ff):fp+'%';}else{document.getElementById('c7-bal').textContent=d.error==='api_key_n\u00e3o_configurada'?'Erro: Sem API Key':'Erro C7';document.getElementById('c7-lim').textContent='--';}}catch{document.getElementById('c7-bal').textContent='Offline';document.getElementById('c7-lim').textContent='--';}}
+async function loadC7(){if(!_SUP)return;try{const r=await apiFetch('/api/c7/balance',{method:'POST'});const d=await r.json();const fmt=v=>'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});if(d.ok||d.balance!==undefined){document.getElementById('c7-bal').textContent=fmt(d.balance);document.getElementById('c7-lim').textContent=fmt(d.limit_generate);const fp=parseFloat(d.fee_pct||0),ff=parseFloat(d.fee_fixed||0);document.getElementById('c7-fee').textContent=ff>0?fp+'% + '+fmt(ff):fp+'%';}else{document.getElementById('c7-bal').textContent=d.message || (d.error && d.error.includes('api_key') ? 'Sem API Key' : d.error) || 'Erro API';document.getElementById('c7-lim').textContent='--';}}catch{document.getElementById('c7-bal').textContent='Offline';document.getElementById('c7-lim').textContent='--';}}
 
 async function loadStatus(){try{const r=await apiFetch('/api/admin/c7-status');const d=await r.json();const el=document.getElementById('st-c7');if(el){const ok=d.c7_status==='connected'||d.c7_status==='connected_sandbox_active';el.className='chip '+(ok?'chip-g':'chip-o');el.textContent=ok?'Conectado':'Verificando';}}catch{}}
 
