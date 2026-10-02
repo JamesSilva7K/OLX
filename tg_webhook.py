@@ -438,16 +438,26 @@ def get_tenant_products(tg_id: int):
     conn.close()
     return [dict(r) for r in rows]
 
-def get_product_by_code(code: str):
+def get_product_by_code(code: str, tg_id: int = None):
     conn = _get_db()
-    r = conn.execute("""
-        SELECT id, tg_id, product_code, title, price, old_price, description, 
-               image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
-               COALESCE(coupon_active, 1) AS coupon_active,
-               COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
-               created_at 
-        FROM tenant_products WHERE product_code=?
-    """, (code,)).fetchone()
+    if tg_id:
+        r = conn.execute("""
+            SELECT id, tg_id, product_code, title, price, old_price, description, 
+                   image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
+                   COALESCE(coupon_active, 1) AS coupon_active,
+                   COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
+                   created_at 
+            FROM tenant_products WHERE product_code=? AND tg_id=?
+        """, (code, tg_id)).fetchone()
+    else:
+        r = conn.execute("""
+            SELECT id, tg_id, product_code, title, price, old_price, description, 
+                   image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
+                   COALESCE(coupon_active, 1) AS coupon_active,
+                   COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
+                   created_at 
+            FROM tenant_products WHERE product_code=?
+        """, (code,)).fetchone()
     conn.close()
     return dict(r) if r else None
 

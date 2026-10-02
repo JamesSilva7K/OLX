@@ -1356,7 +1356,7 @@ def index(slug_or_code=None, item_code=None):
 
             if item_code:
 
-                custom_item = tg_wh.get_product_by_code(item_code)
+                custom_item = tg_wh.get_product_by_code(item_code, tg_id=tg_id)
 
         else:
 
