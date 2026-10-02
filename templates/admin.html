@@ -123,7 +123,7 @@
     .twa-status { font-size:13px; font-weight:700; color:var(--c-purple3); z-index:1; display:flex; align-items:center; gap:8px; background:rgba(139,92,246,0.15); padding:4px 12px; border-radius:20px; border:1px solid rgba(139,92,246,0.3); }
     .twa-pulse { width:8px; height:8px; border-radius:50%; background:var(--c-green); box-shadow:0 0 10px var(--c-green); animation: livePulse 1.5s infinite; }
 
-    html,body{height:100%;background:var(--c-bg);color:var(--c-text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
+    html,body{height:100%;background:var(--c-bg);color:var(--c-text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden;touch-action:pan-x pan-y;}
 
     /* AUTH GATE */
     #auth-gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 50% 0%,#2d0060 0%,#0f0018 55%,#060010 100%);overflow:auto}
@@ -826,7 +826,7 @@
           <div class="link-box"><input type="text" id="my-link" readonly value="—"/><button class="link-copy" onclick="copyMyLink()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
           <div class="flex mt-8" style="gap:8px">
             <a id="my-link-open" href="#" target="_blank" class="btn btn-g btn-sm" style="flex:1;text-decoration:none"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Abrir</a>
-            <button class="btn btn-g btn-sm" onclick="shareLink()" style="flex:1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Partilhar</button>
+            <button class="btn btn-g btn-sm" onclick="shareLink()" style="flex:1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartilhar</button>
           </div>
         </div>
       </div>
@@ -1066,7 +1066,14 @@
             <button class="btn btn-g btn-xs" onclick="addPBadge('amex')">+ Amex</button>
             <button class="btn btn-g btn-xs" onclick="addPBadge('boleto')">+ Boleto</button>
           </div>
-          <div class="mt-12" style="display:flex;gap:8px"><input type="url" class="fi" id="badge-url" placeholder="URL badge..." style="font-size:12px"/><button class="btn btn-g btn-sm" onclick="addBadgeURL()">+</button></div>
+          <div class="mt-12" style="display:flex;gap:8px">
+            <input type="url" class="fi" id="badge-url" placeholder="URL badge..." style="font-size:12px;flex:1"/>
+            <button class="btn btn-g btn-sm" onclick="addBadgeURL()" title="Adicionar por URL">+</button>
+            <input type="file" id="badge-file-upload" accept="image/*" style="display:none" onchange="uploadBadgeFile(this)" />
+            <button class="btn btn-g btn-sm" onclick="document.getElementById('badge-file-upload').click()" title="Anexar da Máquina">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </button>
+          </div>
           <div class="mt-12" style="display:flex;gap:8px"><button class="btn btn-p" onclick="saveSellerCfg();saveBadges()" style="flex:1">Salvar Visual</button><button class="btn btn-d btn-sm" onclick="clearBadges()">Limpar</button></div>
         </div></div>
       </div>
@@ -2285,11 +2292,58 @@ async function upPhoto(n,inp){const file=inp.files[0];if(!file)return;const fd=n
 function prevPhoto(n){const url=document.getElementById('pu'+n)?.value.trim();const dz=document.getElementById('dz'+n);if(!dz)return;if(url){dz.innerHTML='<input type="file" id="fi'+n+'" accept="image/*" onchange="upPhoto('+n+',this)"/><img src="'+url+'" onerror="this.style.display=&quot;none&quot;" />';dz.classList.add('dz-done');}}
 
 const PB={pix:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg/512px-Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg.png',label:'Pix'},visa:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/512px-Visa_Inc._logo.svg.png',label:'Visa'},master:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/512px-Mastercard-logo.svg.png',label:'Mastercard'},elo:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Elo_logo.svg/512px-Elo_logo.svg.png',label:'Elo'},amex:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/512px-American_Express_logo.svg.png',label:'Amex'},boleto:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Boleto_logo.svg/512px-Boleto_logo.svg.png',label:'Boleto'}};
-function addPBadge(k){const b=PB[k];if(!b)return;if(_BADGES.some(x=>x.url===b.url)){toast('Badge já adicionada.','info');return;}_BADGES.push(b);renderBadges();}
-function addBadgeURL(){const i=document.getElementById('badge-url');const url=i.value.trim();if(!url)return;if(_BADGES.some(x=>x.url===url)){toast('Já adicionada.','info');return;}_BADGES.push({url,label:''});renderBadges();i.value='';}
+function addPBadge(k){const b=PB[k];if(!b)return;if(_BADGES.some(x=>x.url===b.url)){toast('Badge já adicionada.','info');return;}_BADGES.push({url:b.url,label:b.label,active:true});renderBadges();}
+function addBadgeURL(){const i=document.getElementById('badge-url');const url=i.value.trim();if(!url)return;if(_BADGES.some(x=>x.url===url)){toast('Já adicionada.','info');return;}_BADGES.push({url,label:'URL',active:true});renderBadges();i.value='';}
+async function uploadBadgeFile(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/admin/upload', {method:'POST', headers:{'Authorization':'Bearer '+_TK}, body:fd});
+    const d = await r.json();
+    if (d.url) {
+      if (_BADGES.some(x => x.url === d.url)) { toast('Badge já adicionada.', 'info'); return; }
+      _BADGES.push({url: d.url, label: 'Upload', active: true});
+      renderBadges();
+      toast('Badge adicionada via upload!', 'ok');
+    } else {
+      toast(d.error || 'Erro no upload.', 'err');
+    }
+  } catch (e) {
+    toast('Erro de upload.', 'err');
+  }
+  inp.value = '';
+}
+function toggleBadgeStatus(i) {
+  _BADGES[i].active = !(_BADGES[i].active !== false);
+  renderBadges();
+}
 function delBadge(i){_BADGES.splice(i,1);renderBadges();}
 function clearBadges(){if(!confirm('Remover todas as badges?'))return;_BADGES=[];renderBadges();toast('Badges removidas.','info');}
-function renderBadges(){const g=document.getElementById('badge-grid');if(!g)return;if(!_BADGES.length){g.innerHTML='<span style="font-size:12px;color:var(--c-t3)">Nenhum método adicionado.</span>';return;}g.innerHTML=_BADGES.map((b,i)=>'<div class="badge-chip"><img src="'+b.url+'" alt="'+(b.label||'badge')+'" onerror="this.style.opacity=&quot;0.3&quot;"/>'+(b.label?'<span style="font-size:10px;font-weight:700;color:var(--c-t3)">'+b.label+'</span>':'')+'<button class="badge-del" onclick="delBadge('+i+')">×</button></div>').join('');}
+function renderBadges() {
+  const g = document.getElementById('badge-grid');
+  if (!g) return;
+  if (!_BADGES.length) {
+    g.innerHTML = '<span style="font-size:12px;color:var(--c-t3)">Nenhum método adicionado.</span>';
+    return;
+  }
+  g.innerHTML = _BADGES.map((b, i) => {
+    const isActive = b.active !== false;
+    const op = isActive ? '1' : '0.4';
+    return `<div class="badge-chip" style="opacity:${op}">
+      <img src="${b.url}" alt="${b.label||'badge'}" onerror="this.style.opacity='0.3'"/>
+      ${b.label ? `<span style="font-size:10px;font-weight:700;color:var(--c-t3);margin-right:6px">${b.label}</span>` : ''}
+      <div style="display:flex;gap:4px;margin-left:auto;align-items:center">
+        <label class="tgl" style="transform:scale(0.7);margin-bottom:0">
+          <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleBadgeStatus(${i})" />
+          <span class="tgl-sl"></span>
+        </label>
+        <button class="btn btn-d btn-xs" style="padding:0 6px;height:22px" onclick="delBadge(${i})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 
 async function loadLinkMonitor(){
