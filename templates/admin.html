@@ -1855,6 +1855,8 @@ function doLogout(){
   // ── AUTO-LOGIN INTELIGENTE TELEGRAM WEBAPP ─────────────────────
   if (window.Telegram && window.Telegram.WebApp) {
     const twa = window.Telegram.WebApp;
+    twa.ready();
+    twa.expand();
     const initData = twa.initData || '';
     const initUnsafe = twa.initDataUnsafe || {};
     const tgUserId = (initUnsafe.user && initUnsafe.user.id) ? initUnsafe.user.id : 0;
@@ -1872,8 +1874,8 @@ function doLogout(){
         const twaSync = document.getElementById('auth-twa-sync');
         twaSync.style.display = 'block';
         
-        const firstName = initUnsafe.user?.first_name || 'Usuário';
-        const photoUrl = initUnsafe.user?.photo_url;
+        const firstName = (initUnsafe.user && initUnsafe.user.first_name) ? initUnsafe.user.first_name : 'Usuário';
+        const photoUrl = (initUnsafe.user && initUnsafe.user.photo_url) ? initUnsafe.user.photo_url : '';
         const letter = firstName.charAt(0).toUpperCase();
         
         document.getElementById('twa-name').textContent = firstName;
@@ -1926,6 +1928,7 @@ function doLogout(){
         }
       } catch(err) {
         console.warn('[TWA Auto-Login]', err);
+        if (err && err.message) alert('TWA Sync Error: ' + err.message);
         // On error revert
         document.getElementById('auth-twa-sync').style.display = 'none';
         document.querySelector('.auth-head').style.display = 'block';
