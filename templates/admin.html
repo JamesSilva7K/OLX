@@ -550,6 +550,40 @@
     /* TWA Scrollbar hidden but functional */
     ::-webkit-scrollbar { display: none; }
     * { scrollbar-width: none; }
+
+/* Enhanced Product Modal CSS */
+#prod-modal .modal-sheet {
+  background: linear-gradient(145deg, #160a24, #0f0018) !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.2) !important;
+}
+#prod-modal .fi {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  transition: all 0.3s ease;
+}
+#prod-modal .fi:focus {
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4) !important;
+  transform: scale(1.01);
+}
+#prod-modal .fg label {
+  color: #c4b5fd !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+#prod-modal button.btn-g {
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa) !important;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4) !important;
+  transition: all 0.3s ease;
+}
+#prod-modal button.btn-g:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6) !important;
+}
+
 </style>
 
   <!-- Telegram WebApp SDK -->
@@ -771,7 +805,7 @@
     <!-- CONFIG -->
     
     <!-- MONITORING PAGE -->
-    <section class="page hidden" id="page-monitor">
+    <section class="page" id="page-monitor">
       <div class="sec-ttl">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         Monitoramento de Links
@@ -1516,6 +1550,18 @@ function bootApp(a){
   // Apply profile from verify-token response immediately (no extra request needed)
   const slug = (a.plan && a.plan.slug) ? a.plan.slug : _SLUG;
   _PROF = (a.profile && a.profile.display_name) ? a.profile : {};
+  
+  // Magically pull Telegram data if missing!
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+     const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+     if(!_PROF.display_name || _PROF.display_name.startsWith('Admin #')) {
+         _PROF.display_name = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+     }
+     if(!_PROF.avatar_url && tgUser.photo_url) {
+         _PROF.avatar_url = tgUser.photo_url;
+     }
+  }
+  
   applyProfileUI(_PROF, _ID, _SUP, _ROLE, slug);
 
   if(_SUP){
@@ -2115,7 +2161,7 @@ async function saveProf(){
   if(btn)btn.textContent='Salvar Perfil';
 }
 
-async function loadC7(){if(!_SUP)return;try{const r=await apiFetch('/api/c7/balance',{method:'POST'});const d=await r.json();const fmt=v=>'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});if(d.ok||d.balance!==undefined){document.getElementById('c7-bal').textContent=fmt(d.balance);document.getElementById('c7-lim').textContent=fmt(d.limit_generate);const fp=parseFloat(d.fee_pct||0),ff=parseFloat(d.fee_fixed||0);document.getElementById('c7-fee').textContent=ff>0?fp+'% + '+fmt(ff):fp+'%';}}catch{}}
+async function loadC7(){if(!_SUP)return;try{const r=await apiFetch('/api/c7/balance',{method:'POST'});const d=await r.json();const fmt=v=>'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});if(d.ok||d.balance!==undefined){document.getElementById('c7-bal').textContent=fmt(d.balance);document.getElementById('c7-lim').textContent=fmt(d.limit_generate);const fp=parseFloat(d.fee_pct||0),ff=parseFloat(d.fee_fixed||0);document.getElementById('c7-fee').textContent=ff>0?fp+'% + '+fmt(ff):fp+'%';}else{document.getElementById('c7-bal').textContent=d.error==='api_key_n\u00e3o_configurada'?'Erro: Sem API Key':'Erro C7';document.getElementById('c7-lim').textContent='--';}}catch{document.getElementById('c7-bal').textContent='Offline';document.getElementById('c7-lim').textContent='--';}}
 
 async function loadStatus(){try{const r=await apiFetch('/api/admin/c7-status');const d=await r.json();const el=document.getElementById('st-c7');if(el){const ok=d.c7_status==='connected'||d.c7_status==='connected_sandbox_active';el.className='chip '+(ok?'chip-g':'chip-o');el.textContent=ok?'Conectado':'Verificando';}}catch{}}
 
