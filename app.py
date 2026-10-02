@@ -576,6 +576,8 @@ def get_c7_auth_headers(body_str: str = "") -> dict:
         "X-C7-Timestamp": ts,
         "X-C7-Nonce":     nonce,
         "X-C7-Signature": signature,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Accept": "application/json"
     }
 
 # â”€â”€â”€ GERADOR DE PIX EMV VÃLIDO (BACEN BR CODE 2.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
