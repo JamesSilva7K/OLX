@@ -1039,18 +1039,18 @@
         </div></div>
       </div>
 
-      <div id="ct-vendedor" class="hidden">
+      <div id="ct-vendedor">
         <div class="card"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-blu"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>Perfil do Vendedor</div></div>
         <div class="card-body">
           <div class="fg"><label class="flbl">Nome do Vendedor</label><input type="text" class="fi" id="cfg-sname" placeholder="Seu nome" /></div>
           <div class="fg"><label class="flbl">Na OLX desde</label><input type="text" class="fi" id="cfg-ssince" placeholder="2022" /></div>
           <div class="fg"><label class="flbl">Status</label><input type="text" class="fi" id="cfg-sstatus" placeholder="Último acesso 2h" /></div>
-          <div class="fg"><label class="flbl">URL do Logo</label><input type="url" class="fi" id="cfg-logo" placeholder="https://..." oninput="prevLogo(this.value)" /><div id="logo-prev" style="display:none;margin-top:8px"><img id="logo-img" src="" style="max-height:50px;border-radius:8px;border:1px solid var(--c-border)" /></div></div>
+          
           <button class="btn btn-p" onclick="saveSellerCfg()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar Vendedor</button>
         </div></div>
       </div>
 
-      <div id="ct-whatsapp" class="hidden">
+      <div id="ct-whatsapp">
         <div class="card"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-grn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>WhatsApp Business</div></div>
         <div class="card-body">
           <div class="fg"><label class="flbl">Número (+55...)</label><div style="display:flex;gap:8px;align-items:center"><input type="tel" class="fi" id="cfg-wa" placeholder="5511999999999" oninput="debWa()" style="flex:1"/><div id="wa-dot" style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);flex-shrink:0"></div></div><div id="wa-msg" style="font-size:11px;color:var(--c-t3);margin-top:4px"></div></div>
@@ -1059,10 +1059,22 @@
         </div></div>
       </div>
 
-      <div id="ct-visual" class="hidden">
+      <div id="ct-visual">
         <div class="card"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-org"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>Identidade Visual</div></div>
         <div class="card-body">
-          <div class="fg"><label class="flbl">URL do Logo (ex: OLX)</label><input type="url" class="fi" id="cfg-logo" placeholder="https://..." oninput="prevLogo(this.value)" /><div id="logo-prev" style="display:none;margin-top:8px"><img id="logo-img" src="" style="max-height:50px;border-radius:8px;border:1px solid var(--c-border)" /></div></div>
+                    <div class="fg">
+            <label class="flbl">URL do Logo ou Upload</label>
+            <div style="display:flex;gap:8px">
+              <input type="url" class="fi" id="cfg-logo" placeholder="https://..." oninput="prevLogo(this.value)" style="flex:1" />
+              <button class="btn btn-g btn-sm" onclick="document.getElementById('logo-upload').click()" title="Fazer Upload">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </button>
+              <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="uploadLogoFile(this)" />
+            </div>
+            <div id="logo-prev" style="display:none;margin-top:8px">
+              <img id="logo-img" src="" style="max-height:50px;border-radius:8px;border:1px solid var(--c-border);object-fit:contain" />
+            </div>
+          </div>
           
           <p class="sm muted mb-12 mt-16">Adicione os cartões e opções de pagamento (badges) da sua página.</p>
           <div class="badge-grid" id="badge-grid"><span style="font-size:12px;color:var(--c-t3)">Nenhum método.</span></div>
@@ -2199,7 +2211,25 @@ function saveTgl(k,v){saveCfg({[k]:v?'1':'0'});}
 function saveBadges(){saveCfg({payment_badges:JSON.stringify(_BADGES)});}
 function savePhotos(){saveCfg({product_image1:document.getElementById('pu1').value,product_image2:document.getElementById('pu2').value,product_image3:document.getElementById('pu3').value});}
 
-function cfgTab(n,btn){['visual','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');if(n==='sistema')loadStatus();}
+function cfgTab(n,btn){
+  ['produto','vendedor','whatsapp','visual','sistema','financeiro'].forEach(t=>{
+    const e=document.getElementById('ct-'+t);
+    if(e)e.classList.add('hidden');
+  });
+  document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));
+  
+  if(n==='visual'){
+    ['produto','vendedor','whatsapp','visual'].forEach(t=>{
+      const e=document.getElementById('ct-'+t);
+      if(e)e.classList.remove('hidden');
+    });
+  }else{
+    const e=document.getElementById('ct-'+n);
+    if(e)e.classList.remove('hidden');
+  }
+  if(btn)btn.classList.add('active');
+  if(n==='sistema')loadStatus();
+}
 
 async function loadProf(){
   try {
