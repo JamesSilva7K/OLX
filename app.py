@@ -861,10 +861,15 @@ def api_config(slug=None):
         cfgs = tg_wh.get_tenant_all_config(tg_id)
         wa_num = cfgs.get("whatsapp_number", "5511999999999")
         wa_msg = cfgs.get("whatsapp_message", "OlÃ¡! Tenho interesse no anÃºncio.")
+        
+        # Logo e Badges sÃ£o Globais
+        global_logo = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
+        global_badges = admin_bot.get_config("payment_badges", "") if BOT_AVAILABLE else ""
+
         return jsonify({
             "whatsapp_number":     wa_num,
             "whatsapp_message":    wa_msg,
-            "logo_url":            cfgs.get("logo_url", ""),
+            "logo_url":            global_logo,
             "product_price":       cfgs.get("product_price", "630.00"),
             "product_old_price":   cfgs.get("product_old_price", ""),
             "product_name":        cfgs.get("product_name", "iPhone 11 64GB Branco"),
@@ -876,7 +881,7 @@ def api_config(slug=None):
             "seller_name":         cfgs.get("seller_name", "Vendedor OLX"),
             "seller_status":       cfgs.get("seller_status", "Ãšltimo acesso hÃ¡ 2 horas"),
             "seller_since":        cfgs.get("seller_since", "Na OLX desde 2022"),
-            "payment_badges":      cfgs.get("payment_badges", ""),
+            "payment_badges":      global_badges,
             "det_category":        cfgs.get("det_category",  ""),
             "det_brand":           cfgs.get("det_brand",     ""),
             "det_model":           cfgs.get("det_model",     ""),
