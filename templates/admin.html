@@ -2352,7 +2352,26 @@ function shareLink(){const l=document.getElementById('my-link').value;if(navigat
 function renewTok(){toast('Envie /admin_link ao bot no Telegram.','inf',5000);}
 
 function prevLogo(url){const b=document.getElementById('logo-prev'),i=document.getElementById('logo-img');if(url&&b&&i){i.src=url;b.style.display='block';}else if(b)b.style.display='none';}
-
+async function uploadLogoFile(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + _TK }, body: fd });
+    const d = await r.json();
+    if (d.url) {
+      document.getElementById('cfg-logo').value = d.url;
+      prevLogo(d.url);
+      toast('Logo enviado com sucesso!', 'ok');
+    } else {
+      toast(d.error || 'Erro no upload.', 'err');
+    }
+  } catch (e) {
+    toast('Erro de conexão no upload.', 'err');
+  }
+  inp.value = '';
+}
 let _wa_t=null;
 function debWa(){clearTimeout(_wa_t);_wa_t=setTimeout(validateWa,700);}
 async function validateWa(){const inp=document.getElementById('cfg-wa'),dot=document.getElementById('wa-dot'),msg=document.getElementById('wa-msg');if(!inp||!inp.value.trim()){if(dot)dot.style.background='rgba(255,255,255,0.12)';return;}if(dot)dot.style.background='#F59E0B';try{const r=await apiFetch('/api/admin/validate-whatsapp',{method:'POST',body:JSON.stringify({number:inp.value.trim()})});const d=await r.json();if(d.valid){dot.style.background='#10B981';inp.value=d.clean_number||inp.value;if(msg){msg.textContent=(d.formatted_national||'')+' — '+(d.ddd_info?.region||'Brasil');msg.style.color='#34D399';}}else{dot.style.background='#EF4444';if(msg){msg.textContent=d.error||'Número inválido.';msg.style.color='#F87171';}}}catch{if(dot)dot.style.background='#EF4444';}}
