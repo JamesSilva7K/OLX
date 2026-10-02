@@ -123,7 +123,7 @@
     .twa-status { font-size:13px; font-weight:700; color:var(--c-purple3); z-index:1; display:flex; align-items:center; gap:8px; background:rgba(139,92,246,0.15); padding:4px 12px; border-radius:20px; border:1px solid rgba(139,92,246,0.3); }
     .twa-pulse { width:8px; height:8px; border-radius:50%; background:var(--c-green); box-shadow:0 0 10px var(--c-green); animation: livePulse 1.5s infinite; }
 
-    html,body{height:100%;background:var(--c-bg);color:var(--c-text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden;touch-action:pan-x pan-y;}
+    html,body{background:var(--c-bg);color:var(--c-text);font-family:var(--font);-webkit-font-smoothing:antialiased;touch-action:pan-x pan-y;min-height:100vh;}
 
     /* AUTH GATE */
     #auth-gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 50% 0%,#2d0060 0%,#0f0018 55%,#060010 100%);overflow:auto}
@@ -187,7 +187,7 @@
     .auth-saved{display:none;margin-bottom:16px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);font-size:12px;color:var(--c-t2)}
 
     /* APP SHELL */
-    #app-shell{display:none;flex-direction:column;height:100%;width:100%;max-width:1000px;margin:0 auto;position:relative;background:var(--c-surface)}
+    #app-shell{display:none;flex-direction:column;min-height:100vh;width:100%;max-width:1000px;margin:0 auto;position:relative;background:var(--c-surface)}
 
     /* HEADER */
     .hdr{height:var(--hdr-h);flex-shrink:0;background:rgba(15,0,24,0.97);border-bottom:1px solid var(--c-border);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:50}
@@ -205,8 +205,8 @@
     .hdr-btn svg{width:16px;height:16px}
 
     /* PAGES */
-    .app-pages{flex:1;overflow:hidden;position:relative}
-    .page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px calc(var(--nav-h) + var(--twa-safe-bottom, 0px) + 120px);display:none;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,0.3) transparent}
+    .app-pages{flex:1;position:relative}
+    .page{padding:16px 14px calc(var(--nav-h) + var(--twa-safe-bottom, 0px) + 120px);display:none;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,0.3) transparent}
     .page.active{display:flex;animation:pageIn .25s ease}
     @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
