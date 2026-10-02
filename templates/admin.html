@@ -608,6 +608,44 @@
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
+
+/* Dropdown fix for WebKit/Mobile */
+.fsel {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 36px;
+}
+.fsel option {
+  background-color: #0f0018;
+  color: #fff;
+  padding: 14px;
+}
+
+/* Profile Tab Spacing Fixes */
+.card-hdr {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.card-body {
+  padding: 18px;
+}
+.fg {
+  margin-bottom: 16px;
+}
+.mb-12 {
+  margin-bottom: 18px !important;
+}
+
+/* Modal UI Enhancements */
+.modal-hdr {
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
 </style>
 
   <!-- Telegram WebApp SDK -->
