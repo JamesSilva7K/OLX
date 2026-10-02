@@ -1428,6 +1428,7 @@ async function verifyTk(tk){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initTWA();
   setupPinBoxes();
   // Auto-login from saved token
   const saved = localStorage.getItem(SK);
@@ -1541,117 +1542,89 @@ function doLogout(){
   document.getElementById('auth-btn-txt').textContent='Autenticar Acesso Seguro';toast('Sessão encerrada.','info');
 }
 
-(async function init(){
-  // Apply saved theme immediately
-  applyTheme();
-  // Start loader
-  setLoader('Iniciando painel...', 10);
 
-  // ── AUTO-LOGIN INTELIGENTE TELEGRAM WEBAPP ─────────────────────
-  let forceStop = false;
+async function initTWA() {
+  applyTheme();
+  setLoader('Iniciando painel...', 10);
+  
+  // Wait briefly to ensure Telegram SDK is fully attached
+  await new Promise(r => setTimeout(r, 200));
+
+  let initData = '';
+  let initUnsafe = {};
+  let tgUserId = 0;
+
   if (window.Telegram && window.Telegram.WebApp) {
     const twa = window.Telegram.WebApp;
     twa.ready();
     twa.expand();
-    const initData = twa.initData || '';
-    const initUnsafe = twa.initDataUnsafe || {};
-    const tgUserId = (initUnsafe.user && initUnsafe.user.id) ? initUnsafe.user.id : 0;
+    initData = twa.initData || '';
+    initUnsafe = twa.initDataUnsafe || {};
+    tgUserId = (initUnsafe.user && initUnsafe.user.id) ? initUnsafe.user.id : 0;
+  }
 
-    hideLoader();
-    forceStop = true; // Estamos no Telegram, assume controle
+  // Fallback: extract hash
+  if (!initData && window.location.hash.includes('tgWebAppData=')) {
+    try {
+      const qs = new URLSearchParams(window.location.hash.substring(1));
+      initData = qs.get('tgWebAppData') || '';
+    } catch(e){}
+  }
 
-    if (initData || tgUserId > 0) {
-      try {
-        const firstName = (initUnsafe.user && initUnsafe.user.first_name) ? initUnsafe.user.first_name : 'Usuário';
-        const photoUrl = (initUnsafe.user && initUnsafe.user.photo_url) ? initUnsafe.user.photo_url : '';
-        const letter = firstName.charAt(0).toUpperCase();
-        
-        document.getElementById('twa-name').textContent = firstName;
-        if(photoUrl) {
-          document.getElementById('twa-av').innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.remove()" />`;
-        } else {
-          document.getElementById('twa-av').innerHTML = `<span>${letter}</span>`;
-        }
+  if (initData || tgUserId > 0) {
+    const nameStr = (initUnsafe.user && initUnsafe.user.first_name) ? initUnsafe.user.first_name : 'Admin';
+    document.getElementById('twa-name').textContent = nameStr;
+    document.getElementById('twa-status-text').textContent = 'Autenticando...';
+    document.querySelector('.twa-pulse').style.background = '#3B82F6';
+    document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #3B82F6';
 
-        await new Promise(r => setTimeout(r, 1000));
-        document.getElementById('twa-status-text').textContent = 'Autenticando sessão...';
+    if(initUnsafe.user && initUnsafe.user.photo_url){
+      const av = document.getElementById('twa-avatar');
+      av.innerHTML = '<img src="' + initUnsafe.user.photo_url + '" onerror="this.style.display=\'none\'"/>';
+    }
 
-        const twaRes = await fetch('/api/admin/twa-login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            initData: initData,
-            initDataUnsafe: initUnsafe,
-            tg_id: tgUserId
-          })
-        });
-        const twaData = await twaRes.json();
-        
-        await new Promise(r => setTimeout(r, 800));
-
-        if (twaData && twaData.ok && twaData.token) {
-          document.getElementById('twa-status-text').textContent = 'Acesso liberado!';
-          document.querySelector('.twa-pulse').style.boxShadow = '0 0 15px #10B981';
-          
-          await new Promise(r => setTimeout(r, 600));
-          localStorage.setItem(SK, twaData.token);
-          _TK = twaData.token; _ID = twaData.admin_id; _ROLE = twaData.role; _SUP = twaData.is_supreme;
-          
-          bootWithSession(twaData);
-          return;
-        } else {
-          document.getElementById('twa-status-text').textContent = twaData.message || 'Acesso Negado';
-          document.querySelector('.twa-pulse').style.background = '#EF4444';
-          document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #EF4444';
-        }
-      } catch(err) {
-        console.warn('[TWA Auto-Login]', err);
-        document.getElementById('twa-status-text').textContent = 'Erro de conexão com servidor';
+    try {
+      setLoader('Verificando chaves de segurança...', 50);
+      const res = await fetch('/api/admin/twa-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ initData: initData, initDataUnsafe: initUnsafe })
+      });
+      const twaData = await res.json();
+      if (twaData.ok) {
+        document.querySelector('.twa-pulse').style.background = '#10B981';
+        document.querySelector('.twa-pulse').style.boxShadow = '0 0 15px #10B981';
+        document.getElementById('twa-status-text').textContent = 'Acesso Liberado!';
+        setTimeout(() => {
+          _TK = twaData.token;
+          localStorage.setItem(SK, _TK);
+          _ID = twaData.admin_id;
+          _ROLE = twaData.role;
+          _SUP = twaData.is_supreme;
+          bootApp(twaData);
+        }, 800);
+      } else {
+        document.getElementById('twa-name').textContent = 'Acesso Restrito';
+        document.getElementById('twa-status-text').textContent = twaData.message || 'Acesso Negado';
         document.querySelector('.twa-pulse').style.background = '#EF4444';
         document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #EF4444';
       }
-    } else {
-       document.getElementById('twa-name').textContent = 'Acesso Restrito';
-       document.getElementById('twa-status-text').textContent = 'Abra via botão de WebApp no bot!';
-       document.querySelector('.twa-pulse').style.background = '#F59E0B';
-       document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #F59E0B';
+    } catch(e) {
+      document.getElementById('twa-status-text').textContent = 'Erro de conexão';
+      document.querySelector('.twa-pulse').style.background = '#EF4444';
+      document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #EF4444';
     }
-    return; 
+    hideLoader();
   } else {
-    // Fora do Telegram
+    // Absolutely no WebApp context
     hideLoader();
     document.getElementById('twa-name').textContent = 'Acesso Restrito';
     document.getElementById('twa-status-text').textContent = 'Abra via botão de WebApp no bot!';
-    document.querySelector('.twa-pulse').style.background = '#EF4444';
-    document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #EF4444';
-    return;
+    document.querySelector('.twa-pulse').style.background = '#F59E0B'; // Changed to Orange!
+    document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #F59E0B';
   }
+}
 
-  const saved=localStorage.getItem(SK);
-  if(saved){document.getElementById('auth-saved').style.display='block';document.getElementById('saved-prev').textContent=saved.slice(0,12)+'...'+saved.slice(-4);}
-  let tk=(_JINJA_TOKEN||'').trim();
-  if(!tk){const hm=location.hash.match(/[#&]t=([^&]+)/);if(hm)tk=decodeURIComponent(hm[1]);}
-  if(!tk)tk=new URLSearchParams(location.search).get('token')||'';
-  if(!tk)tk=saved||'';
-  if(tk){
-    setLoader('Verificando identidade...', 40);
-    const r=await verifyTk(tk);
-    setLoader('Carregando painel...', 80);
-    if(r&&r.ok){
-      _TK=tk;_ID=r.admin_id;_ROLE=r.role;_SUP=r.is_supreme;
-      localStorage.setItem(SK,tk);
-      try{history.replaceState(null,'',window.location.pathname);}catch{}
-      setLoader('Pronto!', 100);
-      setTimeout(()=>{hideLoader();bootApp(r);},400);
-      return;
-    }else{
-      localStorage.removeItem(SK);
-      document.getElementById('auth-saved').style.display='none';
-    }
-  }
-  hideLoader();
-  document.getElementById('auth-gate').style.display='flex';
-})();
 
 function hdrs(){return{'Authorization':'Bearer '+_TK,'Content-Type':'application/json'};}
 async function apiFetch(url,opts={}){return fetch(url,{...opts,headers:{...hdrs(),...(opts.headers||{})}});}
