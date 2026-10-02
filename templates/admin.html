@@ -109,6 +109,18 @@
     .ni-dot{position:absolute;top:8px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:var(--c-red);border:2px solid var(--c-bg);animation:niDotPop .3s cubic-bezier(0.16,1,0.3,1)}
     @keyframes niDotPop{from{transform:scale(0)}to{transform:scale(1)}}
 
+    /* ── ADVANCED TWA SYNC ────────────────────────────────────── */
+    .twa-sync-card { display:flex; flex-direction:column; align-items:center; gap:16px; padding:28px 20px; background:linear-gradient(135deg, rgba(139,92,246,0.1), rgba(167,139,250,0.05)); border:1px solid rgba(139,92,246,0.3); border-radius:var(--r-lg); animation: authIn .5s ease; position:relative; overflow:hidden; }
+    .twa-sync-card::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 60%); animation: twaSpin 4s linear infinite; pointer-events:none; }
+    @keyframes twaSpin { 100% { transform:rotate(360deg); } }
+    .twa-av-ring { position:relative; width:88px; height:88px; display:flex; align-items:center; justify-content:center; }
+    .twa-av-ring::before { content:''; position:absolute; inset:-4px; border-radius:50%; border:2px dashed var(--c-purple3); animation: twaSpin 4s linear infinite reverse; opacity:0.6; }
+    .twa-av-ring::after { content:''; position:absolute; inset:-8px; border-radius:50%; border:2px solid transparent; border-top-color:var(--c-purple); border-bottom-color:var(--c-pink); animation: twaSpin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    .twa-av { width:76px; height:76px; border-radius:50%; object-fit:cover; border:3px solid var(--c-card); z-index:1; background:linear-gradient(135deg, #7C3AED, #A855F7); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:800; color:#fff; box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+    .twa-name { font-size:20px; font-weight:900; color:var(--c-text); z-index:1; margin-bottom:2px; letter-spacing:-0.5px; }
+    .twa-status { font-size:13px; font-weight:700; color:var(--c-purple3); z-index:1; display:flex; align-items:center; gap:8px; background:rgba(139,92,246,0.15); padding:4px 12px; border-radius:20px; border:1px solid rgba(139,92,246,0.3); }
+    .twa-pulse { width:8px; height:8px; border-radius:50%; background:var(--c-green); box-shadow:0 0 10px var(--c-green); animation: livePulse 1.5s infinite; }
+
     html,body{height:100%;background:var(--c-bg);color:var(--c-text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
 
     /* AUTH GATE */
@@ -601,6 +613,24 @@
         </div>
         <h1>Verificação de Identidade</h1>
         <p>Informe seu <strong>ID do Telegram</strong> para receber o código de acesso de 6 dígitos</p>
+      </div>
+
+      <!-- STEP TWA AUTO LOGIN -->
+      <div id="auth-twa-sync" style="display:none">
+        <div class="twa-sync-card">
+          <div class="twa-av-ring">
+            <div class="twa-av" id="twa-av"><span id="twa-av-letter">A</span></div>
+          </div>
+          <div style="text-align:center; z-index:1">
+            <div class="twa-name" id="twa-name">Conectando...</div>
+            <div style="display:flex; justify-content:center; margin-top:8px">
+              <div class="twa-status">
+                <div class="twa-pulse"></div>
+                <span id="twa-status-text">Sincronizando Telegram</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- STEP 1: Solicitar Código -->
@@ -1822,24 +1852,85 @@ function doLogout(){
   setLoader('Iniciando painel...', 10);
 
   // ── AUTO-LOGIN INTELIGENTE TELEGRAM WEBAPP ─────────────────────
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-    try {
-      setLoader('Conectando perfil do Telegram...', 25);
-      const twaRes = await fetch('/api/admin/twa-login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ initData: window.Telegram.WebApp.initData })
-      });
-      const twaData = await twaRes.json();
-      if (twaData && twaData.ok && twaData.token) {
-        localStorage.setItem(SK, twaData.token);
-        _TK = twaData.token; _ID = twaData.admin_id; _ROLE = twaData.role; _SUP = twaData.is_supreme;
-        setLoader('Perfil conectado!', 100);
-        setTimeout(() => bootWithSession(twaData), 200);
-        return;
+  if (window.Telegram && window.Telegram.WebApp) {
+    const twa = window.Telegram.WebApp;
+    const initData = twa.initData || '';
+    const initUnsafe = twa.initDataUnsafe || {};
+    const tgUserId = (initUnsafe.user && initUnsafe.user.id) ? initUnsafe.user.id : 0;
+
+    if (initData || tgUserId > 0) {
+      try {
+        // UI Advanced Animation
+        hideLoader();
+        document.getElementById('auth-step1').style.display = 'none';
+        document.getElementById('auth-step2').style.display = 'none';
+        document.getElementById('auth-recovery').style.display = 'none';
+        document.querySelector('.auth-head').style.display = 'none'; // Hide default head
+        document.querySelectorAll('.auth-link').forEach(el => el.style.display = 'none');
+        
+        const twaSync = document.getElementById('auth-twa-sync');
+        twaSync.style.display = 'block';
+        
+        const firstName = initUnsafe.user?.first_name || 'Usuário';
+        const photoUrl = initUnsafe.user?.photo_url;
+        const letter = firstName.charAt(0).toUpperCase();
+        
+        document.getElementById('twa-name').textContent = firstName;
+        if(photoUrl) {
+          document.getElementById('twa-av').innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.remove()" />`;
+        } else {
+          document.getElementById('twa-av').innerHTML = `<span>${letter}</span>`;
+        }
+
+        // Add small artificial delay to show off the beautiful animation
+        await new Promise(r => setTimeout(r, 1500));
+        document.getElementById('twa-status-text').textContent = 'Autenticando sessão...';
+
+        const twaRes = await fetch('/api/admin/twa-login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            initData: initData,
+            initDataUnsafe: initUnsafe,
+            tg_id: tgUserId
+          })
+        });
+        const twaData = await twaRes.json();
+        
+        await new Promise(r => setTimeout(r, 800)); // More animation viewing time
+
+        if (twaData && twaData.ok && twaData.token) {
+          document.getElementById('twa-status-text').textContent = 'Acesso liberado!';
+          document.querySelector('.twa-pulse').style.boxShadow = '0 0 15px #10B981';
+          
+          await new Promise(r => setTimeout(r, 600));
+
+          localStorage.setItem(SK, twaData.token);
+          _TK = twaData.token; _ID = twaData.admin_id; _ROLE = twaData.role; _SUP = twaData.is_supreme;
+          
+          bootWithSession(twaData);
+          return;
+        } else {
+          // Failed to auto-login (not an admin?)
+          document.getElementById('twa-status-text').textContent = 'Acesso Negado';
+          document.querySelector('.twa-pulse').style.background = '#EF4444';
+          document.querySelector('.twa-pulse').style.boxShadow = '0 0 10px #EF4444';
+          await new Promise(r => setTimeout(r, 1500));
+          
+          // Revert back to normal login
+          twaSync.style.display = 'none';
+          document.querySelector('.auth-head').style.display = 'block';
+          document.getElementById('auth-step1').style.display = 'block';
+          document.querySelectorAll('.auth-link').forEach(el => el.style.display = '');
+        }
+      } catch(err) {
+        console.warn('[TWA Auto-Login]', err);
+        // On error revert
+        document.getElementById('auth-twa-sync').style.display = 'none';
+        document.querySelector('.auth-head').style.display = 'block';
+        document.getElementById('auth-step1').style.display = 'block';
+        document.querySelectorAll('.auth-link').forEach(el => el.style.display = '');
       }
-    } catch(err) {
-      console.warn('[TWA Auto-Login]', err);
     }
   }
 

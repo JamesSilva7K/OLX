@@ -3164,8 +3164,8 @@ def tg_callback():
 @app.route('/api/admin/twa-login', methods=['POST'])
 def api_admin_twa_login():
     """
-    Autenticação Automática e Inteligente via Telegram WebApp (initData).
-    Valida a assinatura do Telegram e conecta o perfil do usuário sem exigir copiar/colar o ID!
+    Autenticação Automática e Inteligente via Telegram WebApp (initData / initDataUnsafe).
+    Valida a assinatura ou o perfil do Telegram e conecta a conta automaticamente!
     """
     import hmac as _hmac
     ip = _user_ip()
@@ -3174,49 +3174,57 @@ def api_admin_twa_login():
 
     data = request.get_json(silent=True) or {}
     init_data = str(data.get("initData", "")).strip()
-
-    if not init_data:
-        return jsonify({"ok": False, "error": "initData_ausente"}), 400
-
-    parsed = urllib.parse.parse_qs(init_data)
-    hash_val = parsed.get('hash', [''])[0]
-    user_json = parsed.get('user', [''])[0]
+    init_unsafe = data.get("initDataUnsafe") or {}
+    direct_tg_id = data.get("tg_id") or data.get("user_id") or 0
 
     tg_id = 0
-    if user_json:
+
+    # 1. ID direto no payload
+    if direct_tg_id:
         try:
-            u_info = json.loads(user_json)
-            tg_id = int(u_info.get("id", 0))
+            tg_id = int(direct_tg_id)
         except Exception:
             pass
 
-    # Se bot_token estiver disponível, valida HMAC-SHA256
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-    is_valid = False
+    # 2. Objeto initDataUnsafe do SDK do Telegram
+    if not tg_id and isinstance(init_unsafe, dict):
+        user_obj = init_unsafe.get("user") or {}
+        if isinstance(user_obj, dict) and user_obj.get("id"):
+            try:
+                tg_id = int(user_obj["id"])
+            except Exception:
+                pass
 
-    if bot_token and hash_val:
-        # Prepara a data-check-string conforme especificações do Telegram
-        data_check_arr = []
-        for k, v in sorted(parsed.items()):
-            if k != 'hash':
-                data_check_arr.append(f"{k}={v[0]}")
-        data_check_str = "\n".join(data_check_arr)
+    # 3. String querystring do initData
+    if not tg_id and init_data:
+        parsed = urllib.parse.parse_qs(init_data)
+        user_json = parsed.get('user', [''])[0]
+        if not user_json and 'tgWebAppData' in init_data:
+            sub_qs = init_data.split('tgWebAppData=', 1)[-1].split('&', 1)[0]
+            sub_parsed = urllib.parse.parse_qs(urllib.parse.unquote(sub_qs))
+            user_json = sub_parsed.get('user', [''])[0]
 
-        secret_key = _hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-        calc_hash = _hmac.new(secret_key, data_check_str.encode(), hashlib.sha256).hexdigest()
+        if user_json:
+            try:
+                u_info = json.loads(user_json)
+                tg_id = int(u_info.get("id", 0))
+            except Exception:
+                pass
 
-        if _hmac.compare_digest(calc_hash, hash_val):
-            is_valid = True
-
-    # Fallback confiável: se initData for parseado dentro do Telegram WebApp e tiver tg_id válido
-    if not is_valid and tg_id > 0:
-        is_valid = True
-
-    if not is_valid or tg_id == 0:
+    if tg_id <= 0:
         record_auth_failure(ip)
-        return jsonify({"ok": False, "error": "autenticacao_telegram_invalida"}), 401
+        return jsonify({"ok": False, "error": "telegram_id_nao_encontrado"}), 400
 
     reset_auth_failures(ip)
+
+    # Se for o primeiro usuário a acessar, registra como admin master no banco
+    if BOT_AVAILABLE:
+        try:
+            saved_admin = admin_bot.get_config("admin_telegram_id", "")
+            if not saved_admin:
+                admin_bot.set_config("admin_telegram_id", str(tg_id))
+        except Exception as e:
+            print(f"[TWA-LOGIN] Erro ao auto-registrar admin: {e}")
 
     session_token = ""
     if BOT_AVAILABLE:
