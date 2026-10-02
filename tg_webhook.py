@@ -405,9 +405,10 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
 # ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
 def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon="", coupon_active=1, coupon_only_shipping=1):
     conn = _get_db()
-    code = (re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30]) if product_code else secrets.token_urlsafe(8).lower()
-    if not code:
-        code = secrets.token_urlsafe(8).lower()
+    import hashlib
+    # Gera um hash único baseado no admin + tempo
+    raw_hash = hashlib.md5(f"{tg_id}-{time.time()}-{secrets.token_hex(4)}".encode()).hexdigest()
+    code = raw_hash[:8] # 8 caracteres (curto e seguro)
     
     # Se image_url estiver preenchida e image1 não, sincroniza
     img_main = image_url or image1 or ""

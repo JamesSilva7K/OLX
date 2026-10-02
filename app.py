@@ -3334,7 +3334,7 @@ def api_admin_my_products():
 
             slug = tg_wh.get_slug(admin_id)
 
-            unique_link = f"{BASE_URL}/p/{slug}/{code}" if slug else f"{BASE_URL}/p/{code}"
+            unique_link = f"{BASE_URL}/p/{code}"
 
             if VALIDATORS_AVAILABLE:
 
@@ -3356,7 +3356,7 @@ def api_admin_my_products():
 
         for p in prods:
 
-            p["unique_link"] = f"{BASE_URL}/p/{slug}/{p['product_code']}" if slug else f"{BASE_URL}/p/{p['product_code']}"
+            p["unique_link"] = f"{BASE_URL}/p/{p['product_code']}"
 
             products.append(p)
 
@@ -3412,7 +3412,7 @@ def api_admin_manage_product(product_code):
 
                 slug = tg_wh.get_slug(admin_id)
 
-                unique_link = f"{BASE_URL}/p/{slug}/{product_code}" if slug else f"{BASE_URL}/p/{product_code}"
+                unique_link = f"{BASE_URL}/p/{product_code}"
 
                 return jsonify({"ok": True, "unique_link": unique_link, "message": "Produto atualizado com sucesso!"})
 
