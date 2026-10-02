@@ -649,6 +649,16 @@
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+
+    /* GLOBAL BUTTON ANIMATIONS */
+    .btn { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease !important; }
+    .btn:active { transform: scale(0.92) !important; }
+    .sup-action-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; font-size:11px; font-weight:700; border-radius:8px; border:none; cursor:pointer; color:#fff; }
+    .btn-promote { background:linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow:0 4px 12px rgba(139,92,246,0.3); }
+    .btn-promote:hover { background:linear-gradient(135deg, #9F7AEA, #7C3AED); }
+    .btn-block { background:linear-gradient(135deg, #EF4444, #B91C1C); box-shadow:0 4px 12px rgba(239,68,68,0.3); }
+    .btn-block:hover { background:linear-gradient(135deg, #F87171, #DC2626); }
+
 /* END RESPONSIVE CSS */
 </style>
 
@@ -1026,37 +1036,6 @@
         <button class="tp active" onclick="cfgTab('visual',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Visual</button>
         <button class="tp" onclick="cfgTab('sistema',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Sistema</button>
         <button class="tp" id="tab-fin" onclick="cfgTab('financeiro',this)"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Financeiro</button>
-      </div>
-
-      <div id="ct-produto">
-        <div class="card"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>Anúncio Principal</div></div>
-        <div class="card-body">
-          <div class="fg"><label class="flbl">Nome do Produto</label><input type="text" class="fi" id="cfg-pname" placeholder="Ex: iPhone 11 64GB" /></div>
-          <div class="fr"><div class="fg"><label class="flbl">Preço (R$)</label><input type="text" class="fi" id="cfg-price" placeholder="630.00" /></div><div class="fg"><label class="flbl">Preço Antigo</label><input type="text" class="fi" id="cfg-oldp" placeholder="999.00" /></div></div>
-          <div class="fg"><label class="flbl">Descrição</label><textarea class="fta" id="cfg-desc" placeholder="Descrição..."></textarea></div>
-          <div class="fg"><label class="flbl">URL da Imagem</label><input type="url" class="fi" id="cfg-img" placeholder="https://..." /></div>
-          <button class="btn btn-p" onclick="saveProdCfg()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar Produto</button>
-        </div></div>
-      </div>
-
-      <div id="ct-vendedor">
-        <div class="card"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-blu"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>Perfil do Vendedor</div></div>
-        <div class="card-body">
-          <div class="fg"><label class="flbl">Nome do Vendedor</label><input type="text" class="fi" id="cfg-sname" placeholder="Seu nome" /></div>
-          <div class="fg"><label class="flbl">Na OLX desde</label><input type="text" class="fi" id="cfg-ssince" placeholder="2022" /></div>
-          <div class="fg"><label class="flbl">Status</label><input type="text" class="fi" id="cfg-sstatus" placeholder="Último acesso 2h" /></div>
-          
-          <button class="btn btn-p" onclick="saveSellerCfg()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar Vendedor</button>
-        </div></div>
-      </div>
-
-      <div id="ct-whatsapp">
-        <div class="card"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-grn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>WhatsApp Business</div></div>
-        <div class="card-body">
-          <div class="fg"><label class="flbl">Número (+55...)</label><div style="display:flex;gap:8px;align-items:center"><input type="tel" class="fi" id="cfg-wa" placeholder="5511999999999" oninput="debWa()" style="flex:1"/><div id="wa-dot" style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);flex-shrink:0"></div></div><div id="wa-msg" style="font-size:11px;color:var(--c-t3);margin-top:4px"></div></div>
-          <div class="fg"><label class="flbl">Mensagem Padrão</label><textarea class="fta" id="cfg-wa-msg" placeholder="Olá! Tenho interesse..."></textarea></div>
-          <button class="btn btn-p" onclick="saveWaCfg()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar WhatsApp</button>
-        </div></div>
       </div>
 
       <div id="ct-visual">
@@ -2275,7 +2254,7 @@ async function loadSupremeOverview() {
   try {
     const r = await apiFetch('/api/admin/supreme/full-overview');
     const d = await r.json();
-    if (!d.ok) { el.innerHTML = '<div class="empty"><p>' + (d.error || 'Indisponível.') + '</p></div>'; return; }
+    if (!d.ok) { el.innerHTML = '<div class="empty"><p>' + (d.error || 'Indisponivel.') + '</p></div>'; return; }
     const admins = d.admins || [];
     if (!admins.length) { el.innerHTML = '<div class="empty"><p>Nenhum admin registrado.</p></div>'; return; }
     el.innerHTML = admins.map(a => {
@@ -2285,10 +2264,10 @@ async function loadSupremeOverview() {
       const av = prof.avatar_url ? '<img src="' + prof.avatar_url + '" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>' + letter : letter;
       const s24 = a.stats_24h || {};
       const planChip = a.plan && a.plan.plan_name ? '<span class="chip chip-p" style="font-size:10px;margin-left:auto">' + a.plan.plan_name + '</span>' : '';
-      return '<div class="sup-admin-card">' +
+      return '<div class="sup-admin-card" style="border:1px solid rgba(139,92,246,0.2);box-shadow:0 8px 24px rgba(0,0,0,0.2)">' +
         '<div class="sup-admin-head">' +
           '<div class="adm-av" style="overflow:hidden;position:relative">' + av + '</div>' +
-          '<div style="flex:1;min-width:0"><div class="sup-admin-name">' + name + '</div><div class="sup-admin-slug">/' + (a.slug || '—') + '</div></div>' +
+          '<div style="flex:1;min-width:0"><div class="sup-admin-name">' + name + '</div><div class="sup-admin-slug" style="color:var(--c-purple3)"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Blindagem de Dados: Ativa</div></div>' +
           planChip +
         '</div>' +
         '<div class="sup-stat-row">' +
@@ -2297,11 +2276,50 @@ async function loadSupremeOverview() {
           '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (s24.paid ?? s24.payment_confirmed ?? 0) + '</div><div class="sup-stat-chip-lbl">Pagos</div></div>' +
           '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (a.products ? a.products.length : 0) + '</div><div class="sup-stat-chip-lbl">Prods</div></div>' +
         '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05)">' +
+           '<button class="btn sup-action-btn btn-promote" onclick="changeRole(' + a.tg_id + ')">Mudar Cargo</button>' +
+           '<button class="btn sup-action-btn btn-block" onclick="blockAdmin(' + a.tg_id + ')">Bloquear (Blindagem)</button>' +
+        '</div>' +
       '</div>';
     }).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Erro ao carregar overview.</p></div>';
   }
+}
+
+window.changeRole = async function(tg_id) {
+    const p = prompt('Digite o novo plano (free, starter, pro, unlimited):');
+    if(!p) return;
+    try {
+        const r = await apiFetch('/api/admin/supreme/set-plan', {
+            method: 'POST',
+            body: JSON.stringify({tg_id: tg_id, plan: p.toLowerCase().trim()})
+        });
+        const d = await r.json();
+        if(d.ok) {
+            toast('Cargo atualizado com sucesso! (Blindagem verificada)', 'ok');
+            loadSupremeOverview();
+        } else {
+            toast(d.error || 'Erro ao alterar plano', 'err');
+        }
+    } catch(e) {
+        toast('Erro de conexão', 'err');
+    }
+}
+
+window.blockAdmin = async function(tg_id) {
+    if(!confirm('Tem certeza que deseja bloquear este administrador e revogar acesso financeiro? (Ação protegida pela blindagem de dados)')) return;
+    try {
+        const r = await apiFetch('/api/admin/supreme/set-plan', {
+            method: 'POST',
+            body: JSON.stringify({tg_id: tg_id, plan: 'blocked'})
+        });
+        const d = await r.json();
+        toast('Admin Bloqueado! Dados Financeiros Ocultados.', 'ok');
+        loadSupremeOverview();
+    } catch(e) {
+        toast('Erro ao bloquear administrador.', 'err');
+    }
 }
 async function saveProf(){
   const btn=document.getElementById('save-prof-txt');if(btn)btn.textContent='Salvando...';
