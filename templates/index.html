@@ -1374,21 +1374,30 @@
         const totalValEl = document.getElementById('summary-total-val');
         const shippingDesc = document.getElementById('summary-shipping-desc');
 
-        if (prodValEl) prodValEl.style.textDecoration = 'line-through';
+
+        if (prodValEl) {
+          if (data.shipping_only) {
+             prodValEl.style.textDecoration = 'line-through';
+          }
+        }
         if (rowDiscount) {
           rowDiscount.style.display = 'flex';
           if (discountValEl) discountValEl.textContent = '- ' + (data.formatted_discount || ('R$ ' + RAW_PRODUCT_PRICE));
         }
         if (totalValEl) totalValEl.textContent = data.formatted_final || ('R$ ' + RAW_SHIPPING_FEE);
         if (shippingDesc) {
-          shippingDesc.innerHTML = `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Cupom <strong>${activeCoupon}</strong> aplicado — Cobrança de Apenas Frete</span>`;
+          let descText = data.shipping_only ? 'Cobrança de Apenas Frete' : `Desconto Aplicado!`;
+          shippingDesc.innerHTML = `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Cupom <strong>${activeCoupon}</strong> aplicado — ${descText}</span>`;
         }
 
         const btnNextTxt = document.getElementById('btn-advance-text');
-        if (btnNextTxt) btnNextTxt.textContent = `Pagar Apenas Frete (${data.formatted_final || 'R$ ' + RAW_SHIPPING_FEE})`;
+        if (btnNextTxt) {
+           btnNextTxt.textContent = data.shipping_only ? `Pagar Apenas Frete (${data.formatted_final})` : `Pagar com Desconto (${data.formatted_final})`;
+        }
 
-        showCouponFeedback(`Cupom ${activeCoupon} aplicado com sucesso! Desconto de 100% no produto.`, 'success');
-        if (!isAuto) showToast(`Cupom ${activeCoupon} aplicado! Pague apenas o frete.`, 'check');
+        showCouponFeedback(data.message, 'success');
+        if (!isAuto) showToast(data.message, 'check');
+
       } else {
         if (!isAuto) {
           showCouponFeedback(data.message || 'Cupom inválido ou inativo para este anúncio.', 'error');

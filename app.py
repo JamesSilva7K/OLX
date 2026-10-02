@@ -3299,8 +3299,8 @@ def api_admin_my_products():
         shipping_coupon = data.get("shipping_coupon", "").strip()
 
         coupon_active = 1 if data.get("coupon_active", 1) in (1, "1", True, "true") else 0
-
         coupon_only_shipping = 1 if data.get("coupon_only_shipping", 1) in (1, "1", True, "true") else 0
+        coupon_discount_value = data.get("coupon_discount_value", "").strip()
 
 
 
@@ -3327,9 +3327,8 @@ def api_admin_my_products():
                 shipping_coupon=shipping_coupon,
 
                 coupon_active=coupon_active,
-
-                coupon_only_shipping=coupon_only_shipping
-
+                coupon_only_shipping=coupon_only_shipping,
+                coupon_discount_value=coupon_discount_value
             )
 
             slug = tg_wh.get_slug(admin_id)

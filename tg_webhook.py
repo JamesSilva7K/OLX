@@ -403,7 +403,7 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
         logger.error(f'[NOTIFY ACCESS ERROR] {e}')
 
 # ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
-def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon="", coupon_active=1, coupon_only_shipping=1):
+def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon="", coupon_active=1, coupon_only_shipping=1, coupon_discount_value=""):
     conn = _get_db()
     import hashlib
     # Gera um hash único baseado no admin + tempo
@@ -420,9 +420,9 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
 
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, time.time()))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, created_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, time.time()))
     conn.commit(); conn.close()
     return code
 
@@ -433,6 +433,7 @@ def get_tenant_products(tg_id: int):
                image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
                COALESCE(coupon_active, 1) AS coupon_active,
                COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
+               COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
                created_at 
         FROM tenant_products WHERE tg_id=? ORDER BY id DESC
     """, (tg_id,)).fetchall()
@@ -447,7 +448,8 @@ def get_product_by_code(code: str, tg_id: int = None):
                    image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
                    COALESCE(coupon_active, 1) AS coupon_active,
                    COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
-                   created_at 
+               COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
+               created_at 
             FROM tenant_products WHERE product_code=? AND tg_id=?
         """, (code, tg_id)).fetchone()
     else:
@@ -456,7 +458,8 @@ def get_product_by_code(code: str, tg_id: int = None):
                    image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
                    COALESCE(coupon_active, 1) AS coupon_active,
                    COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
-                   created_at 
+               COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
+               created_at 
             FROM tenant_products WHERE product_code=?
         """, (code,)).fetchone()
     conn.close()
@@ -568,13 +571,32 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
     except Exception:
         ship_fee = 19.90
 
-    # Desconto de 100% no valor do produto -> cliente paga apenas o valor do frete
-    discount_val = orig_price
-    final_val = ship_fee
+
+    only_ship = int(product.get("coupon_only_shipping", 1) or 0)
+    
+    if only_ship:
+        discount_val = orig_price
+        final_val = ship_fee
+        msg = f"Cupom {coupon_input} aplicado com sucesso! Desconto de 100% no produto — você paga apenas a taxa de frete de R$ {ship_fee:.2f}".replace(".", ",")
+        shipping_only = True
+    else:
+        try:
+            raw_disc = str(product.get("coupon_discount_value", "0")).replace("R$", "").replace(" ", "").replace(",", ".")
+            disc_amount = float(raw_disc)
+        except:
+            disc_amount = 0.0
+
+        if disc_amount > orig_price:
+            disc_amount = orig_price
+
+        discount_val = disc_amount
+        final_val = (orig_price - discount_val) + ship_fee
+        msg = f"Cupom {coupon_input} aplicado com sucesso! Desconto de R$ {discount_val:,.2f} no produto.".replace(",", "X").replace(".", ",").replace("X", ".")
+        shipping_only = False
 
     return {
         "valid": True,
-        "message": f"Cupom {coupon_input} aplicado com sucesso! Desconto de 100% no produto — você paga apenas a taxa de frete de R$ {ship_fee:.2f}".replace(".", ","),
+        "message": msg,
         "coupon": coupon_input,
         "product_code": product.get("product_code", ""),
         "product_title": product.get("title", ""),
@@ -586,8 +608,9 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
         "formatted_discount": f"R$ {discount_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
         "formatted_shipping": f"R$ {ship_fee:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
         "formatted_final": f"R$ {final_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
-        "shipping_only": True
+        "shipping_only": shipping_only
     }
+
 
 
 # ─── GEOLOCALIZACÃO REAL POR IP ───────────────────────────────────────────────────

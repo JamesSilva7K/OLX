@@ -1426,6 +1426,12 @@
           <span class="fhint">Código que o cliente usará no checkout para pagar apenas o frete.</span>
         </div>
 
+                <div class="fg" style="margin-bottom:10px" id="wrap-coupon-discount-value">
+          <label class="flbl">Valor de Desconto do Cupom (R$)</label>
+          <input type="text" class="fi" id="edit-coupon-discount-value" placeholder="Ex: 50.00" />
+          <span class="fhint">Quanto abater do valor do produto se o cliente não pagar apenas o frete.</span>
+        </div>
+
         <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06)">
           <div class="tgl-info">
             <div class="tgl-name">Ativar Cupom para este Produto</div>
@@ -2032,7 +2038,7 @@ async function toggleProdCoupon(code, newActive){
 
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
-  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon'].forEach(id=>{
+  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -2110,6 +2116,7 @@ async function saveProd(){
   const shipping_mode=document.getElementById('edit-shipping-mode').value;
   const shipping_fee=document.getElementById('edit-shipping-fee').value.trim();
   const shipping_coupon=document.getElementById('edit-shipping-coupon').value.trim();
+  const coupon_discount_value=document.getElementById('edit-coupon-discount-value').value.trim();
   const coupon_active=document.getElementById('edit-coupon-active') ? (document.getElementById('edit-coupon-active').checked ? 1 : 0) : 1;
   const coupon_only_shipping=document.getElementById('edit-coupon-only-shipping') ? (document.getElementById('edit-coupon-only-shipping').checked ? 1 : 0) : 1;
 
