@@ -1930,21 +1930,8 @@ def check_is_supreme(tg_id: int) -> bool:
 
         return True
 
-    # Verifica se é o admin master registrado dinamicamente no banco
-
-    if BOT_AVAILABLE:
-
-        try:
-
-            saved_admin = admin_bot.get_config("admin_telegram_id", "")
-
-            if saved_admin and saved_admin.isdigit() and int(saved_admin) == tg_id:
-
-                return True
-
-        except Exception:
-
-            pass
+    # Removido: O admin master não é mais salvo dinamicamente no banco.
+    # Apenas variáveis de ambiente (SUPREME_ADMIN_ID ou SUPER_ADMIN_IDS) concedem acesso supremo.
 
     return False
 
@@ -6707,23 +6694,7 @@ def api_admin_twa_login():
 
 
 
-    # Se for o primeiro usuário a acessar, registra como admin master no banco
-
-    if BOT_AVAILABLE:
-
-        try:
-
-            saved_admin = admin_bot.get_config("admin_telegram_id", "")
-
-            if not saved_admin:
-
-                admin_bot.set_config("admin_telegram_id", str(tg_id))
-
-        except Exception as e:
-
-            print(f"[TWA-LOGIN] Erro ao auto-registrar admin: {e}")
-
-
+    # Removido: Auto-registro de admin master via TWA foi desativado por segurança.
 
     session_token = ""
 
