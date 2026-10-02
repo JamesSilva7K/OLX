@@ -1269,19 +1269,24 @@ def api_admin_c7_status():
             "message": "Dados financeiros da Carteira do 7 sÃ£o visÃ­veis apenas para o Admin Supremo."
         }), 403
 
-    c7_configured = bool(C7_API_KEY and "c7_live_xxx" not in C7_API_KEY)
+    keys = _get_live_c7_keys()
+    live_api_key = keys.get("api_key", "")
+    live_api_secret = keys.get("api_secret", "")
+    live_base_url = keys.get("base_url", "https://api.carteirado7.com/v2")
+
+    c7_configured = bool(live_api_key and "c7_live_xxx" not in live_api_key)
     live_status = "disconnected"
     balance_info = None
 
     if c7_configured:
         try:
             headers = {
-                "Authorization": f"Bearer {C7_API_KEY}",
-                "X-API-KEY": C7_API_KEY,
-                "X-API-SECRET": C7_API_SECRET,
+                "Authorization": f"Bearer {live_api_key}",
+                "X-API-KEY": live_api_key,
+                "X-API-SECRET": live_api_secret,
                 "User-Agent": "OLPG-System-Vault/2026"
             }
-            res = requests.get(f"{C7_BASE_URL}/merchant/balance", headers=headers, timeout=5)
+            res = requests.get(f"{live_base_url}/merchant/balance", headers=headers, timeout=5)
             if res.status_code == 200:
                 live_status = "connected"
                 balance_info = res.json().get("balance", {})
@@ -1296,7 +1301,7 @@ def api_admin_c7_status():
     return jsonify({
         "ok": True,
         "c7_status": live_status,
-        "api_key_masked": f"{C7_API_KEY[:8]}...{C7_API_KEY[-4:]}" if C7_API_KEY else "nÃ£o configurada",
+        "api_key_masked": f"{live_api_key[:8]}...{live_api_key[-4:]}" if live_api_key else "nÃ£o configurada",
         "role": role,
         "is_supreme_admin": True,
         "balance": balance_info
@@ -1860,10 +1865,10 @@ def api_admin_config_save():
             # Apenas Admin Supremo pode alterar logo_url e payment_badges
             if key in ["logo_url", "payment_badges"] and role != "supreme_admin":
                 continue
-            if not clean_val:
+            if not clean_val and key not in ["logo_url", "payment_badges"]:
                 continue
             # Validacao avancada por tipo de campo
-            if VALIDATORS_AVAILABLE:
+            if VALIDATORS_AVAILABLE and clean_val:
                 field_map = {
                     'product_name': 'product_name', 'product_price': 'price',
                     'product_old_price': 'price', 'product_image': 'url',
@@ -1883,7 +1888,12 @@ def api_admin_config_save():
                     continue
                 else:
                     clean_val = FieldValidator.sanitize(clean_val)
-            if clean_val:
+            # Save logic
+            if key in ["logo_url", "payment_badges"]:
+                if BOT_AVAILABLE:
+                    admin_bot.set_config(key, clean_val)
+                saved.append(key)
+            elif clean_val:
                 if TG_WH_AVAILABLE and admin_id != 999999999:
                     tg_wh.set_tenant_config(admin_id, key, clean_val)
                 elif BOT_AVAILABLE:
@@ -2441,11 +2451,15 @@ def generate_pix():
     expires_at  = ""
     c7_status   = "pending"
 
-    if C7_API_KEY and "your_key" not in C7_API_KEY and "c7_live_xxx" not in C7_API_KEY:
+    c7_keys = _get_live_c7_keys()
+    live_api_key = c7_keys.get("api_key", "")
+    live_base_url = c7_keys.get("base_url", "https://api.carteirado7.com/v2")
+
+    if live_api_key and "your_key" not in live_api_key and "c7_live_xxx" not in live_api_key:
         try:
             headers  = get_c7_auth_headers(body_str)
             res  = requests.post(
-                f"{C7_BASE_URL}/payment/create",
+                f"{live_base_url}/payment/create",
                 data=body_str,
                 headers=headers,
                 timeout=10
@@ -2561,11 +2575,15 @@ def check_payment(payment_id):
 
     # Consulta a C7 (apenas Authorization header â€” doc sec. 6)
     c7_id = payment.get("c7_id")
-    if c7_id and C7_API_KEY and "c7_live_xxx" not in C7_API_KEY:
+    c7_keys = _get_live_c7_keys()
+    live_api_key = c7_keys.get("api_key", "")
+    live_base_url = c7_keys.get("base_url", "https://api.carteirado7.com/v2")
+
+    if c7_id and live_api_key and "c7_live_xxx" not in live_api_key:
         try:
             res  = requests.get(
-                f"{C7_BASE_URL}/payment/{c7_id}/status",
-                headers={"Authorization": f"Bearer {C7_API_KEY}"},
+                f"{live_base_url}/payment/{c7_id}/status",
+                headers={"Authorization": f"Bearer {live_api_key}"},
                 timeout=6
             )
             if res.status_code == 200:
@@ -2711,13 +2729,17 @@ def c7_balance():
             "message": "Consulta de saldo Ã© exclusiva do Admin Supremo."
         }), 403
 
-    if not C7_API_KEY or "c7_live_xxx" in C7_API_KEY:
+    keys = _get_live_c7_keys()
+    live_api_key = keys.get("api_key", "")
+    live_base_url = keys.get("base_url", "https://api.carteirado7.com/v2")
+
+    if not live_api_key or "c7_live_xxx" in live_api_key:
         return jsonify({"ok": False, "error": "api_key_nÃ£o_configurada"}), 401
     try:
         body_str = "{}"  # body vazio mas ainda participa do HMAC
         headers  = get_c7_auth_headers(body_str)
         res = requests.post(
-            f"{C7_BASE_URL}/account/balance",
+            f"{live_base_url}/account/balance",
             data=body_str,
             headers=headers,
             timeout=8

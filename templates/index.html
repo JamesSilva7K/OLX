@@ -968,14 +968,20 @@
           if (d.payment_badges) {
             let arr;
             try { arr = JSON.parse(d.payment_badges); } catch(e) { return; }
-            if (!Array.isArray(arr) || !arr.length) return;
+            if (!Array.isArray(arr)) return;
             const row = document.getElementById('payment-badges-row');
             // Remove badges padrão
             row.querySelectorAll('.payment-badge-default').forEach(el => el.remove());
+            if (!arr.length) return;
             // Injeta badges customizadas
-            arr.forEach(url => {
+            arr.forEach(item => {
+              if (item && typeof item === 'object') {
+                if (item.active === false) return; // Skip inactive
+                item = item.url;
+              }
+              if (!item || typeof item !== 'string') return;
               const img = document.createElement('img');
-              img.src = url;
+              img.src = item;
               img.alt = 'Pagamento';
               img.style.cssText = 'height:26px;max-width:58px;object-fit:contain;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.12);background:#fff;padding:2px;';
               img.onerror = function(){ this.style.display='none'; };
