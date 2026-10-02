@@ -3761,6 +3761,30 @@ def _pix_alias():
 def _status_alias(payment_id):
     return check_payment(payment_id)
 
+@app.route("/fix-bot")
+def fix_bot_menu():
+    import requests, os
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not bot_token:
+        return jsonify({"ok": False, "error": "TELEGRAM_BOT_TOKEN não encontrado nas envs."})
+    
+    base = os.environ.get("BASE_URL", request.host_url).rstrip('/')
+    url = f"https://api.telegram.org/bot{bot_token}/setChatMenuButton"
+    payload = {
+        "menu_button": {
+            "type": "web_app",
+            "text": "Abrir Painel",
+            "web_app": {
+                "url": f"{base}/admin"
+            }
+        }
+    }
+    try:
+        r = requests.post(url, json=payload)
+        return jsonify(r.json())
+    except Exception as e:
+        return str(e)
+
 # Boot: restore persisted state from SQLite
 try:
     _load_payments_from_db()
