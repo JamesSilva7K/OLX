@@ -1113,57 +1113,47 @@ def _log(event_type, session_id, data):
 
 
 def get_c7_auth_headers(body_str: str = "") -> dict:
-
     """
-
-    Gera headers de autenticação HMAC-SHA256 conforme C7 API Doc sec. 2.2 & 3.
-
-    Credenciais lidas do vault militar em tempo real (sem cache em memória).
-
-    Fórmula: HMAC-SHA256(api_secret, timestamp + '.' + nonce + '.' + body)
-
+    Gera headers de autenticacao HMAC-SHA256 conforme C7 API Doc.
+    - Leitura: Authorization: Bearer <api_key>
+    - Escrita:  + X-C7-Timestamp, X-C7-Nonce, X-C7-Signature
+    Formula: HMAC-SHA256(api_secret, timestamp + '.' + nonce + '.' + body)
+    Nonce: UUID v4 unico por requisicao.
     """
-
-    keys      = _get_live_c7_keys()
-
-    api_key   = keys.get("api_key", C7_API_KEY)
-
-    api_secret= keys.get("api_secret", C7_API_SECRET)
+    keys       = _get_live_c7_keys()
+    api_key    = keys.get("api_key", C7_API_KEY) or ""
+    api_secret = keys.get("api_secret", C7_API_SECRET) or ""
 
     ts        = str(int(time.time()))
-
-    nonce     = str(uuid.uuid4())
-
+    nonce     = str(uuid.uuid4())   # UUID v4, unico por requisicao
     sig_input = f"{ts}.{nonce}.{body_str}"
 
     signature = hmac.new(
-
         api_secret.encode('utf-8'),
-
         sig_input.encode('utf-8'),
-
         hashlib.sha256
-
     ).hexdigest()
 
     return {
-
         "Authorization":  f"Bearer {api_key}",
-
         "Content-Type":   "application/json",
-
         "X-C7-Timestamp": ts,
-
         "X-C7-Nonce":     nonce,
-
         "X-C7-Signature": signature,
-
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-
-        "Accept": "application/json"
-
+        "User-Agent":     "OLPG-System/2026",
+        "Accept":         "application/json"
     }
 
+
+def _c7_read_headers() -> dict:
+    """Headers somente-leitura (sem HMAC) — para GET endpoints como /payment/:id/status."""
+    keys    = _get_live_c7_keys()
+    api_key = keys.get("api_key", C7_API_KEY) or ""
+    return {
+        "Authorization": f"Bearer {api_key}",
+        "Accept":        "application/json",
+        "User-Agent":    "OLPG-System/2026"
+    }
 
 
 # â”€â”€â”€ GERADOR DE PIX EMV VÃLIDO (BACEN BR CODE 2.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -2637,36 +2627,32 @@ def api_admin_c7_status():
 
             }
 
-            # Tenta multiplos endpoints em sequencia (a C7 pode variar conforme versao da API)
-            _c7_balance_paths = ["/account/balance", "/balance", "/merchant/balance", "/account"]
-            res = None
-            for _path in _c7_balance_paths:
-                try:
-                    _r = requests.get(f"{live_base_url}{_path}", headers=headers, timeout=5)
-                    if _r.status_code == 200:
-                        res = _r
-                        break
-                    elif _r.status_code in (401, 403):
-                        res = _r  # credencial errada mas endpoint existe
-                        break
-                except Exception:
-                    continue
+            # POST /account/balance com HMAC (conforme doc oficial C7)
+            _bal_body = "{}"
+            _bal_hdrs = get_c7_auth_headers(_bal_body)
 
-            if res and res.status_code == 200:
+            _c7_bal_res = requests.post(
+                f"{live_base_url}/account/balance",
+                data=_bal_body,
+                headers=_bal_hdrs,
+                timeout=5
+            )
+            res = _c7_bal_res
+
+            if res.status_code == 200:
 
                 live_status = "connected"
 
-                balance_info = res.json().get("balance", res.json().get("account", {}))
+                balance_info = res.json().get("account", res.json().get("balance", {}))
 
-            elif res and res.status_code in [401, 403]:
+            elif res.status_code in [401, 403]:
 
                 live_status = "connected_sandbox_active"
 
                 balance_info = {"available": "12.450,00", "pending": "1.890,00", "status": "Operando via Sandbox Seguro"}
 
             else:
-                _code = res.status_code if res else 0
-                live_status = f"http_{_code}" if _code else "error_connecting"
+                live_status = f"http_{res.status_code}"
 
         except Exception:
             live_status = "error_connecting"
@@ -4976,9 +4962,10 @@ def generate_pix():
 
 
 
-    if C7_ACQUIRER_CODE:
-
-        c7_payload["acquirer_code"] = C7_ACQUIRER_CODE
+    # acquirer_code: do vault se disponivel, senao env
+    live_acquirer = _get_live_c7_keys().get("acquirer_code", "") or C7_ACQUIRER_CODE
+    if live_acquirer:
+        c7_payload["acquirer_code"] = live_acquirer
 
 
 
@@ -5260,7 +5247,7 @@ def check_payment(payment_id):
 
                 f"{live_base_url}/payment/{c7_id}/status",
 
-                headers={"Authorization": f"Bearer {live_api_key}"},
+                headers=_c7_read_headers(),  # GET: apenas Bearer, sem HMAC
 
                 timeout=6
 
@@ -5364,13 +5351,16 @@ def c7_webhook():
 
     # â”€â”€â”€ 1. Validação da assinatura HMAC (sec. 9) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    if C7_API_SECRET and "your_api_secret" not in C7_API_SECRET:
+    # Webhook verification: usa vault secret (nao o env stale)
+    live_secret = _get_live_c7_keys().get("api_secret", "") or C7_API_SECRET
 
-        # Fórmula da doc: HMAC(api_secret, timestamp + "." + body)
+    if live_secret and "your_api_secret" not in live_secret:
+
+        # Formula doc: HMAC(api_secret, timestamp + "." + body_json_str)
 
         expected = hmac.new(
 
-            C7_API_SECRET.encode('utf-8'),
+            live_secret.encode('utf-8'),
 
             f"{ts_header}.{raw_body}".encode('utf-8'),
 
@@ -5382,7 +5372,7 @@ def c7_webhook():
 
             _log("SECURITY_ALERT_WEBHOOK", "webhook", {
 
-                "ip": _user_ip(), "reason": "HMAC inválido", "event": event_hdr
+                "ip": _user_ip(), "reason": "HMAC invalido", "event": event_hdr
 
             })
 
@@ -5580,37 +5570,32 @@ def c7_balance():
 
         }
 
-        # Tenta multiplos endpoints - C7 pode usar path diferente conforme versao
-        _c7_paths = ["/account/balance", "/balance", "/merchant/balance", "/account"]
-        res = None
-        last_code = 0
-        for _path in _c7_paths:
-            try:
-                _r = requests.get(
-                    f"{live_base_url}{_path}",
-                    headers=headers,
-                    timeout=8
-                )
-                last_code = _r.status_code
-                if _r.status_code == 200:
-                    res = _r
-                    break
-                elif _r.status_code in (401, 403):
-                    res = _r
-                    break
-            except Exception:
-                continue
+        # POST /account/balance com HMAC (conforme doc oficial C7)
+        body_bal  = "{}"  # body vazio para balance
+        bal_hdrs  = get_c7_auth_headers(body_bal)
 
-        if not res:
-            return jsonify({"ok": False,
-                            "error": f"C7 nao respondeu em nenhum endpoint (ultimo: {last_code or 'timeout'})",
-                            "detail": "Verifique a base_url configurada no Vault do Admin Supremo."}), 502
+        res = requests.post(
+            f"{live_base_url}/account/balance",
+            data=body_bal,
+            headers=bal_hdrs,
+            timeout=8
+        )
 
         if res.status_code != 200:
 
-            return jsonify({"ok": False, "error": f"C7 retornou {res.status_code}",
-
-                            "detail": res.text[:200]}), res.status_code
+            # Tenta GET como fallback (algumas versoes da API aceitam GET)
+            _fallback = requests.get(
+                f"{live_base_url}/account/balance",
+                headers=_c7_read_headers(),
+                timeout=8
+            )
+            if _fallback.status_code == 200:
+                res = _fallback
+            else:
+                _detail = res.text[:300]
+                return jsonify({"ok": False,
+                                "error": f"C7 retornou {res.status_code}",
+                                "detail": _detail}), res.status_code
 
         resp = res.json()
 
