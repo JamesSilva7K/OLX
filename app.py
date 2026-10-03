@@ -1478,6 +1478,8 @@ def index(slug_or_code=None, item_code=None):
 
             seller_since=(custom_item["seller_since"] if custom_item and custom_item.get("seller_since") else cfgs.get("seller_since", "")),
 
+            seller_avatar=(custom_item.get("seller_avatar") if custom_item and custom_item.get("seller_avatar") else cfgs.get("seller_avatar", "")),
+
                     det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
 
             det_brand=(custom_item["det_brand"] if custom_item and "det_brand" in custom_item else cfgs.get("det_brand", "Apple")),
@@ -1797,6 +1799,8 @@ def api_config(slug=None):
             "seller_status":       cfgs.get("seller_status", ""),
 
             "seller_since":        product.get("seller_since", cfgs.get("seller_since", "")) if product else cfgs.get("seller_since", ""),
+
+            "seller_avatar":       product.get("seller_avatar", cfgs.get("seller_avatar", "")) if product else cfgs.get("seller_avatar", ""),
 
             "payment_badges":      global_badges,
 
@@ -3325,36 +3329,23 @@ def api_admin_my_products():
         data = request.json or {}
 
         title = data.get("title", "").strip()
-
         price = data.get("price", "").strip()
-
         old_price = data.get("old_price", "").strip()
-
         description = data.get("description", "").strip()
-
         image_url = data.get("image_url", "").strip()
-
         image1 = data.get("image1", "").strip() or image_url
-
         image2 = data.get("image2", "").strip()
-
         image3 = data.get("image3", "").strip()
-
         product_code = data.get("product_code", "").strip()
-
         shipping_mode = data.get("shipping_mode", "full").strip()
-
-        shipping_fee = data.get("shipping_fee", "19.90").strip()
-
+        shipping_fee = data.get("shipping_fee", "19.90").strip() or "19.90"
         shipping_coupon = data.get("shipping_coupon", "").strip()
-
         coupon_active = 1 if data.get("coupon_active", 1) in (1, "1", True, "true") else 0
         coupon_only_shipping = 1 if data.get("coupon_only_shipping", 1) in (1, "1", True, "true") else 0
         coupon_discount_value = data.get("coupon_discount_value", "").strip()
-
         seller_name = data.get("seller_name", "").strip()
         seller_since = data.get("seller_since", "").strip()
-
+        seller_avatar = data.get("seller_avatar", "").strip()
         det_category = data.get("det_category", "").strip()
         det_brand = data.get("det_brand", "").strip()
         det_model = data.get("det_model", "").strip()
@@ -3365,32 +3356,31 @@ def api_admin_my_products():
         breadcrumb_zone = data.get("breadcrumb_zone", "").strip()
 
         if not title:
-
             return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
 
-
+        # ── Defaults inteligentes: se o admin não preencheu, usa valores do config global
+        if TG_WH_AVAILABLE:
+            _cfgs = tg_wh.get_tenant_all_config(admin_id)
+            if not seller_name:   seller_name   = _cfgs.get("seller_name",   "")
+            if not seller_since:  seller_since  = _cfgs.get("seller_since",  "")
+            if not seller_avatar: seller_avatar = _cfgs.get("seller_avatar", "")
+            if not breadcrumb_zone: breadcrumb_zone = _cfgs.get("breadcrumb_zone", "Zona Norte")
+            if not description:   description   = _cfgs.get("product_description", "")
 
         if TG_WH_AVAILABLE:
-
             code = tg_wh.create_tenant_product(
-
-                admin_id, title, price, old_price, description, 
-
-                image_url, image1, image2, image3, 
-
-                product_code=product_code, 
-
-                shipping_mode=shipping_mode, 
-
-                shipping_fee=shipping_fee, 
-
+                admin_id, title, price, old_price, description,
+                image_url, image1, image2, image3,
+                product_code=product_code,
+                shipping_mode=shipping_mode,
+                shipping_fee=shipping_fee,
                 shipping_coupon=shipping_coupon,
-
                 coupon_active=coupon_active,
                 coupon_only_shipping=coupon_only_shipping,
                 coupon_discount_value=coupon_discount_value,
                 seller_name=seller_name,
                 seller_since=seller_since,
+                seller_avatar=seller_avatar,
                 det_category=det_category,
                 det_brand=det_brand,
                 det_model=det_model,
@@ -3403,12 +3393,14 @@ def api_admin_my_products():
 
             slug = tg_wh.get_slug(admin_id)
 
-            unique_link = f"{BASE_URL}/p/{code}"
+            # Link legível: /p/slug-do-admin/codigo-do-produto
+            if slug:
+                unique_link = f"{BASE_URL}/p/{slug}/{code}"
+            else:
+                unique_link = f"{BASE_URL}/p/{code}"
 
             if VALIDATORS_AVAILABLE:
-
                 ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
-
                                   slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link, 'coupon': shipping_coupon, 'coupon_active': coupon_active})
 
             return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado com sucesso no catálogo!"})
@@ -3418,18 +3410,15 @@ def api_admin_my_products():
     products = []
 
     if TG_WH_AVAILABLE:
-
         prods = tg_wh.get_tenant_products(admin_id)
-
         slug = tg_wh.get_slug(admin_id)
-
         for p in prods:
-
-            p["unique_link"] = f"{BASE_URL}/p/{p['product_code']}"
-
+            # Link legível: /p/slug-do-admin/codigo-do-produto
+            if slug:
+                p["unique_link"] = f"{BASE_URL}/p/{slug}/{p['product_code']}"
+            else:
+                p["unique_link"] = f"{BASE_URL}/p/{p['product_code']}"
             products.append(p)
-
-
 
     return jsonify({"ok": True, "products": products})
 
@@ -3470,23 +3459,17 @@ def api_admin_manage_product(product_code):
 
 
     if request.method == 'PUT':
-
         data = request.json or {}
-
         if TG_WH_AVAILABLE:
-
             ok = tg_wh.update_tenant_product(admin_id, product_code, data)
-
             if ok:
-
                 slug = tg_wh.get_slug(admin_id)
-
-                unique_link = f"{BASE_URL}/p/{product_code}"
-
+                if slug:
+                    unique_link = f"{BASE_URL}/p/{slug}/{product_code}"
+                else:
+                    unique_link = f"{BASE_URL}/p/{product_code}"
                 return jsonify({"ok": True, "unique_link": unique_link, "message": "Produto atualizado com sucesso!"})
-
             return jsonify({"ok": False, "error": "Produto não encontrado ou sem permissão."}), 404
-
         return jsonify({"ok": False, "error": "Recurso indisponível."}), 400
 
 

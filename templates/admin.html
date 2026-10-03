@@ -1423,6 +1423,33 @@
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         Informações do Vendedor (Específico deste produto)
       </div>
+      <!-- Seller avatar upload -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:12px">
+        <label class="flbl" style="margin-bottom:10px;display:block">Avatar do Vendedor na Página do Cliente</label>
+        <div style="display:flex;align-items:center;gap:14px">
+          <!-- Preview circle -->
+          <div id="seller-av-preview" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:2px solid rgba(139,92,246,0.4);position:relative;transition:all .25s">
+            <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)" width="30" height="30"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+              <!-- Upload button -->
+              <button type="button" onclick="document.getElementById('seller-av-file').click()" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.1);color:#A78BFA;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(139,92,246,0.2)'" onmouseout="this.style.background='rgba(139,92,246,0.1)'">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Foto
+              </button>
+              <!-- Clear button -->
+              <button type="button" id="seller-av-clear" onclick="clearSellerAvatar()" style="display:none;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.08);color:#F87171;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .2s">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Remover
+              </button>
+            </div>
+            <input type="file" id="seller-av-file" accept="image/*" style="display:none" onchange="onSellerAvFileChange(this)"/>
+            <input type="hidden" id="edit-seller-avatar" value=""/>
+            <span style="font-size:11px;color:var(--c-t3)">Foto de perfil exibida no card do vendedor na página do cliente. Recomendado: 200×200px ou maior, formato quadrado.</span>
+          </div>
+        </div>
+      </div>
       <div class="fr">
         <div class="fg">
           <label class="flbl">Nome do Vendedor</label>
@@ -1433,6 +1460,80 @@
           <input type="text" class="fi" id="edit-seller-since" placeholder="Ex: Setembro 2021"/>
         </div>
       </div>
+      <script>
+        function onSellerAvFileChange(inp) {
+          const file = inp.files && inp.files[0];
+          if (!file) return;
+          const loadBtn = inp.previousElementSibling;
+          const preview = document.getElementById('seller-av-preview');
+          const clearBtn = document.getElementById('seller-av-clear');
+          const hiddenInput = document.getElementById('edit-seller-avatar');
+          // Show loading state
+          if (preview) { preview.style.opacity = '0.5'; }
+          const fd = new FormData();
+          fd.append('file', file);
+          fetch('/api/admin/upload-image', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + _TK },
+            body: fd
+          }).then(r => r.json()).then(d => {
+            if (d.ok && d.url) {
+              if (hiddenInput) hiddenInput.value = d.url;
+              if (preview) {
+                preview.innerHTML = '<img src="' + d.url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+                preview.style.opacity = '1';
+              }
+              if (clearBtn) clearBtn.style.display = 'flex';
+              toast('Avatar do vendedor carregado!', 'ok');
+            } else {
+              if (preview) preview.style.opacity = '1';
+              // Fallback: use base64 locally
+              const reader = new FileReader();
+              reader.onload = e => {
+                const b64 = e.target.result;
+                if (hiddenInput) hiddenInput.value = b64;
+                if (preview) {
+                  preview.innerHTML = '<img src="' + b64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+                }
+                if (clearBtn) clearBtn.style.display = 'flex';
+                toast('Avatar carregado localmente.', 'ok');
+              };
+              reader.readAsDataURL(file);
+            }
+          }).catch(() => {
+            if (preview) preview.style.opacity = '1';
+            const reader = new FileReader();
+            reader.onload = e => {
+              const b64 = e.target.result;
+              if (hiddenInput) hiddenInput.value = b64;
+              if (preview) {
+                preview.innerHTML = '<img src="' + b64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+              }
+              if (clearBtn) clearBtn.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+        function clearSellerAvatar() {
+          const hiddenInput = document.getElementById('edit-seller-avatar');
+          const preview = document.getElementById('seller-av-preview');
+          const clearBtn = document.getElementById('seller-av-clear');
+          const fileInput = document.getElementById('seller-av-file');
+          if (hiddenInput) hiddenInput.value = '';
+          if (preview) preview.innerHTML = '<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)" width="30" height="30"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>';
+          if (clearBtn) clearBtn.style.display = 'none';
+          if (fileInput) fileInput.value = '';
+        }
+        function setSellerAvPreview(url) {
+          const preview = document.getElementById('seller-av-preview');
+          const clearBtn = document.getElementById('seller-av-clear');
+          const hiddenInput = document.getElementById('edit-seller-avatar');
+          if (!url) { clearSellerAvatar(); return; }
+          if (hiddenInput) hiddenInput.value = url;
+          if (preview) preview.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML=\'<svg viewBox=\'0 0 24 24\' fill=\'rgba(255,255,255,0.6)\' width=\'30\' height=\'30\'><path d=\'M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z\'/></svg>\'' />';
+          if (clearBtn && url) clearBtn.style.display = 'flex';
+        }
+      </script>
 
       <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -1506,28 +1607,41 @@
       </div>
       <script>
         function toggleDet(field) {
-          const cb = document.getElementById('tg-det-' + field);
-          const input = document.getElementById('edit-det-' + field);
+          const cb       = document.getElementById('tg-det-' + field);
+          const input    = document.getElementById('edit-det-' + field);
           const lblInput = document.getElementById('lbl-det-' + field);
           const isChecked = cb ? cb.checked : true;
-          if(!isChecked) {
-            // Salva valor atual antes de desativar
-            if(input) { input.dataset.oldValue = input.value; input.value = ''; }
-            if(input) { input.parentElement.style.opacity = '0.5'; input.parentElement.style.pointerEvents = 'none'; }
-            if(lblInput) lblInput.disabled = true;
-          } else {
-            // Reativa: restaura oldValue se existir, senão mantém o que está no input
-            if(input) {
-              if(input.dataset.oldValue !== undefined && input.dataset.oldValue !== '') {
-                input.value = input.dataset.oldValue;
-              }
-              // Se não havia oldValue, mantém o valor atual (pode ser vazio para o usuário digitar)
-              input.dataset.oldValue = undefined;
-              input.parentElement.style.opacity = '1';
-              input.parentElement.style.pointerEvents = 'auto';
-              setTimeout(() => input.focus(), 50); // foca no campo reativado
+
+          if (!isChecked) {
+            // Desativar: salva valor e bloqueia SÓ o input.fi (NÃO o container pai, pois contém o toggle)
+            if (input) {
+              input.dataset.oldValue = input.value;
+              input.value = '';
+              input.style.opacity = '0.4';
+              input.style.pointerEvents = 'none';
+              input.style.cursor = 'not-allowed';
             }
-            if(lblInput) lblInput.disabled = false;
+            if (lblInput) {
+              lblInput.disabled = true;
+              lblInput.style.opacity = '0.4';
+            }
+          } else {
+            // Reativar: restaura valor se existia, libera o campo
+            if (input) {
+              const saved = input.dataset.oldValue;
+              if (saved !== undefined && saved !== '' && saved !== 'undefined') {
+                input.value = saved;
+              }
+              delete input.dataset.oldValue;
+              input.style.opacity = '1';
+              input.style.pointerEvents = 'auto';
+              input.style.cursor = 'text';
+              setTimeout(() => { try { input.focus(); } catch(e){} }, 60);
+            }
+            if (lblInput) {
+              lblInput.disabled = false;
+              lblInput.style.opacity = '1';
+            }
           }
           updatePreview();
         }
@@ -1577,17 +1691,37 @@
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Localização do Anúncio (Breadcrumb)
       </div>
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 12px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:10px;line-height:1.5">
-          Aparece no breadcrumb da página: <span style="color:rgba(255,255,255,0.5);font-family:monospace">Estado › Região › Categoria › <strong style="color:#A78BFA">Zona/Bairro</strong></span>
+      <div style="background:linear-gradient(135deg,rgba(139,92,246,0.06),rgba(167,139,250,0.03));border:1px solid rgba(139,92,246,0.18);border-radius:14px;padding:16px 14px;">
+        <!-- Breadcrumb preview strip -->
+        <div id="loc-breadcrumb-preview" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
+          <span style="font-size:10.5px;color:rgba(255,255,255,0.35)">SP</span>
+          <span style="font-size:9px;color:rgba(255,255,255,0.2)">›</span>
+          <span style="font-size:10.5px;color:rgba(255,255,255,0.35)">São Paulo</span>
+          <span style="font-size:9px;color:rgba(255,255,255,0.2)">›</span>
+          <span style="font-size:10.5px;color:rgba(255,255,255,0.35)">Eletrônicos</span>
+          <span style="font-size:9px;color:rgba(255,255,255,0.2)">›</span>
+          <span id="loc-zone-preview-chip" style="font-size:10.5px;font-weight:700;color:#A78BFA;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);padding:2px 8px;border-radius:20px;transition:all .25s">Zona Norte</span>
         </div>
-        <div class="fg">
-          <label class="flbl">Zona / Bairro</label>
+        <!-- Mode toggle: Padrão vs Custom -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--c-text)">Zona / Bairro</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px" id="loc-mode-hint">Usando zona padrão — clique para personalizar</div>
+          </div>
+          <button type="button" id="loc-default-btn" onclick="toggleLocDefault()"
+            style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:none;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font);transition:all .3s;background:rgba(139,92,246,0.18);color:#A78BFA;box-shadow:0 0 12px rgba(139,92,246,0.2)"
+          >
+            <span id="loc-default-dot" style="width:7px;height:7px;border-radius:50%;background:#A78BFA;transition:all .3s;box-shadow:0 0 6px #A78BFA"></span>
+            <span id="loc-default-txt">Padrão</span>
+          </button>
+        </div>
+        <!-- Input field (hidden when using default) -->
+        <div id="loc-custom-wrap" style="display:none;animation:pageIn .25s ease">
           <div style="position:relative">
             <input type="text" class="fi" id="edit-breadcrumb-zone"
               placeholder="Ex: Zona Norte, Centro, Jardins..."
               list="zone-suggestions"
-              style="padding-right:90px"
+              oninput="onLocZoneInput(this.value)"
             />
             <datalist id="zone-suggestions">
               <option value="Zona Norte"/><option value="Zona Sul"/><option value="Zona Leste"/><option value="Zona Oeste"/>
@@ -1596,14 +1730,100 @@
               <option value="Santo André"/><option value="São Bernardo"/><option value="Campinas"/><option value="Guarulhos"/>
               <option value="Rio de Janeiro"/><option value="Belo Horizonte"/><option value="Curitiba"/><option value="Florianópolis"/>
             </datalist>
-            <button type="button" onclick="document.getElementById('edit-breadcrumb-zone').value='Zona Norte'; toast('Zona padrão restaurada.','info');"
-              style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap"
-              title="Restaurar padrão"
-            >Padrão</button>
           </div>
-          <span class="fhint">Deixe vazio ou clique em Padrão para usar "Zona Norte". Cada produto pode ter sua zona.</span>
+          <!-- Quick-pick chips -->
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+            <span style="font-size:10px;font-weight:700;color:var(--c-t3);align-self:center;margin-right:2px">Sugestões:</span>
+            <button type="button" onclick="setLocZone('Zona Norte')" class="loc-chip">Zona Norte</button>
+            <button type="button" onclick="setLocZone('Zona Sul')" class="loc-chip">Zona Sul</button>
+            <button type="button" onclick="setLocZone('Zona Leste')" class="loc-chip">Zona Leste</button>
+            <button type="button" onclick="setLocZone('Centro')" class="loc-chip">Centro</button>
+            <button type="button" onclick="setLocZone('Jardins')" class="loc-chip">Jardins</button>
+            <button type="button" onclick="setLocZone('Pinheiros')" class="loc-chip">Pinheiros</button>
+          </div>
+          <span class="fhint" style="margin-top:8px;display:block">Selecione uma sugestão ou digite a zona desejada. Deixe vazio para usar o padrão.</span>
         </div>
+        <!-- Hidden input for default mode -->
+        <input type="hidden" id="edit-breadcrumb-zone-hidden" value="Zona Norte" />
       </div>
+      <style>
+        .loc-chip{padding:4px 10px;border-radius:20px;border:1px solid rgba(139,92,246,0.25);background:rgba(139,92,246,0.08);color:#A78BFA;font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .18s}
+        .loc-chip:hover{background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.5);transform:translateY(-1px)}
+        .loc-chip:active{transform:scale(.95)}
+        #loc-default-btn.is-custom{background:rgba(16,185,129,0.12);color:#34D399;box-shadow:0 0 12px rgba(16,185,129,0.15)}
+        #loc-default-btn.is-custom #loc-default-dot{background:#34D399;box-shadow:0 0 6px #34D399}
+      </style>
+      <script>
+        // Tracks whether we are in "default" or "custom" mode
+        let _locIsDefault = true;
+        function toggleLocDefault() {
+          _locIsDefault = !_locIsDefault;
+          const btn = document.getElementById('loc-default-btn');
+          const hint = document.getElementById('loc-mode-hint');
+          const txt = document.getElementById('loc-default-txt');
+          const wrap = document.getElementById('loc-custom-wrap');
+          const zoneEl = document.getElementById('edit-breadcrumb-zone');
+          if (_locIsDefault) {
+            // Switch back to default
+            btn.classList.remove('is-custom');
+            txt.textContent = 'Padrão';
+            hint.textContent = 'Usando zona padrão — clique para personalizar';
+            wrap.style.display = 'none';
+            // Set hidden val to empty = backend will use default
+            if (zoneEl) zoneEl.value = '';
+            updateLocPreview('Zona Norte');
+          } else {
+            // Switch to custom mode
+            btn.classList.add('is-custom');
+            txt.textContent = 'Personalizado';
+            hint.textContent = 'Digite ou selecione a zona/bairro do anúncio';
+            wrap.style.display = 'block';
+            setTimeout(() => { if(zoneEl) zoneEl.focus(); }, 100);
+          }
+        }
+        function onLocZoneInput(val) {
+          updateLocPreview(val || 'Zona Norte');
+        }
+        function setLocZone(zone) {
+          const zoneEl = document.getElementById('edit-breadcrumb-zone');
+          if (zoneEl) { zoneEl.value = zone; zoneEl.dispatchEvent(new Event('input')); }
+          updateLocPreview(zone);
+        }
+        function updateLocPreview(zone) {
+          const chip = document.getElementById('loc-zone-preview-chip');
+          if (chip) chip.textContent = zone || 'Zona Norte';
+        }
+        function initLocSection(savedZone) {
+          const zoneEl = document.getElementById('edit-breadcrumb-zone');
+          if (savedZone && savedZone.trim() !== '' && savedZone !== 'Zona Norte') {
+            // Has a custom zone
+            _locIsDefault = false;
+            if (zoneEl) zoneEl.value = savedZone;
+            updateLocPreview(savedZone);
+            const btn = document.getElementById('loc-default-btn');
+            const txt = document.getElementById('loc-default-txt');
+            const hint = document.getElementById('loc-mode-hint');
+            const wrap = document.getElementById('loc-custom-wrap');
+            if (btn) btn.classList.add('is-custom');
+            if (txt) txt.textContent = 'Personalizado';
+            if (hint) hint.textContent = 'Digite ou selecione a zona/bairro do anúncio';
+            if (wrap) wrap.style.display = 'block';
+          } else {
+            // Default mode
+            _locIsDefault = true;
+            if (zoneEl) zoneEl.value = '';
+            updateLocPreview('Zona Norte');
+            const btn = document.getElementById('loc-default-btn');
+            const txt = document.getElementById('loc-default-txt');
+            const hint = document.getElementById('loc-mode-hint');
+            const wrap = document.getElementById('loc-custom-wrap');
+            if (btn) btn.classList.remove('is-custom');
+            if (txt) txt.textContent = 'Padrão';
+            if (hint) hint.textContent = 'Usando zona padrão — clique para personalizar';
+            if (wrap) wrap.style.display = 'none';
+          }
+        }
+      </script>
 
       <div class="fg">
         <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
@@ -2239,18 +2459,30 @@ async function loadProducts(){
       const isActive=p.is_active||p.active;
       const activeBadge=isActive?'<span class="chip chip-g" style="font-size:10px;position:absolute;top:8px;right:8px">Principal</span>':'';
       const shipMode = p.shipping_mode === 'sedex' ? 'Sedex' : p.shipping_mode === 'local' ? 'Local' : 'Garantia Full';
+      // Link canônico retornado pelo servidor (já tem slug do admin embutido)
       const prodLink = p.unique_link || (window.location.origin + '/p/' + (_SLUG ? _SLUG + '/' : '') + code);
-      
+
       const isCouponActive = p.coupon_active !== undefined ? (p.coupon_active == 1 || p.coupon_active === true) : true;
       let couponBadge = '';
       if(p.shipping_coupon && p.shipping_coupon.trim()){
         if(isCouponActive){
-          couponBadge = '<span class="chip chip-g" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 0)" title="Clique para Desativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Apenas Frete: Ativo ✅)</span>';
+          couponBadge = '<span class="chip chip-g" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 0)" title="Clique para Desativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Frete: Ativo ✅)</span>';
         } else {
-          couponBadge = '<span class="chip chip-o" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 1)" title="Clique para Ativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Cupom Pausado ⏸)</span>';
+          couponBadge = '<span class="chip chip-o" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 1)" title="Clique para Ativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Pausado ⏸)</span>';
         }
       }
-      
+
+      // Avatar do vendedor
+      const avUrl = p.seller_avatar || '';
+      const sellerInfo = (p.seller_name || '')
+        ? '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">'+
+            (avUrl
+              ? '<img src="'+avUrl+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid rgba(139,92,246,0.3);flex-shrink:0" onerror="this.style.display=\'none\'" />'
+              : '<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" width="13" height="13"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg></div>')+
+            '<span style="font-size:11px;color:var(--c-t2);font-weight:600">'+(p.seller_name||'')+'</span>'+
+          '</div>'
+        : '';
+
       return '<div class="prod-card" style="position:relative">'+
         '<div class="prod-img-wrap">'+(img?'<img class="prod-img" src="'+img+'" alt="'+title+'" onerror="this.style.display=\'none\'"/>':'')+
         '<div class="prod-img-ph" style="'+(img?'display:none':'')+'"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'+
@@ -2258,6 +2490,7 @@ async function loadProducts(){
         '</div>'+
         '<div class="prod-info"><div class="prod-name">'+title+'</div>'+
         '<div class="flex" style="align-items:baseline;gap:8px;margin-top:4px"><span class="prod-price">R$ '+p.price+'</span>'+oldp+'</div>'+
+        sellerInfo+
         '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">'+
           '<span class="chip chip-p" style="font-size:10px">'+shipMode+'</span>'+
           couponBadge+
@@ -2265,7 +2498,7 @@ async function loadProducts(){
         '</div>'+
         '<div style="margin-top:8px;display:flex;gap:4px">'+
           '<input type="text" readonly value="'+prodLink+'" style="flex:1;font-size:10px;background:rgba(255,255,255,0.05);border:1px solid var(--c-border);border-radius:6px;padding:3px 6px;color:var(--c-t2);font-family:monospace" />'+
-          '<button class="btn btn-g btn-xs" onclick="navigator.clipboard?.writeText(\''+prodLink+'\');toast(\'Link direto copiado!\',\'ok\')" title="Copiar Link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
+          '<button class="btn btn-g btn-xs" onclick="navigator.clipboard?.writeText(\''+prodLink+'\');toast(\'Link copiado!\',\'ok\')" title="Copiar Link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
           '<a href="'+prodLink+'" target="_blank" class="btn btn-g btn-xs" title="Abrir Link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'+
         '</div>'+
         '</div>'+
@@ -2343,7 +2576,7 @@ function clearProdBadges() {
 
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
-  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color'].forEach(id=>{
+  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-seller-avatar','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) { el.value = ''; el.disabled = false; }
   });
@@ -2372,6 +2605,8 @@ function openAddProd(){
   prevProdPhoto(3, '');
   _PROD_BADGES = null;
   renderProdBadges();
+  if(typeof clearSellerAvatar === 'function') clearSellerAvatar();
+  if(typeof initLocSection === 'function') initLocSection('');
   document.getElementById('prod-modal').classList.add('open');
 }
 
@@ -2386,6 +2621,8 @@ function openEditProd(p){
   document.getElementById('edit-desc').value=p.description||'';
   document.getElementById('edit-seller-name').value=p.seller_name||'';
   document.getElementById('edit-seller-since').value=p.seller_since||'';
+  // Load seller avatar preview
+  if(typeof setSellerAvPreview === 'function') setSellerAvPreview(p.seller_avatar||'');
   const detFields = ['category', 'brand', 'model', 'condition', 'memory', 'color'];
   detFields.forEach(f => {
     const rawVal = p['det_' + f] || '';
@@ -2405,12 +2642,17 @@ function openEditProd(p){
     if(lblInput && lbl) lblInput.value = lbl;
     if(toggle) {
       toggle.checked = hasVal;
-      // Aplica estado visual diretamente sem chamar toggleDet (que apagaria o valor recém setado)
+      // Aplica estado visual SOMENTE no input.fi e lblInput (NAO no pai, pois o toggle esta nele)
       if(input) {
-        input.parentElement.style.opacity = hasVal ? '1' : '0.5';
-        input.parentElement.style.pointerEvents = hasVal ? 'auto' : 'none';
+        input.style.opacity = hasVal ? '1' : '0.4';
+        input.style.pointerEvents = hasVal ? 'auto' : 'none';
+        input.style.cursor = hasVal ? 'text' : 'not-allowed';
+        if(!hasVal) input.dataset.oldValue = val; // guarda o valor mesmo que vazio
       }
-      if(lblInput) lblInput.disabled = !hasVal;
+      if(lblInput) {
+        lblInput.disabled = !hasVal;
+        lblInput.style.opacity = hasVal ? '1' : '0.4';
+      }
     }
   });
   if (typeof updatePreview === 'function') updatePreview();
@@ -2462,9 +2704,8 @@ function openEditProd(p){
     document.getElementById('edit-lnk-box').style.display='flex';
   }
   document.getElementById('prod-modal').classList.add('open');
-  // Carrega zona personalizada do produto
-  const bzEl = document.getElementById('edit-breadcrumb-zone');
-  if(bzEl) bzEl.value = p.breadcrumb_zone || '';
+  // Carrega zona personalizada do produto + inicializa seção de localização
+  if(typeof initLocSection === 'function') initLocSection(p.breadcrumb_zone||'');
 }
 
 function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
@@ -2509,6 +2750,7 @@ async function saveProd(){
     coupon_only_shipping: coupon_only_shipping,
     seller_name: document.getElementById('edit-seller-name').value.trim(),
     seller_since: document.getElementById('edit-seller-since').value.trim(),
+    seller_avatar: (document.getElementById('edit-seller-avatar')?.value||'').trim(),
     det_category: (document.getElementById('edit-det-category').value.trim() ? (document.getElementById('lbl-det-category').value.trim() + '|||' + document.getElementById('edit-det-category').value.trim()) : ""),
     det_brand: (document.getElementById('edit-det-brand').value.trim() ? (document.getElementById('lbl-det-brand').value.trim() + '|||' + document.getElementById('edit-det-brand').value.trim()) : ""),
     det_model: (document.getElementById('edit-det-model').value.trim() ? (document.getElementById('lbl-det-model').value.trim() + '|||' + document.getElementById('edit-det-model').value.trim()) : ""),
@@ -2517,7 +2759,10 @@ async function saveProd(){
     det_color: (document.getElementById('edit-det-color').value.trim() ? (document.getElementById('lbl-det-color').value.trim() + '|||' + document.getElementById('edit-det-color').value.trim()) : ""),
     payment_badges: _PROD_BADGES ? JSON.stringify(_PROD_BADGES) : "",
     product_code: slugInp || code,
-    breadcrumb_zone: document.getElementById('edit-breadcrumb-zone')?.value.trim() || ''
+    // Only send a custom zone when NOT in default mode
+    breadcrumb_zone: (typeof _locIsDefault !== 'undefined' && !_locIsDefault)
+      ? (document.getElementById('edit-breadcrumb-zone')?.value.trim() || '')
+      : ''
   };
 
   try{
@@ -2530,6 +2775,12 @@ async function saveProd(){
     const d=await r.json();
     if(d.ok){
       toast(code?'Produto atualizado com sucesso!':'Produto criado com sucesso!','ok');
+      // Atualiza o campo de link com o link real retornado pelo servidor
+      if(d.unique_link){
+        const lnkInput = document.getElementById('edit-lnk');
+        if(lnkInput) lnkInput.value = d.unique_link;
+        document.getElementById('edit-lnk-box').style.display = 'flex';
+      }
       closeProdModal();
       loadProducts();
       if(typeof _onProdSaved==='function') _onProdSaved();
