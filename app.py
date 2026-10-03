@@ -1930,7 +1930,7 @@ def check_is_supreme(tg_id: int) -> bool:
 
         return True
 
-    if ADMIN_IDS and tg_id in ADMIN_IDS:
+    if ADMIN_IDS and tg_id == ADMIN_IDS[0]:
 
         return True
 
@@ -6700,8 +6700,6 @@ def api_admin_twa_login():
 
 
     if tg_id <= 0:
-
-        record_auth_failure(ip)
 
         return jsonify({"ok": False, "error": "telegram_id_nao_encontrado"}), 400
 
