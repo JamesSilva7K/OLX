@@ -1344,6 +1344,8 @@ def index(slug_or_code=None, item_code=None):
 
     custom_item = None
 
+    cfgs = {}
+
 
 
     if TG_WH_AVAILABLE and p_code:

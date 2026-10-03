@@ -2512,7 +2512,7 @@ async function loadProf(){
       c.innerHTML = oth.map(p => {
         const name = p.display_name || 'Admin #' + p.tg_id;
         const letter = name.charAt(0).toUpperCase();
-        const av = p.avatar_url ? '<img src="' + p.avatar_url + '" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>' + letter : letter;
+        const av = p.avatar_url ? '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;">' + letter + '</span><img src="' + p.avatar_url + '" onerror="this.remove()" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;z-index:2;"/>' : letter;
         return '<div class="sess"><div class="sess-av" style="overflow:hidden;position:relative">' + av + '</div><div class="sess-info"><div class="sess-ip">' + name + '</div><div class="sess-meta">' + (p.bio || p.contact || '@' + (p.username || '—')) + '</div><div class="sess-meta" style="margin-top:4px;color:var(--c-purple3);display:flex;gap:12px"><span>Vendas: ' + (p.sales_count||0) + '</span><span>Produtos: ' + (p.products_count||0) + '</span></div></div>' + (p.slug ? '<span class="sess-time">/' + p.slug + '</span>' : '') + '</div>';
       }).join('');
     }
