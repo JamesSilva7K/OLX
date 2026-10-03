@@ -278,11 +278,11 @@
     .info-card { background: #fff; border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
     .product-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
     .tag {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700;
     }
-    .tag-green  { color: var(--olx-green); background: var(--olx-green-light); }
-    .tag-purple { color: var(--olx-purple); background: #f3e8ff; }
+    .tag-green-badge { color: #4b9015; background: #f1fced; }
+    .tag-purple-badge { color: #6e0ad6; background: #f3ebfc; }
 
     .product-title { font-size: 28px; font-weight: 800; color: #1a1a1a; line-height: 1.2; }
     .product-description { font-size: 15px; color: #555; line-height: 1.5; margin-top: 12px; }
@@ -491,7 +491,7 @@
     .seller-status { font-size: 13px; color: #666; margin-top: 2px; }
     .seller-since {
       display: flex; align-items: center; gap: 8px; font-size: 13px;
-      color: #555; padding-top: 14px; border-top: 1px solid #eee;
+      color: #555; margin-top: 14px;
     }
 
     /* MODAL AVANÇADO MULTI-ETAPAS */
@@ -810,7 +810,7 @@
         <div class="gallery-col" data-idx="0">
           <img src="{{ product_image1 if product_image1 else (product_image if product_image else '/static/images/iphone_product.jpg') }}" alt="Foto 1 do produto" style="object-position: center;" />
           <div class="gallery-badge">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--olx-purple)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Garantia da OLX
           </div>
         </div>
@@ -826,18 +826,9 @@
     <!-- Product Info Card -->
     <div class="info-card">
       <div class="product-tags">
-        <span class="tag tag-green">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-          Entrega rápida
-        </span>
-        <span class="tag" style="color:#444;background:#f0f0f0;border:1px solid #ddd;">
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:3px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Permite auto / Uber
-        </span>
-        <span class="tag tag-purple">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Garantia da OLX
-        </span>
+        <span class="tag tag-green-badge">Frete grátis</span>
+        <span class="tag tag-purple-badge">Parcele sem juros</span>
+        <span class="tag tag-purple-badge">Garantia da OLX</span>
       </div>
 
       <h1 class="product-title">{{ product_name if product_name else '' }}</h1>
@@ -1107,7 +1098,7 @@
         </div>
       </div>
       <div class="seller-since">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         {{ seller_since if seller_since else '' }}
       </div>
     </div>
