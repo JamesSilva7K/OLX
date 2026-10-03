@@ -1482,9 +1482,9 @@ def index(slug_or_code=None, item_code=None):
 
             product_image3=p_img3,
 
-            seller_name=cfgs.get("seller_name", ""),
+            seller_name=(custom_item["seller_name"] if custom_item and custom_item.get("seller_name") else cfgs.get("seller_name", "")),
 
-            seller_since=cfgs.get("seller_since", ""),
+            seller_since=(custom_item["seller_since"] if custom_item and custom_item.get("seller_since") else cfgs.get("seller_since", "")),
 
             seller_status=cfgs.get("seller_status", ""),
 
@@ -3309,6 +3309,9 @@ def api_admin_my_products():
 
 
 
+        seller_name = data.get("seller_name", "").strip()
+        seller_since = data.get("seller_since", "").strip()
+
         if not title:
 
             return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
@@ -3333,7 +3336,9 @@ def api_admin_my_products():
 
                 coupon_active=coupon_active,
                 coupon_only_shipping=coupon_only_shipping,
-                coupon_discount_value=coupon_discount_value
+                coupon_discount_value=coupon_discount_value,
+                seller_name=seller_name,
+                seller_since=seller_since
             )
 
             slug = tg_wh.get_slug(admin_id)

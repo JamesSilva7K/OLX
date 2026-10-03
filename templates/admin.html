@@ -1352,6 +1352,21 @@
         <span class="fhint">Deixe em branco para gerar automático ou digite um código único.</span>
       </div>
 
+      <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+        Informações do Vendedor (Específico deste produto)
+      </div>
+      <div class="fr">
+        <div class="fg">
+          <label class="flbl">Nome do Vendedor</label>
+          <input type="text" class="fi" id="edit-seller-name" placeholder="Ex: João da Silva"/>
+        </div>
+        <div class="fg">
+          <label class="flbl">Data de Entrada</label>
+          <input type="text" class="fi" id="edit-seller-since" placeholder="Ex: Setembro 2021"/>
+        </div>
+      </div>
+
       <div class="fg">
         <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
           <span>Descrição do Produto</span>
@@ -2040,7 +2055,7 @@ async function toggleProdCoupon(code, newActive){
 
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
-  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value'].forEach(id=>{
+  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -2070,6 +2085,8 @@ function openEditProd(p){
   document.getElementById('edit-price').value=p.price||'';
   document.getElementById('edit-oldp').value=p.old_price||'';
   document.getElementById('edit-desc').value=p.description||'';
+  document.getElementById('edit-seller-name').value=p.seller_name||'';
+  document.getElementById('edit-seller-since').value=p.seller_since||'';
   document.getElementById('edit-slug').value=code;
   document.getElementById('edit-slug').disabled=true;
   
@@ -2142,6 +2159,8 @@ async function saveProd(){
     shipping_coupon: shipping_coupon,
     coupon_active: coupon_active,
     coupon_only_shipping: coupon_only_shipping,
+    seller_name: document.getElementById('edit-seller-name').value.trim(),
+    seller_since: document.getElementById('edit-seller-since').value.trim(),
     product_code: slugInp || code
   };
 
