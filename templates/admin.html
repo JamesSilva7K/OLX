@@ -2222,6 +2222,35 @@ async function toggleProdCoupon(code, newActive){
   }
 }
 
+let _PROD_BADGES = null;
+
+function renderProdBadges() {
+  const grid = document.getElementById('prod-badge-grid');
+  if(!grid) return;
+  if(!_PROD_BADGES || _PROD_BADGES.length === 0) {
+    grid.innerHTML = '<span style="font-size:12px;color:var(--c-t3)">Usando Global (Padrão)</span>';
+    return;
+  }
+  let html = '';
+  _PROD_BADGES.forEach(b => {
+    html += `<span style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-size:10px;">${b}</span>`;
+  });
+  grid.innerHTML = html;
+}
+
+function addProdPBadge(b) {
+  if(!_PROD_BADGES) _PROD_BADGES = [];
+  if(!_PROD_BADGES.includes(b)) {
+    _PROD_BADGES.push(b);
+    renderProdBadges();
+  }
+}
+
+function clearProdBadges() {
+  _PROD_BADGES = null;
+  renderProdBadges();
+}
+
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
   ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color'].forEach(id=>{
