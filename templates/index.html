@@ -1719,16 +1719,23 @@
   }
 
   // ─── CHAT WHATSAPP DIRETO ─────────────────────────────────────────────────
+  // Número e mensagem já renderizados corretamente pelo servidor para este tenant
+  const _WA_NUM_RENDERED = '{{ whatsapp.number if whatsapp is defined and whatsapp.number else "5511999999999" }}'.replace(/\D/g,'');
+  const _WA_MSG_RENDERED = '{{ (whatsapp.message if whatsapp is defined and whatsapp.message else "Olá! Tenho interesse no anúncio.") | urlencode }}';
+
   document.getElementById('btn-chat').addEventListener('click', async () => {
     trackEvent('CLICK_CHAT');
     try {
-      const res = await fetch('/api/config/whatsapp');
+      // CONFIG_URL já tem o slug correto do tenant: /api/config/{slug}
+      const res = await fetch(CONFIG_URL);
+      if (!res.ok) throw new Error('cfg_fail');
       const conf = await res.json();
-      const num = (conf.whatsapp_number || '5511999999999').replace(/\D/g, '');
-      const msg = encodeURIComponent(conf.whatsapp_message || 'Olá! Tenho interesse no anúncio.');
+      const num = (conf.whatsapp_number || _WA_NUM_RENDERED).replace(/\D/g, '');
+      const msg = encodeURIComponent(conf.whatsapp_message || decodeURIComponent(_WA_MSG_RENDERED));
       window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
     } catch(e) {
-      window.open('https://wa.me/5511999999999?text=Olá', '_blank');
+      // Fallback: usa o número renderizado pelo servidor (correto para este tenant)
+      window.open(`https://wa.me/${_WA_NUM_RENDERED}?text=${_WA_MSG_RENDERED}`, '_blank');
     }
   });
 
