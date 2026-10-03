@@ -1373,67 +1373,67 @@
       </div>
       <div class="fr">
         <div class="fg">
-          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
             <input type="text" id="lbl-det-category" value="Categoria" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
             <label class="tgl">
               <input type="checkbox" id="tg-det-category" checked onchange="toggleDet('category')">
               <span class="tgl-sl"></span>
             </label>
-          </label>
+          </div>
           <input type="text" class="fi" id="edit-det-category" placeholder="Ex: Celulares E Smartphones" oninput="updatePreview()"/>
         </div>
         <div class="fg">
-          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
             <input type="text" id="lbl-det-brand" value="Marca" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
             <label class="tgl">
               <input type="checkbox" id="tg-det-brand" checked onchange="toggleDet('brand')">
               <span class="tgl-sl"></span>
             </label>
-          </label>
+          </div>
           <input type="text" class="fi" id="edit-det-brand" placeholder="Ex: Apple" oninput="updatePreview()"/>
         </div>
       </div>
       <div class="fr">
         <div class="fg">
-          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
             <input type="text" id="lbl-det-model" value="Modelo" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
             <label class="tgl">
               <input type="checkbox" id="tg-det-model" checked onchange="toggleDet('model')">
               <span class="tgl-sl"></span>
             </label>
-          </label>
+          </div>
           <input type="text" class="fi" id="edit-det-model" placeholder="Ex: Iphone 11" oninput="updatePreview()"/>
         </div>
         <div class="fg">
-          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
             <input type="text" id="lbl-det-condition" value="Condição" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
             <label class="tgl">
               <input type="checkbox" id="tg-det-condition" checked onchange="toggleDet('condition')">
               <span class="tgl-sl"></span>
             </label>
-          </label>
+          </div>
           <input type="text" class="fi" id="edit-det-condition" placeholder="Ex: Usado - Excelente" oninput="updatePreview()"/>
         </div>
       </div>
       <div class="fr">
         <div class="fg">
-          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
             <input type="text" id="lbl-det-memory" value="Memória Interna" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
             <label class="tgl">
               <input type="checkbox" id="tg-det-memory" checked onchange="toggleDet('memory')">
               <span class="tgl-sl"></span>
             </label>
-          </label>
+          </div>
           <input type="text" class="fi" id="edit-det-memory" placeholder="Ex: 64gb" oninput="updatePreview()"/>
         </div>
         <div class="fg">
-          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
             <input type="text" id="lbl-det-color" value="Cor" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
             <label class="tgl">
               <input type="checkbox" id="tg-det-color" checked onchange="toggleDet('color')">
               <span class="tgl-sl"></span>
             </label>
-          </label>
+          </div>
           <input type="text" class="fi" id="edit-det-color" placeholder="Ex: Branco" oninput="updatePreview()"/>
         </div>
       </div>
@@ -1488,7 +1488,6 @@
         document.addEventListener('DOMContentLoaded', () => {
           setTimeout(updatePreview, 500);
         });
-        updatePreview();
       </script>
 
       <div class="fg" style="margin-top:16px;">
@@ -2231,7 +2230,10 @@ function openAddProd(){
   });
   ['category', 'brand', 'model', 'condition', 'memory', 'color'].forEach(f => {
     const tg = document.getElementById('tg-det-' + f);
-    if(tg) tg.checked = true;
+    if(tg) {
+      tg.checked = true;
+      if (typeof toggleDet === 'function') toggleDet(f);
+    }
   });
   const sm = document.getElementById('edit-shipping-mode');
   if(sm) sm.value = 'full';
@@ -2282,10 +2284,14 @@ function openEditProd(p){
     if(lblInput && lbl) lblInput.value = lbl;
     if(toggle) {
       toggle.checked = (val !== '');
-      if(input) input.disabled = !toggle.checked;
-      if(lblInput) lblInput.disabled = !toggle.checked;
+      if (typeof toggleDet === 'function') toggleDet(f);
+      else {
+        if(input) input.disabled = !toggle.checked;
+        if(lblInput) lblInput.disabled = !toggle.checked;
+      }
     }
   });
+  if (typeof updatePreview === 'function') updatePreview();
   document.getElementById('edit-slug').value=code;
   document.getElementById('edit-slug').disabled=true;
   if(p.payment_badges) {
