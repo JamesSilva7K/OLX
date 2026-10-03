@@ -1,1 +1,0 @@
-const _JINJA_TOKEN="{{ admin_token | default('') }}";const _JINJA_SLUG="{{ admin_slug | default('') }}";
