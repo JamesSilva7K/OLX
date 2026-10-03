@@ -917,9 +917,8 @@
       <div class="price-main">
         <span class="price-prefix">R$</span>
         <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp.split('.')[0].split(',')[0] }}</span>
-        <span class="price-pix">
-          <svg width="15" height="15" viewBox="0 0 512 512" fill="#32BCAD"><path d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512 512 397.4 512 256 397.4 0 256 0zm-17 330.2l-75.7-75.7 75.7-75.7V330.2zm34 0V178.8l75.7 75.7-75.7 75.7z"/></svg>
-          com Pix
+        <span class="price-pix" style="font-size:14px; font-weight:700; color:#4b9015; margin-left:4px;">
+          no Pix
         </span>
       </div>
 
@@ -930,24 +929,24 @@
           {% set badges = badges_json | tojson | replace('"[', '[') %}
           {# Renderizado via JS abaixo para compatibilidade máxima #}
         {% endif %}
-        <!-- Badges padrão (substituídas se payment_badges estiver configurado) -->
-        <span class="payment-badge-default" title="Pix" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;background:#32BCAD;padding:3px 8px;box-shadow:0 1px 4px rgba(0,0,0,.18);">
-          <svg width="34" height="18" viewBox="0 0 60 22" fill="#fff"><text x="1" y="17" font-size="13" font-weight="900" font-family="Arial,sans-serif">PIX</text></svg>
+        <!-- Badges redondas padrão -->
+        <span class="payment-badge-round" title="Pix" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#32BCAD;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+          <svg width="16" height="16" viewBox="0 0 512 512" fill="#fff"><path d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512 512 397.4 512 256 397.4 0 256 0zm-17 330.2l-75.7-75.7 75.7-75.7V330.2zm34 0V178.8l75.7 75.7-75.7 75.7z"/></svg>
         </span>
-        <span class="payment-badge-default" title="Visa" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;background:#1A1F71;padding:2px 8px;box-shadow:0 1px 4px rgba(0,0,0,.18);">
-          <svg width="38" height="18" viewBox="0 0 68 22" fill="#fff"><text x="0" y="17" font-size="15" font-weight="900" font-family="Arial,sans-serif" font-style="italic">VISA</text></svg>
+        <span class="payment-badge-round" title="Visa" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#1A1F71;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+          <svg width="22" height="10" viewBox="0 0 68 22" fill="#fff"><text x="0" y="17" font-size="16" font-weight="900" font-family="Arial,sans-serif" font-style="italic">VISA</text></svg>
         </span>
-        <span class="payment-badge-default" title="Mastercard" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 5px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18);">
-          <svg width="36" height="22" viewBox="0 0 36 22"><circle cx="12" cy="11" r="11" fill="#EB001B"/><circle cx="24" cy="11" r="11" fill="#F79E1B"/><path d="M18 3.8a11 11 0 0 1 0 14.4A11 11 0 0 1 18 3.8z" fill="#FF5F00"/></svg>
+        <span class="payment-badge-round" title="Mastercard" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden; border:1px solid #eee;">
+          <svg width="24" height="15" viewBox="0 0 36 22"><circle cx="12" cy="11" r="11" fill="#EB001B"/><circle cx="24" cy="11" r="11" fill="#F79E1B"/><path d="M18 3.8a11 11 0 0 1 0 14.4A11 11 0 0 1 18 3.8z" fill="#FF5F00"/></svg>
         </span>
-        <span class="payment-badge-default" title="Elo" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 7px;background:#FFCD00;box-shadow:0 1px 4px rgba(0,0,0,.18);">
-          <svg width="32" height="18" viewBox="0 0 48 22"><text x="0" y="16" font-size="13" font-weight="900" font-family="Arial,sans-serif" fill="#000">elo</text></svg>
+        <span class="payment-badge-round" title="Elo" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#000;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+          <svg width="22" height="10" viewBox="0 0 48 22"><text x="0" y="16" font-size="16" font-weight="900" font-family="Arial,sans-serif" fill="#fff">elo</text></svg>
         </span>
-        <span class="payment-badge-default" title="Hipercard" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 6px;background:#B3131C;box-shadow:0 1px 4px rgba(0,0,0,.18);">
-          <svg width="42" height="18" viewBox="0 0 66 22" fill="#fff"><text x="0" y="15" font-size="11" font-weight="800" font-family="Arial,sans-serif">hiper</text></svg>
+        <span class="payment-badge-round" title="Hipercard" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#B3131C;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+          <svg width="24" height="10" viewBox="0 0 66 22" fill="#fff"><text x="0" y="16" font-size="14" font-weight="900" font-family="Arial,sans-serif">hiper</text></svg>
         </span>
-        <span class="payment-badge-default" title="American Express" style="height:26px;border-radius:5px;display:inline-flex;align-items:center;padding:2px 6px;background:#006FCF;box-shadow:0 1px 4px rgba(0,0,0,.18);">
-          <svg width="42" height="18" viewBox="0 0 66 22" fill="#fff"><text x="0" y="15" font-size="11" font-weight="800" font-family="Arial,sans-serif">AMEX</text></svg>
+        <span class="payment-badge-round" title="American Express" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#006FCF;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+          <svg width="26" height="10" viewBox="0 0 66 22" fill="#fff"><text x="0" y="16" font-size="13" font-weight="900" font-family="Arial,sans-serif">AMEX</text></svg>
         </span>
       </div>
       <script>
@@ -993,7 +992,7 @@
               const img = document.createElement('img');
               img.src = item;
               img.alt = 'Pagamento';
-              img.style.cssText = 'height:26px;max-width:58px;object-fit:contain;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.12);background:#fff;padding:2px;';
+              img.style.cssText = 'width:28px;height:28px;object-fit:contain;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15);background:#fff;padding:3px;';
               img.onerror = function(){ this.style.display='none'; };
               row.appendChild(img);
             });
