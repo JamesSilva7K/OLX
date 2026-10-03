@@ -270,6 +270,19 @@ def init_db():
             c.execute(f"ALTER TABLE product_templates ADD COLUMN {col} TEXT DEFAULT {default}")
         except Exception:
             pass
+    # Migrações activity_log: colunas usadas pelo ActivityAudit (validators.py)
+    for _col, _def in [
+        ("category",   "TEXT NOT NULL DEFAULT 'system'"),
+        ("actor_type", "TEXT NOT NULL DEFAULT 'lead'"),
+        ("action",     "TEXT NOT NULL DEFAULT ''"),
+        ("slug",       "TEXT"),
+        ("session_id", "TEXT"),
+        ("details",    "TEXT"),
+    ]:
+        try:
+            c.execute(f"ALTER TABLE activity_log ADD COLUMN {_col} {_def}")
+        except Exception:
+            pass  # Coluna ja existe
     defaults = {
         "whatsapp_number":     "5511999999999",
         "whatsapp_message":    "Olá! Tenho interesse no anúncio. Poderia me confirmar a disponibilidade?",

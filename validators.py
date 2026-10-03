@@ -205,6 +205,20 @@ class ActivityAudit:
                 created_at REAL NOT NULL
             )
         """)
+        # ── Migrações seguras: adiciona colunas ausentes em tabelas pre-existentes ──
+        # (Tabela pode ter sido criada pelo bot.py com schema antigo sem category/actor_type/action)
+        _migs = [
+            ("category",   "TEXT NOT NULL DEFAULT 'system'"),
+            ("actor_type", "TEXT NOT NULL DEFAULT 'lead'"),
+            ("action",     "TEXT NOT NULL DEFAULT ''"),
+            ("slug",       "TEXT"),
+            ("session_id", "TEXT"),
+        ]
+        for col, coldef in _migs:
+            try:
+                conn.execute(f"ALTER TABLE activity_log ADD COLUMN {col} {coldef}")
+            except Exception:
+                pass  # Coluna ja existe
         conn.execute("CREATE INDEX IF NOT EXISTS idx_al_actor ON activity_log(actor_id, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_al_slug  ON activity_log(slug, created_at)")
         conn.commit()
