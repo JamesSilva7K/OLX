@@ -5522,13 +5522,23 @@ def c7_balance():
 
     try:
 
-        body_str = "{}"  # body vazio mas ainda participa do HMAC
+        live_api_secret = keys.get("api_secret", "")
 
-        headers  = get_c7_auth_headers(body_str)
+        headers = {
+
+            "Authorization": f"Bearer {live_api_key}",
+
+            "X-API-KEY": live_api_key,
+
+            "X-API-SECRET": live_api_secret,
+
+            "User-Agent": "OLPG-System-Vault/2026"
+
+        }
 
         res = requests.get(
 
-            f"{live_base_url}/balance",
+            f"{live_base_url}/merchant/balance",
 
             headers=headers,
 
