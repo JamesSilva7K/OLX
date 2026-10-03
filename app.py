@@ -1758,6 +1758,12 @@ def api_config(slug=None):
 
 
 
+        product = tg_wh.get_product_by_code(req_slug, tg_id) if req_slug and tg_id else None
+        
+        prod_badges = product.get("payment_badges") if product and product.get("payment_badges") else None
+        if prod_badges:
+            global_badges = prod_badges
+
         return jsonify({
 
             "whatsapp_number":     wa_num,
@@ -1766,31 +1772,31 @@ def api_config(slug=None):
 
             "logo_url":            global_logo,
 
-            "product_price":       cfgs.get("product_price", ""),
+            "product_price":       product.get("price", cfgs.get("product_price", "")) if product else cfgs.get("product_price", ""),
 
-            "product_old_price":   cfgs.get("product_old_price", ""),
+            "product_old_price":   product.get("old_price", cfgs.get("product_old_price", "")) if product else cfgs.get("product_old_price", ""),
 
-            "product_name":        cfgs.get("product_name", ""),
+            "product_name":        product.get("title", cfgs.get("product_name", "")) if product else cfgs.get("product_name", ""),
 
-            "product_description": cfgs.get("product_description", ""),
+            "product_description": product.get("description", cfgs.get("product_description", "")) if product else cfgs.get("product_description", ""),
 
-            "product_image":       cfgs.get("product_image", ""),
+            "product_image":       product.get("image_url", cfgs.get("product_image", "")) if product else cfgs.get("product_image", ""),
 
-            "product_image1":      cfgs.get("product_image1", ""),
+            "product_image1":      product.get("image1", cfgs.get("product_image1", "")) if product else cfgs.get("product_image1", ""),
 
-            "product_image2":      cfgs.get("product_image2", ""),
+            "product_image2":      product.get("image2", cfgs.get("product_image2", "")) if product else cfgs.get("product_image2", ""),
 
-            "product_image3":      cfgs.get("product_image3", ""),
+            "product_image3":      product.get("image3", cfgs.get("product_image3", "")) if product else cfgs.get("product_image3", ""),
 
-            "seller_name":         cfgs.get("seller_name", ""),
+            "seller_name":         product.get("seller_name", cfgs.get("seller_name", "")) if product else cfgs.get("seller_name", ""),
 
             "seller_status":       cfgs.get("seller_status", ""),
 
-            "seller_since":        cfgs.get("seller_since", ""),
+            "seller_since":        product.get("seller_since", cfgs.get("seller_since", "")) if product else cfgs.get("seller_since", ""),
 
             "payment_badges":      global_badges,
 
-            "det_category":        cfgs.get("det_category",  ""),
+            "det_category":        product.get("det_category", cfgs.get("det_category", "")) if product else cfgs.get("det_category", ""),
 
             "det_brand":           cfgs.get("det_brand",     ""),
 
@@ -6767,8 +6773,47 @@ def api_admin_twa_login():
     if TG_WH_AVAILABLE:
 
         try:
+            tg_first_name = f"Admin {tg_id}"
+            tg_photo_url = ""
+            
+            # Extract profile data from init_unsafe
+            if isinstance(init_unsafe, dict) and init_unsafe.get("user"):
+                u_data = init_unsafe.get("user")
+                tg_first_name = u_data.get("first_name", tg_first_name)
+                if u_data.get("last_name"):
+                    tg_first_name += f" {u_data.get('last_name')}"
+                tg_photo_url = u_data.get("photo_url", "")
+            # Or extract from init_data
+            elif init_data:
+                try:
+                    import urllib.parse
+                    import json
+                    parsed = urllib.parse.parse_qs(init_data)
+                    uj = parsed.get('user', [''])[0]
+                    if not uj and 'tgWebAppData' in init_data:
+                        sq = init_data.split('tgWebAppData=', 1)[-1].split('&', 1)[0]
+                        sp = urllib.parse.parse_qs(urllib.parse.unquote(sq))
+                        uj = sp.get('user', [''])[0]
+                    if uj:
+                        ud = json.loads(uj)
+                        tg_first_name = ud.get("first_name", tg_first_name)
+                        if ud.get("last_name"):
+                            tg_first_name += f" {ud.get('last_name')}"
+                        tg_photo_url = ud.get("photo_url", "")
+                except Exception:
+                    pass
 
-            tg_wh.ensure_user(tg_id, f"Admin {tg_id}")
+            tg_wh.ensure_user(tg_id, tg_first_name)
+            
+            old_prof = tg_wh.get_tenant_profile(tg_id) or {}
+            tg_wh.set_tenant_profile(
+                tg_id,
+                display_name=tg_first_name,
+                avatar_url=tg_photo_url or old_prof.get("avatar_url", ""),
+                bio=old_prof.get("bio", "Admin OLPG"),
+                contact=old_prof.get("contact", "")
+            )
+
             prof = tg_wh.get_tenant_profile(tg_id) or {}
 
             plan = tg_wh.get_user_plan(tg_id) or {}

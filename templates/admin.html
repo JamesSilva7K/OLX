@@ -1308,9 +1308,9 @@
       <div class="ni active" id="ni-dashboard" onclick="goTo('dashboard')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></div>
       <div class="ni" id="ni-events" onclick="goTo('events')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Eventos</span></div>
       <div class="ni" id="ni-products" onclick="goTo('products')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span>Produtos</span></div>
-      <div class="ni" id="ni-config" onclick="goTo('config')" data-sup="1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config</span></div>
+      <div class="ni" id="ni-config" onclick="goTo('config')" data-sup="1" style="display: none;"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config</span></div>
       <div class="ni" id="ni-profile" onclick="goTo('profile')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfil</span></div>
-      <div class="ni" id="ni-monitor" onclick="goTo('monitor')" data-sup="1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Monitor</span></div>
+      <div class="ni" id="ni-monitor" onclick="goTo('monitor')" data-sup="1" style="display: none;"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Monitor</span></div>
     </div>
   </nav>
 
@@ -1373,32 +1373,146 @@
       </div>
       <div class="fr">
         <div class="fg">
-          <label class="flbl">Categoria</label>
-          <input type="text" class="fi" id="edit-det-category" placeholder="Ex: Celulares E Smartphones"/>
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="text" id="lbl-det-category" value="Categoria" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
+            <label class="tgl">
+              <input type="checkbox" id="tg-det-category" checked onchange="toggleDet('category')">
+              <span class="tgl-sl"></span>
+            </label>
+          </label>
+          <input type="text" class="fi" id="edit-det-category" placeholder="Ex: Celulares E Smartphones" oninput="updatePreview()"/>
         </div>
         <div class="fg">
-          <label class="flbl">Marca</label>
-          <input type="text" class="fi" id="edit-det-brand" placeholder="Ex: Apple"/>
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="text" id="lbl-det-brand" value="Marca" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
+            <label class="tgl">
+              <input type="checkbox" id="tg-det-brand" checked onchange="toggleDet('brand')">
+              <span class="tgl-sl"></span>
+            </label>
+          </label>
+          <input type="text" class="fi" id="edit-det-brand" placeholder="Ex: Apple" oninput="updatePreview()"/>
         </div>
       </div>
       <div class="fr">
         <div class="fg">
-          <label class="flbl">Modelo</label>
-          <input type="text" class="fi" id="edit-det-model" placeholder="Ex: Iphone 11"/>
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="text" id="lbl-det-model" value="Modelo" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
+            <label class="tgl">
+              <input type="checkbox" id="tg-det-model" checked onchange="toggleDet('model')">
+              <span class="tgl-sl"></span>
+            </label>
+          </label>
+          <input type="text" class="fi" id="edit-det-model" placeholder="Ex: Iphone 11" oninput="updatePreview()"/>
         </div>
         <div class="fg">
-          <label class="flbl">Condição</label>
-          <input type="text" class="fi" id="edit-det-condition" placeholder="Ex: Usado - Excelente"/>
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="text" id="lbl-det-condition" value="Condição" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
+            <label class="tgl">
+              <input type="checkbox" id="tg-det-condition" checked onchange="toggleDet('condition')">
+              <span class="tgl-sl"></span>
+            </label>
+          </label>
+          <input type="text" class="fi" id="edit-det-condition" placeholder="Ex: Usado - Excelente" oninput="updatePreview()"/>
         </div>
       </div>
       <div class="fr">
         <div class="fg">
-          <label class="flbl">Memória Interna</label>
-          <input type="text" class="fi" id="edit-det-memory" placeholder="Ex: 64gb"/>
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="text" id="lbl-det-memory" value="Memória Interna" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
+            <label class="tgl">
+              <input type="checkbox" id="tg-det-memory" checked onchange="toggleDet('memory')">
+              <span class="tgl-sl"></span>
+            </label>
+          </label>
+          <input type="text" class="fi" id="edit-det-memory" placeholder="Ex: 64gb" oninput="updatePreview()"/>
         </div>
         <div class="fg">
-          <label class="flbl">Cor</label>
-          <input type="text" class="fi" id="edit-det-color" placeholder="Ex: Branco"/>
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="text" id="lbl-det-color" value="Cor" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:var(--c-t2);font-size:12px;font-weight:600;width:120px;padding:2px 0;outline:none;" oninput="updatePreview()" />
+            <label class="tgl">
+              <input type="checkbox" id="tg-det-color" checked onchange="toggleDet('color')">
+              <span class="tgl-sl"></span>
+            </label>
+          </label>
+          <input type="text" class="fi" id="edit-det-color" placeholder="Ex: Branco" oninput="updatePreview()"/>
+        </div>
+      </div>
+      <script>
+        function toggleDet(field) {
+          const isChecked = document.getElementById('tg-det-' + field).checked;
+          const input = document.getElementById('edit-det-' + field);
+          const lblInput = document.getElementById('lbl-det-' + field);
+          if(!isChecked) {
+            input.dataset.oldValue = input.value;
+            input.value = '';
+            input.parentElement.style.opacity = '0.5';
+            input.parentElement.style.pointerEvents = 'none';
+            if(lblInput) lblInput.disabled = true;
+          } else {
+            input.value = input.dataset.oldValue || '';
+            input.parentElement.style.opacity = '1';
+            input.parentElement.style.pointerEvents = 'auto';
+            if(lblInput) lblInput.disabled = false;
+          }
+          updatePreview();
+        }
+        
+        function updatePreview() {
+            // Function to update the preview, called by toggleDet
+            const previewContainer = document.getElementById('details-preview-container');
+            if (!previewContainer) return;
+            
+            let html = '';
+            const fields = ['category', 'brand', 'model', 'condition', 'memory', 'color'];
+            
+            fields.forEach(f => {
+                const tg = document.getElementById('tg-det-' + f);
+                if (tg && tg.checked) {
+                    const lbl = document.getElementById('lbl-det-' + f).value || f;
+                    const val = document.getElementById('edit-det-' + f).value || '-';
+                    html += `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px;">
+                        <span style="color:var(--c-t3);">${lbl}:</span>
+                        <span style="color:var(--c-text); font-weight:600;">${val}</span>
+                    </div>`;
+                }
+            });
+            
+            if (html === '') {
+                html = '<div style="font-size:12px; color:var(--c-t3); text-align:center;">Nenhum detalhe selecionado</div>';
+            }
+            previewContainer.innerHTML = html;
+        }
+        
+        // Inicializa o preview
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(updatePreview, 500);
+        });
+        updatePreview();
+      </script>
+
+      <div class="fg" style="margin-top:16px;">
+        <label class="flbl">Preview dos Detalhes Ativos</label>
+        <div id="details-preview-container" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:var(--r-sm); padding:12px; margin-top:8px;">
+            <div style="font-size:12px; color:var(--c-t3); text-align:center;">Selecione detalhes acima para visualizar</div>
+        </div>
+      </div>
+
+      <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Cartões de Pagamento (Específico deste produto)
+      </div>
+      <div class="fg">
+        <p class="sm muted mb-8">Personalize os cartões que aparecerão na página deste produto.</p>
+        <div class="badge-grid" id="prod-badge-grid"><span style="font-size:12px;color:var(--c-t3)">Usando Global (Padrão)</span></div>
+        <div class="mt-12" style="display:flex;flex-wrap:wrap;gap:6px">
+          <button class="btn btn-g btn-xs" onclick="addProdPBadge('pix')">Pix</button>
+          <button class="btn btn-g btn-xs" onclick="addProdPBadge('visa')">Visa</button>
+          <button class="btn btn-g btn-xs" onclick="addProdPBadge('master')">Master</button>
+          <button class="btn btn-g btn-xs" onclick="addProdPBadge('elo')">Elo</button>
+          <button class="btn btn-g btn-xs" onclick="addProdPBadge('amex')">Amex</button>
+          <button class="btn btn-g btn-xs" onclick="addProdPBadge('boleto')">Boleto</button>
+          <button class="btn btn-d btn-xs" onclick="clearProdBadges()" style="margin-left:auto">Limpar</button>
         </div>
       </div>
 
@@ -1459,11 +1573,30 @@
             <option value="local">Retirada em Mãos / Local</option>
           </select>
         </div>
-        <div class="fg">
-          <label class="flbl">Taxa de Frete a Cobrar (R$)</label>
+        <div class="fg" style="position:relative">
+          <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+            Taxa de Frete a Cobrar (R$)
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer; font-size:10px; color:var(--c-purple3); font-weight:700">
+              <input type="checkbox" id="edit-free-shipping" onchange="toggleFreeShipping()" style="width:12px; height:12px;"> Frete Grátis
+            </label>
+          </label>
           <input type="text" class="fi" id="edit-shipping-fee" placeholder="19.90" value="19.90"/>
         </div>
       </div>
+      <script>
+        function toggleFreeShipping() {
+          const isFree = document.getElementById('edit-free-shipping').checked;
+          const feeInput = document.getElementById('edit-shipping-fee');
+          if(isFree) {
+            feeInput.dataset.oldValue = feeInput.value;
+            feeInput.value = '0.00';
+            feeInput.disabled = true;
+          } else {
+            feeInput.value = feeInput.dataset.oldValue || '19.90';
+            feeInput.disabled = false;
+          }
+        }
+      </script>
 
       <!-- Configuração Avançada de Cupom & Apenas Frete -->
       <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:12px;margin-bottom:12px">
@@ -1608,6 +1741,8 @@ function skelCards(n=3) { return '<div class="page-loading">' + Array(n).fill('<
 function skelRows(n=5) { return '<div class="page-loading">' + Array(n).fill('<div class="skel skel-row"></div>').join('') + '</div>'; }
 
 function goTo(n){
+  if(n === 'config' && !_SUP) { toast('Acesso restrito ao Admin Supremo.', 'err'); return; }
+  if(n === 'monitor' && !_SUP) { toast('Acesso restrito ao Admin Supremo.', 'err'); return; }
   if(typeof _currentPage !== 'undefined' && _currentPage === n) return;
   _currentPage = n;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2092,12 +2227,18 @@ function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
   ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color'].forEach(id=>{
     const el = document.getElementById(id);
-    if(el) el.value = '';
+    if(el) { el.value = ''; el.disabled = false; }
+  });
+  ['category', 'brand', 'model', 'condition', 'memory', 'color'].forEach(f => {
+    const tg = document.getElementById('tg-det-' + f);
+    if(tg) tg.checked = true;
   });
   const sm = document.getElementById('edit-shipping-mode');
   if(sm) sm.value = 'full';
   const sf = document.getElementById('edit-shipping-fee');
-  if(sf) sf.value = '19.90';
+  if(sf) { sf.value = '19.90'; sf.disabled = false; }
+  const fs = document.getElementById('edit-free-shipping');
+  if(fs) fs.checked = false;
   const ca = document.getElementById('edit-coupon-active');
   if(ca) ca.checked = true;
   const cos = document.getElementById('edit-coupon-only-shipping');
@@ -2108,6 +2249,8 @@ function openAddProd(){
   prevProdPhoto(1, '');
   prevProdPhoto(2, '');
   prevProdPhoto(3, '');
+  _PROD_BADGES = null;
+  renderProdBadges();
   document.getElementById('prod-modal').classList.add('open');
 }
 
@@ -2122,14 +2265,35 @@ function openEditProd(p){
   document.getElementById('edit-desc').value=p.description||'';
   document.getElementById('edit-seller-name').value=p.seller_name||'';
   document.getElementById('edit-seller-since').value=p.seller_since||'';
-  document.getElementById('edit-det-category').value=p.det_category||'';
-  document.getElementById('edit-det-brand').value=p.det_brand||'';
-  document.getElementById('edit-det-model').value=p.det_model||'';
-  document.getElementById('edit-det-condition').value=p.det_condition||'';
-  document.getElementById('edit-det-memory').value=p.det_memory||'';
-  document.getElementById('edit-det-color').value=p.det_color||'';
+  const detFields = ['category', 'brand', 'model', 'condition', 'memory', 'color'];
+  detFields.forEach(f => {
+    const rawVal = p['det_' + f] || '';
+    let lbl = '';
+    let val = '';
+    if(rawVal) {
+      const parts = rawVal.split('|||');
+      if(parts.length === 2) { lbl = parts[0]; val = parts[1]; }
+      else { val = rawVal; }
+    }
+    const input = document.getElementById('edit-det-' + f);
+    const lblInput = document.getElementById('lbl-det-' + f);
+    const toggle = document.getElementById('tg-det-' + f);
+    if(input) input.value = val;
+    if(lblInput && lbl) lblInput.value = lbl;
+    if(toggle) {
+      toggle.checked = (val !== '');
+      if(input) input.disabled = !toggle.checked;
+      if(lblInput) lblInput.disabled = !toggle.checked;
+    }
+  });
   document.getElementById('edit-slug').value=code;
   document.getElementById('edit-slug').disabled=true;
+  if(p.payment_badges) {
+    try { _PROD_BADGES = JSON.parse(p.payment_badges); } catch(e) { _PROD_BADGES = null; }
+  } else {
+    _PROD_BADGES = null;
+  }
+  renderProdBadges();
   
   const img1 = p.image1 || p.image_url || p.image || '';
   const img2 = p.image2 || '';
@@ -2144,7 +2308,19 @@ function openEditProd(p){
   const sm = document.getElementById('edit-shipping-mode');
   if(sm) sm.value = p.shipping_mode || 'full';
   const sf = document.getElementById('edit-shipping-fee');
-  if(sf) sf.value = p.shipping_fee || '19.90';
+  const fs = document.getElementById('edit-free-shipping');
+  if(sf) {
+    sf.value = p.shipping_fee || '19.90';
+    if(fs) {
+      if(sf.value === '0' || sf.value === '0.00' || sf.value === '0,00') {
+        fs.checked = true;
+        sf.disabled = true;
+      } else {
+        fs.checked = false;
+        sf.disabled = false;
+      }
+    }
+  }
   const sc = document.getElementById('edit-shipping-coupon');
   if(sc) sc.value = p.shipping_coupon || '';
   
@@ -2202,12 +2378,13 @@ async function saveProd(){
     coupon_only_shipping: coupon_only_shipping,
     seller_name: document.getElementById('edit-seller-name').value.trim(),
     seller_since: document.getElementById('edit-seller-since').value.trim(),
-    det_category: document.getElementById('edit-det-category').value.trim(),
-    det_brand: document.getElementById('edit-det-brand').value.trim(),
-    det_model: document.getElementById('edit-det-model').value.trim(),
-    det_condition: document.getElementById('edit-det-condition').value.trim(),
-    det_memory: document.getElementById('edit-det-memory').value.trim(),
-    det_color: document.getElementById('edit-det-color').value.trim(),
+    det_category: (document.getElementById('edit-det-category').value.trim() ? (document.getElementById('lbl-det-category').value.trim() + '|||' + document.getElementById('edit-det-category').value.trim()) : ""),
+    det_brand: (document.getElementById('edit-det-brand').value.trim() ? (document.getElementById('lbl-det-brand').value.trim() + '|||' + document.getElementById('edit-det-brand').value.trim()) : ""),
+    det_model: (document.getElementById('edit-det-model').value.trim() ? (document.getElementById('lbl-det-model').value.trim() + '|||' + document.getElementById('edit-det-model').value.trim()) : ""),
+    det_condition: (document.getElementById('edit-det-condition').value.trim() ? (document.getElementById('lbl-det-condition').value.trim() + '|||' + document.getElementById('edit-det-condition').value.trim()) : ""),
+    det_memory: (document.getElementById('edit-det-memory').value.trim() ? (document.getElementById('lbl-det-memory').value.trim() + '|||' + document.getElementById('edit-det-memory').value.trim()) : ""),
+    det_color: (document.getElementById('edit-det-color').value.trim() ? (document.getElementById('lbl-det-color').value.trim() + '|||' + document.getElementById('edit-det-color').value.trim()) : ""),
+    payment_badges: _PROD_BADGES ? JSON.stringify(_PROD_BADGES) : "",
     product_code: slugInp || code
   };
 

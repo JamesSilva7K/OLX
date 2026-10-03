@@ -826,7 +826,11 @@
     <!-- Product Info Card -->
     <div class="info-card">
       <div class="product-tags">
+        {% if shipping_fee and (shipping_fee == '0' or shipping_fee == '0.00' or shipping_fee == '0,00' or shipping_fee == '') %}
         <span class="tag tag-green-badge">Frete grátis</span>
+        {% else %}
+        <span class="tag tag-green-badge">Envio para todo o país</span>
+        {% endif %}
         <span class="tag tag-purple-badge">Parcele sem juros</span>
         <span class="tag tag-purple-badge">Garantia da OLX</span>
       </div>
@@ -841,91 +845,83 @@
     <div class="section-card">
       <h2 class="section-title">Detalhes</h2>
       <div class="details-grid">
+        {% if det_category %}
+        {% set parts = det_category.split('|||', 1) %}
         <div class="detail-item">
           <div class="detail-icon">
-            <!-- Grid icon for Categoria -->
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M6 14v7m-3-3h7"/></svg>
           </div>
           <div>
-            <div class="detail-label">Categoria</div>
-            <div class="detail-value">{{ det_category if det_category else 'Celulares E Smartphones' }}</div>
+            <div class="detail-label">{{ parts[0] if parts|length == 2 else 'Categoria' }}</div>
+            <div class="detail-value">{{ parts[1] if parts|length == 2 else det_category }}</div>
           </div>
         </div>
+        {% endif %}
 
+        {% if det_brand %}
+        {% set parts = det_brand.split('|||', 1) %}
         <div class="detail-item">
           <div class="detail-icon">
-            <!-- Ribbon/Badge icon for Marca -->
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.11"/></svg>
           </div>
           <div>
-            <div class="detail-label">Marca</div>
-            <div class="detail-value">{{ det_brand if det_brand else 'Apple' }}</div>
+            <div class="detail-label">{{ parts[0] if parts|length == 2 else 'Marca' }}</div>
+            <div class="detail-value">{{ parts[1] if parts|length == 2 else det_brand }}</div>
           </div>
         </div>
+        {% endif %}
 
+        {% if det_model %}
+        {% set parts = det_model.split('|||', 1) %}
         <div class="detail-item">
           <div class="detail-icon">
-            <!-- Layers icon for Modelo -->
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>
           </div>
           <div>
-            <div class="detail-label">Modelo</div>
-            <div class="detail-value">{{ det_model if det_model else 'Iphone 11' }}</div>
+            <div class="detail-label">{{ parts[0] if parts|length == 2 else 'Modelo' }}</div>
+            <div class="detail-value">{{ parts[1] if parts|length == 2 else det_model }}</div>
           </div>
         </div>
+        {% endif %}
 
+        {% if det_condition %}
+        {% set parts = det_condition.split('|||', 1) %}
         <div class="detail-item">
           <div class="detail-icon">
-            <!-- Star icon for Condição -->
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div>
-            <div class="detail-label">Condição</div>
-            <div class="detail-value">{{ det_condition if det_condition else 'Usado - Excelente' }}</div>
+            <div class="detail-label">{{ parts[0] if parts|length == 2 else 'Condição' }}</div>
+            <div class="detail-value">{{ parts[1] if parts|length == 2 else det_condition }}</div>
           </div>
         </div>
+        {% endif %}
 
+        {% if det_memory %}
+        {% set parts = det_memory.split('|||', 1) %}
         <div class="detail-item">
           <div class="detail-icon">
-            <!-- Box/Cube icon for Memória Interna -->
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="12"/><line x1="22" y1="8.5" x2="12" y2="12"/><line x1="2" y1="8.5" x2="12" y2="12"/></svg>
           </div>
           <div>
-            <div class="detail-label">Memória Interna</div>
-            <div class="detail-value">{{ det_memory if det_memory else '64gb' }}</div>
+            <div class="detail-label">{{ parts[0] if parts|length == 2 else 'Memória Interna' }}</div>
+            <div class="detail-value">{{ parts[1] if parts|length == 2 else det_memory }}</div>
           </div>
         </div>
+        {% endif %}
 
+        {% if det_color %}
+        {% set parts = det_color.split('|||', 1) %}
         <div class="detail-item">
           <div class="detail-icon">
-            <!-- Overlapping squares icon for Cor -->
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="12" height="12" rx="2" ry="2"/><path d="M9 21h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
           </div>
           <div>
-            <div class="detail-label">Cor</div>
-            <div class="detail-value">{{ det_color if det_color else 'Branco' }}</div>
+            <div class="detail-label">{{ parts[0] if parts|length == 2 else 'Cor' }}</div>
+            <div class="detail-value">{{ parts[1] if parts|length == 2 else det_color }}</div>
           </div>
         </div>
-
-        <div class="detail-item">
-          <div class="detail-icon">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          </div>
-          <div>
-            <div class="detail-label">Armazenamento Interno</div>
-            <div class="detail-value">64gb</div>
-          </div>
-        </div>
-
-        <div class="detail-item">
-          <div class="detail-icon">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          </div>
-          <div>
-            <div class="detail-label">Cor</div>
-            <div class="detail-value">Branco</div>
-          </div>
-        </div>
+        {% endif %}
       </div>
     </div>
 
