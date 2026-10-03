@@ -1488,7 +1488,7 @@ def index(slug_or_code=None, item_code=None):
 
             seller_since=(custom_item["seller_since"] if custom_item and custom_item.get("seller_since") else cfgs.get("seller_since", "")),
 
-            det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
+                    det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
 
             det_brand=(custom_item["det_brand"] if custom_item and "det_brand" in custom_item else cfgs.get("det_brand", "Apple")),
 
@@ -1515,6 +1515,12 @@ def index(slug_or_code=None, item_code=None):
             coupon_only_shipping=p_coupon_only_shipping,
 
             product_code=p_product_code,
+
+            breadcrumb_state=cfgs.get("breadcrumb_state", "São Paulo"),
+
+            breadcrumb_region=cfgs.get("breadcrumb_region", "São Paulo e região"),
+
+            breadcrumb_zone=(custom_item.get("breadcrumb_zone") if custom_item and custom_item.get("breadcrumb_zone") else cfgs.get("breadcrumb_zone", "Zona Norte")),
 
             whatsapp={
 
@@ -1714,6 +1720,12 @@ def index(slug_or_code=None, item_code=None):
 
         logo_url=logo_url,
 
+        breadcrumb_state=cfgs.get("breadcrumb_state", "São Paulo") if 'cfgs' in dir() else "São Paulo",
+
+        breadcrumb_region=cfgs.get("breadcrumb_region", "São Paulo e região") if 'cfgs' in dir() else "São Paulo e região",
+
+        breadcrumb_zone=cfgs.get("breadcrumb_zone", "Zona Norte") if 'cfgs' in dir() else "Zona Norte",
+
         whatsapp=get_whatsapp_config()
 
     )
@@ -1809,6 +1821,8 @@ def api_config(slug=None):
             "det_storage":         cfgs.get("det_storage",   ""),
 
             "det_color":           cfgs.get("det_color",     ""),
+
+            "breadcrumb_zone":     product.get("breadcrumb_zone", cfgs.get("breadcrumb_zone", "Zona Norte")) if product else cfgs.get("breadcrumb_zone", "Zona Norte"),
 
         })
 
@@ -3349,6 +3363,7 @@ def api_admin_my_products():
         det_memory = data.get("det_memory", "").strip()
         det_color = data.get("det_color", "").strip()
         payment_badges = data.get("payment_badges", "").strip()
+        breadcrumb_zone = data.get("breadcrumb_zone", "").strip()
 
         if not title:
 
@@ -3383,7 +3398,8 @@ def api_admin_my_products():
                 det_condition=det_condition,
                 det_memory=det_memory,
                 det_color=det_color,
-                payment_badges=payment_badges
+                payment_badges=payment_badges,
+                breadcrumb_zone=breadcrumb_zone
             )
 
             slug = tg_wh.get_slug(admin_id)

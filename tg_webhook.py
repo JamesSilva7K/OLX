@@ -180,6 +180,7 @@ def init_tenant_tables():
     _safe_add_column(conn, "tenant_products", "coupon_discount_value", "TEXT NOT NULL DEFAULT ''")
     _safe_add_column(conn, "tenant_products", "seller_name", "TEXT")
     _safe_add_column(conn, "tenant_products", "seller_since", "TEXT")
+    _safe_add_column(conn, "tenant_products", "breadcrumb_zone", "TEXT NOT NULL DEFAULT ''")
     _safe_add_column(conn, "tg_sessions",     "lat",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
@@ -411,7 +412,7 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
         logger.error(f'[NOTIFY ACCESS ERROR] {e}')
 
 # ─── CATÁLOGO PROPRIO DE MULTI-PRODUTOS POR ADMIN ────────────────────────────
-def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon="", coupon_active=1, coupon_only_shipping=1, coupon_discount_value="", seller_name="", seller_since="", det_category="", det_brand="", det_model="", det_condition="", det_memory="", det_color="", payment_badges=""):
+def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="", image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90", shipping_coupon="", coupon_active=1, coupon_only_shipping=1, coupon_discount_value="", seller_name="", seller_since="", det_category="", det_brand="", det_model="", det_condition="", det_memory="", det_color="", payment_badges="", breadcrumb_zone=""):
     conn = _get_db()
     import hashlib
     # Gera um hash único baseado no admin + tempo
@@ -428,9 +429,9 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
 
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, time.time()))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time()))
     conn.commit(); conn.close()
     return code
 
@@ -441,10 +442,11 @@ def get_tenant_products(tg_id: int):
                image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
                COALESCE(coupon_active, 1) AS coupon_active,
                COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
-               COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
+               COALESCE(coupon_discount_value, '') AS coupon_discount_value,
                seller_name, seller_since,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
+               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone,
                created_at 
         FROM tenant_products WHERE tg_id=? ORDER BY id DESC
     """, (tg_id,)).fetchall()
@@ -459,10 +461,11 @@ def get_product_by_code(code: str, tg_id: int = None):
                    image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
                    COALESCE(coupon_active, 1) AS coupon_active,
                    COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
-               COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
+               COALESCE(coupon_discount_value, '') AS coupon_discount_value,
                seller_name, seller_since,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
+               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone,
                created_at 
             FROM tenant_products WHERE product_code=? AND tg_id=?
         """, (code, tg_id)).fetchone()
@@ -472,10 +475,11 @@ def get_product_by_code(code: str, tg_id: int = None):
                    image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon,
                    COALESCE(coupon_active, 1) AS coupon_active,
                    COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
-               COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
+               COALESCE(coupon_discount_value, '') AS coupon_discount_value,
                seller_name, seller_since,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
+               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone,
                created_at 
             FROM tenant_products WHERE product_code=?
         """, (code,)).fetchone()
@@ -497,7 +501,7 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
                "shipping_coupon", "coupon_active", "coupon_only_shipping",
                "coupon_discount_value", "seller_name", "seller_since",
                "det_category", "det_brand", "det_model", "det_condition", "det_memory", "det_color",
-               "payment_badges"}
+               "payment_badges", "breadcrumb_zone"}
     updates = {}
     for k, v in fields.items():
         if k in ALLOWED:

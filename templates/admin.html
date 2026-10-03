@@ -1106,6 +1106,73 @@
           <div class="cfg-row"><span class="cfg-k">Bot Telegram</span><span class="chip chip-g">Ativo</span></div>
         </div></div>
 
+        <!-- WHATSAPP GLOBAL AVANÇADO -->
+        <div class="card mt-12">
+          <div class="card-hdr">
+            <div class="card-ttl">
+              <div class="ci" style="background:linear-gradient(135deg,#25D366,#128C7E);width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center">
+                <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              </div>
+              WhatsApp Global das Templates
+            </div>
+            <span class="chip chip-o" style="font-size:10px">Supremo</span>
+          </div>
+          <div class="card-body">
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.15);border-radius:10px">
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#25D366" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Este número é o padrão global para <strong style="color:rgba(255,255,255,0.65)">todas as páginas</strong> que não têm número próprio configurado via bot.
+            </div>
+
+            <!-- Número + Validador -->
+            <div class="fg">
+              <label class="flbl">Número WhatsApp Global</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="position:relative;flex:1">
+                  <input type="text" class="fi" id="sup-wa-number"
+                    placeholder="5511999999999 (com DDI+DDD)"
+                    oninput="debSupWa()"
+                    style="padding-right:36px;font-family:monospace"
+                  />
+                  <div id="sup-wa-dot" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);transition:background .3s,box-shadow .3s"></div>
+                </div>
+                <button class="btn btn-g btn-xs" onclick="validateSupWa()" title="Validar número" style="flex-shrink:0;height:40px;width:40px;padding:0;display:flex;align-items:center;justify-content:center">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+              <div id="sup-wa-info" style="display:none;margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)">
+                <div id="sup-wa-region" style="font-size:12px;font-weight:700;color:#34D399"></div>
+                <div id="sup-wa-formatted" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;font-family:monospace"></div>
+                <a id="sup-wa-preview-link" href="#" target="_blank" style="font-size:11px;color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px">
+                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Testar link wa.me
+                </a>
+              </div>
+              <div id="sup-wa-error" style="display:none;margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);font-size:12px;color:#F87171"></div>
+            </div>
+
+            <!-- Mensagem padrão -->
+            <div class="fg" style="margin-top:12px">
+              <label class="flbl">Mensagem Padrão do Chat</label>
+              <textarea class="fta" id="sup-wa-message"
+                placeholder="Olá! Tenho interesse no anúncio. Pode me ajudar?"
+                style="min-height:60px;resize:vertical"
+              ></textarea>
+              <span class="fhint">Texto pré-preenchido quando o cliente clica em "Falar com Vendedor".</span>
+            </div>
+
+            <!-- Preview link -->
+            <div style="margin-top:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06)">
+              <div style="font-size:10px;color:rgba(255,255,255,0.3);font-weight:700;letter-spacing:.5px;margin-bottom:6px">LINK QUE SERÁ GERADO</div>
+              <div id="sup-wa-link-preview" style="font-size:12px;font-family:monospace;color:#25D366;word-break:break-all">—</div>
+            </div>
+
+            <button class="btn btn-p btn-w mt-12" onclick="saveSupWa()" id="sup-wa-save-btn">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+              Salvar WhatsApp Global
+            </button>
+          </div>
+        </div>
+
         <button class="btn btn-d btn-w mt-12" onclick="doLogout()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair do Painel</button>
       </div>
 
@@ -1497,7 +1564,38 @@
         </div>
       </div>
 
-
+      <!-- LOCALIZAÇÃO DO ANÚNCIO -->
+      <div class="sec-ttl" style="margin:16px 0 8px;font-size:12px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Localização do Anúncio (Breadcrumb)
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 12px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:10px;line-height:1.5">
+          Aparece no breadcrumb da página: <span style="color:rgba(255,255,255,0.5);font-family:monospace">Estado › Região › Categoria › <strong style="color:#A78BFA">Zona/Bairro</strong></span>
+        </div>
+        <div class="fg">
+          <label class="flbl">Zona / Bairro</label>
+          <div style="position:relative">
+            <input type="text" class="fi" id="edit-breadcrumb-zone"
+              placeholder="Ex: Zona Norte, Centro, Jardins..."
+              list="zone-suggestions"
+              style="padding-right:90px"
+            />
+            <datalist id="zone-suggestions">
+              <option value="Zona Norte"/><option value="Zona Sul"/><option value="Zona Leste"/><option value="Zona Oeste"/>
+              <option value="Centro"/><option value="Jardins"/><option value="Vila Mariana"/><option value="Pinheiros"/>
+              <option value="Itaim Bibi"/><option value="Moema"/><option value="Lapa"/><option value="Santana"/>
+              <option value="Santo André"/><option value="São Bernardo"/><option value="Campinas"/><option value="Guarulhos"/>
+              <option value="Rio de Janeiro"/><option value="Belo Horizonte"/><option value="Curitiba"/><option value="Florianópolis"/>
+            </datalist>
+            <button type="button" onclick="document.getElementById('edit-breadcrumb-zone').value='Zona Norte'; toast('Zona padrão restaurada.','info');"
+              style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap"
+              title="Restaurar padrão"
+            >Padrão</button>
+          </div>
+          <span class="fhint">Deixe vazio ou clique em Padrão para usar "Zona Norte". Cada produto pode ter sua zona.</span>
+        </div>
+      </div>
 
       <div class="fg">
         <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
@@ -2353,6 +2451,9 @@ function openEditProd(p){
     document.getElementById('edit-lnk-box').style.display='flex';
   }
   document.getElementById('prod-modal').classList.add('open');
+  // Carrega zona personalizada do produto
+  const bzEl = document.getElementById('edit-breadcrumb-zone');
+  if(bzEl) bzEl.value = p.breadcrumb_zone || '';
 }
 
 function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
@@ -2404,7 +2505,8 @@ async function saveProd(){
     det_memory: (document.getElementById('edit-det-memory').value.trim() ? (document.getElementById('lbl-det-memory').value.trim() + '|||' + document.getElementById('edit-det-memory').value.trim()) : ""),
     det_color: (document.getElementById('edit-det-color').value.trim() ? (document.getElementById('lbl-det-color').value.trim() + '|||' + document.getElementById('edit-det-color').value.trim()) : ""),
     payment_badges: _PROD_BADGES ? JSON.stringify(_PROD_BADGES) : "",
-    product_code: slugInp || code
+    product_code: slugInp || code,
+    breadcrumb_zone: document.getElementById('edit-breadcrumb-zone')?.value.trim() || ''
   };
 
   try{
@@ -2922,7 +3024,7 @@ cfgTab = function(n, btn) {
   ['visual','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});
   document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));
   const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');
-  if(n==='sistema')loadStatus();
+  if(n==='sistema'){loadStatus(); if(_SUP) setTimeout(loadSupWaPanel, 300);}
   if(n==='financeiro'){loadVaultGateways();loadVaultAudit();}
 };
 function onGwSelChange(){const gw=document.getElementById('vault-gw-sel').value;renderVaultFields(gw,{});}
@@ -3173,6 +3275,226 @@ function _onProdSaved(){
   const overlay = document.getElementById('preview-overlay');
   if(overlay && overlay.style.display !== 'none'){
     setTimeout(()=>refreshPreview(), 800);
+  }
+}
+
+// ── WHATSAPP GLOBAL SUPREMO ──────────────────────────────────────────────────
+let _supWaTimer = null;
+
+function debSupWa() {
+  clearTimeout(_supWaTimer);
+  _supWaTimer = setTimeout(validateSupWa, 700);
+  // Preview ao vivo do link
+  const num = (document.getElementById('sup-wa-number')?.value || '').replace(/\D/g, '');
+  const msg = encodeURIComponent(document.getElementById('sup-wa-message')?.value || 'Olá! Tenho interesse no anúncio.');
+  const prev = document.getElementById('sup-wa-link-preview');
+  if(prev) prev.textContent = num ? `https://wa.me/${num}?text=${decodeURIComponent(msg)}` : '—';
+}
+
+async function validateSupWa() {
+  const inp = document.getElementById('sup-wa-number');
+  const dot = document.getElementById('sup-wa-dot');
+  const info = document.getElementById('sup-wa-info');
+  const errEl = document.getElementById('sup-wa-error');
+  if(!inp || !inp.value.trim()) {
+    if(dot) dot.style.cssText += ';background:rgba(255,255,255,0.12);box-shadow:none';
+    if(info) info.style.display = 'none';
+    if(errEl) errEl.style.display = 'none';
+    return;
+  }
+  if(dot) dot.style.cssText += ';background:#F59E0B;box-shadow:0 0 8px #F59E0B';
+  try {
+    const r = await apiFetch('/api/admin/validate-whatsapp', {
+      method: 'POST',
+      body: JSON.stringify({ number: inp.value.trim() })
+    });
+    const d = await r.json();
+    if(d.valid) {
+      dot.style.background = '#10B981';
+      dot.style.boxShadow = '0 0 8px #10B981';
+      inp.value = d.clean_number || inp.value;
+      // Mostra painel de info
+      if(info) info.style.display = 'block';
+      if(errEl) errEl.style.display = 'none';
+      const region = document.getElementById('sup-wa-region');
+      const formatted = document.getElementById('sup-wa-formatted');
+      const link = document.getElementById('sup-wa-preview-link');
+      if(region) region.textContent = '✅ ' + (d.ddd_info?.region || 'Brasil') + (d.ddd_info?.state ? ' — ' + d.ddd_info.state : '');
+      if(formatted) formatted.textContent = d.formatted_national || d.clean_number || '';
+      const cleanNum = (d.clean_number || inp.value).replace(/\D/g, '');
+      const msg = encodeURIComponent(document.getElementById('sup-wa-message')?.value || 'Olá! Tenho interesse no anúncio.');
+      const waUrl = `https://wa.me/${cleanNum}?text=${msg}`;
+      if(link) { link.href = waUrl; }
+      const prev = document.getElementById('sup-wa-link-preview');
+      if(prev) prev.textContent = `https://wa.me/${cleanNum}?text=...`;
+    } else {
+      dot.style.background = '#EF4444';
+      dot.style.boxShadow = '0 0 8px #EF4444';
+      if(info) info.style.display = 'none';
+      if(errEl) { errEl.style.display = 'block'; errEl.textContent = '⚠️ ' + (d.error || 'Número inválido.'); }
+    }
+  } catch(e) {
+    if(dot) { dot.style.background = '#EF4444'; dot.style.boxShadow = '0 0 8px #EF4444'; }
+  }
+}
+
+async function saveSupWa() {
+  const num = document.getElementById('sup-wa-number')?.value.trim();
+  const msg = document.getElementById('sup-wa-message')?.value.trim();
+  if(!num) { toast('Informe o número antes de salvar.', 'wrn'); return; }
+  const btn = document.getElementById('sup-wa-save-btn');
+  if(btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  try {
+    const r = await apiFetch('/api/admin/config', {
+      method: 'POST',
+      body: JSON.stringify({ whatsapp_number: num, whatsapp_message: msg || 'Olá! Tenho interesse no anúncio.' })
+    });
+    const d = await r.json();
+    if(d.ok) {
+      toast('✅ WhatsApp global salvo com sucesso!', 'ok', 3500);
+      // Sincroniza com os campos do ct-visual se existirem
+      const cfgWa = document.getElementById('cfg-wa');
+      const cfgWaMsg = document.getElementById('cfg-wa-msg');
+      if(cfgWa) cfgWa.value = num;
+      if(cfgWaMsg) cfgWaMsg.value = msg || '';
+    } else {
+      toast(d.error || 'Erro ao salvar.', 'err');
+    }
+  } catch { toast('Erro de conexão.', 'err'); }
+  if(btn) { btn.disabled = false; btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Salvar WhatsApp Global'; }
+}
+
+// Carrega número atual no painel supremo ao entrar no ct-sistema
+async function loadSupWaPanel() {
+  try {
+    const url = _SLUG ? '/api/config/' + _SLUG : '/api/config';
+    const r = await fetch(url);
+    const d = await r.json();
+    const numEl = document.getElementById('sup-wa-number');
+    const msgEl = document.getElementById('sup-wa-message');
+    if(numEl && d.whatsapp_number) numEl.value = d.whatsapp_number;
+    if(msgEl && d.whatsapp_message) msgEl.value = d.whatsapp_message;
+    debSupWa();
+  } catch {}
+}
+
+async function generateAIDesc() {
+  const btn = document.querySelector('[onclick="generateAIDesc()"]');
+  const descEl = document.getElementById('edit-desc');
+  if (!descEl) return;
+
+  // Coleta dados do formulário
+  const title    = (document.getElementById('edit-name')?.value     || '').trim();
+  const price    = (document.getElementById('edit-price')?.value    || '').trim();
+  const oldPrice = (document.getElementById('edit-oldp')?.value     || '').trim();
+  const category = (document.getElementById('edit-det-category')?.value || '').trim();
+  const brand    = (document.getElementById('edit-det-brand')?.value    || '').trim();
+  const model    = (document.getElementById('edit-det-model')?.value    || '').trim();
+  const cond     = (document.getElementById('edit-det-condition')?.value || '').trim();
+  const memory   = (document.getElementById('edit-det-memory')?.value   || '').trim();
+  const color    = (document.getElementById('edit-det-color')?.value    || '').trim();
+  const shipMode = (document.getElementById('edit-shipping-mode')?.value || 'full');
+
+  if (!title) {
+    toast('Preencha o título do produto primeiro.', 'wrn');
+    return;
+  }
+
+  // Animação no botão
+  if (btn) { btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; btn.textContent = '✨ Gerando...'; }
+
+  // Simula tempo de "geração" pra dar sensação de IA
+  await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
+
+  // Templates de abertura persuasiva
+  const opens = [
+    `📱 Aproveite esta oferta imperdível!`,
+    `🔥 Oportunidade única no mercado!`,
+    `✨ Item em excelente estado disponível agora!`,
+    `💎 Produto premium com garantia de qualidade!`,
+    `🚀 Não perca esta chance incrível!`,
+  ];
+  const open = opens[Math.floor(Math.random() * opens.length)];
+
+  // Condição humanizada
+  const condMap = {
+    'novo': 'produto **novo, lacrado e com nota fiscal**',
+    'seminovo': 'produto **seminovo em perfeito estado**, com pouquíssimo uso',
+    'usado': 'produto **usado e bem conservado**, funcionando perfeitamente',
+    'recondicionado': 'produto **recondicionado com garantia**, testado e aprovado',
+  };
+  const condText = condMap[(cond||'').toLowerCase()] || 'produto em ótimo estado de conservação';
+
+  // Frete humanizado
+  const shipMap = {
+    'full': '🛡️ **Garantia OLX Full** com seguro de entrega incluso',
+    'sedex': '📦 **Sedex Expresso** pelos Correios — entrega rápida e rastreável',
+    'local': '🤝 **Retirada em mãos** — combinamos local e horário',
+  };
+  const shipText = shipMap[shipMode] || shipMap['full'];
+
+  // Monta desconto se houver
+  let discountLine = '';
+  if (oldPrice && price) {
+    const old = parseFloat(oldPrice.replace(',', '.'));
+    const cur = parseFloat(price.replace(',', '.'));
+    if (!isNaN(old) && !isNaN(cur) && old > cur) {
+      const pct = Math.round(((old - cur) / old) * 100);
+      discountLine = `\n💸 **${pct}% de desconto** — de R$ ${oldPrice} por apenas R$ ${price}!`;
+    }
+  }
+
+  // Especificações técnicas
+  const specs = [];
+  if (brand)    specs.push(`• Marca: **${brand}**`);
+  if (model)    specs.push(`• Modelo: **${model}**`);
+  if (memory)   specs.push(`• Armazenamento: **${memory}**`);
+  if (color)    specs.push(`• Cor: **${color}**`);
+  if (category) specs.push(`• Categoria: **${category}**`);
+
+  const specsBlock = specs.length
+    ? `\n\n📋 **Especificações:**\n${specs.join('\n')}`
+    : '';
+
+  // Bloco de garantias
+  const guarantees = [
+    '✅ Produto verificado e autêntico',
+    '✅ Pagamento 100% seguro via Pix',
+    '✅ Suporte pós-venda garantido',
+    '✅ Entrega rápida e rastreável',
+  ];
+
+  // Monta descrição final
+  const desc = [
+    `${open}`,
+    ``,
+    `Estamos oferecendo ${condText}: **${title}**.${discountLine}`,
+    specsBlock,
+    ``,
+    `🚚 Envio: ${shipText}.`,
+    ``,
+    `📌 **Por que comprar com a gente?**`,
+    guarantees.join('\n'),
+    ``,
+    `⚡ Estoque limitado — garanta o seu agora antes que acabe!`,
+    `📩 Entre em contato pelo chat para tirar dúvidas.`,
+  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  descEl.value = desc;
+  descEl.dispatchEvent(new Event('input'));
+
+  // Efeito de digitação suave (opcional)
+  descEl.style.transition = 'box-shadow .3s';
+  descEl.style.boxShadow = '0 0 0 3px rgba(139,92,246,0.25)';
+  setTimeout(() => { descEl.style.boxShadow = ''; }, 1200);
+
+  toast('✨ Descrição gerada com sucesso!', 'ok', 3000);
+
+  // Restaura botão
+  if (btn) {
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+    btn.innerHTML = '<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Gerar com IA';
   }
 }
 </script>

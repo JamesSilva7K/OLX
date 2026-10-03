@@ -770,16 +770,21 @@
 </header>
 
 <!-- BREADCRUMB -->
+{%- set _bc_cat_raw = det_category if det_category else 'Celulares e Smartphones' -%}
+{%- set _bc_cat = _bc_cat_raw.split('|||')[1] if '|||' in _bc_cat_raw else _bc_cat_raw -%}
+{%- set _bc_state = breadcrumb_state if breadcrumb_state is defined and breadcrumb_state else 'São Paulo' -%}
+{%- set _bc_region = breadcrumb_region if breadcrumb_region is defined and breadcrumb_region else 'São Paulo e região' -%}
+{%- set _bc_zone = breadcrumb_zone if breadcrumb_zone is defined and breadcrumb_zone else 'Zona Norte' -%}
 <div class="breadcrumb-bar">
   <div class="breadcrumb-inner">
     <div class="breadcrumb">
-      <span class="breadcrumb-item">São Paulo</span>
+      <span class="breadcrumb-item">{{ _bc_state }}</span>
       <span class="sep">›</span>
-      <span class="breadcrumb-item">São Paulo e região</span>
+      <span class="breadcrumb-item">{{ _bc_region }}</span>
       <span class="sep">›</span>
-      <span class="breadcrumb-item">Celulares e Smartphones</span>
+      <span class="breadcrumb-item">{{ _bc_cat }}</span>
       <span class="sep">›</span>
-      <span class="current">Zona Norte</span>
+      <span class="current">{{ _bc_zone }}</span>
     </div>
     <div class="breadcrumb-right">
       <span class="date">02/09 às 11:16</span>
@@ -945,29 +950,23 @@
       </div>
 
       <div class="payment-icons" id="payment-badges-row">
-        {# Tenta renderizar badges dinâmicas da config (payment_badges JSON array) #}
-        {% set badges_json = config.get('payment_badges', '') if config is defined else '' %}
-        {% if badges_json %}
-          {% set badges = badges_json | tojson | replace('"[', '[') %}
-          {# Renderizado via JS abaixo para compatibilidade máxima #}
-        {% endif %}
-        <!-- Badges redondas padrão -->
-        <span class="payment-badge-round" title="Pix" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#32BCAD;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+        <!-- Badges redondão padrão (removidas automaticamente quando o admin configura badges personalizadas) -->
+        <span class="payment-badge-round payment-badge-default" title="Pix" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#32BCAD;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
           <svg width="16" height="16" viewBox="0 0 512 512" fill="#fff"><path d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512 512 397.4 512 256 397.4 0 256 0zm-17 330.2l-75.7-75.7 75.7-75.7V330.2zm34 0V178.8l75.7 75.7-75.7 75.7z"/></svg>
         </span>
-        <span class="payment-badge-round" title="Visa" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#1A1F71;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+        <span class="payment-badge-round payment-badge-default" title="Visa" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#1A1F71;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
           <svg width="22" height="10" viewBox="0 0 68 22" fill="#fff"><text x="0" y="17" font-size="16" font-weight="900" font-family="Arial,sans-serif" font-style="italic">VISA</text></svg>
         </span>
-        <span class="payment-badge-round" title="Mastercard" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden; border:1px solid #eee;">
+        <span class="payment-badge-round payment-badge-default" title="Mastercard" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden; border:1px solid #eee;">
           <svg width="24" height="15" viewBox="0 0 36 22"><circle cx="12" cy="11" r="11" fill="#EB001B"/><circle cx="24" cy="11" r="11" fill="#F79E1B"/><path d="M18 3.8a11 11 0 0 1 0 14.4A11 11 0 0 1 18 3.8z" fill="#FF5F00"/></svg>
         </span>
-        <span class="payment-badge-round" title="Elo" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#000;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+        <span class="payment-badge-round payment-badge-default" title="Elo" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#000;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
           <svg width="22" height="10" viewBox="0 0 48 22"><text x="0" y="16" font-size="16" font-weight="900" font-family="Arial,sans-serif" fill="#fff">elo</text></svg>
         </span>
-        <span class="payment-badge-round" title="Hipercard" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#B3131C;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+        <span class="payment-badge-round payment-badge-default" title="Hipercard" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#B3131C;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
           <svg width="24" height="10" viewBox="0 0 66 22" fill="#fff"><text x="0" y="16" font-size="14" font-weight="900" font-family="Arial,sans-serif">hiper</text></svg>
         </span>
-        <span class="payment-badge-round" title="American Express" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#006FCF;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
+        <span class="payment-badge-round payment-badge-default" title="American Express" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#006FCF;box-shadow:0 1px 3px rgba(0,0,0,.15); overflow:hidden;">
           <svg width="26" height="10" viewBox="0 0 66 22" fill="#fff"><text x="0" y="16" font-size="13" font-weight="900" font-family="Arial,sans-serif">AMEX</text></svg>
         </span>
       </div>
@@ -975,16 +974,36 @@
       // Carrega badges dinâmicas do /api/config se disponível
       (async function loadDynBadges() {
         try {
-          const r = await fetch('/api/config');
+          const slug = (window.location.pathname.match(/\/p\/([^\/]+)/) || [])[1] || '';
+          const url = slug ? `/api/config/${slug}` : '/api/config';
+          const r = await fetch(url);
           const d = await r.json();
+
+          // ── Logo dinâmica ───────────────────────────────────────────────────
+          if (d.logo_url) {
+            const logoContainer = document.querySelector('.logo-container');
+            if (logoContainer) {
+              const existingImg = logoContainer.querySelector('.custom-logo-img');
+              if (!existingImg) {
+                // Nenhuma logo server-side, injeta dinamicamente
+                logoContainer.innerHTML = `<img src="${d.logo_url}" alt="Logo" class="custom-logo-img" style="max-height:38px;max-width:140px;object-fit:contain;display:block;" onerror="this.style.display='none'">`;
+              } else {
+                // Atualiza src caso tenha mudado
+                existingImg.src = d.logo_url;
+              }
+            }
+          }
+
+          // ── Badges dinâmicas ────────────────────────────────────────────────
           if (d.payment_badges) {
             let arr;
             try { arr = JSON.parse(d.payment_badges); } catch(e) { return; }
             if (!Array.isArray(arr)) return;
             const row = document.getElementById('payment-badges-row');
-            // Remove badges padrão
+            // Remove TODAS as badges padrão (classe payment-badge-default)
             row.querySelectorAll('.payment-badge-default').forEach(el => el.remove());
-            if (!arr.length) return;
+            // Remove badges dinâmicas anteriores também
+            row.querySelectorAll('img.payment-dyn-badge').forEach(el => el.remove());
             // Map de correção de URLs antigas do wikimedia
             const fixMap = {
               'pix': '/static/images/cards/pix.svg',
@@ -994,26 +1013,26 @@
               'amex': '/static/images/cards/amex.svg',
               'boleto': '/static/images/cards/boleto.svg'
             };
-            // Injeta badges customizadas
+            // Injeta apenas badges com active !== false
             arr.forEach(item => {
-              if (item && typeof item === 'object') {
-                if (item.active === false) return; // Skip inactive
-                let url = item.url;
-                if (url && (url.includes('wikimedia.org') || url.includes('Logo—pix'))) {
-                   const lbl = (item.label||'').toLowerCase();
-                   if (lbl.includes('pix')) url = fixMap.pix;
-                   else if (lbl.includes('visa')) url = fixMap.visa;
-                   else if (lbl.includes('master')) url = fixMap.master;
-                   else if (lbl.includes('elo')) url = fixMap.elo;
-                   else if (lbl.includes('amex')) url = fixMap.amex;
-                   else if (lbl.includes('boleto')) url = fixMap.boleto;
-                }
-                item = url;
+              if (!item || typeof item !== 'object') return;
+              if (item.active === false) return; // Skip desativadas
+              let url = item.url || '';
+              if (url && (url.includes('wikimedia.org') || url.includes('Logo—pix'))) {
+                 const lbl = (item.label||'').toLowerCase();
+                 if (lbl.includes('pix')) url = fixMap.pix;
+                 else if (lbl.includes('visa')) url = fixMap.visa;
+                 else if (lbl.includes('master')) url = fixMap.master;
+                 else if (lbl.includes('elo')) url = fixMap.elo;
+                 else if (lbl.includes('amex')) url = fixMap.amex;
+                 else if (lbl.includes('boleto')) url = fixMap.boleto;
               }
-              if (!item || typeof item !== 'string') return;
+              if (!url) return;
               const img = document.createElement('img');
-              img.src = item;
-              img.alt = 'Pagamento';
+              img.src = url;
+              img.alt = item.label || 'Pagamento';
+              img.title = item.label || '';
+              img.className = 'payment-dyn-badge';
               img.style.cssText = 'width:28px;height:28px;object-fit:contain;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15);background:#fff;padding:3px;';
               img.onerror = function(){ this.style.display='none'; };
               row.appendChild(img);
@@ -1024,8 +1043,15 @@
       </script>
 
 
+      {%- set _raw_p = (product_price if product_price else '630') | string | replace(',', '.') -%}
+      {%- set _pnum = _raw_p | float(630) -%}
+      {%- set _inst = (_pnum / 12) | round(2) -%}
+      {%- set _inst_int = _inst | int -%}
+      {%- set _inst_dec = ((_inst - _inst_int) * 100) | round | int -%}
+      {%- set _inst_dec_str = ('0' + _inst_dec | string) if _inst_dec < 10 else (_inst_dec | string) -%}
+      {%- set _inst_str = _inst_int | string + ',' + _inst_dec_str -%}
       <p class="installment-text">
-        12x sem juros de <strong>R$ 72,16</strong>
+        12x sem juros de <strong>R$ {{ _inst_str }}</strong>
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#aaa" stroke-width="2" style="vertical-align:middle;margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       </p>
       <span class="payment-link">Ver meios de pagamento</span>
