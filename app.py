@@ -780,7 +780,16 @@ def apply_security_headers(response):
 
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
 
-    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=()'
+
+    # Remove headers que vazam stack info
+    response.headers.pop('Server', None)
+    response.headers.pop('X-Powered-By', None)
+
+    # Sem cache em rotas de API (dados sensiveis)
+    if request.path.startswith('/api/'):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+        response.headers['Pragma'] = 'no-cache'
 
     return response
 
@@ -1310,6 +1319,9 @@ def get_whatsapp_config():
 
 
 
+
+
+
 @app.route('/')
 
 @app.route('/p/<slug_or_code>')
@@ -1770,6 +1782,10 @@ def api_config(slug=None):
         if prod_badges:
             global_badges = prod_badges
 
+        # search_placeholder é sempre global (Admin Supremo)
+
+        global_search_placeholder = admin_bot.get_config("search_placeholder", "") if BOT_AVAILABLE else ""
+
         return jsonify({
 
             "whatsapp_number":     wa_num,
@@ -1804,6 +1820,8 @@ def api_config(slug=None):
 
             "payment_badges":      global_badges,
 
+            "search_placeholder":  global_search_placeholder,
+
             "det_category":        product.get("det_category", cfgs.get("det_category", "")) if product else cfgs.get("det_category", ""),
 
             "det_brand":           cfgs.get("det_brand",     ""),
@@ -1833,6 +1851,8 @@ def api_config(slug=None):
         "whatsapp_message":    wa["message"],
 
         "logo_url":            gc("logo_url", ""),
+
+        "search_placeholder":  gc("search_placeholder", ""),
 
         "product_price":       gc("product_price", ""),
 
@@ -3775,6 +3795,8 @@ def api_admin_config_save():
         "pix_key", "payment_badges",
         "det_category", "det_brand", "det_model", "det_condition", "det_storage", "det_color",
         "active", "pixel_active", "notifications",
+        # ── Admin Supremo: identidade visual global ──
+        "search_placeholder",
     }
 
     saved = []
@@ -3787,9 +3809,9 @@ def api_admin_config_save():
 
             clean_val = value.strip()
 
-            # Apenas Admin Supremo pode alterar logo_url e payment_badges
+            # Apenas Admin Supremo pode alterar logo_url, payment_badges e search_placeholder
 
-            if key in ["logo_url", "payment_badges"] and role != "supreme_admin":
+            if key in ["logo_url", "payment_badges", "search_placeholder"] and role != "supreme_admin":
 
                 continue
 
@@ -3841,7 +3863,7 @@ def api_admin_config_save():
 
             # Save logic
 
-            if key in ["logo_url", "payment_badges"]:
+            if key in ["logo_url", "payment_badges", "search_placeholder"]:
 
                 if BOT_AVAILABLE:
 
