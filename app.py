@@ -2610,9 +2610,8 @@ def api_admin_c7_status():
                 live_status = f"http_{res.status_code}"
 
         except Exception:
-            # Fake successful connection for the dummy app if real API fails/times out
-            live_status = "connected"
-            balance_info = {"available": "12.450,00", "pending": "1.890,00", "status": "Operando"}
+            live_status = "error_connecting"
+            balance_info = None
 
     return jsonify({
 
