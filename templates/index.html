@@ -848,7 +848,7 @@
           </div>
           <div>
             <div class="detail-label">Categoria</div>
-            <div class="detail-value">Celulares E Smartphones</div>
+            <div class="detail-value">{{ det_category if det_category else 'Celulares E Smartphones' }}</div>
           </div>
         </div>
 
@@ -859,7 +859,7 @@
           </div>
           <div>
             <div class="detail-label">Marca</div>
-            <div class="detail-value">Apple</div>
+            <div class="detail-value">{{ det_brand if det_brand else 'Apple' }}</div>
           </div>
         </div>
 
@@ -881,7 +881,7 @@
           </div>
           <div>
             <div class="detail-label">Condição</div>
-            <div class="detail-value">Usado - Excelente</div>
+            <div class="detail-value">{{ det_condition if det_condition else 'Usado - Excelente' }}</div>
           </div>
         </div>
 
@@ -892,7 +892,7 @@
           </div>
           <div>
             <div class="detail-label">Memória Interna</div>
-            <div class="detail-value">64gb</div>
+            <div class="detail-value">{{ det_memory if det_memory else '64gb' }}</div>
           </div>
         </div>
 
@@ -903,7 +903,7 @@
           </div>
           <div>
             <div class="detail-label">Cor</div>
-            <div class="detail-value">Branco</div>
+            <div class="detail-value">{{ det_color if det_color else 'Branco' }}</div>
           </div>
         </div>
 

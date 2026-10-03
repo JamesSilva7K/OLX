@@ -1486,6 +1486,18 @@ def index(slug_or_code=None, item_code=None):
 
             seller_since=(custom_item["seller_since"] if custom_item and custom_item.get("seller_since") else cfgs.get("seller_since", "")),
 
+            det_category=(custom_item["det_category"] if custom_item and custom_item.get("det_category") else cfgs.get("det_category", "Celulares E Smartphones")),
+
+            det_brand=(custom_item["det_brand"] if custom_item and custom_item.get("det_brand") else cfgs.get("det_brand", "Apple")),
+
+            det_model=(custom_item["det_model"] if custom_item and custom_item.get("det_model") else cfgs.get("det_model", "Iphone 11")),
+
+            det_condition=(custom_item["det_condition"] if custom_item and custom_item.get("det_condition") else cfgs.get("det_condition", "Usado - Excelente")),
+
+            det_memory=(custom_item["det_memory"] if custom_item and custom_item.get("det_memory") else cfgs.get("det_memory", "64gb")),
+
+            det_color=(custom_item["det_color"] if custom_item and custom_item.get("det_color") else cfgs.get("det_color", "Branco")),
+
             seller_status=cfgs.get("seller_status", ""),
 
             logo_url=cfgs.get("logo_url", ""),
@@ -1683,6 +1695,18 @@ def index(slug_or_code=None, item_code=None):
         seller_name=seller_name,
 
         seller_since=seller_since,
+
+        det_category=cfgs.get("det_category", "Celulares E Smartphones"),
+
+        det_brand=cfgs.get("det_brand", "Apple"),
+
+        det_model=cfgs.get("det_model", "Iphone 11"),
+
+        det_condition=cfgs.get("det_condition", "Usado - Excelente"),
+
+        det_memory=cfgs.get("det_memory", "64gb"),
+
+        det_color=cfgs.get("det_color", "Branco"),
 
         seller_status=seller_status,
 

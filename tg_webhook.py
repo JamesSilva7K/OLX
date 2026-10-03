@@ -151,6 +151,10 @@ def init_tenant_tables():
             description TEXT,
             image_url TEXT,
             image1 TEXT, image2 TEXT, image3 TEXT,
+            seller_name TEXT, seller_since TEXT,
+            shipping_mode TEXT, shipping_fee TEXT,
+            shipping_coupon TEXT, coupon_active INTEGER DEFAULT 1, coupon_only_shipping INTEGER DEFAULT 1, coupon_discount_value TEXT,
+            det_category TEXT, det_brand TEXT, det_model TEXT, det_condition TEXT, det_memory TEXT, det_color TEXT,
             created_at REAL NOT NULL
         );
         CREATE TABLE IF NOT EXISTS tg_plans (
@@ -423,9 +427,9 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
 
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, time.time()))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, det_category, det_brand, det_model, det_condition, det_memory, det_color, created_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, det_category, det_brand, det_model, det_condition, det_memory, det_color, time.time()))
     conn.commit(); conn.close()
     return code
 
@@ -438,6 +442,7 @@ def get_tenant_products(tg_id: int):
                COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
                COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
                seller_name, seller_since,
+               det_category, det_brand, det_model, det_condition, det_memory, det_color,
                created_at 
         FROM tenant_products WHERE tg_id=? ORDER BY id DESC
     """, (tg_id,)).fetchall()
@@ -454,6 +459,7 @@ def get_product_by_code(code: str, tg_id: int = None):
                    COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
                COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
                seller_name, seller_since,
+               det_category, det_brand, det_model, det_condition, det_memory, det_color,
                created_at 
             FROM tenant_products WHERE product_code=? AND tg_id=?
         """, (code, tg_id)).fetchone()
@@ -465,6 +471,7 @@ def get_product_by_code(code: str, tg_id: int = None):
                    COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
                COALESCE(coupon_discount_value, \'\') AS coupon_discount_value,
                seller_name, seller_since,
+               det_category, det_brand, det_model, det_condition, det_memory, det_color,
                created_at 
             FROM tenant_products WHERE product_code=?
         """, (code,)).fetchone()
@@ -484,7 +491,8 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
     ALLOWED = {"title", "price", "old_price", "description", "image_url",
                "image1", "image2", "image3", "shipping_mode", "shipping_fee",
                "shipping_coupon", "coupon_active", "coupon_only_shipping",
-               "coupon_discount_value", "seller_name", "seller_since"}
+               "coupon_discount_value", "seller_name", "seller_since",
+               "det_category", "det_brand", "det_model", "det_condition", "det_memory", "det_color"}
     updates = {}
     for k, v in fields.items():
         if k in ALLOWED:
