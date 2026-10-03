@@ -5526,11 +5526,9 @@ def c7_balance():
 
         headers  = get_c7_auth_headers(body_str)
 
-        res = requests.post(
+        res = requests.get(
 
-            f"{live_base_url}/account/balance",
-
-            data=body_str,
+            f"{live_base_url}/balance",
 
             headers=headers,
 
