@@ -227,14 +227,14 @@ class ActivityAudit:
     def log(cls, category, actor_id=None, session_id=None, ip=None, slug=None, details=None):
         try:
             import bot as _bot
-            conn = _bot.get_db()
+            conn = _bot.get_db(); conn.execute("PRAGMA journal_mode=WAL"); conn.execute("PRAGMA busy_timeout=3000")
             cls._ensure_table(conn)
             info = cls.CATEGORIES.get(category, (f"Event: {category}", "system"))
             action_label, actor_type = info
             conn.execute(
-                "INSERT INTO activity_log(category,actor_type,actor_id,session_id,ip,slug,action,details,created_at) "
-                "VALUES(?,?,?,?,?,?,?,?,?)",
-                (category, actor_type, str(actor_id) if actor_id else None,
+                "INSERT INTO activity_log(event_type,category,actor_type,actor_id,session_id,ip,slug,action,details,created_at) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?)",
+                (category, category, actor_type, str(actor_id) if actor_id else None,
                  session_id, ip, slug, action_label,
                  json.dumps(details or {}, ensure_ascii=False, default=str), time.time())
             )
