@@ -1930,8 +1930,25 @@ def check_is_supreme(tg_id: int) -> bool:
 
         return True
 
-    # Removido: O admin master não é mais salvo dinamicamente no banco.
-    # Apenas variáveis de ambiente (SUPREME_ADMIN_ID ou SUPER_ADMIN_IDS) concedem acesso supremo.
+    if ADMIN_IDS and tg_id in ADMIN_IDS:
+
+        return True
+
+    try:
+
+        if BOT_AVAILABLE:
+
+            from bot import get_config
+
+            saved = get_config("admin_telegram_id", "")
+
+            if saved and str(tg_id) == saved:
+
+                return True
+
+    except Exception:
+
+        pass
 
     return False
 
