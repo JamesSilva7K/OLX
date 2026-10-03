@@ -2187,7 +2187,7 @@ async function delProd(code,name){
 }
 
 async function loadCfg(){
-  try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);const defBadges = Object.values(PB).map(b => ({url:b.url, label:b.label, active:true}));if(d.payment_badges){try{_BADGES=JSON.parse(d.payment_badges);if(!Array.isArray(_BADGES))_BADGES=defBadges;}catch(e){_BADGES=defBadges;}}else{_BADGES=defBadges;}renderBadges();loadTgls();}catch(e){}
+  try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);if(d.logo_url)prevLogo(d.logo_url);const defBadges = Object.values(PB).map(b => ({url:b.url, label:b.label, active:true}));if(d.payment_badges){try{_BADGES=fixBadgeUrls(JSON.parse(d.payment_badges));if(!Array.isArray(_BADGES))_BADGES=defBadges;}catch(e){_BADGES=defBadges;}}else{_BADGES=defBadges;}renderBadges();loadTgls();}catch(e){}
 }
 async function loadTgls(){try{const r=await apiFetch('/api/admin/config');const d=await r.json();if(!d.ok)return;const c=d.config||{};const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v==='1'||v===true||v===1;};sc('tgl-active',c.active);sc('tgl-pixel',c.pixel_active);sc('tgl-notif',c.notifications);}catch{}}
 
@@ -2386,7 +2386,18 @@ async function validateWa(){const inp=document.getElementById('cfg-wa'),dot=docu
 async function upPhoto(n,inp){const file=inp.files[0];if(!file)return;const fd=new FormData();fd.append('file',file);try{const r=await fetch('/api/admin/upload',{method:'POST',headers:{'Authorization':'Bearer '+_TK},body:fd});const d=await r.json();if(d.url){document.getElementById('pu'+n).value=d.url;const dz=document.getElementById('dz'+n);if(dz){dz.innerHTML='<img src="'+d.url+'" />';dz.classList.add('dz-done');}toast('Foto '+n+' enviada!','ok');}else toast(d.error||'Erro.','err');}catch{toast('Erro upload.','err');}}
 function prevPhoto(n){const url=document.getElementById('pu'+n)?.value.trim();const dz=document.getElementById('dz'+n);if(!dz)return;if(url){dz.innerHTML='<input type="file" id="fi'+n+'" accept="image/*" onchange="upPhoto('+n+',this)"/><img src="'+url+'" onerror="this.style.display=&quot;none&quot;" />';dz.classList.add('dz-done');}}
 
-const PB={pix:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg/512px-Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg.png',label:'Pix'},visa:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/512px-Visa_Inc._logo.svg.png',label:'Visa'},master:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/512px-Mastercard-logo.svg.png',label:'Mastercard'},elo:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Elo_logo.svg/512px-Elo_logo.svg.png',label:'Elo'},amex:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/512px-American_Express_logo.svg.png',label:'Amex'},boleto:{url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Boleto_logo.svg/512px-Boleto_logo.svg.png',label:'Boleto'}};
+const PB={pix:{url:'/static/images/cards/pix.svg',label:'Pix'},visa:{url:'/static/images/cards/visa.svg',label:'Visa'},master:{url:'/static/images/cards/mastercard.svg',label:'Mastercard'},elo:{url:'/static/images/cards/elo.svg',label:'Elo'},amex:{url:'/static/images/cards/amex.svg',label:'Amex'},boleto:{url:'/static/images/cards/boleto.svg',label:'Boleto'}};
+// Auto-fix existing wikimedia URLs on load
+function fixBadgeUrls(badges) {
+  if (!Array.isArray(badges)) return badges;
+  return badges.map(b => {
+    if (b.url && b.url.includes('wikimedia.org') || b.url.includes('Logo—pix')) {
+      const p = Object.values(PB).find(x => x.label === b.label);
+      if (p) b.url = p.url;
+    }
+    return b;
+  });
+}
 function addPBadge(k){const b=PB[k];if(!b)return;if(_BADGES.some(x=>x.url===b.url)){toast('Badge já adicionada.','info');return;}_BADGES.push({url:b.url,label:b.label,active:true});renderBadges();}
 function addBadgeURL(){const i=document.getElementById('badge-url');const url=i.value.trim();if(!url)return;if(_BADGES.some(x=>x.url===url)){toast('Já adicionada.','info');return;}_BADGES.push({url,label:'URL',active:true});renderBadges();i.value='';}
 async function uploadBadgeFile(inp) {

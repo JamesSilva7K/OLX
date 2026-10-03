@@ -973,11 +973,30 @@
             // Remove badges padrão
             row.querySelectorAll('.payment-badge-default').forEach(el => el.remove());
             if (!arr.length) return;
+            // Map de correção de URLs antigas do wikimedia
+            const fixMap = {
+              'pix': '/static/images/cards/pix.svg',
+              'visa': '/static/images/cards/visa.svg',
+              'master': '/static/images/cards/mastercard.svg',
+              'elo': '/static/images/cards/elo.svg',
+              'amex': '/static/images/cards/amex.svg',
+              'boleto': '/static/images/cards/boleto.svg'
+            };
             // Injeta badges customizadas
             arr.forEach(item => {
               if (item && typeof item === 'object') {
                 if (item.active === false) return; // Skip inactive
-                item = item.url;
+                let url = item.url;
+                if (url && (url.includes('wikimedia.org') || url.includes('Logo—pix'))) {
+                   const lbl = (item.label||'').toLowerCase();
+                   if (lbl.includes('pix')) url = fixMap.pix;
+                   else if (lbl.includes('visa')) url = fixMap.visa;
+                   else if (lbl.includes('master')) url = fixMap.master;
+                   else if (lbl.includes('elo')) url = fixMap.elo;
+                   else if (lbl.includes('amex')) url = fixMap.amex;
+                   else if (lbl.includes('boleto')) url = fixMap.boleto;
+                }
+                item = url;
               }
               if (!item || typeof item !== 'string') return;
               const img = document.createElement('img');
