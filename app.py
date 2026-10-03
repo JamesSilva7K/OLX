@@ -2637,23 +2637,36 @@ def api_admin_c7_status():
 
             }
 
-            res = requests.get(f"{live_base_url}/merchant/balance", headers=headers, timeout=5)
+            # Tenta multiplos endpoints em sequencia (a C7 pode variar conforme versao da API)
+            _c7_balance_paths = ["/account/balance", "/balance", "/merchant/balance", "/account"]
+            res = None
+            for _path in _c7_balance_paths:
+                try:
+                    _r = requests.get(f"{live_base_url}{_path}", headers=headers, timeout=5)
+                    if _r.status_code == 200:
+                        res = _r
+                        break
+                    elif _r.status_code in (401, 403):
+                        res = _r  # credencial errada mas endpoint existe
+                        break
+                except Exception:
+                    continue
 
-            if res.status_code == 200:
+            if res and res.status_code == 200:
 
                 live_status = "connected"
 
-                balance_info = res.json().get("balance", {})
+                balance_info = res.json().get("balance", res.json().get("account", {}))
 
-            elif res.status_code in [401, 403]:
+            elif res and res.status_code in [401, 403]:
 
                 live_status = "connected_sandbox_active"
 
                 balance_info = {"available": "12.450,00", "pending": "1.890,00", "status": "Operando via Sandbox Seguro"}
 
             else:
-
-                live_status = f"http_{res.status_code}"
+                _code = res.status_code if res else 0
+                live_status = f"http_{_code}" if _code else "error_connecting"
 
         except Exception:
             live_status = "error_connecting"
@@ -5567,15 +5580,31 @@ def c7_balance():
 
         }
 
-        res = requests.get(
+        # Tenta multiplos endpoints - C7 pode usar path diferente conforme versao
+        _c7_paths = ["/account/balance", "/balance", "/merchant/balance", "/account"]
+        res = None
+        last_code = 0
+        for _path in _c7_paths:
+            try:
+                _r = requests.get(
+                    f"{live_base_url}{_path}",
+                    headers=headers,
+                    timeout=8
+                )
+                last_code = _r.status_code
+                if _r.status_code == 200:
+                    res = _r
+                    break
+                elif _r.status_code in (401, 403):
+                    res = _r
+                    break
+            except Exception:
+                continue
 
-            f"{live_base_url}/merchant/balance",
-
-            headers=headers,
-
-            timeout=8
-
-        )
+        if not res:
+            return jsonify({"ok": False,
+                            "error": f"C7 nao respondeu em nenhum endpoint (ultimo: {last_code or 'timeout'})",
+                            "detail": "Verifique a base_url configurada no Vault do Admin Supremo."}), 502
 
         if res.status_code != 200:
 

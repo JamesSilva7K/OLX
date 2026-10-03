@@ -1506,19 +1506,27 @@
       </div>
       <script>
         function toggleDet(field) {
-          const isChecked = document.getElementById('tg-det-' + field).checked;
+          const cb = document.getElementById('tg-det-' + field);
           const input = document.getElementById('edit-det-' + field);
           const lblInput = document.getElementById('lbl-det-' + field);
+          const isChecked = cb ? cb.checked : true;
           if(!isChecked) {
-            input.dataset.oldValue = input.value;
-            input.value = '';
-            input.parentElement.style.opacity = '0.5';
-            input.parentElement.style.pointerEvents = 'none';
+            // Salva valor atual antes de desativar
+            if(input) { input.dataset.oldValue = input.value; input.value = ''; }
+            if(input) { input.parentElement.style.opacity = '0.5'; input.parentElement.style.pointerEvents = 'none'; }
             if(lblInput) lblInput.disabled = true;
           } else {
-            input.value = input.dataset.oldValue || '';
-            input.parentElement.style.opacity = '1';
-            input.parentElement.style.pointerEvents = 'auto';
+            // Reativa: restaura oldValue se existir, senão mantém o que está no input
+            if(input) {
+              if(input.dataset.oldValue !== undefined && input.dataset.oldValue !== '') {
+                input.value = input.dataset.oldValue;
+              }
+              // Se não havia oldValue, mantém o valor atual (pode ser vazio para o usuário digitar)
+              input.dataset.oldValue = undefined;
+              input.parentElement.style.opacity = '1';
+              input.parentElement.style.pointerEvents = 'auto';
+              setTimeout(() => input.focus(), 50); // foca no campo reativado
+            }
             if(lblInput) lblInput.disabled = false;
           }
           updatePreview();
@@ -2391,15 +2399,18 @@ function openEditProd(p){
     const input = document.getElementById('edit-det-' + f);
     const lblInput = document.getElementById('lbl-det-' + f);
     const toggle = document.getElementById('tg-det-' + f);
-    if(input) input.value = val;
+    const hasVal = val.trim() !== '';
+    // Seta o valor NO INPUT antes de qualquer manipulação de toggle
+    if(input) { input.value = val; input.dataset.oldValue = val; }
     if(lblInput && lbl) lblInput.value = lbl;
     if(toggle) {
-      toggle.checked = (val !== '');
-      if (typeof toggleDet === 'function') toggleDet(f);
-      else {
-        if(input) input.disabled = !toggle.checked;
-        if(lblInput) lblInput.disabled = !toggle.checked;
+      toggle.checked = hasVal;
+      // Aplica estado visual diretamente sem chamar toggleDet (que apagaria o valor recém setado)
+      if(input) {
+        input.parentElement.style.opacity = hasVal ? '1' : '0.5';
+        input.parentElement.style.pointerEvents = hasVal ? 'auto' : 'none';
       }
+      if(lblInput) lblInput.disabled = !hasVal;
     }
   });
   if (typeof updatePreview === 'function') updatePreview();
