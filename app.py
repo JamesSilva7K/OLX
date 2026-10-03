@@ -1488,17 +1488,17 @@ def index(slug_or_code=None, item_code=None):
 
             seller_since=(custom_item["seller_since"] if custom_item and custom_item.get("seller_since") else cfgs.get("seller_since", "")),
 
-            det_category=(custom_item["det_category"] if custom_item and custom_item.get("det_category") else cfgs.get("det_category", "Celulares E Smartphones")),
+            det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
 
-            det_brand=(custom_item["det_brand"] if custom_item and custom_item.get("det_brand") else cfgs.get("det_brand", "Apple")),
+            det_brand=(custom_item["det_brand"] if custom_item and "det_brand" in custom_item else cfgs.get("det_brand", "Apple")),
 
-            det_model=(custom_item["det_model"] if custom_item and custom_item.get("det_model") else cfgs.get("det_model", "Iphone 11")),
+            det_model=(custom_item["det_model"] if custom_item and "det_model" in custom_item else cfgs.get("det_model", "Iphone 11")),
 
-            det_condition=(custom_item["det_condition"] if custom_item and custom_item.get("det_condition") else cfgs.get("det_condition", "Usado - Excelente")),
+            det_condition=(custom_item["det_condition"] if custom_item and "det_condition" in custom_item else cfgs.get("det_condition", "Usado - Excelente")),
 
-            det_memory=(custom_item["det_memory"] if custom_item and custom_item.get("det_memory") else cfgs.get("det_memory", "64gb")),
+            det_memory=(custom_item["det_memory"] if custom_item and "det_memory" in custom_item else cfgs.get("det_memory", "64gb")),
 
-            det_color=(custom_item["det_color"] if custom_item and custom_item.get("det_color") else cfgs.get("det_color", "Branco")),
+            det_color=(custom_item["det_color"] if custom_item and "det_color" in custom_item else cfgs.get("det_color", "Branco")),
 
             seller_status=cfgs.get("seller_status", ""),
 
@@ -3339,10 +3339,16 @@ def api_admin_my_products():
         coupon_only_shipping = 1 if data.get("coupon_only_shipping", 1) in (1, "1", True, "true") else 0
         coupon_discount_value = data.get("coupon_discount_value", "").strip()
 
-
-
         seller_name = data.get("seller_name", "").strip()
         seller_since = data.get("seller_since", "").strip()
+
+        det_category = data.get("det_category", "").strip()
+        det_brand = data.get("det_brand", "").strip()
+        det_model = data.get("det_model", "").strip()
+        det_condition = data.get("det_condition", "").strip()
+        det_memory = data.get("det_memory", "").strip()
+        det_color = data.get("det_color", "").strip()
+        payment_badges = data.get("payment_badges", "").strip()
 
         if not title:
 
@@ -3370,7 +3376,14 @@ def api_admin_my_products():
                 coupon_only_shipping=coupon_only_shipping,
                 coupon_discount_value=coupon_discount_value,
                 seller_name=seller_name,
-                seller_since=seller_since
+                seller_since=seller_since,
+                det_category=det_category,
+                det_brand=det_brand,
+                det_model=det_model,
+                det_condition=det_condition,
+                det_memory=det_memory,
+                det_color=det_color,
+                payment_badges=payment_badges
             )
 
             slug = tg_wh.get_slug(admin_id)

@@ -2133,7 +2133,7 @@ async function loadProducts(){
       const isActive=p.is_active||p.active;
       const activeBadge=isActive?'<span class="chip chip-g" style="font-size:10px;position:absolute;top:8px;right:8px">Principal</span>':'';
       const shipMode = p.shipping_mode === 'sedex' ? 'Sedex' : p.shipping_mode === 'local' ? 'Local' : 'Garantia Full';
-      const prodLink = window.location.origin + '/p/' + (_SLUG || 'item') + '/' + code;
+      const prodLink = p.unique_link || (window.location.origin + '/p/' + (_SLUG ? _SLUG + '/' : '') + code);
       
       const isCouponActive = p.coupon_active !== undefined ? (p.coupon_active == 1 || p.coupon_active === true) : true;
       let couponBadge = '';
@@ -2349,7 +2349,7 @@ function openEditProd(p){
   if(cos) cos.checked = p.coupon_only_shipping !== undefined ? (p.coupon_only_shipping == 1 || p.coupon_only_shipping === true) : true;
 
   if(code){
-    document.getElementById('edit-lnk').value=window.location.origin+'/p/'+(_SLUG||'item')+'/'+code;
+    document.getElementById('edit-lnk').value=window.location.origin+'/p/'+(_SLUG ? _SLUG + '/' : '')+code;
     document.getElementById('edit-lnk-box').style.display='flex';
   }
   document.getElementById('prod-modal').classList.add('open');
