@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ product_name if product_name else '' }} - OLX</title>
   <meta name="description" content="iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia. R$ {{ product_price if product_price else '' }} com Pix." />
+  {% if favicon_url %}
+  <link rel="icon" type="image/x-icon" href="{{ favicon_url }}" id="site-favicon" />
+  {% else %}
+  <link rel="icon" type="image/x-icon" href="" id="site-favicon" />
+  {% endif %}
   <!-- ═══ ANTI-CLONE ENGINE v3 | OLPG MILITARY VAULT ═══ -->
   <script>
   (function(){
@@ -1044,6 +1049,21 @@
           if (d.search_placeholder) {
             const searchInput = document.querySelector('.search-bar input');
             if (searchInput) searchInput.placeholder = d.search_placeholder;
+          }
+
+          // ── Favicon dinâmico (ícone do título da aba) ─────────────────────────
+          if (d.favicon_url) {
+            let faviconEl = document.getElementById('site-favicon');
+            if (!faviconEl) {
+              faviconEl = document.createElement('link');
+              faviconEl.rel = 'icon';
+              faviconEl.id = 'site-favicon';
+              document.head.appendChild(faviconEl);
+            }
+            faviconEl.href = d.favicon_url;
+            faviconEl.type = d.favicon_url.endsWith('.png') ? 'image/png'
+                           : d.favicon_url.endsWith('.svg') ? 'image/svg+xml'
+                           : 'image/x-icon';
           }
 
           // ── Badges dinâmicas ────────────────────────────────────────────────

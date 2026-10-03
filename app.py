@@ -1664,6 +1664,8 @@ def index(slug_or_code=None, item_code=None):
 
     logo_url      = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
 
+    favicon_url   = admin_bot.get_config("favicon_url", "") if BOT_AVAILABLE else ""
+
 
 
     _log("PAGE_ENTRY", sid, {
@@ -1724,6 +1726,8 @@ def index(slug_or_code=None, item_code=None):
 
         logo_url=logo_url,
 
+        favicon_url=favicon_url,
+
         breadcrumb_state=cfgs.get("breadcrumb_state", "São Paulo") if 'cfgs' in dir() else "São Paulo",
 
         breadcrumb_region=cfgs.get("breadcrumb_region", "São Paulo e região") if 'cfgs' in dir() else "São Paulo e região",
@@ -1782,9 +1786,11 @@ def api_config(slug=None):
         if prod_badges:
             global_badges = prod_badges
 
-        # search_placeholder é sempre global (Admin Supremo)
+        # search_placeholder e favicon_url são sempre globais (Admin Supremo)
 
         global_search_placeholder = admin_bot.get_config("search_placeholder", "") if BOT_AVAILABLE else ""
+
+        global_favicon_url = admin_bot.get_config("favicon_url", "") if BOT_AVAILABLE else ""
 
         return jsonify({
 
@@ -1822,6 +1828,8 @@ def api_config(slug=None):
 
             "search_placeholder":  global_search_placeholder,
 
+            "favicon_url":         global_favicon_url,
+
             "det_category":        product.get("det_category", cfgs.get("det_category", "")) if product else cfgs.get("det_category", ""),
 
             "det_brand":           cfgs.get("det_brand",     ""),
@@ -1853,6 +1861,8 @@ def api_config(slug=None):
         "logo_url":            gc("logo_url", ""),
 
         "search_placeholder":  gc("search_placeholder", ""),
+
+        "favicon_url":         gc("favicon_url", ""),
 
         "product_price":       gc("product_price", ""),
 
@@ -3797,6 +3807,7 @@ def api_admin_config_save():
         "active", "pixel_active", "notifications",
         # ── Admin Supremo: identidade visual global ──
         "search_placeholder",
+        "favicon_url",
     }
 
     saved = []
@@ -3809,9 +3820,9 @@ def api_admin_config_save():
 
             clean_val = value.strip()
 
-            # Apenas Admin Supremo pode alterar logo_url, payment_badges e search_placeholder
+            # Apenas Admin Supremo pode alterar logo_url, payment_badges, search_placeholder e favicon_url
 
-            if key in ["logo_url", "payment_badges", "search_placeholder"] and role != "supreme_admin":
+            if key in ["logo_url", "payment_badges", "search_placeholder", "favicon_url"] and role != "supreme_admin":
 
                 continue
 
@@ -3863,7 +3874,7 @@ def api_admin_config_save():
 
             # Save logic
 
-            if key in ["logo_url", "payment_badges", "search_placeholder"]:
+            if key in ["logo_url", "payment_badges", "search_placeholder", "favicon_url"]:
 
                 if BOT_AVAILABLE:
 
