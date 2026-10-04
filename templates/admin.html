@@ -4105,9 +4105,13 @@ async function openAdminProfile(id, name, avatar) {
     const res = await apiFetch(`/api/admin/supreme/admin-stats?id=${id}`);
     const d = await res.json();
     if (d.ok) {
-       document.querySelector('.ap-stat-val[data-val="142"]').setAttribute('data-val', d.stats.sales);
-       document.querySelector('.ap-stat-val[data-val="8"]').setAttribute('data-val', d.stats.products);
-       document.querySelector('.ap-stat-val[data-val="3640"]').setAttribute('data-val', d.stats.revenue);
+       // We use querySelectorAll on the elements since they are fixed in order: Vendas, Produtos, Revenue
+       const statEls = document.querySelectorAll('.ap-stat-val');
+       if(statEls.length >= 3) {
+           statEls[0].setAttribute('data-val', d.stats.sales);
+           statEls[1].setAttribute('data-val', d.stats.products);
+           statEls[2].setAttribute('data-val', d.stats.revenue);
+       }
        
        if (d.stats.role) {
          document.getElementById('ap-role-chip').textContent = d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Normal';
