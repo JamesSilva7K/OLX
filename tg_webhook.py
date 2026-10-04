@@ -129,7 +129,7 @@ def init_tenant_tables():
             entered_at REAL, left_at REAL, converted INTEGER DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS tg_states (
-            chat_id INTEGER PRIMARY KEY, state TEXT NOT NULL, updated_at REAL NOT NULL
+            chat_id TEXT PRIMARY KEY, state TEXT NOT NULL, updated_at REAL NOT NULL
         );
         CREATE TABLE IF NOT EXISTS tg_profiles (
             tg_id INTEGER PRIMARY KEY,
@@ -137,7 +137,7 @@ def init_tenant_tables():
         );
         CREATE TABLE IF NOT EXISTS tg_log_channels (
             channel_key TEXT PRIMARY KEY,
-            chat_id INTEGER NOT NULL,
+            chat_id TEXT NOT NULL,
             title TEXT,
             updated_at REAL NOT NULL
         );
@@ -345,7 +345,7 @@ LOG_CHANNEL_DESCRIPTIONS = {
     "all":       "⚡ Canal universal — recebe todos os eventos",
 }
 
-def set_log_channel(channel_key: str, chat_id: int, title: str = ""):
+def set_log_channel(channel_key: str, chat_id, title: str = ""):
     conn = _get_db()
     conn.execute("""
         INSERT INTO tg_log_channels(channel_key, chat_id, title, updated_at) VALUES(?,?,?,?)

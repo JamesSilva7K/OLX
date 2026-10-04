@@ -2978,6 +2978,8 @@ def api_admin_stats_single():
     if not admin_id: return jsonify({"ok": False, "error": "unauthorized"}), 401
     target_id = request.args.get('id')
     if not target_id: return jsonify({"ok": False})
+    try: target_id = int(target_id)
+    except: pass
     
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -3041,7 +3043,13 @@ def api_available_channels():
             cur.execute("SELECT chat_id, title, type FROM bot_channels")
             rows = cur.fetchall()
             if rows:
-                channels = [{"id": r["chat_id"], "title": r["title"], "type": r["type"]} for r in rows]
+                channels = []
+                for r in rows:
+                    ch = {"id": r["chat_id"], "title": r["title"], "type": r["type"], "topics": []}
+                    cur.execute("SELECT thread_id, name FROM bot_topics WHERE chat_id = ?", (r["chat_id"],))
+                    for t in cur.fetchall():
+                        ch["topics"].append({"id": t["thread_id"], "name": t["name"]})
+                    channels.append(ch)
     except:
         pass
         

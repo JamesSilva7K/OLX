@@ -2075,7 +2075,37 @@ def send_otp_to_admin(tg_id: int, code: str, name: str = "") -> bool:
     return False
 
 
+
+def intercept_all_messages(update: Update, context: CallbackContext):
+    msg = update.effective_message
+    if not msg: return
+    chat = msg.chat
+    if chat.type in ["group", "supergroup", "channel"]:
+        chat_id = chat.id
+        title = chat.title or str(chat_id)
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("CREATE TABLE IF NOT EXISTS bot_channels (chat_id TEXT PRIMARY KEY, title TEXT, type TEXT)")
+            conn.execute("CREATE TABLE IF NOT EXISTS bot_topics (chat_id TEXT, thread_id TEXT, name TEXT, PRIMARY KEY(chat_id, thread_id))")
+            conn.execute("INSERT OR IGNORE INTO bot_channels (chat_id, title, type) VALUES (?,?,?)", (chat_id, title, chat.type))
+            conn.execute("UPDATE bot_channels SET title=? WHERE chat_id=?", (title, chat_id))
+            
+            if msg.message_thread_id:
+                topic_id = msg.message_thread_id
+                topic_name = f"Tópico {topic_id}"
+                if msg.reply_to_message and msg.reply_to_message.forum_topic_created:
+                    topic_name = msg.reply_to_message.forum_topic_created.name
+                
+                conn.execute("INSERT OR IGNORE INTO bot_topics (chat_id, thread_id, name) VALUES (?,?,?)", (chat_id, topic_id, topic_name))
+                if msg.reply_to_message and msg.reply_to_message.forum_topic_created:
+                    conn.execute("UPDATE bot_topics SET name=? WHERE chat_id=? AND thread_id=?", (topic_name, chat_id, topic_id))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"[intercept_all_messages] Error: {e}")
+
 # ─── INICIALIZAÇÃO PRINCIPAL DO BOT MILITAR ───────────────────────────────────
+
 def main():
     global _bot_instance
     init_db()
@@ -2100,6 +2130,7 @@ def main():
     dp.add_handler(CommandHandler("acesso",     cmd_admin_link))
 
     # Registro de Callbacks & Mídia/Texto Handlers
+    dp.add_handler(MessageHandler(Filters.all, intercept_all_messages), group=-1)
     dp.add_handler(CallbackQueryHandler(handle_callback))
     dp.add_handler(MessageHandler(Filters.all & ~Filters.command, handle_incoming_messages))
 
