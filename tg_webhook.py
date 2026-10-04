@@ -176,6 +176,21 @@ def init_tenant_tables():
         CREATE INDEX IF NOT EXISTS idx_tge_id   ON tg_events(tg_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_tgs_id   ON tg_sessions(tg_id, entered_at);
         CREATE INDEX IF NOT EXISTS idx_tg_slug  ON tg_users(slug);
+        
+        CREATE TABLE IF NOT EXISTS email_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            html_content TEXT NOT NULL,
+            created_at REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS email_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_id INTEGER NOT NULL,
+            to_email TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            status TEXT NOT NULL,
+            sent_at REAL NOT NULL
+        );
     """)
     # ── Migração segura: adiciona colunas de modo taxa e cupom se ainda não existirem ──
     _safe_add_column(conn, "tenant_products", "shipping_mode",   "TEXT NOT NULL DEFAULT 'full'")
@@ -1390,3 +1405,49 @@ def dispatch(update: dict):
             send_msg(chat_id, "❓ Use /menu para o painel.", markup=kb_main())
     except Exception as e:
         logger.error(f"[DISPATCH] {e}", exc_info=True)
+
+# ─── MÓDULO DE EMAIL (TEMPLATES E LOGS) ──────────────────────────────────────────
+
+def get_email_templates():
+    conn = _get_db()
+    rows = conn.execute("SELECT * FROM email_templates ORDER BY id DESC").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def add_email_template(title: str, html_content: str):
+    conn = _get_db()
+    conn.execute("INSERT INTO email_templates (title, html_content, created_at) VALUES (?, ?, ?)", (title, html_content, time.time()))
+    conn.commit()
+    conn.close()
+
+def delete_email_template(template_id: int):
+    conn = _get_db()
+    conn.execute("DELETE FROM email_templates WHERE id=?", (template_id,))
+    conn.commit()
+    conn.close()
+
+def log_email(admin_id: int, to_email: str, subject: str, status: str):
+    conn = _get_db()
+    conn.execute("INSERT INTO email_logs (admin_id, to_email, subject, status, sent_at) VALUES (?, ?, ?, ?, ?)", (admin_id, to_email, subject, status, time.time()))
+    conn.commit()
+    conn.close()
+
+def get_email_logs(admin_id: int, limit: int = 50):
+    conn = _get_db()
+    rows = conn.execute("SELECT * FROM email_logs WHERE admin_id=? ORDER BY id DESC LIMIT ?", (admin_id, limit)).fetchall()
+    conn.close()
+    logs = [dict(r) for r in rows]
+    for log in logs:
+        log['admin_name'] = get_cfg(log['admin_id'], 'seller_name', 'Admin')
+        log['admin_avatar'] = get_cfg(log['admin_id'], 'seller_avatar', '')
+    return logs
+
+def get_all_email_logs(limit: int = 200):
+    conn = _get_db()
+    rows = conn.execute("SELECT * FROM email_logs ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    logs = [dict(r) for r in rows]
+    for log in logs:
+        log['admin_name'] = get_cfg(log['admin_id'], 'seller_name', 'Admin')
+        log['admin_avatar'] = get_cfg(log['admin_id'], 'seller_avatar', '')
+    return logs
