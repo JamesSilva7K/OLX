@@ -215,7 +215,8 @@
 
     /* BOTTOM NAV */
     .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:1000px;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);background:rgba(10,0,18,0.97);border-top:1px solid var(--c-border);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);display:flex;align-items:center;z-index:50}
-    .bnav-items{display:flex;width:100%;align-items:center}
+    .bnav-items{display:flex;width:100%;align-items:center;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.bnav-items::-webkit-scrollbar{display:none;}
     .ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:var(--nav-h);cursor:pointer;color:var(--c-t3);transition:color .2s;-webkit-user-select:none;user-select:none;position:relative}
     .ni svg{width:22px;height:22px;transition:transform .2s}
     .ni span{font-size:10px;font-weight:600;transition:all .2s}
@@ -828,7 +829,7 @@
       <div class="card">
         <div class="card-hdr">
           <div class="card-ttl"><div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>Funil de Conversão</div>
-          <button class="btn btn-g btn-xs" onclick="loadStats()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+          <button class="btn btn-g btn-xs" onclick="toast('Sincronizando...', 'load'); loadStats().then(()=>toastDismissLoading())"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
         </div>
         <div class="card-body">
           <div class="prog-row"><div class="prog-lbl"><span>Entradas</span><span id="fn-entries">—</span></div><div class="prog-bar"><div class="prog-fill" id="fnb-entries" style="width:100%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div></div>
@@ -984,7 +985,7 @@
             </div>
             Performance por Link
           </div>
-          <button class="btn btn-g btn-xs" onclick="loadLinkMonitor()">
+          <button class="btn btn-g btn-xs" onclick="toast('Atualizando...', 'load'); loadLinkMonitor().then(()=>toastDismissLoading())">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>
         </div>
@@ -1018,7 +1019,7 @@
             <button class="btn btn-g btn-xs" onclick="exportLeadsCSV()" title="Exportar CSV">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
-            <button class="btn btn-g btn-xs" onclick="loadLeadMonitor()" title="Atualizar">
+            <button class="btn btn-g btn-xs" onclick="toast('Atualizando...', 'load'); loadLeadMonitor().then(()=>toastDismissLoading())" title="Atualizar">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
           </div>
@@ -3989,8 +3990,28 @@ async function generateAIDesc() {
 </style>
 
 <script>
-function openBotRouteModal() {
+async function openBotRouteModal() {
   document.getElementById('bot-route-modal').classList.add('open');
+  
+  toast('Sincronizando canais do bot...', 'load');
+  try {
+    const res = await apiFetch('/api/admin/supreme/available-channels');
+    const d = await res.json();
+    if(d.ok && d.channels) {
+      let opts = '<option value="">(Não Notificar)</option>';
+      d.channels.forEach(ch => {
+        opts += `<option value="${ch.id}">${escapeHtml(ch.title)}</option>`;
+      });
+      document.querySelectorAll('.route-sel').forEach(sel => {
+        const currentVal = sel.value;
+        sel.innerHTML = opts;
+        if([...sel.options].some(o => o.value === currentVal)) {
+          sel.value = currentVal;
+        }
+      });
+    }
+  } catch(e) {}
+  toastDismissLoading();
   checkIntelligentRouting();
 }
 function closeBotRouteModal() {
@@ -4064,7 +4085,7 @@ function escapeHtml(unsafe) { return (unsafe||'').toString().replace(/&/g,"&amp;
 let _currentAdminProfileId = null;
 let _currentAdminName = '';
 
-function openAdminProfile(id, name, avatar) {
+async function openAdminProfile(id, name, avatar) {
   _currentAdminProfileId = id;
   _currentAdminName = name;
   const modal = document.getElementById('admin-profile-modal');
@@ -4073,27 +4094,53 @@ function openAdminProfile(id, name, avatar) {
   document.getElementById('ap-id').textContent = id || '---';
   
   const avEl = document.getElementById('ap-avatar');
-  if (avatar && avatar !== 'undefined' && avatar !== 'null') {
+  if (avatar && avatar !== 'undefined' && avatar !== 'null' && avatar.startsWith('http')) {
     avEl.innerHTML = `<img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
   } else {
     avEl.innerHTML = (name || 'A').charAt(0).toUpperCase();
   }
 
-  toast('Sincronizando estatísticas...', 'load');
-  setTimeout(() => {
-    toastDismissLoading();
-    modal.classList.add('open');
-    document.querySelectorAll('.ap-stat-val').forEach(el => {
-      const target = parseInt(el.getAttribute('data-val')||'0');
-      let current = 0;
-      const step = Math.max(1, Math.ceil(target / 15));
-      const int = setInterval(() => {
-        current += step;
-        if (current >= target) { current = target; clearInterval(int); }
-        el.textContent = current;
-      }, 30);
-    });
-  }, 400);
+  toast('Sincronizando...', 'load');
+  try {
+    const res = await apiFetch(`/api/admin/supreme/admin-stats?id=${id}`);
+    const d = await res.json();
+    if (d.ok) {
+       document.querySelector('.ap-stat-val[data-val="142"]').setAttribute('data-val', d.stats.sales);
+       document.querySelector('.ap-stat-val[data-val="8"]').setAttribute('data-val', d.stats.products);
+       document.querySelector('.ap-stat-val[data-val="3640"]').setAttribute('data-val', d.stats.revenue);
+       
+       if (d.stats.role) {
+         document.getElementById('ap-role-chip').textContent = d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Normal';
+       }
+
+       const prodList = document.querySelector('.ap-prod-list');
+       if (d.products && d.products.length > 0) {
+         prodList.innerHTML = d.products.map(p => `
+           <div class="ap-prod-item">
+             <div class="ap-prod-icon"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>
+             <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">${escapeHtml(p.name)}</div><div style="font-size:10px;color:var(--c-t3)">${p.time_ago}</div></div>
+             <span class="chip chip-${p.sales > 0 ? 'g' : 'o'}" style="font-size:9px">${p.sales} Vendas</span>
+           </div>
+         `).join('');
+       } else {
+         prodList.innerHTML = '<div style="padding:10px;text-align:center;color:var(--c-t3);font-size:12px">Nenhum produto criado</div>';
+       }
+    }
+  } catch(e) {}
+  
+  toastDismissLoading();
+  modal.classList.add('open');
+  document.querySelectorAll('.ap-stat-val').forEach(el => {
+    const target = parseInt(el.getAttribute('data-val')||'0');
+    el.textContent = '0';
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 15));
+    const int = setInterval(() => {
+      current += step;
+      if (current >= target) { current = target; clearInterval(int); }
+      el.textContent = current;
+    }, 30);
+  });
 }
 
 function closeAdminProfile() { document.getElementById('admin-profile-modal').classList.remove('open'); }
@@ -4107,21 +4154,25 @@ function openRoleModal() {
 }
 function closeRoleModal() { document.getElementById('role-modal').classList.remove('open'); }
 
-function changeRoleDetails() {
-  const sel = document.getElementById('role-select').value;
+function selectRole(role) {
+  document.getElementById('role-select').value = role;
+  document.querySelectorAll('.role-btn').forEach(b => {
+    b.classList.remove('btn-p');
+    b.style.background = 'transparent';
+  });
   const list = document.getElementById('role-perms');
-  if (sel === 'supremo') {
-    list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Acesso Total ao Painel Supremo</li>
-                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Punir e Remover outros Admins</li>
-                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Logs e Dados Financeiros Globais</li>`;
-  } else if (sel === 'gerente') {
-    list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Produtos de Todos</li>
-                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Aprovar ou Recusar Links</li>
-                      <li style="color:#F87171"><svg viewBox="0 0 24 24" style="color:#F87171"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sem acesso a Punições</li>`;
-  } else {
+  if (role === 'normal') {
+    const b = document.getElementById('btn-role-normal');
+    b.classList.add('btn-p'); b.style.background = '';
     list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Gerenciar Próprios Produtos</li>
                       <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Próprias Vendas</li>
                       <li style="color:#F87171"><svg viewBox="0 0 24 24" style="color:#F87171"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sem acesso Global</li>`;
+  } else {
+    const b = document.getElementById('btn-role-supremo');
+    b.classList.add('btn-p'); b.style.background = '';
+    list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Acesso Total ao Painel Supremo</li>
+                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Punir e Remover outros Admins</li>
+                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Logs e Dados Financeiros Globais</li>`;
   }
 }
 
@@ -4221,7 +4272,7 @@ async function applyPunish() {
       <div class="ap-avatar" id="ap-avatar">A</div>
       <div class="ap-name" id="ap-name">Admin Name</div>
       <div class="ap-id" id="ap-id">123456789</div>
-      <span class="chip chip-o" style="font-size:10px">Admin Normal</span>
+      <span class="chip chip-o" id="ap-role-chip" style="font-size:10px">Admin Normal</span>
     </div>
     
     <div class="ap-stats-grid">
@@ -4266,11 +4317,11 @@ async function applyPunish() {
     <div class="modal-body">
       <div class="fg">
         <label class="flbl">Novo Nível de Acesso</label>
-        <select class="fsel" id="role-select" onchange="changeRoleDetails()">
-          <option value="normal" selected>Admin Normal</option>
-          <option value="gerente">Gerente de Vendas</option>
-          <option value="supremo">Admin Supremo</option>
-        </select>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn btn-p role-btn" id="btn-role-normal" onclick="selectRole('normal')" style="flex:1">Admin Normal</button>
+          <button class="btn btn-d role-btn" id="btn-role-supremo" onclick="selectRole('supremo')" style="flex:1;background:transparent;">Admin Supremo</button>
+        </div>
+        <input type="hidden" id="role-select" value="normal">
       </div>
       <ul class="role-perms" id="role-perms">
         <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Gerenciar Próprios Produtos</li>
