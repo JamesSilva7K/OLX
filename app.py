@@ -7996,7 +7996,8 @@ def api_admin_send_email():
         from email_validator import validate_email, EmailNotValidError
         v = validate_email(to_email, check_deliverability=True)
         to_email = v.normalized
-    except EmailNotValidError as e:
+    except Exception as e:
+        if type(e).__name__ == 'EmailNotValidError': return jsonify({'ok': False, 'error': f'Email inexistente ou invalido: {str(e)}'}), 400
         return jsonify({"ok": False, "error": f"Email inexistente ou inválido: {str(e)}"}), 400
     except Exception:
         pass

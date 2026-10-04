@@ -4804,7 +4804,14 @@ async function sendAdminEmail() {
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_TK},
       body: JSON.stringify({to_email: to, subject: subj, html_content: html, template_id: tid})
     });
-    const d = await r.json();
+    let d;
+    try {
+      const txt = await r.text();
+      d = JSON.parse(txt);
+    } catch(err) {
+      toastDismissLoading();
+      return toast('Erro no servidor (Render). Resposta nao foi JSON.', 'err');
+    }
     toastDismissLoading();
     if(d.ok) {
       toast('Email enviado com sucesso!', 'success');
@@ -4817,7 +4824,8 @@ async function sendAdminEmail() {
     }
   } catch(e) {
     toastDismissLoading();
-    toast('Erro de rede', 'err');
+    console.error("sendAdminEmail error:", e);
+    toast('Erro de rede: ' + e.message, 'err');
   }
 }
 </script>
