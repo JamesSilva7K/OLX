@@ -1423,28 +1423,47 @@
 
     <!-- TAB: SEND -->
     <div id="email-view-send">
-      <div class="card">
-        <div class="card-hdr"><div class="card-ttl">Nova Campanha</div></div>
-        <div class="card-body">
-          <div class="fg">
-            <label class="flbl">Destinatário (Email)</label>
-            <input type="email" id="em-to" class="fi" placeholder="cliente@email.com" />
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+        <!-- Left: Form -->
+        <div class="card" style="margin:0;">
+          <div class="card-hdr"><div class="card-ttl">Nova Campanha</div></div>
+          <div class="card-body">
+            <div class="fg">
+              <label class="flbl">Destinatário (Email)</label>
+              <input type="email" id="em-to" class="fi" placeholder="cliente@email.com" />
+            </div>
+            <div class="fg">
+              <label class="flbl">Assunto</label>
+              <input type="text" id="em-subj" class="fi" placeholder="Confirmação de Compra" oninput="updateEmailPreview()" />
+            </div>
+            <div class="fg">
+              <label class="flbl">Template Salvo (Opcional)</label>
+              <select id="em-tpl" class="fi" onchange="if(this.value){ loadTplContent(this.value); }else{ document.getElementById('em-html').value=''; updateEmailPreview();}">
+                <option value="">-- Personalizado (HTML livre) --</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
+                Conteúdo HTML / Mensagem
+                <button class="btn btn-s" style="padding:0 8px; height:24px; font-size:10px;" onclick="document.getElementById('html-wrap').classList.toggle('hidden')">Esconder/Exibir Código</button>
+              </label>
+              <div id="html-wrap" style="margin-top:8px">
+                <textarea id="em-html" class="fi" rows="12" style="font-family:monospace; font-size:12px; line-height:1.4" placeholder="<h1>Olá...</h1>" oninput="updateEmailPreview()"></textarea>
+              </div>
+            </div>
+            <button class="btn btn-p mt-12" style="width:100%" onclick="sendAdminEmail()">Disparar Email Agora</button>
           </div>
-          <div class="fg">
-            <label class="flbl">Assunto</label>
-            <input type="text" id="em-subj" class="fi" placeholder="Confirmação de Compra" />
+        </div>
+
+        <!-- Right: Preview -->
+        <div class="card" style="margin:0; padding:0; overflow:hidden; display:flex; flex-direction:column; background: #fff; height: 100%; min-height: 600px; border:1px solid rgba(139,92,246,0.3); border-radius:var(--r-md)">
+          <div style="padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display:flex; align-items:center; gap: 8px;">
+            <div style="width:12px; height:12px; border-radius:50%; background:#ef4444;"></div>
+            <div style="width:12px; height:12px; border-radius:50%; background:#eab308;"></div>
+            <div style="width:12px; height:12px; border-radius:50%; background:#22c55e;"></div>
+            <div style="font-size:12px; color:#64748b; font-weight:700; margin-left: 8px; font-family:sans-serif;" id="em-preview-subj">Preview Real do Email</div>
           </div>
-          <div class="fg">
-            <label class="flbl">Template Salvo (Opcional)</label>
-            <select id="em-tpl" class="fi" onchange="if(this.value){ loadTplContent(this.value); }">
-              <option value="">-- Personalizado (HTML livre) --</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label class="flbl">Conteúdo HTML / Mensagem</label>
-            <textarea id="em-html" class="fi" rows="8" placeholder="<h1>Olá...</h1>"></textarea>
-          </div>
-          <button class="btn btn-p mt-12" style="width:100%" onclick="sendAdminEmail()">Enviar Email Agora</button>
+          <iframe id="em-preview-frame" style="width:100%; flex:1; border:none; background:#fff;"></iframe>
         </div>
       </div>
     </div>
@@ -4365,6 +4384,19 @@ async function openAdminProfile(id, name, avatar) {
   } else {
     avEl.innerHTML = (name || 'A').charAt(0).toUpperCase();
   }
+  avEl.style.width = '80px';
+  avEl.style.height = '80px';
+  avEl.style.margin = '0 auto';
+  avEl.style.display = 'flex';
+  avEl.style.alignItems = 'center';
+  avEl.style.justifyContent = 'center';
+  avEl.style.fontSize = '32px';
+  avEl.style.fontWeight = 'bold';
+  avEl.style.borderRadius = '50%';
+  avEl.style.border = '3px solid var(--c-purple)';
+  avEl.style.boxShadow = '0 0 20px rgba(139,92,246,0.5)';
+  avEl.style.background = 'linear-gradient(135deg, var(--c-purple), var(--c-pink))';
+  avEl.style.color = '#fff';
 
   toast('Sincronizando...', 'load');
   try {
@@ -4372,7 +4404,7 @@ async function openAdminProfile(id, name, avatar) {
     const d = await res.json();
     if (d.ok) {
        // We use querySelectorAll on the elements since they are fixed in order: Vendas, Produtos, Revenue
-       const statEls = document.querySelectorAll('.ap-stat-val');
+       const statEls = modal.querySelectorAll('.ap-stat-val');
        if(statEls.length >= 3) {
            statEls[0].setAttribute('data-val', d.stats.sales);
            statEls[1].setAttribute('data-val', d.stats.products);
@@ -4381,7 +4413,7 @@ async function openAdminProfile(id, name, avatar) {
        
        if (d.stats.role) {
          document.getElementById('ap-role-chip').textContent = d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Normal';
-         const actions = document.querySelector('.ap-actions');
+         const actions = modal.querySelector('.ap-actions');
          if (actions) {
              if (d.stats.role === 'supreme_admin' || !_SUP || id == _PROF.tg_id) {
                  actions.style.display = 'none';
@@ -4391,7 +4423,7 @@ async function openAdminProfile(id, name, avatar) {
          }
        }
 
-       const prodList = document.querySelector('.ap-prod-list');
+       const prodList = modal.querySelector('.ap-prod-list');
        if (d.products && d.products.length > 0) {
          prodList.innerHTML = d.products.map(p => `
            <div class="ap-prod-item">
@@ -4408,7 +4440,7 @@ async function openAdminProfile(id, name, avatar) {
   
   toastDismissLoading();
   modal.classList.add('open');
-  document.querySelectorAll('.ap-stat-val').forEach(el => {
+  modal.querySelectorAll('.ap-stat-val').forEach(el => {
     const target = parseInt(el.getAttribute('data-val')||'0');
     el.textContent = '0';
     let current = 0;
@@ -4678,7 +4710,25 @@ async function deleteTemplate(tid) {
 
 function loadTplContent(id) {
   const tpl = _EMAIL_TPLS.find(x => x.id == id);
-  if(tpl) document.getElementById('em-html').value = tpl.html_content;
+  if(tpl) {
+      document.getElementById('em-html').value = tpl.html_content;
+      updateEmailPreview();
+  }
+}
+
+function updateEmailPreview() {
+  const html = document.getElementById('em-html').value;
+  const subj = document.getElementById('em-subj').value || 'Preview Real do Email';
+  const iframe = document.getElementById('em-preview-frame');
+  const subjEl = document.getElementById('em-preview-subj');
+  
+  if (subjEl) subjEl.textContent = subj;
+  if (iframe) {
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html || '<div style="font-family:sans-serif; color:#94a3b8; padding:40px; text-align:center; font-size:14px;">O preview do seu email aparecerá aqui em tempo real.</div>');
+    doc.close();
+  }
 }
 
 async function sendAdminEmail() {
