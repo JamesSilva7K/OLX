@@ -2118,7 +2118,11 @@ def admin_panel(slug=None):
 
     _log("ADMIN_PAGE_ENTRY", str(uuid.uuid4()), {"ip": ip, "auth": bool(admin_id), "role": role})
 
-    return render_template('admin.html', admin_slug=slug or "", admin_token=token, admin_role=role)
+    res = make_response(render_template('admin.html', admin_slug=slug or "", admin_token=token, admin_role=role))
+    res.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    res.headers['Pragma'] = 'no-cache'
+    res.headers['Expires'] = '0'
+    return res
 
 
 
@@ -8037,9 +8041,9 @@ def api_admin_send_email():
         if r:
             return jsonify({"ok": True, "message": "Email enviado com sucesso!"})
         else:
-            return jsonify({"ok": False, "error": "Falha ao enviar pelo SMTP do Gmail"}), 500
+            return jsonify({"ok": False, "error": "Falha de autenticação no Google. Por favor, crie uma 'Senha de App' no Google e coloque nas variáveis de ambiente."}), 400
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "error": f"Erro interno ao enviar email: {str(e)}"}), 400
 
 
 @app.route('/api/admin/activity')
