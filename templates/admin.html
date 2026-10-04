@@ -4770,7 +4770,8 @@ function getProcessedHtml() {
     });
     // Fix imagens locais para URL absoluta baseada no servidor atual
     const origin = window.location.origin;
-    html = html.split('./images/').join(`${origin}/static/email_images/`);
+    // Replace ./images/ or images/ or /images/ with absolute static path
+    html = html.replace(/(["'])(?:\.\/|\/)?images\//g, '$1' + origin + '/static/email_images/');
     return html;
 }
 

