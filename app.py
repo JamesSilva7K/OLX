@@ -1491,6 +1491,17 @@ def index(slug_or_code=None, item_code=None):
             seller_since=(custom_item["seller_since"] if custom_item and custom_item.get("seller_since") else cfgs.get("seller_since", "")),
 
             seller_avatar=(custom_item.get("seller_avatar") if custom_item and custom_item.get("seller_avatar") else cfgs.get("seller_avatar", "")),
+            seller_sales_completed=custom_item.get("seller_sales_completed", "") if custom_item else "",
+            seller_sales_canceled=custom_item.get("seller_sales_canceled", "") if custom_item else "",
+            seller_dispatch_time=custom_item.get("seller_dispatch_time", "") if custom_item else "",
+            seller_rating=custom_item.get("seller_rating", "") if custom_item else "",
+            seller_reviews=custom_item.get("seller_reviews", "") if custom_item else "",
+            seller_level=custom_item.get("seller_level", "") if custom_item else "",
+            seller_email_verified=custom_item.get("seller_email_verified", 1) if custom_item else 1,
+            seller_phone_verified=custom_item.get("seller_phone_verified", 1) if custom_item else 1,
+            seller_id_verified=custom_item.get("seller_id_verified", 1) if custom_item else 1,
+            seller_fb_verified=custom_item.get("seller_fb_verified", 0) if custom_item else 0,
+            seller_fb_url=custom_item.get("seller_fb_url", "") if custom_item else "",
 
                     det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
 
@@ -3471,6 +3482,17 @@ def api_admin_my_products():
         det_color = data.get("det_color", "").strip()
         payment_badges = data.get("payment_badges", "").strip()
         breadcrumb_zone = data.get("breadcrumb_zone", "").strip()
+        seller_sales_completed = data.get("seller_sales_completed", "").strip()
+        seller_sales_canceled = data.get("seller_sales_canceled", "").strip()
+        seller_dispatch_time = data.get("seller_dispatch_time", "").strip()
+        seller_rating = data.get("seller_rating", "").strip()
+        seller_reviews = data.get("seller_reviews", "").strip()
+        seller_level = data.get("seller_level", "").strip()
+        seller_email_verified = 1 if data.get("seller_email_verified", 1) in (1, "1", True, "true") else 0
+        seller_phone_verified = 1 if data.get("seller_phone_verified", 1) in (1, "1", True, "true") else 0
+        seller_id_verified = 1 if data.get("seller_id_verified", 1) in (1, "1", True, "true") else 0
+        seller_fb_verified = 1 if data.get("seller_fb_verified", 0) in (1, "1", True, "true") else 0
+        seller_fb_url = data.get("seller_fb_url", "").strip()
 
         if not title:
             return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
@@ -3505,7 +3527,18 @@ def api_admin_my_products():
                 det_memory=det_memory,
                 det_color=det_color,
                 payment_badges=payment_badges,
-                breadcrumb_zone=breadcrumb_zone
+                breadcrumb_zone=breadcrumb_zone,
+                seller_sales_completed=seller_sales_completed,
+                seller_sales_canceled=seller_sales_canceled,
+                seller_dispatch_time=seller_dispatch_time,
+                seller_rating=seller_rating,
+                seller_reviews=seller_reviews,
+                seller_level=seller_level,
+                seller_email_verified=seller_email_verified,
+                seller_phone_verified=seller_phone_verified,
+                seller_id_verified=seller_id_verified,
+                seller_fb_verified=seller_fb_verified,
+                seller_fb_url=seller_fb_url
             )
 
             slug = tg_wh.get_slug(admin_id)

@@ -458,9 +458,9 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
 
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time()))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at, seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time(), seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url))
     conn.commit(); conn.close()
     return code
 
@@ -475,7 +475,7 @@ def get_tenant_products(tg_id: int):
                seller_name, seller_since, COALESCE(seller_avatar, '') AS seller_avatar,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
-               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone,
+               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone, COALESCE(seller_sales_completed, '') AS seller_sales_completed, COALESCE(seller_sales_canceled, '') AS seller_sales_canceled, COALESCE(seller_dispatch_time, '') AS seller_dispatch_time, COALESCE(seller_rating, '') AS seller_rating, COALESCE(seller_reviews, '') AS seller_reviews, COALESCE(seller_level, '') AS seller_level, COALESCE(seller_email_verified, 1) AS seller_email_verified, COALESCE(seller_phone_verified, 1) AS seller_phone_verified, COALESCE(seller_id_verified, 1) AS seller_id_verified, COALESCE(seller_fb_verified, 0) AS seller_fb_verified, COALESCE(seller_fb_url, '') AS seller_fb_url,
                created_at
         FROM tenant_products WHERE tg_id=? ORDER BY id DESC
     """, (tg_id,)).fetchall()
@@ -493,7 +493,7 @@ def get_product_by_code(code: str, tg_id: int = None):
                seller_name, seller_since, COALESCE(seller_avatar, '') AS seller_avatar,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
-               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone,
+               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone, COALESCE(seller_sales_completed, '') AS seller_sales_completed, COALESCE(seller_sales_canceled, '') AS seller_sales_canceled, COALESCE(seller_dispatch_time, '') AS seller_dispatch_time, COALESCE(seller_rating, '') AS seller_rating, COALESCE(seller_reviews, '') AS seller_reviews, COALESCE(seller_level, '') AS seller_level, COALESCE(seller_email_verified, 1) AS seller_email_verified, COALESCE(seller_phone_verified, 1) AS seller_phone_verified, COALESCE(seller_id_verified, 1) AS seller_id_verified, COALESCE(seller_fb_verified, 0) AS seller_fb_verified, COALESCE(seller_fb_url, '') AS seller_fb_url,
                created_at
     """
     if tg_id:
@@ -524,11 +524,11 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
                "shipping_coupon", "coupon_active", "coupon_only_shipping",
                "coupon_discount_value", "seller_name", "seller_since", "seller_avatar",
                "det_category", "det_brand", "det_model", "det_condition", "det_memory", "det_color",
-               "payment_badges", "breadcrumb_zone"}
+               "payment_badges", "breadcrumb_zone", "seller_sales_completed", "seller_sales_canceled", "seller_dispatch_time", "seller_rating", "seller_reviews", "seller_level", "seller_email_verified", "seller_phone_verified", "seller_id_verified", "seller_fb_verified", "seller_fb_url"}
     updates = {}
     for k, v in fields.items():
         if k in ALLOWED:
-            if k in ("coupon_active", "coupon_only_shipping"):
+            if k in ("coupon_active", "coupon_only_shipping", "seller_email_verified", "seller_phone_verified", "seller_id_verified", "seller_fb_verified"):
                 updates[k] = 1 if (v in (1, "1", True, "true")) else 0
             else:
                 updates[k] = v
