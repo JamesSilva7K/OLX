@@ -4758,8 +4758,8 @@ function getProcessedHtml() {
     const inputs = document.querySelectorAll('#em-vars-list .var-input');
     inputs.forEach(inp => {
         const v = inp.getAttribute('data-var');
-        const val = inp.value || `{{${v}}}`;
-        html = html.split(`{{${v}}}`).join(val);
+        const val = inp.value || ('{' + '{' + v + '}' + '}');
+        html = html.split('{' + '{' + v + '}' + '}').join(val);
     });
     return html;
 }
