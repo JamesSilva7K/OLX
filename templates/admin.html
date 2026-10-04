@@ -1415,10 +1415,10 @@
   <section class="page" id="page-email">
     <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>Email Marketing</div>
     
-    <div class="tabs mt-12" style="margin-bottom: 16px;">
-      <div class="tab active" id="et-send" onclick="switchEmailTab('send')">Disparar Email</div>
-      <div class="tab" id="et-logs" onclick="switchEmailTab('logs')">Histórico</div>
-      <div class="tab" id="et-templates" onclick="switchEmailTab('templates')" data-sup="1" style="display:none;">Templates</div>
+    <div class="tabs-pill mt-12" style="margin-bottom: 16px;">
+      <button class="tp active" id="et-send" onclick="switchEmailTab('send')">Disparar Email</button>
+      <button class="tp" id="et-logs" onclick="switchEmailTab('logs')">Histórico</button>
+      <button class="tp" id="et-templates" onclick="switchEmailTab('templates')" data-sup="1" style="display:none;">Templates</button>
     </div>
 
     <!-- TAB: SEND -->
@@ -3226,8 +3226,8 @@ async function loadSupremeOverview() {
           '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (a.products ? a.products.length : 0) + '</div><div class="sup-stat-chip-lbl">Prods</div></div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05)">' +
-           '<button class="btn sup-action-btn btn-promote" onclick="changeRole(' + a.tg_id + ', \'' + escapeHtml(name) + '\')">Mudar Cargo</button>' +
-           '<button class="btn sup-action-btn btn-block" onclick="blockAdmin(' + a.tg_id + ')">Bloquear (Blindagem)</button>' +
+           '<button class="btn sup-action-btn btn-promote" onclick="event.stopPropagation(); changeRole(' + a.tg_id + ', \'' + escapeHtml(name) + '\')">Mudar Cargo</button>' +
+           '<button class="btn sup-action-btn btn-block" onclick="event.stopPropagation(); blockAdmin(' + a.tg_id + ')">Bloquear (Blindagem)</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -3448,8 +3448,6 @@ function renderBadges() {
 
 
 async function loadLinkMonitor(){
-  const btn = event && event.currentTarget;
-  if(btn) { btn.style.transform = 'rotate(180deg)'; btn.style.transition = 'transform 0.5s'; setTimeout(()=>btn.style.transform='none', 500); }
   const el=document.getElementById('mon-link-list');if(!el)return;
   try{
     const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';
@@ -4517,8 +4515,9 @@ async function applyPunish() {
 let _EMAIL_TPLS = [];
 
 function switchEmailTab(tabId) {
-  document.querySelectorAll('#page-email .tabs .tab').forEach(e => e.classList.remove('active'));
-  document.getElementById('et-' + tabId).classList.add('active');
+  document.querySelectorAll('#page-email .tabs-pill .tp').forEach(e => e.classList.remove('active'));
+  const btn = document.getElementById('et-' + tabId);
+  if(btn) btn.classList.add('active');
   document.getElementById('email-view-send').style.display = 'none';
   document.getElementById('email-view-logs').style.display = 'none';
   document.getElementById('email-view-templates').style.display = 'none';
