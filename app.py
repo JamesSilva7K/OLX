@@ -2997,9 +2997,12 @@ def api_admin_stats_single():
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         
-        cur.execute("SELECT role FROM vault WHERE tg_id = ?", (target_id,))
-        row = cur.fetchone()
-        t_role = row['role'] if row else 'admin'
+        t_role = 'admin'
+        try:
+            cur.execute("SELECT role FROM vault WHERE tg_id = ?", (target_id,))
+            row = cur.fetchone()
+            if row: t_role = row['role']
+        except: pass
         if target_id in getattr(admin_bot, "ADMINS_SUPREMOS", [6220800735]):
             t_role = 'supreme_admin'
 
