@@ -7994,12 +7994,12 @@ def api_admin_send_email():
         return jsonify({"ok": False, "error": "Email inválido"}), 400
     try:
         from email_validator import validate_email, EmailNotValidError
-        v = validate_email(to_email, check_deliverability=True)
-        to_email = v.normalized
-    except Exception as e:
-        if type(e).__name__ == 'EmailNotValidError': return jsonify({'ok': False, 'error': f'Email inexistente ou invalido: {str(e)}'}), 400
-        return jsonify({"ok": False, "error": f"Email inexistente ou inválido: {str(e)}"}), 400
-    except Exception:
+        try:
+            v = validate_email(to_email, check_deliverability=True)
+            to_email = v.normalized
+        except EmailNotValidError as e:
+            return jsonify({"ok": False, "error": f"Email inexistente ou invalido: {str(e)}"}), 400
+    except ImportError:
         pass
         
     # Se o admin escolheu um template, o html_content j foi processado no frontend
