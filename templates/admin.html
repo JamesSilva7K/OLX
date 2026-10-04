@@ -4761,6 +4761,9 @@ function getProcessedHtml() {
         const val = inp.value || ('{' + '{' + v + '}' + '}');
         html = html.split('{' + '{' + v + '}' + '}').join(val);
     });
+    // Fix imagens locais para URL absoluta baseada no servidor atual
+    const origin = window.location.origin;
+    html = html.split('./images/').join(`${origin}/static/email_images/`);
     return html;
 }
 

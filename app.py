@@ -7997,13 +7997,16 @@ def api_admin_send_email():
     except Exception:
         pass
         
-    # Se o admin escolheu um template, vamos puxar do banco e substituir as variáveis
+    # Se o admin escolheu um template, o html_content j foi processado no frontend
     if template_id and TG_WH_AVAILABLE:
         templates = tg_wh.get_email_templates()
         tpl = next((t for t in templates if t['id'] == int(template_id)), None)
         if tpl:
-            html_content = tpl['html_content']
-            
+            # Substituir urls de imagens estáticas do template
+            host_url = request.host_url
+            if host_url.endswith('/'): host_url = host_url[:-1]
+            html_content = html_content.replace('./images/', f'{host_url}/static/email_images/')
+
             # Pegar whatsapp (supreme_whatsapp) se passado, ou tenta o do admin logado
             whatsapp = data.get('whatsapp_number', '').strip()
             if whatsapp:
@@ -8021,12 +8024,6 @@ def api_admin_send_email():
                 if 'resgatar pagamento da venda' in html_content:
                     html_content = html_content.replace('<span class="t53"', f'<a href="{zap_link}" style="text-decoration:none;"><span class="t53"')
                     html_content = html_content.replace('resgatar pagamento da venda</span>', 'resgatar pagamento da venda</span></a>')
-            
-            # Substituir as variáveis inteligentes no HTML do LO
-            html_content = html_content.replace('[Nome do produto]', data.get('product_name', 'Produto Padrão'))
-            html_content = html_content.replace('[00,00]', data.get('product_price', '0,00'))
-            html_content = html_content.replace('[Nome do comprador]', data.get('buyer_name', 'Cliente'))
-            html_content = html_content.replace('[Forma de pagamento]', data.get('payment_method', 'PIX'))
 
     if not html_content:
         return jsonify({"ok": False, "error": "HTML content missing"}), 400
