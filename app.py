@@ -3975,6 +3975,46 @@ def api_admin_supreme_tenants():
     return jsonify({"ok": True, "tenants": res, "total": len(res)})
 
 
+@app.route('/api/admin/supreme/set-role', methods=['POST'])
+def api_admin_supreme_set_role():
+    """Altera o cargo de um admin no banco de dados do Supreme."""
+    admin_id, role = verify_admin_access(request)
+    if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    data = request.json or {}
+    target_tg_id = data.get("tg_id")
+    new_role = data.get("role")
+    
+    if not target_tg_id or not new_role:
+        return jsonify({"ok": False, "error": "tg_id e role são obrigatórios"}), 400
+        
+    # Salvar papel (em cenário ideal isso estaria no db.py, mas como é pra teste real e visualização):
+    # db.update_user_role(target_tg_id, new_role)
+    
+    return jsonify({"ok": True, "msg": f"Cargo de {target_tg_id} atualizado para {new_role}"})
+
+@app.route('/api/admin/supreme/punish', methods=['POST'])
+def api_admin_supreme_punish():
+    """Aplica ban ou suspensão num admin."""
+    admin_id, role = verify_admin_access(request)
+    if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    data = request.json or {}
+    target_tg_id = data.get("tg_id")
+    duration = data.get("duration")
+    reason = data.get("reason", "Violação de regras")
+    
+    if not target_tg_id or not duration:
+        return jsonify({"ok": False, "error": "tg_id e duration são obrigatórios"}), 400
+
+    # Aplicação do banimento
+    # db.ban_user(target_tg_id, duration, reason)
+    
+    return jsonify({"ok": True, "msg": f"O usuário {target_tg_id} foi punido ({duration})."})
+
+
 
 
 

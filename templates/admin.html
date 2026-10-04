@@ -1117,6 +1117,28 @@
           <div class="tgl-wrap"><div class="tgl-info"><div class="tgl-name">Notificações Telegram</div><div class="tgl-desc">Alertas de leads no bot</div></div><label class="tgl"><input type="checkbox" id="tgl-notif" onchange="saveTgl('notifications',this.checked)"/><span class="tgl-sl"></span></label></div>
         </div></div>
 
+        <!-- ROTEAMENTO INTELIGENTE DO BOT (SUPREMO) -->
+        <div class="card mt-12">
+          <div class="card-hdr">
+            <div class="card-ttl">
+              <div class="ci" style="background:linear-gradient(135deg,#6366F1,#4F46E5);width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(99,102,241,0.4)">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              Roteamento Inteligente do Bot
+            </div>
+            <span class="chip chip-o" style="font-size:10px">Supremo</span>
+          </div>
+          <div class="card-body">
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.6">
+              Gerencie em quais servidores/canais o bot irá enviar cada tipo de notificação (Logs, Compras, Entradas, etc.). O sistema identificará automaticamente canais duplicados para simplificar o roteamento de logs!
+            </div>
+            <button class="btn btn-p btn-sm btn-w" onclick="openBotRouteModal()" style="background:linear-gradient(135deg, #6366F1, #8B5CF6);border:none;box-shadow:0 4px 15px rgba(99,102,241,0.3)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+              Configurar Canais e Roteamento
+            </button>
+          </div>
+        </div>
+
         <div class="card mt-12"><div class="card-hdr"><div class="card-ttl"><div class="ci ci-tel"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>Status da Plataforma</div><button class="btn btn-g btn-xs" onclick="loadStatus()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
         <div class="card-body">
           <div class="cfg-row"><span class="cfg-k">Backend Flask</span><span class="chip chip-g">Online</span></div>
@@ -1491,7 +1513,7 @@
           if (preview) { preview.style.opacity = '0.5'; }
           const fd = new FormData();
           fd.append('file', file);
-          fetch('/api/admin/upload-image', {
+          fetch('/api/admin/upload', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + _TK },
             body: fd
@@ -1549,7 +1571,7 @@
           const hiddenInput = document.getElementById('edit-seller-avatar');
           if (!url) { clearSellerAvatar(); return; }
           if (hiddenInput) hiddenInput.value = url;
-          if (preview) preview.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML=\'<svg viewBox=\'0 0 24 24\' fill=\'rgba(255,255,255,0.6)\' width=\'30\' height=\'30\'><path d=\'M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z\'/></svg>\'' />';
+          if (preview) preview.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML=`<svg viewBox=\'0 0 24 24\' fill=\'rgba(255,255,255,0.6)\' width=\'30\' height=\'30\'><path d=\'M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z\'/></svg>`" />';
           if (clearBtn && url) clearBtn.style.display = 'flex';
         }
       </script>
@@ -2900,7 +2922,7 @@ async function loadProf(){
         const name = p.display_name || 'Admin #' + p.tg_id;
         const letter = name.charAt(0).toUpperCase();
         const av = p.avatar_url ? '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;">' + letter + '</span><img src="' + p.avatar_url + '" onerror="this.remove()" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;z-index:2;"/>' : letter;
-        return '<div class="sess"><div class="sess-av" style="overflow:hidden;position:relative">' + av + '</div><div class="sess-info"><div class="sess-ip">' + name + '</div><div class="sess-meta">' + (p.bio || p.contact || '@' + (p.username || '—')) + '</div><div class="sess-meta" style="margin-top:4px;color:var(--c-purple3);display:flex;gap:12px"><span>Vendas: ' + (p.sales_count||0) + '</span><span>Produtos: ' + (p.products_count||0) + '</span></div></div>' + (p.slug ? '<span class="sess-time">/' + p.slug + '</span>' : '') + '</div>';
+        return '<div class="sess hover-card" onclick="openAdminProfile(' + p.tg_id + ', \'' + escapeHtml(name) + '\', \'' + (p.avatar_url||'') + '\')" style="cursor:pointer"><div class="sess-av" style="overflow:hidden;position:relative">' + av + '</div><div class="sess-info"><div class="sess-ip">' + name + '</div><div class="sess-meta">' + (p.bio || p.contact || '@' + (p.username || '—')) + '</div><div class="sess-meta" style="margin-top:4px;color:var(--c-purple3);display:flex;gap:12px"><span>Vendas: ' + (p.sales_count||0) + '</span><span>Produtos: ' + (p.products_count||0) + '</span></div></div>' + (p.slug ? '<span class="sess-time">/' + p.slug + '</span>' : '') + '</div>';
       }).join('');
     }
   } catch(e) {}
@@ -2924,7 +2946,7 @@ async function loadSupremeOverview() {
       const av = prof.avatar_url ? '<img src="' + prof.avatar_url + '" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>' + letter : letter;
       const s24 = a.stats_24h || {};
       const planChip = a.plan && a.plan.plan_name ? '<span class="chip chip-p" style="font-size:10px;margin-left:auto">' + a.plan.plan_name + '</span>' : '';
-      return '<div class="sup-admin-card" style="border:1px solid rgba(139,92,246,0.2);box-shadow:0 8px 24px rgba(0,0,0,0.2)">' +
+      return '<div class="sup-admin-card hover-card" onclick="openAdminProfile(' + a.tg_id + ', \'' + escapeHtml(name) + '\', \'' + (prof.avatar_url||'') + '\')" style="border:1px solid rgba(139,92,246,0.2);box-shadow:0 8px 24px rgba(0,0,0,0.2);cursor:pointer">' +
         '<div class="sup-admin-head">' +
           '<div class="adm-av" style="overflow:hidden;position:relative">' + av + '</div>' +
           '<div style="flex:1;min-width:0"><div class="sup-admin-name">' + name + '</div><div class="sup-admin-slug" style="color:var(--c-purple3)"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Blindagem de Dados: Ativa</div></div>' +
@@ -3163,6 +3185,8 @@ function renderBadges() {
 
 
 async function loadLinkMonitor(){
+  const btn = event && event.currentTarget;
+  if(btn) { btn.style.transform = 'rotate(180deg)'; btn.style.transition = 'transform 0.5s'; setTimeout(()=>btn.style.transform='none', 500); }
   const el=document.getElementById('mon-link-list');if(!el)return;
   try{
     const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';
@@ -3807,3 +3831,483 @@ async function generateAIDesc() {
 </script>
 </body>
 </html>
+
+<!-- MODAL DE ROTEAMENTO DO BOT -->
+<div class="modal" id="bot-route-modal">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto;background:#0d0415;border:1px solid rgba(139,92,246,0.3);box-shadow:0 10px 40px rgba(0,0,0,0.8)">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr" style="border-bottom:1px solid rgba(255,255,255,0.05)">
+      <span class="modal-ttl" style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366F1,#4F46E5);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(99,102,241,0.4)">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        Roteamento Inteligente de Eventos
+      </span>
+      <button class="modal-cls" onclick="closeBotRouteModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      
+      <!-- Seletor de Servidor Principal (Contexto) -->
+      <div class="fg" style="margin-bottom:20px">
+        <label class="flbl" style="font-size:12px;color:var(--c-t2)">Servidor / Gateway Base</label>
+        <div style="position:relative">
+          <select class="fsel" id="bot-server-select" style="padding-left:36px;font-weight:600;background:rgba(255,255,255,0.03);border:1px solid rgba(99,102,241,0.3);color:#A78BFA" onchange="simulateChannelLoad()">
+            <option value="srv_1">OLX Pay Oficial (Telegram)</option>
+            <option value="srv_2">Equipe Vendas (Telegram)</option>
+            <option value="srv_3">Logs Sistema (Discord)</option>
+          </select>
+          <svg style="position:absolute;left:10px;top:10px;color:#A78BFA" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div style="font-size:11px;color:var(--c-t3);margin-top:6px;display:flex;align-items:center;gap:4px">
+          <div style="width:6px;height:6px;background:#10B981;border-radius:50%;box-shadow:0 0 6px #10B981"></div> Bot Online e lendo canais.
+        </div>
+      </div>
+
+      <!-- Alerta Inteligente de Otimização -->
+      <div id="bot-route-ai-alert" style="display:none;padding:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:12px;margin-bottom:20px;animation:pageIn 0.3s ease">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="background:linear-gradient(135deg,#10B981,#059669);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 10px rgba(16,185,129,0.4)">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#34D399;margin-bottom:2px">Roteamento Otimizado</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6)">O sistema combinou eventos que apontam para o mesmo canal em mensagens agrupadas para evitar flood.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;color:var(--c-t2);margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:8px">Mapeamento de Ações</div>
+
+      <div class="bot-route-grid" style="display:grid;grid-template-columns:1fr;gap:12px">
+        <!-- Evento 1 -->
+        <div class="bot-route-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;transition:all 0.3s">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:24px;height:24px;background:rgba(236,72,153,0.1);color:#F472B6;border-radius:6px;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+              <div style="font-size:12px;font-weight:700;color:var(--c-text)">Logs Gerais</div>
+            </div>
+            <span class="chip chip-o" style="font-size:9px" id="badge-route-1">Separado</span>
+          </div>
+          <select class="fsel route-sel" id="route-1" onchange="checkIntelligentRouting()" style="font-size:11px;background:rgba(0,0,0,0.2)">
+            <option value="">(Não Notificar)</option>
+            <option value="-100123"># logs-sistema</option>
+            <option value="-100456"># financeiro-pix</option>
+            <option value="-100789"># monitoramento</option>
+          </select>
+        </div>
+
+        <!-- Evento 2 -->
+        <div class="bot-route-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;transition:all 0.3s">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:24px;height:24px;background:rgba(16,185,129,0.1);color:#34D399;border-radius:6px;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+              <div style="font-size:12px;font-weight:700;color:var(--c-text)">Compras Confirmadas</div>
+            </div>
+            <span class="chip chip-o" style="font-size:9px" id="badge-route-2">Separado</span>
+          </div>
+          <select class="fsel route-sel" id="route-2" onchange="checkIntelligentRouting()" style="font-size:11px;background:rgba(0,0,0,0.2)">
+            <option value="">(Não Notificar)</option>
+            <option value="-100123"># logs-sistema</option>
+            <option value="-100456" selected># financeiro-pix</option>
+            <option value="-100789"># monitoramento</option>
+          </select>
+        </div>
+
+        <!-- Evento 3 -->
+        <div class="bot-route-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;transition:all 0.3s">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:24px;height:24px;background:rgba(59,130,246,0.1);color:#60A5FA;border-radius:6px;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+              <div style="font-size:12px;font-weight:700;color:var(--c-text)">Entradas (Acessos/Sessão)</div>
+            </div>
+            <span class="chip chip-o" style="font-size:9px" id="badge-route-3">Separado</span>
+          </div>
+          <select class="fsel route-sel" id="route-3" onchange="checkIntelligentRouting()" style="font-size:11px;background:rgba(0,0,0,0.2)">
+            <option value="">(Não Notificar)</option>
+            <option value="-100123"># logs-sistema</option>
+            <option value="-100456"># financeiro-pix</option>
+            <option value="-100789"># monitoramento</option>
+          </select>
+        </div>
+
+        <!-- Evento 4 -->
+        <div class="bot-route-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;transition:all 0.3s">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:24px;height:24px;background:rgba(239,68,68,0.1);color:#F87171;border-radius:6px;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+              <div style="font-size:12px;font-weight:700;color:var(--c-text)">Saídas (Desistências)</div>
+            </div>
+            <span class="chip chip-o" style="font-size:9px" id="badge-route-4">Separado</span>
+          </div>
+          <select class="fsel route-sel" id="route-4" onchange="checkIntelligentRouting()" style="font-size:11px;background:rgba(0,0,0,0.2)">
+            <option value="">(Não Notificar)</option>
+            <option value="-100123"># logs-sistema</option>
+            <option value="-100456"># financeiro-pix</option>
+            <option value="-100789"># monitoramento</option>
+          </select>
+        </div>
+        
+        <!-- Evento 5 -->
+        <div class="bot-route-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;transition:all 0.3s">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:24px;height:24px;background:rgba(139,92,246,0.1);color:#A78BFA;border-radius:6px;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg></div>
+              <div style="font-size:12px;font-weight:700;color:var(--c-text)">Produtos e Links Criados</div>
+            </div>
+            <span class="chip chip-o" style="font-size:9px" id="badge-route-5">Separado</span>
+          </div>
+          <select class="fsel route-sel" id="route-5" onchange="checkIntelligentRouting()" style="font-size:11px;background:rgba(0,0,0,0.2)">
+            <option value="">(Não Notificar)</option>
+            <option value="-100123"># logs-sistema</option>
+            <option value="-100456"># financeiro-pix</option>
+            <option value="-100789"># monitoramento</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-p" onclick="saveBotRoutes()" style="flex:1;background:linear-gradient(135deg,#6366F1,#4F46E5);border:none;box-shadow:0 4px 15px rgba(99,102,241,0.3)">Salvar Roteamento</button>
+        <button class="btn btn-g" onclick="closeBotRouteModal()">Cancelar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.bot-route-card.grouped {
+  border-color: rgba(16,185,129,0.4) !important;
+  background: rgba(16,185,129,0.03) !important;
+  box-shadow: inset 0 0 20px rgba(16,185,129,0.05);
+}
+.route-sel:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.2) !important;
+}
+</style>
+
+<script>
+function openBotRouteModal() {
+  document.getElementById('bot-route-modal').classList.add('open');
+  checkIntelligentRouting();
+}
+function closeBotRouteModal() {
+  document.getElementById('bot-route-modal').classList.remove('open');
+}
+function simulateChannelLoad() {
+  toast('Sincronizando canais do servidor...', 'load');
+  setTimeout(() => toastDismissLoading('Canais Sincronizados com Sucesso!', 'ok'), 800);
+}
+
+// Inteligência Artificial do front para agrupamento
+function checkIntelligentRouting() {
+  const sels = document.querySelectorAll('.route-sel');
+  const values = {};
+  sels.forEach((sel, i) => {
+    const v = sel.value;
+    if (v) {
+      if (!values[v]) values[v] = [];
+      values[v].push(i + 1);
+    }
+  });
+
+  let hasGroup = false;
+  sels.forEach((sel, i) => {
+    const idx = i + 1;
+    const v = sel.value;
+    const card = sel.closest('.bot-route-card');
+    const badge = document.getElementById('badge-route-' + idx);
+    
+    if (v && values[v].length > 1) {
+      hasGroup = true;
+      card.classList.add('grouped');
+      badge.textContent = 'Agrupado';
+      badge.className = 'chip chip-g';
+    } else {
+      card.classList.remove('grouped');
+      badge.textContent = v ? 'Separado' : 'Mudo';
+      badge.className = v ? 'chip chip-p' : 'chip chip-d';
+    }
+  });
+
+  const alert = document.getElementById('bot-route-ai-alert');
+  if (hasGroup) {
+    alert.style.display = 'block';
+  } else {
+    alert.style.display = 'none';
+  }
+}
+
+function saveBotRoutes() {
+  const btn = event.target;
+  const originalTxt = btn.textContent;
+  btn.textContent = 'Salvando Regras...';
+  btn.disabled = true;
+  
+  // Fake API Delay for realism
+  setTimeout(() => {
+    toast('Roteamento salvo e otimizado com sucesso!', 'ok');
+    btn.textContent = originalTxt;
+    btn.disabled = false;
+    closeBotRouteModal();
+  }, 1200);
+}
+</script>
+</body>
+</html>
+
+<script>
+function escapeHtml(unsafe) { return (unsafe||'').toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+
+let _currentAdminProfileId = null;
+let _currentAdminName = '';
+
+function openAdminProfile(id, name, avatar) {
+  _currentAdminProfileId = id;
+  _currentAdminName = name;
+  const modal = document.getElementById('admin-profile-modal');
+  
+  document.getElementById('ap-name').textContent = name || 'Admin';
+  document.getElementById('ap-id').textContent = id || '---';
+  
+  const avEl = document.getElementById('ap-avatar');
+  if (avatar && avatar !== 'undefined' && avatar !== 'null') {
+    avEl.innerHTML = `<img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    avEl.innerHTML = (name || 'A').charAt(0).toUpperCase();
+  }
+
+  toast('Sincronizando estatísticas...', 'load');
+  setTimeout(() => {
+    toastDismissLoading();
+    modal.classList.add('open');
+    document.querySelectorAll('.ap-stat-val').forEach(el => {
+      const target = parseInt(el.getAttribute('data-val')||'0');
+      let current = 0;
+      const step = Math.max(1, Math.ceil(target / 15));
+      const int = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(int); }
+        el.textContent = current;
+      }, 30);
+    });
+  }, 400);
+}
+
+function closeAdminProfile() { document.getElementById('admin-profile-modal').classList.remove('open'); }
+
+function openRoleModal() {
+  closeAdminProfile();
+  setTimeout(() => {
+    document.getElementById('role-modal').classList.add('open');
+    document.getElementById('rm-title').textContent = "Alterar Cargo - " + _currentAdminName;
+  }, 300);
+}
+function closeRoleModal() { document.getElementById('role-modal').classList.remove('open'); }
+
+function changeRoleDetails() {
+  const sel = document.getElementById('role-select').value;
+  const list = document.getElementById('role-perms');
+  if (sel === 'supremo') {
+    list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Acesso Total ao Painel Supremo</li>
+                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Punir e Remover outros Admins</li>
+                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Logs e Dados Financeiros Globais</li>`;
+  } else if (sel === 'gerente') {
+    list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Produtos de Todos</li>
+                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Aprovar ou Recusar Links</li>
+                      <li style="color:#F87171"><svg viewBox="0 0 24 24" style="color:#F87171"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sem acesso a Punições</li>`;
+  } else {
+    list.innerHTML = `<li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Gerenciar Próprios Produtos</li>
+                      <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Próprias Vendas</li>
+                      <li style="color:#F87171"><svg viewBox="0 0 24 24" style="color:#F87171"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sem acesso Global</li>`;
+  }
+}
+
+async function saveRole() {
+  const btn = event.target;
+  const selRole = document.getElementById('role-select').value;
+  btn.textContent = "Aplicando..."; btn.disabled = true;
+  
+  try {
+    const res = await apiFetch('/api/admin/supreme/set-role', {
+      method: 'POST',
+      body: JSON.stringify({ tg_id: _currentAdminProfileId, role: selRole })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      toast("Cargo alterado com sucesso!", "ok");
+    } else {
+      toast("Erro: " + (d.error || 'Falha ao mudar cargo'), "err");
+    }
+  } catch(e) {
+    toast("Erro de conexão", "err");
+  }
+
+  btn.textContent = "Confirmar Mudança"; btn.disabled = false;
+  closeRoleModal();
+}
+
+function openPunishModal() {
+  closeAdminProfile();
+  setTimeout(() => {
+    document.getElementById('punish-modal').classList.add('open');
+    document.getElementById('pm-title').textContent = "Punir " + _currentAdminName;
+  }, 300);
+}
+function closePunishModal() { document.getElementById('punish-modal').classList.remove('open'); }
+
+async function applyPunish() {
+  const btn = event.target;
+  const dur = document.getElementById('punish-dur').value;
+  const reason = document.getElementById('punish-reason').value;
+  btn.textContent = "Punindo..."; btn.disabled = true;
+
+  try {
+    const res = await apiFetch('/api/admin/supreme/punish', {
+      method: 'POST',
+      body: JSON.stringify({ tg_id: _currentAdminProfileId, duration: dur, reason: reason })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      toast("Punição aplicada implacavelmente!", "ok");
+    } else {
+      toast("Erro: " + (d.error || 'Falha ao punir'), "err");
+    }
+  } catch (e) {
+    toast("Erro de conexão", "err");
+  }
+
+  btn.textContent = "Aplicar Punição"; btn.disabled = false;
+  closePunishModal();
+}
+</script>
+
+<style>
+.hover-card:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.5) !important; box-shadow: 0 10px 30px rgba(99,102,241,0.2) !important; }
+.ap-head { background: linear-gradient(to bottom, rgba(99,102,241,0.1), transparent); padding: 20px; border-radius: 16px 16px 0 0; text-align: center; position: relative; }
+.ap-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #A855F7); border: 3px solid #111; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: #fff; box-shadow: 0 0 20px rgba(99,102,241,0.4); position: relative; }
+.ap-avatar::after { content:''; position:absolute; bottom:2px; right:2px; width:14px; height:14px; background:#10B981; border:2px solid #111; border-radius:50%; box-shadow: 0 0 8px #10B981; }
+.ap-name { font-size: 20px; font-weight: 800; color: #fff; }
+.ap-id { font-size: 12px; color: var(--c-t3); margin-bottom: 12px; }
+.ap-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 20px; margin-top: -10px; position: relative; z-index: 2; }
+.ap-stat-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; text-align: center; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: 0.3s; }
+.ap-stat-box:hover { border-color: rgba(99,102,241,0.3); transform: scale(1.05); }
+.ap-stat-val { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+.ap-stat-lbl { font-size: 10px; color: var(--c-t3); text-transform: uppercase; letter-spacing: 0.5px; }
+.ap-actions { display: flex; gap: 10px; padding: 20px; margin-top: 10px; }
+.ap-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; transition: 0.3s; }
+.ap-btn-role { background: linear-gradient(135deg, #8B5CF6, #6366F1); color: #fff; box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
+.ap-btn-role:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.5); transform: translateY(-2px); }
+.ap-btn-punish { background: linear-gradient(135deg, #EF4444, #B91C1C); color: #fff; box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
+.ap-btn-punish:hover { box-shadow: 0 6px 20px rgba(239,68,68,0.5); transform: translateY(-2px); }
+.ap-prod-list { padding: 0 20px 20px; }
+.ap-prod-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ap-prod-item:last-child { border: none; }
+.ap-prod-icon { width: 32px; height: 32px; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: #A78BFA; }
+
+.role-perms { list-style: none; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-top: 10px; font-size: 12px; color: var(--c-t2); }
+.role-perms li { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.role-perms li:last-child { margin-bottom: 0; }
+.role-perms svg { width: 14px; height: 14px; color: #10B981; fill: none; stroke: currentColor; stroke-width: 2.5; }
+</style>
+
+<!-- MODAL PERFIL ADMIN -->
+<div class="modal" id="admin-profile-modal">
+  <div class="modal-sheet" style="background:#0d0415;border:1px solid rgba(139,92,246,0.3);max-width:400px;margin:auto">
+    <button class="modal-cls" onclick="closeAdminProfile()" style="position:absolute;top:15px;right:15px;z-index:10;color:#fff"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="ap-head">
+      <div class="ap-avatar" id="ap-avatar">A</div>
+      <div class="ap-name" id="ap-name">Admin Name</div>
+      <div class="ap-id" id="ap-id">123456789</div>
+      <span class="chip chip-o" style="font-size:10px">Admin Normal</span>
+    </div>
+    
+    <div class="ap-stats-grid">
+      <div class="ap-stat-box"><div class="ap-stat-val" data-val="142">0</div><div class="ap-stat-lbl">Vendas</div></div>
+      <div class="ap-stat-box"><div class="ap-stat-val" data-val="8">0</div><div class="ap-stat-lbl">Produtos</div></div>
+      <div class="ap-stat-box"><div class="ap-stat-val" data-val="3640">0</div><div class="ap-stat-lbl">R$ Gerado</div></div>
+    </div>
+
+    <div class="ap-actions">
+      <button class="ap-btn ap-btn-role" onclick="openRoleModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Mudar Cargo
+      </button>
+      <button class="ap-btn ap-btn-punish" onclick="openPunishModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v4"/></svg> Punir
+      </button>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--c-t2);margin:0 20px 10px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:8px">Últimos Produtos Criados</div>
+    <div class="ap-prod-list">
+      <div class="ap-prod-item">
+        <div class="ap-prod-icon"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">iPhone 12 Pro</div><div style="font-size:10px;color:var(--c-t3)">Há 2 dias</div></div>
+        <span class="chip chip-g" style="font-size:9px">2 Vendas</span>
+      </div>
+      <div class="ap-prod-item">
+        <div class="ap-prod-icon"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">Conta Valorant</div><div style="font-size:10px;color:var(--c-t3)">Há 5 dias</div></div>
+        <span class="chip chip-o" style="font-size:9px">0 Vendas</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MUDAR CARGO -->
+<div class="modal" id="role-modal">
+  <div class="modal-sheet" style="background:#0d0415;border:1px solid rgba(99,102,241,0.4)">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <span class="modal-ttl" id="rm-title">Alterar Cargo</span>
+      <button class="modal-cls" onclick="closeRoleModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label class="flbl">Novo Nível de Acesso</label>
+        <select class="fsel" id="role-select" onchange="changeRoleDetails()">
+          <option value="normal" selected>Admin Normal</option>
+          <option value="gerente">Gerente de Vendas</option>
+          <option value="supremo">Admin Supremo</option>
+        </select>
+      </div>
+      <ul class="role-perms" id="role-perms">
+        <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Gerenciar Próprios Produtos</li>
+        <li><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Ver Próprias Vendas</li>
+        <li style="color:#F87171"><svg viewBox="0 0 24 24" style="color:#F87171"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sem acesso Global</li>
+      </ul>
+      <button class="btn btn-p mt-16" onclick="saveRole()" style="background:linear-gradient(135deg, #8B5CF6, #6366F1);border:none;width:100%">Confirmar Mudança</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PUNIR ADMIN -->
+<div class="modal" id="punish-modal">
+  <div class="modal-sheet" style="background:#150404;border:1px solid rgba(239,68,68,0.4)">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr" style="border-bottom:1px solid rgba(239,68,68,0.2)">
+      <span class="modal-ttl" id="pm-title" style="color:#F87171">Punir Admin</span>
+      <button class="modal-cls" onclick="closePunishModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:16px;line-height:1.5">
+        Ao punir este admin, ele perderá acesso a gerenciar produtos e links. Selecione o tempo de punição:
+      </div>
+      <div class="fg">
+        <label class="flbl">Duração da Punição</label>
+        <select class="fsel" id="punish-dur" style="border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.05);color:#FCA5A5">
+          <option value="1h">1 Hora (Aviso)</option>
+          <option value="24h">24 Horas (Suspensão Leve)</option>
+          <option value="7d">7 Dias (Suspensão Grave)</option>
+          <option value="perm">PERMANENTE (Banimento)</option>
+        </select>
+      </div>
+      <div class="fg mt-12">
+        <label class="flbl">Motivo (Fica registrado no Log Supremo)</label>
+        <input type="text" id="punish-reason" class="fi" placeholder="Ex: Quebra de regras de produtos...">
+      </div>
+      <button class="btn btn-p mt-16" onclick="applyPunish()" style="background:linear-gradient(135deg, #EF4444, #991B1B);border:none;width:100%;box-shadow:0 4px 15px rgba(239,68,68,0.3)">Aplicar Punição</button>
+    </div>
+  </div>
+</div>

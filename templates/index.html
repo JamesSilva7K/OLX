@@ -989,12 +989,12 @@
     <div class="price-card">
       {% set old_price = product_old_price if product_old_price else config.get('product_old_price','') if config is defined else '' %}
       {% if old_price and old_price != product_price %}
-      <div class="price-original">R$ {{ old_price.split('.')[0].split(',')[0] }}</div>
+      <div class="price-original">R$ {{ old_price.split(',')[0] }}</div>
       {% endif %}
       <!-- preço inteiro sem .00, idêntico ao OLX real -->
       <div class="price-main">
         <span class="price-prefix">R$</span>
-        <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp.split('.')[0].split(',')[0] }}</span>
+        <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp.split(',')[0] }}</span>
         <span class="price-pix" style="font-size:14px; font-weight:700; color:#4b9015; margin-left:4px;">
           no Pix
         </span>
@@ -2128,5 +2128,38 @@
   }
 </script>
 
+<!-- BLINDAGEM DE SISTEMA AVANÇADA -->
+<script>
+(function(){
+  // 1. Anti Botão Direito e Atalhos
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if(e.ctrlKey && (e.key==='u' || e.key==='U' || e.key==='s' || e.key==='S' || e.key==='p' || e.key==='P')) { e.preventDefault(); return false; }
+    if(e.ctrlKey && e.shiftKey && (e.key==='I' || e.key==='i' || e.key==='J' || e.key==='j' || e.key==='C' || e.key==='c')) { e.preventDefault(); return false; }
+    if(e.key === 'F12') { e.preventDefault(); return false; }
+  });
+  
+  // 2. Debugger Trap Avançada
+  const t = setInterval(()=>{
+    const start = new Date();
+    debugger;
+    if(new Date() - start > 100) {
+      document.body.innerHTML = '<div style="background:#000;color:#ff0000;height:100vh;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:monospace">SISTEMA BLINDADO: TENTATIVA DE INVASÃO DETECTADA.</div>';
+      window.location.href = "about:blank";
+    }
+  }, 1000);
+
+  // 3. Validação de Lead Real no Pix (se houver o botão)
+  const pixBtn = document.getElementById('btn-pix') || document.querySelector('.btn-comprar');
+  if(pixBtn) {
+    pixBtn.addEventListener('mouseenter', () => {
+      window._isHuman = true; // Se moveu o mouse no botão, é humano.
+    });
+    pixBtn.addEventListener('touchstart', () => {
+      window._isHuman = true;
+    });
+  }
+})();
+</script>
 </body>
 </html>
