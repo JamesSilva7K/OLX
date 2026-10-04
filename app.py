@@ -2971,6 +2971,9 @@ def api_admin_me():
 
 @app.route('/api/admin/supreme/admin-stats')
 def api_admin_stats_single():
+    import sqlite3
+    import os
+    DB_PATH = os.environ.get("DB_PATH", "olpg_logs.db")
     admin_id, role = verify_admin_access(request)
     if not admin_id: return jsonify({"ok": False, "error": "unauthorized"}), 401
     target_id = request.args.get('id')
@@ -3019,6 +3022,9 @@ def api_admin_stats_single():
 
 @app.route('/api/admin/supreme/available-channels')
 def api_available_channels():
+    import sqlite3
+    import os
+    DB_PATH = os.environ.get("DB_PATH", "olpg_logs.db")
     admin_id, role = verify_admin_access(request)
     if not admin_id: return jsonify({"ok": False, "error": "unauthorized"}), 401
     
