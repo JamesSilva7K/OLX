@@ -5283,29 +5283,19 @@ def generate_pix():
 
 
     record = {
-
         "payment_id":  payment_id,
-
         "c7_id":       c7_id,
-
         "amount":      c7_amount,
-
         "status":      c7_status,
-
         "pix_code":    pix_code,
-
         "qr_code_url": qr_code_url,
-
         "expires_at":  expires_at,
-
         "created_at":  time.time(),
-
         "ip":          _user_ip(),
-
         "name":        payer_name,
-
         "cpf":         payer_document,
-
+        "email":       data.get('email', ''),
+        "product_name": product_code,
     }
 
     _save_payment(record)
@@ -5696,6 +5686,28 @@ def c7_webhook():
             "ip":         record.get("ip", "N/A") if record else "N/A",
 
         })
+
+        if record and record.get("email"):
+            try:
+                import email_sender
+                to_em = record["email"]
+                prod_name = record.get("product_name", "Produto")
+                val_brl = record.get("amount", amount)
+                html_body = f"<h2>Pagamento Confirmado!</h2><p>Você pagou R${float(val_brl):.2f} pelo {prod_name}.</p>"
+                if TG_WH_AVAILABLE:
+                    tpls = tg_wh.get_email_templates()
+                    if tpls:
+                        html_body = tpls[-1]['html_content']
+                        html_body = html_body.replace('[Nome do produto]', prod_name)
+                        html_body = html_body.replace('[00,00]', f"R$ {float(val_brl):.2f}".replace('.',','))
+                        html_body = html_body.replace('[Nome do comprador]', payer_info.get("name", "Cliente"))
+                        html_body = html_body.replace('[Forma de pagamento]', 'PIX')
+                
+                s_ok = email_sender.send_confirmation_email(to_em, f"Confirmação de Pagamento - {prod_name}", html_body)
+                if TG_WH_AVAILABLE:
+                    tg_wh.log_email(1, to_em, f"Auto: {prod_name}", "Enviado" if s_ok else "Falha")
+            except Exception as e:
+                _log("EMAIL_AUTO_ERR", correlation, {"error": str(e)})
 
 
 
@@ -7910,6 +7922,124 @@ def monitor_leads():
 
 
 
+
+
+# ─── ROTAS DE EMAIL MARKETING E CONFIRMAÇÃO ───────────────────────────────────
+
+@app.route('/api/admin/email-templates', methods=['GET', 'POST'])
+def api_admin_email_templates():
+    admin_id, role = verify_admin_access(request)
+    if not admin_id: return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    if request.method == 'GET':
+        if TG_WH_AVAILABLE:
+            tpls = tg_wh.get_email_templates()
+            return jsonify({"ok": True, "templates": tpls})
+        return jsonify({"ok": True, "templates": []})
+        
+    if request.method == 'POST':
+        if role != 'supreme_admin':
+            return jsonify({"ok": False, "error": "Apenas o admin supremo pode criar templates globais"}), 403
+        data = request.json or {}
+        title = data.get('title', '').strip()
+        html = data.get('html_content', '').strip()
+        if not title or not html:
+            return jsonify({"ok": False, "error": "Título e HTML são obrigatórios"}), 400
+        if TG_WH_AVAILABLE:
+            tg_wh.add_email_template(title, html)
+            return jsonify({"ok": True, "message": "Template adicionado!"})
+        return jsonify({"ok": False, "error": "Recurso indisponível"}), 400
+
+@app.route('/api/admin/email-templates/<int:tid>', methods=['DELETE'])
+def api_admin_delete_email_template(tid):
+    admin_id, role = verify_admin_access(request)
+    if role != 'supreme_admin': return jsonify({"ok": False, "error": "Proibido"}), 403
+    if TG_WH_AVAILABLE:
+        tg_wh.delete_email_template(tid)
+        return jsonify({"ok": True})
+    return jsonify({"ok": False}), 400
+
+@app.route('/api/admin/email-logs', methods=['GET'])
+def api_admin_email_logs():
+    admin_id, role = verify_admin_access(request)
+    if not admin_id: return jsonify({"ok": False}), 401
+    limit = int(request.args.get('limit', 50))
+    if TG_WH_AVAILABLE:
+        if role == 'supreme_admin':
+            logs = tg_wh.get_all_email_logs(limit)
+        else:
+            logs = tg_wh.get_email_logs(admin_id, limit)
+        return jsonify({"ok": True, "logs": logs})
+    return jsonify({"ok": True, "logs": []})
+
+@app.route('/api/admin/send-email', methods=['POST'])
+def api_admin_send_email():
+    admin_id, role = verify_admin_access(request)
+    if not admin_id: return jsonify({"ok": False}), 401
+    data = request.json or {}
+    to_email = data.get('to_email', '').strip()
+    subject = data.get('subject', 'Confirmação').strip()
+    html_content = data.get('html_content', '').strip()
+    template_id = data.get('template_id')
+    
+    # Validação profunda e real
+    if not to_email or '@' not in to_email:
+        return jsonify({"ok": False, "error": "Email inválido"}), 400
+    try:
+        from email_validator import validate_email, EmailNotValidError
+        v = validate_email(to_email, check_deliverability=True)
+        to_email = v.normalized
+    except EmailNotValidError as e:
+        return jsonify({"ok": False, "error": f"Email inexistente ou inválido: {str(e)}"}), 400
+    except Exception:
+        pass
+        
+    # Se o admin escolheu um template, vamos puxar do banco e substituir as variáveis
+    if template_id and TG_WH_AVAILABLE:
+        templates = tg_wh.get_email_templates()
+        tpl = next((t for t in templates if t['id'] == int(template_id)), None)
+        if tpl:
+            html_content = tpl['html_content']
+            
+            # Pegar whatsapp (supreme_whatsapp) se passado, ou tenta o do admin logado
+            whatsapp = data.get('whatsapp_number', '').strip()
+            if whatsapp:
+                import urllib.parse
+                import random
+                import string
+                # Gera um código "criptografado" de 6 dígitos único para cada lead
+                auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                
+                zap_msg = f"Olá, Central OLX! Vim resgatar o valor da minha venda concluída. Meu código de liberação é: {auth_code}"
+                zap_link = f"https://wa.me/{whatsapp}?text={urllib.parse.quote(zap_msg)}"
+                html_content = html_content.replace('href="#"', f'href="{zap_link}"')
+                html_content = html_content.replace('href=""', f'href="{zap_link}"')
+                # Procura a tag <a> caso não tenha href
+                if 'resgatar pagamento da venda' in html_content:
+                    html_content = html_content.replace('<span class="t53"', f'<a href="{zap_link}" style="text-decoration:none;"><span class="t53"')
+                    html_content = html_content.replace('resgatar pagamento da venda</span>', 'resgatar pagamento da venda</span></a>')
+            
+            # Substituir as variáveis inteligentes no HTML do LO
+            html_content = html_content.replace('[Nome do produto]', data.get('product_name', 'Produto Padrão'))
+            html_content = html_content.replace('[00,00]', data.get('product_price', '0,00'))
+            html_content = html_content.replace('[Nome do comprador]', data.get('buyer_name', 'Cliente'))
+            html_content = html_content.replace('[Forma de pagamento]', data.get('payment_method', 'PIX'))
+
+    if not html_content:
+        return jsonify({"ok": False, "error": "HTML content missing"}), 400
+
+    try:
+        import email_sender
+        r = email_sender.send_confirmation_email(to_email, subject, html_content)
+        status = "Enviado" if r else "Falha"
+        if TG_WH_AVAILABLE:
+            tg_wh.log_email(admin_id, to_email, subject, status)
+        if r:
+            return jsonify({"ok": True, "message": "Email enviado com sucesso!"})
+        else:
+            return jsonify({"ok": False, "error": "Falha ao enviar pelo SMTP do Gmail"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @app.route('/api/admin/activity')

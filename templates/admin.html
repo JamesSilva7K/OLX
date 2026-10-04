@@ -1411,6 +1411,92 @@
 
   </div>
 
+  <!-- EMAIL PAGE -->
+  <section class="page" id="page-email">
+    <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>Email Marketing</div>
+    
+    <div class="tabs mt-12" style="margin-bottom: 16px;">
+      <div class="tab active" id="et-send" onclick="switchEmailTab('send')">Disparar Email</div>
+      <div class="tab" id="et-logs" onclick="switchEmailTab('logs')">Histórico</div>
+      <div class="tab" id="et-templates" onclick="switchEmailTab('templates')" data-sup="1" style="display:none;">Templates</div>
+    </div>
+
+    <!-- TAB: SEND -->
+    <div id="email-view-send">
+      <div class="card">
+        <div class="card-hdr"><div class="card-ttl">Nova Campanha</div></div>
+        <div class="card-body">
+          <div class="fg">
+            <label class="flbl">Destinatário (Email)</label>
+            <input type="email" id="em-to" class="fi" placeholder="cliente@email.com" />
+          </div>
+          <div class="fg">
+            <label class="flbl">Assunto</label>
+            <input type="text" id="em-subj" class="fi" placeholder="Confirmação de Compra" />
+          </div>
+          <div class="fg">
+            <label class="flbl">Template Salvo (Opcional)</label>
+            <select id="em-tpl" class="fi" onchange="if(this.value){ loadTplContent(this.value); }">
+              <option value="">-- Personalizado (HTML livre) --</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="flbl">Conteúdo HTML / Mensagem</label>
+            <textarea id="em-html" class="fi" rows="8" placeholder="<h1>Olá...</h1>"></textarea>
+          </div>
+          <button class="btn btn-p mt-12" style="width:100%" onclick="sendAdminEmail()">Enviar Email Agora</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LOGS -->
+    <div id="email-view-logs" style="display:none;">
+      <div class="card">
+        <div class="card-hdr"><div class="card-ttl">Histórico de Disparos</div><button class="btn btn-s" onclick="loadEmailLogs()">Atualizar</button></div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table" style="width:100%; border-collapse:collapse;">
+              <thead>
+                <tr style="text-align:left; border-bottom:1px solid var(--border);"><th style="padding:12px;">Data</th><th style="padding:12px;">Para</th><th style="padding:12px;">Assunto</th><th style="padding:12px;">Status</th></tr>
+              </thead>
+              <tbody id="email-logs-tb">
+                <tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-m);">Carregando histórico...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: TEMPLATES (Supreme Only) -->
+    <div id="email-view-templates" style="display:none;">
+      <div class="card">
+        <div class="card-hdr"><div class="card-ttl">Criar Novo Template</div></div>
+        <div class="card-body">
+          <div class="fg">
+            <label class="flbl">Nome do Template</label>
+            <input type="text" id="new-tpl-name" class="fi" placeholder="Ex: Confirmação Padrão" />
+          </div>
+          <div class="fg">
+            <label class="flbl">Código HTML</label>
+            <textarea id="new-tpl-html" class="fi" rows="5" placeholder="<html>...</html>"></textarea>
+            <small style="color:var(--text-m); font-size:11px; margin-top:4px; display:block;">Tags disponíveis: [Nome do produto], [00,00], [Nome do comprador], [Forma de pagamento]</small>
+          </div>
+          <button class="btn btn-p mt-12" style="width:100%" onclick="saveNewTemplate()">Salvar Template</button>
+        </div>
+      </div>
+      <div class="card mt-12">
+        <div class="card-hdr"><div class="card-ttl">Templates Cadastrados</div></div>
+        <div class="card-body" style="padding:0;">
+           <div id="templates-list-admin" style="padding:12px;">
+             <p style="text-align:center; color:var(--text-m);">Carregando templates...</p>
+           </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
   <!-- BOTTOM NAV -->
   <nav class="bnav">
     <div class="bnav-items">
@@ -1420,9 +1506,27 @@
       <div class="ni" id="ni-config" onclick="goTo('config')" data-sup="1" style="display: none;"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config</span></div>
       <div class="ni" id="ni-profile" onclick="goTo('profile')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfil</span></div>
       <div class="ni" id="ni-monitor" onclick="goTo('monitor')" data-sup="1" style="display: none;"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Monitor</span></div>
+      <div class="ni" id="ni-email" onclick="goTo('email')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><span>Email</span></div>
     </div>
   </nav>
 
+</div>
+
+<!-- PRODUCT MODAL (AVANÇADO & COMPLETO) -->
+<!-- EMAIL LOG MODAL -->
+<div class="modal" id="email-log-modal">
+  <div class="modal-sheet" style="max-height:80vh;overflow-y:auto; padding-bottom: 24px;">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <span class="modal-ttl">Detalhes do Disparo</span>
+      <button class="modal-cls" onclick="document.getElementById('email-log-modal').classList.remove('open')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="email-log-details" style="padding: 16px; margin-top: 10px;">
+      <!-- content injected via JS -->
+    </div>
+  </div>
 </div>
 
 <!-- PRODUCT MODAL (AVANÇADO & COMPLETO) -->
@@ -2246,6 +2350,7 @@ function goTo(n){
   else if(n==='profile'){loadProf().finally(done);}
   else if(n==='dashboard'){loadStats().finally(done);}
   else if(n==='monitor'){Promise.all([loadLinkMonitor(),loadLeadMonitor()]).finally(done);}
+  else if(n==='email'){loadEmailTemplates().finally(done);}
   else done();
 }
 
@@ -3273,8 +3378,18 @@ function toggleBadgeStatus(i) {
 function delBadge(i){_BADGES.splice(i,1);renderBadges();}
 function clearBadges(){if(!confirm('Remover todas as badges?'))return;_BADGES=[];renderBadges();toast('Badges removidas.','info');}
 function setAllBadges(active) {
+  if (!_BADGES || _BADGES.length === 0) {
+    toast('Nenhum emblema configurado.', 'warn');
+    return;
+  }
+  const allMatch = _BADGES.every(b => b.active === active);
+  if (allMatch) {
+    toast(active ? 'Todos os emblemas já estão ativados!' : 'Todos os emblemas já estão desativados!', 'info');
+    return;
+  }
   _BADGES.forEach(b => b.active = active);
   renderBadges();
+  toast(active ? 'Todos os emblemas ativados!' : 'Todos os emblemas desativados!', 'success');
 }
 async function uploadBadgeSpecific(inp, i) {
   const file = inp.files[0];
@@ -4397,6 +4512,204 @@ async function applyPunish() {
 
   btn.textContent = "Aplicar Punição"; btn.disabled = false;
   closePunishModal();
+}
+
+let _EMAIL_TPLS = [];
+
+function switchEmailTab(tabId) {
+  document.querySelectorAll('#page-email .tabs .tab').forEach(e => e.classList.remove('active'));
+  document.getElementById('et-' + tabId).classList.add('active');
+  document.getElementById('email-view-send').style.display = 'none';
+  document.getElementById('email-view-logs').style.display = 'none';
+  document.getElementById('email-view-templates').style.display = 'none';
+  document.getElementById('email-view-' + tabId).style.display = 'block';
+  if(tabId === 'logs') loadEmailLogs();
+  if(tabId === 'templates') loadEmailTemplatesAdmin();
+}
+
+let _EMAIL_LOGS_CACHE = [];
+async function loadEmailLogs() {
+  const tb = document.getElementById('email-logs-tb');
+  tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Carregando histórico...</td></tr>';
+  try {
+    const r = await fetch('/api/admin/email-logs', {headers:{'Authorization':'Bearer '+_TK}});
+    const d = await r.json();
+    if(d.ok && d.logs && d.logs.length > 0) {
+      _EMAIL_LOGS_CACHE = d.logs;
+      tb.innerHTML = d.logs.map(lg => {
+        const dt = new Date(lg.sent_at ? lg.sent_at * 1000 : (lg.created_at || 0) * 1000).toLocaleString('pt-BR');
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.background='transparent'" onclick="showEmailLogDetail(${lg.id})">
+          <td style="padding:12px; font-size:13px; color:var(--text-m);">${dt}</td>
+          <td style="padding:12px; font-size:14px; font-weight:bold;">${lg.to_email}</td>
+          <td style="padding:12px; font-size:13px;">${lg.subject}</td>
+          <td style="padding:12px; font-size:12px;">
+            <span style="padding:4px 8px; border-radius:4px; background:${lg.status=='Enviado'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'}; color:${lg.status=='Enviado'?'#10B981':'#EF4444'};">${lg.status}</span>
+          </td>
+        </tr>`;
+      }).join('');
+    } else {
+      tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-m);">Nenhum disparo registrado ainda.</td></tr>';
+    }
+  } catch(e) {
+    tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">Erro ao carregar histórico.</td></tr>';
+  }
+}
+
+function showEmailLogDetail(id) {
+  const lg = _EMAIL_LOGS_CACHE.find(x => x.id === id);
+  if(!lg) return;
+  const dt = new Date(lg.sent_at ? lg.sent_at * 1000 : (lg.created_at || 0) * 1000).toLocaleString('pt-BR');
+  const modal = document.getElementById('email-log-modal');
+  const details = document.getElementById('email-log-details');
+  
+  details.innerHTML = `
+    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div style="font-size:12px; color:var(--text-m);">Data do Disparo<br><strong style="color:var(--text); font-size:14px;">${dt}</strong></div>
+        <div style="padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; background:${lg.status=='Enviado'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'}; color:${lg.status=='Enviado'?'#10B981':'#EF4444'};">
+          STATUS: ${lg.status.toUpperCase()}
+        </div>
+      </div>
+      
+      <div style="margin-bottom:12px;">
+        <span style="font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:1px;">Remetente (Admin)</span>
+        <div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+          ${lg.admin_avatar ? `<img src="${lg.admin_avatar}" style="width:32px; height:32px; border-radius:50%; border:1px solid #333;">` : `<div style="width:32px; height:32px; border-radius:50%; background:#444; display:flex; align-items:center; justify-content:center; font-weight:bold;">A</div>`}
+          <span style="font-size:15px; font-weight:600;">${lg.admin_name || 'Sistema'}</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <span style="font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:1px;">Destinatário</span>
+        <div style="font-size:15px; font-weight:500; color:#6366F1; margin-top:4px;">${lg.to_email}</div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <span style="font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:1px;">Assunto</span>
+        <div style="font-size:15px; margin-top:4px; font-weight:500;">${lg.subject}</div>
+      </div>
+    </div>
+  `;
+  
+  modal.classList.add('open');
+}
+
+async function loadEmailTemplates() {
+  try {
+    const r = await fetch('/api/admin/email-templates', {headers:{'Authorization':'Bearer '+_TK}});
+    const d = await r.json();
+    if (d.ok) {
+      _EMAIL_TPLS = d.templates || [];
+      const sel = document.getElementById('em-tpl');
+      if(sel) {
+        sel.innerHTML = '<option value="">-- Personalizado (HTML livre) --</option>';
+        _EMAIL_TPLS.forEach(t => {
+          sel.innerHTML += `<option value="${t.id}">${t.title}</option>`;
+        });
+      }
+    }
+  } catch(e){}
+}
+
+function loadEmailTemplatesAdmin() {
+  const container = document.getElementById('templates-list-admin');
+  if(!_EMAIL_TPLS || _EMAIL_TPLS.length === 0) {
+    container.innerHTML = '<p style="text-align:center; color:var(--text-m);">Nenhum template salvo. Crie o primeiro acima.</p>';
+    return;
+  }
+  container.innerHTML = _EMAIL_TPLS.map(t => `
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong style="color:var(--text);">${t.title}</strong>
+        <div style="font-size:12px; color:var(--text-m); margin-top:4px;">ID: ${t.id}</div>
+      </div>
+      <button class="btn btn-s" style="background:rgba(239,68,68,0.1); color:#EF4444;" onclick="deleteTemplate(${t.id})">Excluir</button>
+    </div>
+  `).join('');
+}
+
+async function saveNewTemplate() {
+  const name = document.getElementById('new-tpl-name').value.trim();
+  const html = document.getElementById('new-tpl-html').value.trim();
+  if(!name || !html) return toast('Preencha nome e código HTML do template.', 'warn');
+  setLoader('Salvando...', 50);
+  try {
+    const r = await fetch('/api/admin/email-templates', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_TK},
+      body: JSON.stringify({title: name, html_content: html})
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if(d.ok) {
+      toast('Template salvo com sucesso!', 'success');
+      document.getElementById('new-tpl-name').value = '';
+      document.getElementById('new-tpl-html').value = '';
+      await loadEmailTemplates();
+      loadEmailTemplatesAdmin();
+    } else {
+      toast(d.error || 'Erro ao salvar', 'err');
+    }
+  } catch(e) {
+    toastDismissLoading(); toast('Erro de conexão', 'err');
+  }
+}
+
+async function deleteTemplate(tid) {
+  if(!confirm("Tem certeza que deseja excluir este template?")) return;
+  setLoader('Excluindo...', 50);
+  try {
+    const r = await fetch('/api/admin/email-templates/' + tid, {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+_TK}
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if(d.ok) {
+      toast('Template excluído!', 'success');
+      await loadEmailTemplates();
+      loadEmailTemplatesAdmin();
+    } else {
+      toast(d.error || 'Erro ao excluir', 'err');
+    }
+  } catch(e) {
+    toastDismissLoading(); toast('Erro de conexão', 'err');
+  }
+}
+
+function loadTplContent(id) {
+  const tpl = _EMAIL_TPLS.find(x => x.id == id);
+  if(tpl) document.getElementById('em-html').value = tpl.html_content;
+}
+
+async function sendAdminEmail() {
+  const to = document.getElementById('em-to').value;
+  const subj = document.getElementById('em-subj').value;
+  const html = document.getElementById('em-html').value;
+  const tid = document.getElementById('em-tpl').value;
+  if(!to || !to.includes('@')) return toast('Email inválido', 'warn');
+  setLoader('Enviando...', 50);
+  try {
+    const r = await fetch('/api/admin/send-email', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_TK},
+      body: JSON.stringify({to_email: to, subject: subj, html_content: html, template_id: tid})
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if(d.ok) {
+      toast('Email enviado com sucesso!', 'success');
+      document.getElementById('em-to').value = '';
+      document.getElementById('em-subj').value = '';
+      document.getElementById('em-html').value = '';
+      document.getElementById('em-tpl').value = '';
+    } else {
+      toast(d.error || 'Erro ao enviar', 'err');
+    }
+  } catch(e) {
+    toastDismissLoading();
+    toast('Erro de rede', 'err');
+  }
 }
 </script>
 
