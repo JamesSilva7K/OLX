@@ -2997,30 +2997,42 @@ def api_admin_stats_single():
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         
-        # Get role
         cur.execute("SELECT role FROM vault WHERE tg_id = ?", (target_id,))
         row = cur.fetchone()
         t_role = row['role'] if row else 'admin'
+        if target_id in getattr(admin_bot, "ADMINS_SUPREMOS", [6220800735]):
+            t_role = 'supreme_admin'
+
         
         # Get products count and products
-        cur.execute("SELECT name, created_at, (SELECT COUNT(*) FROM payments WHERE payments.product_code = product_templates.code AND payments.status IN ('approved','paid')) as sales FROM product_templates WHERE creator_id = ? ORDER BY created_at DESC LIMIT 5", (target_id,))
+        cur.execute("SELECT title, created_at, (SELECT COUNT(*) FROM payments WHERE payments.product_code = tenant_products.product_code AND payments.status IN ('approved','paid')) as sales FROM tenant_products WHERE tg_id = ? ORDER BY created_at DESC LIMIT 5", (target_id,))
         products_rows = cur.fetchall()
         
-        cur.execute("SELECT COUNT(*) as c FROM product_templates WHERE creator_id = ?", (target_id,))
+        cur.execute("SELECT COUNT(*) as c FROM tenant_products WHERE tg_id = ?", (target_id,))
         prod_count = cur.fetchone()['c']
         
         # Get sales and revenue
-        cur.execute("SELECT COUNT(*), SUM(amount) FROM payments WHERE status IN ('approved','paid') AND product_code IN (SELECT code FROM product_templates WHERE creator_id = ?)", (target_id,))
+        cur.execute("SELECT COUNT(*), SUM(amount) FROM payments WHERE status IN ('approved','paid') AND product_code IN (SELECT product_code FROM tenant_products WHERE tg_id = ?)", (target_id,))
         p_row = cur.fetchone()
         sales_count = p_row[0] or 0
         revenue = p_row[1] or 0.0
         
         prods = []
+        import datetime
         for p in products_rows:
+            try:
+                # Assuming created_at might be a float timestamp or string
+                ts = p['created_at']
+                if isinstance(ts, float) or isinstance(ts, int):
+                    t_ago = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+                else:
+                    t_ago = str(ts).split()[0]
+            except:
+                t_ago = ''
             prods.append({
-                "name": p['name'],
+                "name": p['title'],
                 "sales": p['sales'],
-                "time_ago": p['created_at'].split()[0]
+                "time_ago": t_ago
             })
             
     return jsonify({
@@ -3042,12 +3054,22 @@ def api_available_channels():
     admin_id, role = verify_admin_access(request)
     if not admin_id: return jsonify({"ok": False, "error": "unauthorized"}), 401
     
-    # Return fake but realistic channels for the UI since we don't have the table populated
-    channels = [
-        {"id": "-10022445566", "title": "OLX Pay Oficial (Telegram)", "type": "channel"},
-        {"id": "-10099887766", "title": "Equipe Vendas (Telegram)", "type": "supergroup"},
-        {"id": "-10055443322", "title": "Logs Sistema", "type": "supergroup"}
-    ]
+    channels = []
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        try:
+            # Pegar todos os grupos/canais
+            rows = conn.execute("SELECT chat_id, title, type, is_forum FROM bot_chats").fetchall()
+            for r in rows:
+                c_id = r["chat_id"]
+                ch_obj = {"id": c_id, "title": r["title"] or c_id, "type": r["type"], "topics": []}
+                if r["is_forum"]:
+                    t_rows = conn.execute("SELECT thread_id, title FROM bot_topics WHERE chat_id=?", (c_id,)).fetchall()
+                    for tr in t_rows:
+                        ch_obj["topics"].append({"id": tr["thread_id"], "name": tr["title"]})
+                channels.append(ch_obj)
+        except Exception as e:
+            pass
     try:
         with sqlite3.connect(DB_PATH) as conn:
             conn.row_factory = sqlite3.Row
@@ -3665,7 +3687,7 @@ def api_admin_supreme_log_channels():
 
         if TG_WH_AVAILABLE:
 
-            tg_wh.set_log_channel(channel_key, int(chat_id), title)
+            tg_wh.set_log_channel(channel_key, str(chat_id), title)
 
             return jsonify({"ok": True, "message": f"Canal de logs {channel_key} configurado para chat {chat_id}!"})
 

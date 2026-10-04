@@ -23,7 +23,13 @@ def _tg(method, data):
         return {}
 
 def send_msg(chat_id, text, markup=None, pm="HTML"):
-    p = {"chat_id": chat_id, "text": text, "parse_mode": pm}
+    chat_id_str = str(chat_id)
+    thread_id = None
+    if ":" in chat_id_str:
+        chat_id_str, thread_id = chat_id_str.split(":", 1)
+    
+    p = {"chat_id": chat_id_str, "text": text, "parse_mode": pm}
+    if thread_id: p["message_thread_id"] = thread_id
     if markup: p["reply_markup"] = markup
     return _tg("sendMessage", p)
 
@@ -1203,6 +1209,23 @@ def handle_state_input(chat_id, tg_id, text, state):
 # ─── MAIN DISPATCHER ──────────────────────────────────────────────────────────
 def dispatch(update: dict):
     try:
+        if "my_chat_member" in update:
+            member = update["my_chat_member"]
+            chat = member.get("chat", {})
+            new_status = member.get("new_chat_member", {}).get("status", "")
+            if new_status in ("member", "administrator"):
+                conn = _get_db()
+                conn.execute("INSERT OR REPLACE INTO bot_chats(chat_id, title, type, is_forum) VALUES(?,?,?,?)",
+                             (str(chat.get("id")), chat.get("title", ""), chat.get("type", ""), 1 if chat.get("is_forum") else 0))
+                conn.commit()
+                conn.close()
+            elif new_status in ("left", "kicked"):
+                conn = _get_db()
+                conn.execute("DELETE FROM bot_chats WHERE chat_id=?", (str(chat.get("id")),))
+                conn.commit()
+                conn.close()
+            return
+
         if "callback_query" in update:
             cq = update["callback_query"]
             handle_callback(
@@ -1212,8 +1235,29 @@ def dispatch(update: dict):
                 cq.get("data",""))
             return
 
-        if "message" not in update: return
-        msg = update["message"]
+        msg = update.get("message") or update.get("channel_post")
+        if not msg: return
+        
+        chat = msg.get("chat", {})
+        if str(chat.get("id", "")).startswith("-100") or chat.get("type") in ("group", "supergroup", "channel"):
+            conn = _get_db()
+            conn.execute("INSERT OR REPLACE INTO bot_chats(chat_id, title, type, is_forum) VALUES(?,?,?,?)",
+                         (str(chat.get("id")), chat.get("title", ""), chat.get("type", ""), 1 if chat.get("is_forum") else 0))
+            if "forum_topic_created" in msg:
+                ft = msg["forum_topic_created"]
+                thread_id = str(msg.get("message_thread_id", ""))
+                title = ft.get("name", f"Tópico {thread_id}")
+                if thread_id:
+                    conn.execute("INSERT OR IGNORE INTO bot_topics(chat_id, thread_id, title) VALUES(?,?,?)",
+                                 (str(chat.get("id")), thread_id, title))
+            elif "message_thread_id" in msg and msg.get("is_topic_message", False):
+                thread_id = str(msg["message_thread_id"])
+                conn.execute("INSERT OR IGNORE INTO bot_topics(chat_id, thread_id, title) VALUES(?,?,?)",
+                             (str(chat.get("id")), thread_id, f"Tópico #{thread_id}"))
+            conn.commit()
+            conn.close()
+
+
         chat_id  = msg["chat"]["id"]
         tg_id    = msg.get("from",{}).get("id", 0)
         username = msg.get("from",{}).get("first_name","Agente")

@@ -110,7 +110,7 @@
     @keyframes connProgress{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 
     /* ── NOTIFICATION DOT ─────────────────────────────────────── */
-    .ni-dot{position:absolute;top:8px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:var(--c-red);border:2px solid var(--c-bg);animation:niDotPop .3s cubic-bezier(0.16,1,0.3,1)}
+    .ni-dot{position:absolute;top:10px;right:calc(50% - 16px);width:6px;height:6px;border-radius:50%;background:var(--c-red);border:2px solid var(--c-bg);animation:niDotPop .3s cubic-bezier(0.16,1,0.3,1)}
     @keyframes niDotPop{from{transform:scale(0)}to{transform:scale(1)}}
 
     /* ── ADVANCED TWA SYNC ────────────────────────────────────── */
@@ -217,14 +217,13 @@
     .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:1000px;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);background:rgba(10,0,18,0.97);border-top:1px solid var(--c-border);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);display:flex;align-items:center;z-index:50}
     .bnav-items{display:flex;width:100%;align-items:center;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
 .bnav-items::-webkit-scrollbar{display:none;}
-    .ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:var(--nav-h);cursor:pointer;color:var(--c-t3);transition:color .2s;-webkit-user-select:none;user-select:none;position:relative}
-    .ni svg{width:22px;height:22px;transition:transform .2s}
-    .ni span{font-size:10px;font-weight:600;transition:all .2s}
-    .ni.active{color:var(--c-purple3)}
-    .ni.active svg{transform:translateY(-1px)}
-    .ni::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--c-purple);border-radius:0 0 4px 4px;transition:width .25s ease}
-    .ni.active::before{width:32px}
-    .ni:active svg{transform:scale(.88)}
+    .ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:calc(var(--nav-h) - 10px);margin:5px 4px;border-radius:12px;cursor:pointer;color:var(--c-t3);transition:all .3s ease;-webkit-user-select:none;user-select:none;position:relative}
+    .ni svg{width:24px;height:24px;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1)}
+    .ni span{font-size:10px;font-weight:700;transition:all .3s ease; opacity:0; max-height:0; overflow:hidden;}
+    .ni.active{color:var(--c-purple3); background:rgba(139,92,246,0.12);}
+    .ni.active span{opacity:1; max-height:20px; transform:translateY(0);}
+    .ni.active svg{transform:translateY(-2px) scale(1.05);}
+    .ni:active{transform:scale(0.92);}
 
     /* CARDS */
     .card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden}
@@ -516,12 +515,13 @@
     .mon-link-visits{font-size:12px;font-weight:800;color:var(--c-purple3);flex-shrink:0}
 
     /* NAV BTN MONITOR (standalone extra nav button) */
-    .nav-btn-extra{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:var(--nav-h);flex:1;cursor:pointer;color:var(--c-t3);transition:color .2s;background:none;border:none;font-family:var(--font)}
-    .nav-btn-extra.active{color:var(--c-purple3)}
-    .nav-btn-extra svg{width:22px;height:22px;transition:transform .2s}
-    .nav-btn-extra span{font-size:10px;font-weight:600;transition:all .2s}
-    .nav-btn-extra::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--c-purple);border-radius:0 0 4px 4px;transition:width .25s ease}
-    .nav-btn-extra.active::before{width:32px}
+    .nav-btn-extra{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:calc(var(--nav-h) - 10px);flex:1;cursor:pointer;color:var(--c-t3);transition:all .3s ease;background:none;border:none;font-family:var(--font);margin:5px 4px;border-radius:12px;position:relative}
+    .nav-btn-extra svg{width:24px;height:24px;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1)}
+    .nav-btn-extra span{font-size:10px;font-weight:700;transition:all .3s ease; opacity:0; max-height:0; overflow:hidden;}
+    .nav-btn-extra.active{color:var(--c-purple3); background:rgba(139,92,246,0.12);}
+    .nav-btn-extra.active span{opacity:1; max-height:20px; transform:translateY(0);}
+    .nav-btn-extra.active svg{transform:translateY(-2px) scale(1.05);}
+    .nav-btn-extra:active{transform:scale(0.92);}
 
     /* ── TELEGRAM WEB APP FIXES ──────────────────────────────── */
     :root {
@@ -3121,7 +3121,7 @@ async function loadSupremeOverview() {
           '<div class="sup-stat-chip"><div class="sup-stat-chip-val">' + (a.products ? a.products.length : 0) + '</div><div class="sup-stat-chip-lbl">Prods</div></div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05)">' +
-           '<button class="btn sup-action-btn btn-promote" onclick="changeRole(' + a.tg_id + ')">Mudar Cargo</button>' +
+           '<button class="btn sup-action-btn btn-promote" onclick="changeRole(' + a.tg_id + ', \'' + escapeHtml(name) + '\')">Mudar Cargo</button>' +
            '<button class="btn sup-action-btn btn-block" onclick="blockAdmin(' + a.tg_id + ')">Bloquear (Blindagem)</button>' +
         '</div>' +
       '</div>';
@@ -3131,24 +3131,10 @@ async function loadSupremeOverview() {
   }
 }
 
-window.changeRole = async function(tg_id) {
-    const p = prompt('Digite o novo plano (free, starter, pro, unlimited):');
-    if(!p) return;
-    try {
-        const r = await apiFetch('/api/admin/supreme/set-plan', {
-            method: 'POST',
-            body: JSON.stringify({tg_id: tg_id, plan: p.toLowerCase().trim()})
-        });
-        const d = await r.json();
-        if(d.ok) {
-            toast('Cargo atualizado com sucesso! (Blindagem verificada)', 'ok');
-            loadSupremeOverview();
-        } else {
-            toast(d.error || 'Erro ao alterar plano', 'err');
-        }
-    } catch(e) {
-        toast('Erro de conexão', 'err');
-    }
+window.changeRole = function(tg_id, name) {
+    _currentAdminProfileId = tg_id;
+    _currentAdminName = name || 'Admin';
+    openRoleModal();
 }
 
 window.blockAdmin = async function(tg_id) {
@@ -4284,7 +4270,7 @@ async function openAdminProfile(id, name, avatar) {
          document.getElementById('ap-role-chip').textContent = d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Normal';
          const actions = document.querySelector('.ap-actions');
          if (actions) {
-             if (d.stats.role === 'supreme_admin' || !_SUP) {
+             if (d.stats.role === 'supreme_admin' || !_SUP || id == _PROF.tg_id) {
                  actions.style.display = 'none';
              } else {
                  actions.style.display = 'flex';
