@@ -8042,7 +8042,7 @@ def api_admin_send_email():
         if r:
             return jsonify({"ok": True, "message": "Email enviado com sucesso!"})
         else:
-            return jsonify({"ok": False, "error": "Falha de autenticação no Google. Por favor, crie uma 'Senha de App' no Google e coloque nas variáveis de ambiente."}), 400
+            return jsonify({"ok": False, "error": "Falha no envio. Render bloqueou porta 587 (Plano Free) ou Senha de App incorreta."}), 400
     except Exception as e:
         return jsonify({"ok": False, "error": f"Erro interno ao enviar email: {str(e)}"}), 400
 

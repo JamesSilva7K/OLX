@@ -36,7 +36,7 @@ def send_confirmation_email(to_email: str, subject: str = "Confirmação de Comp
 
     try:
         # Conecta ao servidor do Google
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)
         server.starttls() # Inicia a criptografia TLS
         server.login(GMAIL_SENDER, GMAIL_PASSWORD)
         
