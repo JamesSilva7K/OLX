@@ -1502,6 +1502,7 @@ def index(slug_or_code=None, item_code=None):
             seller_id_verified=custom_item.get("seller_id_verified", 1) if custom_item else 1,
             seller_fb_verified=custom_item.get("seller_fb_verified", 0) if custom_item else 0,
             seller_fb_url=custom_item.get("seller_fb_url", "") if custom_item else "",
+            product_published_at=custom_item.get("product_published_at", "") if custom_item else "",
 
                     det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
 
@@ -3493,6 +3494,7 @@ def api_admin_my_products():
         seller_id_verified = 1 if data.get("seller_id_verified", 1) in (1, "1", True, "true") else 0
         seller_fb_verified = 1 if data.get("seller_fb_verified", 0) in (1, "1", True, "true") else 0
         seller_fb_url = data.get("seller_fb_url", "").strip()
+        product_published_at = data.get("product_published_at", "").strip()
 
         if not title:
             return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
@@ -3538,7 +3540,8 @@ def api_admin_my_products():
                 seller_phone_verified=seller_phone_verified,
                 seller_id_verified=seller_id_verified,
                 seller_fb_verified=seller_fb_verified,
-                seller_fb_url=seller_fb_url
+                seller_fb_url=seller_fb_url,
+                product_published_at=product_published_at
             )
 
             slug = tg_wh.get_slug(admin_id)

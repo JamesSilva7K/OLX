@@ -1339,6 +1339,117 @@
       </div>
     </div>
 
+    <!-- ╔══════════════════════════════════╗
+         ║   DICAS DE SEGURANÇA (carousel) ║
+         ╚══════════════════════════════════╝ -->
+    <div style="margin-top: 28px; font-family:'Nunito Sans',sans-serif;">
+      <h2 style="font-size:17px; font-weight:700; color:#1a1d23; margin-bottom:14px;">Dicas de segurança</h2>
+
+      <!-- Carousel wrapper -->
+      <div id="tips-track-wrap" style="overflow:hidden; position:relative; cursor:grab; user-select:none; -webkit-user-select:none;">
+        <div id="tips-track" style="display:flex; gap:12px; transition:transform 0.3s ease; will-change:transform;">
+
+          <!-- Tip 1 -->
+          <div style="min-width:220px; max-width:220px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px 14px; font-size:13px; color:#374151; line-height:1.5; flex-shrink:0;">
+            Não faça pagamentos antes de verificar o que está sendo anunciado.
+          </div>
+
+          <!-- Tip 2 -->
+          <div style="min-width:220px; max-width:220px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px 14px; font-size:13px; color:#374151; line-height:1.5; flex-shrink:0;">
+            Fique atento a ofertas muito abaixo do preço de mercado — podem ser golpe.
+          </div>
+
+          <!-- Tip 3 -->
+          <div style="min-width:220px; max-width:220px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px 14px; font-size:13px; color:#374151; line-height:1.5; flex-shrink:0;">
+            Prefira retirada pessoal em local seguro para produtos de alto valor.
+          </div>
+
+          <!-- Tip 4 -->
+          <div style="min-width:220px; max-width:220px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px 14px; font-size:13px; color:#374151; line-height:1.5; flex-shrink:0;">
+            Desconfie de vendedores que pedem depósito ou Pix antes de combinar a entrega.
+          </div>
+
+          <!-- Tip 5 -->
+          <div style="min-width:220px; max-width:220px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px 14px; font-size:13px; color:#374151; line-height:1.5; flex-shrink:0;">
+            Use a Garantia OLX para ter mais segurança na sua compra e proteger seu pagamento.
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Script de drag/swipe do carousel -->
+    <script>
+    (function(){
+      var wrap = document.getElementById('tips-track-wrap');
+      var track = document.getElementById('tips-track');
+      if(!wrap || !track) return;
+
+      var isDragging = false, startX = 0, startScroll = 0, currentOffset = 0;
+      var maxOffset = 0;
+
+      function getMaxOffset(){
+        return Math.max(0, track.scrollWidth - wrap.offsetWidth);
+      }
+
+      function clamp(v, mn, mx){ return Math.max(mn, Math.min(mx, v)); }
+
+      function applyOffset(off){
+        currentOffset = clamp(off, 0, getMaxOffset());
+        track.style.transform = 'translateX(-' + currentOffset + 'px)';
+      }
+
+      // Mouse events
+      wrap.addEventListener('mousedown', function(e){
+        isDragging = true;
+        startX = e.clientX;
+        startScroll = currentOffset;
+        wrap.style.cursor = 'grabbing';
+        track.style.transition = 'none';
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', function(e){
+        if(!isDragging) return;
+        applyOffset(startScroll - (e.clientX - startX));
+      });
+      window.addEventListener('mouseup', function(){
+        if(!isDragging) return;
+        isDragging = false;
+        wrap.style.cursor = 'grab';
+        track.style.transition = 'transform 0.3s ease';
+      });
+
+      // Touch events
+      wrap.addEventListener('touchstart', function(e){
+        startX = e.touches[0].clientX;
+        startScroll = currentOffset;
+        track.style.transition = 'none';
+      }, {passive:true});
+      wrap.addEventListener('touchmove', function(e){
+        applyOffset(startScroll - (e.touches[0].clientX - startX));
+      }, {passive:true});
+      wrap.addEventListener('touchend', function(){
+        track.style.transition = 'transform 0.3s ease';
+      });
+    })();
+    </script>
+
+    <!-- Denunciar anúncio -->
+    <div style="margin-top: 20px; font-family:'Nunito Sans',sans-serif;">
+      <a href="#" onclick="event.preventDefault();" style="display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#7c3aed; font-weight:600; text-decoration:none;">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#7c3aed" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v4M3 7l4-4 4 4 4-4 4 4V3"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v14"/>
+        </svg>
+        Denunciar anúncio
+      </a>
+    </div>
+
+    <!-- Publicado em (editável pelo admin) -->
+    <div style="margin-top: 14px; font-family:'Nunito Sans',sans-serif; font-size:13px; color:#6b7280;">
+      Publicado em {{ product_published_at if product_published_at else '' }}
+    </div>
+
     </div><!-- /right-col -->
 
 </main>

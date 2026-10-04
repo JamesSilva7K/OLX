@@ -1504,6 +1504,12 @@
       </div>
       <div class="fr">
         <div class="fg">
+          <label class="flbl">Publicado em (texto exibido)</label>
+          <input type="text" class="fi" id="edit-product-published-at" placeholder="Ex: 04/10 às 00:11"/>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg">
           <label class="flbl">Nível (Ex: Especialista)</label>
           <input type="text" class="fi" id="edit-seller-level" placeholder="Especialista"/>
         </div>
@@ -2884,6 +2890,8 @@ function openEditProd(p){
   document.getElementById('prod-modal').classList.add('open');
   // Carrega zona personalizada do produto + inicializa seção de localização
   if(typeof initLocSection === 'function') initLocSection(p.breadcrumb_zone||'');
+  // Preenche campo publicado em
+  if(document.getElementById('edit-product-published-at')) document.getElementById('edit-product-published-at').value = p.product_published_at || '';
 }
 
 function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
@@ -2948,6 +2956,7 @@ async function saveProd(){
     seller_id_verified: document.getElementById('edit-seller-id-verified') ? (document.getElementById('edit-seller-id-verified').checked ? 1 : 0) : 1,
     seller_fb_verified: document.getElementById('edit-seller-fb-verified') ? (document.getElementById('edit-seller-fb-verified').checked ? 1 : 0) : 0,
     seller_fb_url: document.getElementById('edit-seller-fb-url') ? document.getElementById('edit-seller-fb-url').value.trim() : "",
+    product_published_at: document.getElementById('edit-product-published-at') ? document.getElementById('edit-product-published-at').value.trim() : "",
 
     det_category: (document.getElementById('edit-det-category').value.trim() ? (document.getElementById('lbl-det-category').value.trim() + '|||' + document.getElementById('edit-det-category').value.trim()) : ""),
     det_brand: (document.getElementById('edit-det-brand').value.trim() ? (document.getElementById('lbl-det-brand').value.trim() + '|||' + document.getElementById('edit-det-brand').value.trim()) : ""),
