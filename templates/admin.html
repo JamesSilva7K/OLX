@@ -4641,6 +4641,10 @@ async function loadEmailTemplates() {
         _EMAIL_TPLS.forEach(t => {
           sel.innerHTML += `<option value="${t.id}">${t.title}</option>`;
         });
+        if (!document.getElementById('em-html').value && _EMAIL_TPLS.length > 0) {
+          sel.value = _EMAIL_TPLS[0].id;
+          loadTplContent(_EMAIL_TPLS[0].id);
+        }
       }
     }
   } catch(e){}

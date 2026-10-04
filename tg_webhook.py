@@ -219,6 +219,22 @@ def init_tenant_tables():
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
     _safe_add_column(conn, "tg_sessions",     "country_geo","TEXT")
+    
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM email_templates")
+    if cur.fetchone()[0] == 0:
+        import os, time
+        tpl_path = os.path.join(os.path.dirname(__file__), 'Template Email', 'index.html')
+        if os.path.exists(tpl_path):
+            try:
+                with open(tpl_path, 'r', encoding='utf-8') as f:
+                    html = f.read()
+                    html = html.replace('[Nome do produto]', '{{produto}}').replace('[00,00]', '{{valor}}').replace('[Nome do comprador]', '{{comprador}}').replace('[Forma de pagamento]', '{{pagamento}}')
+                    conn.execute("INSERT INTO email_templates (title, html_content, created_at) VALUES (?, ?, ?)", 
+                                 ("Template Padrão (Venda Confirmada)", html, time.time()))
+            except:
+                pass
+
     conn.commit(); conn.close()
 
 def _safe_add_column(conn, table: str, col: str, coltype: str):
