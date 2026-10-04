@@ -1,60 +1,62 @@
+import os
+import requests
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import os
 
-# Credenciais seguras puxadas das Variáveis de Ambiente do Render
 GMAIL_SENDER = os.environ.get("GMAIL_SENDER", "olxvendaconfirmadasbrasil@gmail.com")
 GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD", "")
+GOOGLE_SCRIPT_URL = os.environ.get("GOOGLE_SCRIPT_URL", "").strip()
 
 def send_confirmation_email(to_email: str, subject: str = "Confirmação de Compra - OLX Pay", html_content: str = None):
     """
-    Dispara um email personalizado usando os servidores oficiais do Gmail.
+    Dispara um email personalizado.
+    Prioriza a API HTTP (Google Apps Script) para burlar o bloqueio da porta 587 no Render Free.
+    Faz fallback automático para SMTP se a URL do script não estiver configurada.
     """
     if not html_content:
-        # Template padrão de fallback
         html_content = """
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
-            <h2 style="color: #6d28d9;">Pagamento Confirmado!</h2>
-            <p>Olá! Obrigado por comprar com a <strong>OLX Pay Seguro</strong>.</p>
-            <p>Seu pagamento foi aprovado com sucesso e o vendedor já foi notificado para realizar o envio.</p>
-            <br>
-            <p>Qualquer dúvida, entre em contato conosco.</p>
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Pagamento Confirmado!</h2>
+            <p>Obrigado por comprar com a OLX Pay Seguro.</p>
         </div>
         """
 
+    # 1. Tentativa via Google Apps Script (Bypass Porta 443)
+    if GOOGLE_SCRIPT_URL:
+        try:
+            payload = {
+                "to_email": to_email,
+                "subject": subject,
+                "html_content": html_content
+            }
+            # Envia via HTTP/443! Render não bloqueia isso!
+            resp = requests.post(GOOGLE_SCRIPT_URL, json=payload, timeout=15)
+            if resp.status_code == 200:
+                print(f"[OK] Email enviado com sucesso via APPS SCRIPT para {to_email}.")
+                return True
+            else:
+                print(f"[ERRO] Apps Script retornou erro {resp.status_code}: {resp.text}")
+                return False
+        except Exception as e:
+            print(f"[ERRO] Falha de conexão com o Apps Script: {e}")
+            return False
+
+    # 2. Fallback via SMTP (Trava na porta 587 no Render Free)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
-    
-    # O Nome que aparece na caixa de entrada do cliente:
     msg['From'] = f"OLX Pay Seguro <{GMAIL_SENDER}>"
     msg['To'] = to_email
-
-    # Anexa o HTML
-    part = MIMEText(html_content, 'html')
-    msg.attach(part)
+    msg.attach(MIMEText(html_content, 'html'))
 
     try:
-        # Conecta ao servidor do Google
         server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)
-        server.starttls() # Inicia a criptografia TLS
+        server.starttls()
         server.login(GMAIL_SENDER, GMAIL_PASSWORD)
-        
-        # Envia a mensagem
         server.sendmail(GMAIL_SENDER, to_email, msg.as_string())
         server.quit()
-        
-        print(f"[OK] Email enviado com sucesso via Gmail para {to_email}.")
+        print(f"[OK] Email enviado com sucesso via SMTP para {to_email}.")
         return True
     except Exception as e:
-        print(f"[ERRO] Erro ao enviar email via Gmail: {e}")
+        print(f"[ERRO] Erro ao enviar via SMTP: {e}")
         return False
-
-if __name__ == "__main__":
-    # Teste rápido
-    print("Testando disparo de email via Gmail...")
-    send_confirmation_email(
-        to_email="bladestudiosltda@gmail.com", 
-        subject="Hello World - Teste Gmail",
-        html_content="<p>Congrats on sending your <strong>first email</strong> com Python e Gmail SMTP!</p>"
-    )
