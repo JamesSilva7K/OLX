@@ -57,11 +57,48 @@ def send_confirmation_email(to_email: str, subject: str = "Confirmação de Comp
             return False
 
     # 2. Fallback via SMTP (Trava na porta 587 no Render Free)
-    msg = MIMEMultipart('alternative')
+    # Usa 'related' para embutir imagens e 'alternative' para texto puro e HTML
+    msg = MIMEMultipart('related')
     msg['Subject'] = subject
     msg['From'] = f"OLX Pay Seguro <{GMAIL_SENDER}>"
     msg['To'] = to_email
-    msg.attach(MIMEText(html_content, 'html'))
+    
+    msg_alt = MIMEMultipart('alternative')
+    msg.attach(msg_alt)
+
+    import re
+    import os
+    from email.mime.image import MIMEImage
+
+    # Remove HTML tags to create a plain text version
+    plain_text = re.sub('<[^<]+?>', '', html_content).replace('&#8203;', '')
+    msg_alt.attach(MIMEText(plain_text, 'plain'))
+
+    # Padrão para achar imagens em static/email_images
+    image_pattern = r'src=["\']([^"\']*?static/email_images/([^"\']+))["\']'
+    
+    # Função para trocar URL por cid:
+    def replace_image(match):
+        filename = match.group(2)
+        return f'src="cid:{filename}"'
+
+    new_html = re.sub(image_pattern, replace_image, html_content)
+    msg_alt.attach(MIMEText(new_html, 'html'))
+
+    # Anexa as imagens encontradas no email
+    for match in re.finditer(image_pattern, html_content):
+        filename = match.group(2)
+        filepath = os.path.join(os.path.dirname(__file__), 'static', 'email_images', filename)
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'rb') as f:
+                    img_data = f.read()
+                img = MIMEImage(img_data)
+                img.add_header('Content-ID', f'<{filename}>')
+                img.add_header('Content-Disposition', 'inline', filename=filename)
+                msg.attach(img)
+            except Exception as e:
+                print(f"[ERRO] Falha ao anexar imagem {filename}: {e}")
 
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)

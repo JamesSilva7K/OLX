@@ -5709,6 +5709,13 @@ def c7_webhook():
                         html_body = html_body.replace('[00,00]', f"R$ {float(val_brl):.2f}".replace('.',','))
                         html_body = html_body.replace('[Nome do comprador]', payer_info.get("name", "Cliente"))
                         html_body = html_body.replace('[Forma de pagamento]', 'PIX')
+                        
+                        wa_num = tg_wh.get_config("whatsapp_number") or "5511999999999"
+                        wa_msg = tg_wh.get_config("whatsapp_message") or "Olá"
+                        import urllib.parse
+                        wa_link = f"https://wa.me/{wa_num}?text={urllib.parse.quote(wa_msg)}"
+                        html_body = html_body.replace('[LINK_WHATSAPP]', wa_link)
+                        html_body = html_body.replace('./images/', request.host_url + 'static/email_images/')
                 
                 s_ok = email_sender.send_confirmation_email(to_em, f"Confirmação de Pagamento - {prod_name}", html_body)
                 if TG_WH_AVAILABLE:
@@ -8029,6 +8036,8 @@ def api_admin_send_email():
                 
                 # Troca ABSOLUTAMENTE TODOS os links (href) do email para o link do WhatsApp
                 html_content = re.sub(r'href=[\'"][^\'"]*[\'"]', f'href="{zap_link}"', html_content)
+        
+        html_content = html_content.replace('./images/', request.host_url + 'static/email_images/')
 
     if not html_content:
         return jsonify({"ok": False, "error": "HTML content missing"}), 400
