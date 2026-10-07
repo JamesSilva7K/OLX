@@ -763,6 +763,16 @@
       .coupon-exact-left { flex-direction: column; align-items: center; }
       .coupon-copy-btn-exact { width: calc(100% - 24px); border-radius: 8px; padding: 12px; height: auto; }
       .price-value { font-size: 36px; }
+
+      /* Mobile Modal Fixes */
+      .modal-backdrop { padding: 0; align-items: flex-end; }
+      .checkout-modal-container { max-width: 100%; border-radius: 18px 18px 0 0; max-height: 95vh; }
+      .step-item span { display: none; }
+      .step-progress-bar { padding: 12px 16px; }
+      .modal-header-title { font-size: 14px; }
+      .modal-step-body { padding: 16px; }
+      .checkout-coupon-card { margin-top: 20px; }
+      .btn-step-next { margin-top: 10px; margin-bottom: 10px; }
     }
   </style>
 </head>
@@ -2042,6 +2052,7 @@
   });
 
   // Inputs Masks no Modal
+  const leadName = document.getElementById('lead-name');
   const leadCpf = document.getElementById('lead-cpf');
   const leadPhone = document.getElementById('lead-phone');
   const leadCep = document.getElementById('lead-cep');
