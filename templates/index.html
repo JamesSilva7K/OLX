@@ -754,14 +754,39 @@
       .details-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 650px) {
+      html, body { overflow-x: hidden; width: 100%; }
       .header-nav { display: none; }
-      .gallery-grid { grid-template-columns: 1fr; }
-      .gallery-col img { height: auto; aspect-ratio: 4/3; max-height: 300px; }
+      .header-inner { padding: 0 16px; gap: 12px; }
+      .search-bar { min-width: 0; }
+      
+      /* Breadcrumb Mobile */
+      .breadcrumb-inner { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 16px; }
+      .breadcrumb-right { align-self: flex-end; margin-top: -28px; }
+      
+      /* Swipeable Gallery Mobile */
+      .gallery-grid { 
+        display: flex; 
+        overflow-x: auto; 
+        scroll-snap-type: x mandatory; 
+        gap: 0; 
+        margin: -20px -20px 0 -20px; /* pull to screen edges */
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
+      .gallery-grid::-webkit-scrollbar { display: none; }
+      .gallery-col { 
+        min-width: 100vw; 
+        scroll-snap-align: start; 
+        border-radius: 0; 
+      }
+      .gallery-col img { height: auto; aspect-ratio: 4/3; max-height: none; object-fit: contain; background: #f4f4f4; }
+      .gallery-badge { bottom: 16px; left: 16px; }
+
       .details-grid { grid-template-columns: 1fr; }
       .form-row, .form-row-3 { grid-template-columns: 1fr; }
       .coupon-banner-exact { flex-direction: column; height: auto; text-align: center; padding-bottom: 12px; }
       .coupon-exact-left { flex-direction: column; align-items: center; }
-      .coupon-copy-btn-exact { width: calc(100% - 24px); border-radius: 8px; padding: 12px; height: auto; }
+      .coupon-copy-btn-exact { width: calc(100% - 24px); border-radius: 8px; padding: 12px; height: auto; margin: 0 auto; }
       .price-value { font-size: 36px; }
 
       /* Mobile Modal Fixes */
