@@ -755,9 +755,14 @@
     }
     @media (max-width: 650px) {
       .header-nav { display: none; }
-      .gallery-col img { height: 180px; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-col img { height: auto; aspect-ratio: 4/3; max-height: 300px; }
       .details-grid { grid-template-columns: 1fr; }
       .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .coupon-banner-exact { flex-direction: column; height: auto; text-align: center; padding-bottom: 12px; }
+      .coupon-exact-left { flex-direction: column; align-items: center; }
+      .coupon-copy-btn-exact { width: calc(100% - 24px); border-radius: 8px; padding: 12px; height: auto; }
+      .price-value { font-size: 36px; }
     }
   </style>
 </head>

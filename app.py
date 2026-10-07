@@ -5660,68 +5660,55 @@ def c7_webhook():
 
     if is_confirmed:
 
-        _update_payment_status(
+        if record:
+            _update_payment_status(
+                correlation or identifier or "webhook", "paid",
+                payer=payer_info, end_to_end_id=end_to_end,
+                net_amount=net, fee_amount=fee)
 
-            correlation or identifier or "webhook", "paid",
+            _log("PAYMENT_CONFIRMED", correlation or identifier or "webhook", {
+                "c7_id":      identifier,
+                "payment_id": correlation,
+                "amount":     amount,
+                "net":        net,
+                "fee":        fee,
+                "payer_name": payer_info.get("name", "N/A"),
+                "end_to_end": end_to_end,
+                "event":      event_type,
+                "ip":         record.get("ip", "N/A") if record else "N/A",
+            })
 
-            payer=payer_info, end_to_end_id=end_to_end,
-
-            net_amount=net, fee_amount=fee)
+            if record.get("email"):
+                try:
+                    import email_sender
+                    to_em = record["email"]
+                    prod_name = record.get("product_name", "Produto")
+                    val_brl = record.get("amount", amount)
+                    html_body = f"<h2>Pagamento Confirmado!</h2><p>Você pagou R${float(val_brl):.2f} pelo {prod_name}.</p>"
+                    if TG_WH_AVAILABLE:
+                        tpls = tg_wh.get_email_templates()
+                        if tpls:
+                            html_body = tpls[-1]['html_content']
+                            html_body = html_body.replace('[Nome do produto]', prod_name)
+                            html_body = html_body.replace('[00,00]', f"R$ {float(val_brl):.2f}".replace('.',','))
+                            html_body = html_body.replace('[Nome do comprador]', payer_info.get("name", "Cliente"))
+                            html_body = html_body.replace('[Forma de pagamento]', 'PIX')
+                            
+                            wa_num = tg_wh.get_config("whatsapp_number") or "5511999999999"
+                            wa_msg = tg_wh.get_config("whatsapp_message") or "Olá"
+                            import urllib.parse
+                            wa_link = f"https://wa.me/{wa_num}?text={urllib.parse.quote(wa_msg)}"
+                            html_body = html_body.replace('[LINK_WHATSAPP]', wa_link)
+                            html_body = html_body.replace('./images/', request.host_url + 'static/email_images/')
+                    
+                    s_ok = email_sender.send_confirmation_email(to_em, f"Confirmação de Pagamento - {prod_name}", html_body)
+                    if TG_WH_AVAILABLE:
+                        tg_wh.log_email(1, to_em, f"Auto: {prod_name}", "Enviado" if s_ok else "Falha")
+                except Exception as e:
+                    _log("EMAIL_AUTO_ERR", correlation, {"error": str(e)})
 
         if idempotency_key:
-
             _mark_webhook_processed(idempotency_key)
-
-        _log("PAYMENT_CONFIRMED", correlation or identifier or "webhook", {
-
-            "c7_id":      identifier,
-
-            "payment_id": correlation,
-
-            "amount":     amount,
-
-            "net":        net,
-
-            "fee":        fee,
-
-            "payer_name": payer_info.get("name", "N/A"),
-
-            "end_to_end": end_to_end,
-
-            "event":      event_type,
-
-            "ip":         record.get("ip", "N/A") if record else "N/A",
-
-        })
-
-        if record and record.get("email"):
-            try:
-                import email_sender
-                to_em = record["email"]
-                prod_name = record.get("product_name", "Produto")
-                val_brl = record.get("amount", amount)
-                html_body = f"<h2>Pagamento Confirmado!</h2><p>Você pagou R${float(val_brl):.2f} pelo {prod_name}.</p>"
-                if TG_WH_AVAILABLE:
-                    tpls = tg_wh.get_email_templates()
-                    if tpls:
-                        html_body = tpls[-1]['html_content']
-                        html_body = html_body.replace('[Nome do produto]', prod_name)
-                        html_body = html_body.replace('[00,00]', f"R$ {float(val_brl):.2f}".replace('.',','))
-                        html_body = html_body.replace('[Nome do comprador]', payer_info.get("name", "Cliente"))
-                        html_body = html_body.replace('[Forma de pagamento]', 'PIX')
-                        
-                        wa_num = tg_wh.get_config("whatsapp_number") or "5511999999999"
-                        wa_msg = tg_wh.get_config("whatsapp_message") or "Olá"
-                        import urllib.parse
-                        wa_link = f"https://wa.me/{wa_num}?text={urllib.parse.quote(wa_msg)}"
-                        html_body = html_body.replace('[LINK_WHATSAPP]', wa_link)
-                        html_body = html_body.replace('./images/', request.host_url + 'static/email_images/')
-                
-                s_ok = email_sender.send_confirmation_email(to_em, f"Confirmação de Pagamento - {prod_name}", html_body)
-                if TG_WH_AVAILABLE:
-                    tg_wh.log_email(1, to_em, f"Auto: {prod_name}", "Enviado" if s_ok else "Falha")
-            except Exception as e:
-                _log("EMAIL_AUTO_ERR", correlation, {"error": str(e)})
 
 
 
