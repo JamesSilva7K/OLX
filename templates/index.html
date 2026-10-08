@@ -313,7 +313,7 @@
       background: #eee;
     }
     .gallery-col img {
-      width: 100%; aspect-ratio: 3/4; height: auto; object-fit: contain; display: block; background: #f4f4f4;
+      width: 100%; aspect-ratio: 3/4; height: auto; object-fit: cover; display: block; background: #f4f4f4;
       transition: transform .35s ease;
     }
     .gallery-col:hover img { transform: scale(1.03); }
@@ -398,7 +398,7 @@
       border-radius: 8px;
       margin-bottom: 20px;
       background: #faf5ff;
-      height: 76px;
+      min-height: 76px;
     }
     .coupon-exact-left {
       flex: 1;
