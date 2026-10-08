@@ -770,19 +770,18 @@
         overflow-x: auto; 
         scroll-snap-type: x mandatory; 
         gap: 0; 
-        margin: -20px -20px 0 -20px; /* pull to screen edges */
+        margin: 0 -20px; /* pull to screen edges exactly */
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
-        width: calc(100% + 40px); /* stretch across padding */
       }
       .gallery-grid::-webkit-scrollbar { display: none; }
       .gallery-col { 
-        min-width: 100%; 
+        min-width: 100vw; 
         scroll-snap-align: start; 
         border-radius: 0; 
         flex-shrink: 0;
       }
-      .gallery-col img { height: auto; aspect-ratio: 4/3; max-height: none; object-fit: contain; background: #f4f4f4; }
+      .gallery-col img { height: auto; aspect-ratio: 4/3; max-height: 400px; object-fit: cover; background: #eee; }
       .gallery-badge { bottom: 16px; left: 16px; }
 
       .details-grid { grid-template-columns: 1fr; }
@@ -801,6 +800,11 @@
       .modal-step-body { padding: 16px; }
       .checkout-coupon-card { margin-top: 20px; }
       .btn-step-next { margin-top: 10px; margin-bottom: 10px; }
+
+      /* Tips Native Scroll */
+      #tips-track-wrap { overflow-x: auto !important; scroll-snap-type: x mandatory; }
+      #tips-track-wrap::-webkit-scrollbar { display: none; }
+      #tips-track > div { scroll-snap-align: start; }
     }
   </style>
 </head>
