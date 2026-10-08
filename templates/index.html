@@ -355,11 +355,11 @@
     .right-col { display: flex; flex-direction: column; gap: 16px; }
     .price-card { background: #fff; border-radius: 8px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
 
-    .price-original { font-size: 15px; color: #888; text-decoration: line-through; margin-bottom: 4px; font-weight: 600; }
-    .price-main { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
-    .price-value { font-size: 42px; font-weight: 900; color: #1a1a1a; line-height: 1; }
-    .price-prefix { font-size: 30px; font-weight: 800; color: #1a1a1a; }
-    .price-pix { font-size: 15px; font-weight: 700; color: var(--olx-green-pix); display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+    .price-original { font-size: 15px; color: #999999; text-decoration: line-through; margin-bottom: 0px; font-weight: 500; }
+    .price-main { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+    .price-value { font-size: 34px; font-weight: 800; color: #1a1b1c; line-height: 1; }
+    .price-prefix { font-size: 34px; font-weight: 800; color: #1a1b1c; }
+    .price-pix { font-size: 15px; font-weight: 700; color: #22a77a; display: flex; align-items: center; margin-left: 2px; }
 
     .payment-icons { display: flex; align-items: center; gap: 8px; margin: 12px 0 12px; flex-wrap: wrap; }
     .payment-card-img {
@@ -393,50 +393,50 @@
       display: flex;
       align-items: stretch;
       justify-content: space-between;
-      border: 1px solid #e3d2ff;
+      border: 1px solid #eadefa;
       border-right: none;
       border-radius: 8px;
       margin-bottom: 20px;
-      background: #faf5ff;
+      background: #f6edff;
       min-height: 76px;
     }
     .coupon-exact-left {
       flex: 1;
       padding: 12px 14px;
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      align-items: center;
+      gap: 12px;
     }
     .coupon-exact-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 800;
-      color: #6a00d5;
+      color: #5c21c7;
       line-height: 1.2;
     }
     .coupon-exact-sub {
       font-size: 11px;
-      color: #4a4a4a;
+      color: #33235b;
       line-height: 1.3;
       margin-top: 3px;
-      font-weight: 500;
+      font-weight: 600;
     }
     .coupon-exact-link {
       font-size: 11px;
-      color: #6a00d5;
+      color: #5c21c7;
       font-weight: 700;
       text-decoration: underline;
       margin-top: 3px;
       cursor: pointer;
     }
     .coupon-copy-btn-exact {
-      background: #6a00d5;
+      background: #5c21c7;
       color: #ffffff;
       border: none;
-      width: 86px;
+      width: 76px;
       border-radius: 0 8px 8px 0;
       font-family: inherit;
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -445,7 +445,7 @@
       flex-shrink: 0;
     }
     .coupon-copy-btn-exact:hover {
-      background: #5500aa;
+      background: #4a19a0;
     }
     .coupon-copy-btn-exact.copied {
       background: #4caf50;
@@ -1043,8 +1043,8 @@
       <div class="price-main">
         <span class="price-prefix">R$</span>
         <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp.split(',')[0] }}</span>
-        <span class="price-pix" style="font-size:14px; font-weight:700; color:#00a650; margin-left:4px;">
-          no Pix
+        <span class="price-pix">
+          com Pix
         </span>
       </div>
 
@@ -1184,10 +1184,10 @@
       <!-- Cupom OLX R$ 26 OFF Identico Imagem -->
       <div class="coupon-banner-exact">
         <div class="coupon-exact-left">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#6e0ad6" stroke-width="2.5" style="transform: rotate(-10deg);"><path d="M15.3 4.3a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-9 9a2 2 0 0 1-2.8 0L6.3 16.1a2 2 0 0 1 0-2.8l9-9z"/><path d="M11.5 7.5l-3 3M15 11l-3 3"/></svg>
+          <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="#5c21c7" stroke-width="2" style="transform: rotate(-15deg); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.3 4.3a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-9 9a2 2 0 0 1-2.8 0L6.3 16.1a2 2 0 0 1 0-2.8l9-9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 7.5l-3 3M15 11l-3 3"/></svg>
           <div>
             <div class="coupon-exact-title">R$ 26 OFF</div>
-            <div class="coupon-exact-sub">Cobre as taxas do PARCELÀ em atraso do seu pagamento.</div>
+            <div class="coupon-exact-sub">Cobre as taxas do PARCELÀ em atraso do<br/>seu pagamento.</div>
             <div class="coupon-exact-link">Cupom limitado.</div>
           </div>
         </div>
