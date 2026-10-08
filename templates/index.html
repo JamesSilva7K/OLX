@@ -590,44 +590,46 @@
     .modal-step-body { padding: 22px; }
 
     /* FORM STYLES */
-    .form-group { margin-bottom: 14px; }
-    .form-label { display: block; font-size: 12px; font-weight: 800; color: #333; margin-bottom: 5px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 11.5px; font-weight: 800; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .form-input {
-      width: 100%; height: 42px; border: 1.5px solid #ccc; border-radius: 8px;
-      padding: 0 12px; font-size: 14px; font-family: inherit; outline: none;
-      color: #1a1a1a; transition: border-color .2s; background: #fff;
+      width: 100%; height: 46px; border: 1.5px solid #d1d5db; border-radius: 10px;
+      padding: 0 14px; font-size: 14.5px; font-family: inherit; outline: none;
+      color: #111827; transition: all .2s; background: #f9fafb;
     }
-    .form-input:focus { border-color: var(--olx-purple); }
-    .form-input.error { border-color: #d93025; background: #fff8f8; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+    .form-input:focus { border-color: var(--olx-purple); background: #fff; box-shadow: 0 0 0 3px rgba(110,10,214,0.15); }
+    .form-input.error { border-color: #d93025; background: #fff8f8; box-shadow: 0 0 0 3px rgba(217,48,37,0.1); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px; }
 
     /* COUPON & ORDER SUMMARY STYLES */
     .checkout-coupon-card {
-      background: #fdfcff; border: 1.5px dashed #c4b5fd; border-radius: 12px;
-      padding: 12px 14px; margin-top: 14px;
+      background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 12px;
+      padding: 16px; margin-top: 20px; box-shadow: 0 2px 8px rgba(110,10,214,0.04);
+      border-left: 4px solid var(--olx-purple);
     }
     .coupon-card-header {
       display: flex; align-items: center; justify-content: space-between;
-      font-size: 12px; font-weight: 800; color: var(--olx-purple);
+      font-size: 12.5px; font-weight: 800; color: var(--olx-purple);
     }
     .coupon-input-wrap {
-      display: flex; gap: 8px; margin-top: 8px;
+      display: flex; gap: 10px; margin-top: 10px;
     }
     .coupon-input-wrap input {
-      flex: 1; height: 40px; border: 1.5px solid #d1d5db; border-radius: 8px;
-      padding: 0 12px; font-size: 13px; font-weight: 700; text-transform: uppercase;
-      outline: none; color: #1a1a1a; letter-spacing: 0.8px; font-family: monospace;
-      transition: border-color 0.2s;
+      flex: 1; height: 44px; border: 1.5px solid #d8b4fe; border-radius: 8px;
+      padding: 0 14px; font-size: 14px; font-weight: 700; text-transform: uppercase;
+      outline: none; color: #1a1a1a; letter-spacing: 1px; font-family: monospace;
+      transition: all 0.2s; background: #fff;
     }
-    .coupon-input-wrap input:focus { border-color: var(--olx-purple); }
+    .coupon-input-wrap input:focus { border-color: var(--olx-purple); box-shadow: 0 0 0 3px rgba(110,10,214,0.15); }
     .btn-apply-coupon {
-      padding: 0 18px; background: var(--olx-purple); color: #fff; border: none;
-      border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer;
+      padding: 0 20px; background: var(--olx-purple); color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer;
       display: flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(110,10,214,0.3);
     }
-    .btn-apply-coupon:hover { background: #6502be; }
-    .btn-apply-coupon:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-apply-coupon:hover { background: #6502be; transform: translateY(-1px); }
+    .btn-apply-coupon:disabled { background: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
     .coupon-status-msg {
       font-size: 12px; margin-top: 8px; display: none; font-weight: 600; line-height: 1.4;
     }
@@ -928,19 +930,19 @@
     <!-- Product Info Card -->
     <div class="info-card">
       <div class="product-tags">
-        {% if shipping_fee and (shipping_fee == '0' or shipping_fee == '0.00' or shipping_fee == '0,00' or shipping_fee == '') %}
-        <span class="tag tag-green-badge">Frete grátis</span>
-        {% else %}
-        <span class="tag tag-green-badge">Envio para todo o país</span>
-        {% endif %}
-        <span class="tag tag-purple-badge">Parcele sem juros</span>
-        <span class="tag tag-purple-badge">Garantia da OLX</span>
-      </div>
+          <span class="tag tag-green-badge">Entrega rápida</span>
+          <span class="tag tag-purple-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="#6e0ad6"><path d="M10.5 4.5l-4 4 4 4"/></svg> Permite auto / Uber</span>
+          <span class="tag tag-purple-badge" style="display:inline-flex; align-items:center; gap:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6e0ad6" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Garantia da OLX
+          </span>
+        </div>
 
       <h1 class="product-title">{{ product_name if product_name else '' }}</h1>
       <p class="product-description" id="display-product-description">
         {{ product_description if product_description else 'iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia.' }}
       </p>
+        <div style="margin-top:20px; height:60px; background:#f4f4f4; border-radius:8px;"></div>
     </div>
 
     <!-- DETALHES CARD -->
@@ -1041,7 +1043,7 @@
       <div class="price-main">
         <span class="price-prefix">R$</span>
         <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp.split(',')[0] }}</span>
-        <span class="price-pix" style="font-size:14px; font-weight:700; color:#4b9015; margin-left:4px;">
+        <span class="price-pix" style="font-size:14px; font-weight:700; color:#00a650; margin-left:4px;">
           no Pix
         </span>
       </div>
