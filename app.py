@@ -174,6 +174,44 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 
 
 
+# ─── ANTI-SLEEP / KEEP ALIVE ENGINE (RENDER DATA PRESERVATION) ───────────────
+
+import threading
+
+import requests
+
+import time
+
+def keep_alive_daemon():
+
+    """Pinga o proprio servidor a cada 10 min para impedir o Render de dormir e apagar os DBs (SQLite)."""
+
+    time.sleep(10) # Espera app subir
+
+    base_url = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.com").rstrip('/')
+
+    log.info("[KEEP-ALIVE] Iniciando monitoramento inteligente para proteger dados do Admin. URL: " + base_url)
+
+    while True:
+
+        try:
+
+            time.sleep(600) # 10 minutos
+
+            requests.get(base_url, timeout=10)
+
+        except Exception as e:
+
+            pass
+
+
+
+_ka_thread = threading.Thread(target=keep_alive_daemon, daemon=True)
+
+_ka_thread.start()
+
+
+
 
 
 # Secret Key para sessões e hashing de integridade
