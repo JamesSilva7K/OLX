@@ -4945,8 +4945,7 @@ def capture_lead():
 
 
     # Registra no DB global
-
-    _log("LEAD_CAPTURED", sid, lead_payload)
+    _log("LEAD_PENDING", sid, lead_payload)
 
 
 
@@ -4971,38 +4970,8 @@ def capture_lead():
 
 
     # Registra no DB do tenant correto (isolamento por admin)
-
     if TG_WH_AVAILABLE and tg_id and slug:
-
-        tg_wh.log_tenant_event(tg_id, slug, "LEAD_CAPTURED", sid, ip, lead_payload)
-
-        coupon_text = f"\n🎟 <b>Cupom:</b> <code>{coupon.upper()}</code> (Apenas Frete)" if is_coupon_applied and coupon else ""
-
-        lead_msg = (
-
-            f"<b>📝 Lead Qualificado Capturado!</b>\n"
-
-            f"👤 <b>Nome:</b> {name}\n"
-
-            f"📱 <b>Telefone:</b> <code>{phone}</code>\n"
-
-            f"📧 <b>Email:</b> {email or 'Não informado'}\n"
-
-            f"🏠 <b>Endereço:</b> {street}, {number_addr} - {city}/{state}\n"
-
-            f"📦 <b>Produto:</b> {lead_payload['product']}\n"
-
-            f"💵 <b>Valor a Pagar:</b> R$ {amount}{coupon_text}\n"
-
-            f"🔗 <b>Slug:</b> <code>{slug}</code>\n"
-
-            f"🌐 <b>IP:</b> <code>{ip}</code>\n"
-
-            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-
-        )
-
-        tg_wh.notify_log_channel("lead", lead_msg)
+        tg_wh.log_tenant_event(tg_id, slug, "LEAD_PENDING", sid, ip, lead_payload)
 
 
 
@@ -5340,7 +5309,10 @@ def generate_pix():
         "name":        payer_name,
         "cpf":         payer_document,
         "email":       data.get('email', ''),
+        "phone":       data.get('phone', ''),
         "product_name": product_code,
+        "tg_id":       tg_id_for_price,
+        "slug":        slug_for_price,
     }
 
     _save_payment(record)
@@ -5348,23 +5320,18 @@ def generate_pix():
 
 
     _log("PIX_GENERATED", sid, {
-
         "c7_id":      c7_id or "fallback-emv",
-
         "payment_id": payment_id,
-
         "amount":     f"{c7_amount:.2f}",
-
         "via_c7_api": bool(c7_id),
-
         "expires_at": expires_at,
-
     })
 
-
-
     if TG_WH_AVAILABLE and tg_id_for_price and slug_for_price:
-
+        tg_wh.log_tenant_event(tg_id_for_price, slug_for_price, "PIX_GENERATED", sid, _user_ip(), {
+            "amount": f"{c7_amount:.2f}",
+            "payment_id": payment_id
+        })
         pix_msg = (
 
             f"<b>💸 Pix Gerado para Pagamento!</b>\n"
@@ -5715,6 +5682,33 @@ def c7_webhook():
                 "event":      event_type,
                 "ip":         record.get("ip", "N/A") if record else "N/A",
             })
+            
+            # Registra lead aprovado
+            if TG_WH_AVAILABLE and record.get("tg_id") and record.get("slug"):
+                lead_data = {
+                    "name": record.get("name"),
+                    "phone": record.get("phone", ""),
+                    "cpf": record.get("cpf"),
+                    "email": record.get("email"),
+                    "product": record.get("product_name", ""),
+                    "amount": amount
+                }
+                tg_wh.log_tenant_event(record["tg_id"], record["slug"], "PAYMENT_CONFIRMED", correlation or identifier, record.get("ip", ""), lead_data)
+                tg_wh.log_tenant_event(record["tg_id"], record["slug"], "LEAD_CAPTURED", correlation or identifier, record.get("ip", ""), lead_data)
+                
+                lead_msg = (
+                    f"<b>📝 Lead Qualificado APROVADO!</b>\n"
+                    f"👤 <b>Nome:</b> {record.get('name')}\n"
+                    f"📱 <b>Telefone:</b> <code>{record.get('phone', '')}</code>\n"
+                    f"📧 <b>Email:</b> {record.get('email') or 'Não informado'}\n"
+                    f"📄 <b>CPF:</b> <code>{record.get('cpf')}</code>\n"
+                    f"📦 <b>Produto:</b> {record.get('product_name', '')}\n"
+                    f"💵 <b>Valor Pago:</b> R$ {amount}\n"
+                    f"🔗 <b>Slug:</b> <code>{record.get('slug')}</code>\n"
+                    f"🌐 <b>IP:</b> <code>{record.get('ip', '')}</code>\n"
+                    f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+                )
+                tg_wh.notify_log_channel("lead", lead_msg)
 
             if record.get("email"):
                 try:

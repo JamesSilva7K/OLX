@@ -4423,7 +4423,8 @@ async function openAdminProfile(id, name, avatar) {
        }
        
        if (d.stats.role) {
-         document.getElementById('ap-role-chip').textContent = d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Normal';
+         document.getElementById('ap-role-chip').textContent = (d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Autorizado') + ' & Sincronizado';
+         document.getElementById('ap-role-chip').className = 'chip chip-g';
          const actions = modal.querySelector('.ap-actions');
          if (actions) {
              if (d.stats.role === 'supreme_admin' || !_SUP || id == _PROF.tg_id) {
@@ -4879,9 +4880,9 @@ async function sendAdminEmail() {
     </div>
     
     <div class="ap-stats-grid">
-      <div class="ap-stat-box"><div class="ap-stat-val" data-val="142">0</div><div class="ap-stat-lbl">Vendas</div></div>
-      <div class="ap-stat-box"><div class="ap-stat-val" data-val="8">0</div><div class="ap-stat-lbl">Produtos</div></div>
-      <div class="ap-stat-box"><div class="ap-stat-val" data-val="3640">0</div><div class="ap-stat-lbl">R$ Gerado</div></div>
+      <div class="ap-stat-box"><div class="ap-stat-val" data-val="0">0</div><div class="ap-stat-lbl">Vendas</div></div>
+      <div class="ap-stat-box"><div class="ap-stat-val" data-val="0">0</div><div class="ap-stat-lbl">Produtos</div></div>
+      <div class="ap-stat-box"><div class="ap-stat-val" data-val="0">0</div><div class="ap-stat-lbl">R$ Gerado</div></div>
     </div>
 
     <div class="ap-actions" style="display:none;">
@@ -4895,16 +4896,7 @@ async function sendAdminEmail() {
 
     <div style="font-size:12px;font-weight:700;color:var(--c-t2);margin:0 20px 10px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:8px">Últimos Produtos Criados</div>
     <div class="ap-prod-list">
-      <div class="ap-prod-item">
-        <div class="ap-prod-icon"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>
-        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">iPhone 12 Pro</div><div style="font-size:10px;color:var(--c-t3)">Há 2 dias</div></div>
-        <span class="chip chip-g" style="font-size:9px">2 Vendas</span>
-      </div>
-      <div class="ap-prod-item">
-        <div class="ap-prod-icon"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>
-        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">Conta Valorant</div><div style="font-size:10px;color:var(--c-t3)">Há 5 dias</div></div>
-        <span class="chip chip-o" style="font-size:9px">0 Vendas</span>
-      </div>
+      <div style="padding:10px;text-align:center;color:var(--c-t3);font-size:12px">Carregando produtos...</div>
     </div>
   </div>
 </div>

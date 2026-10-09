@@ -2223,6 +2223,25 @@
     } catch(e) {}
   }
 
+  // Correção de email
+  const emailInput = document.getElementById('lead-email');
+  if (emailInput) {
+    emailInput.addEventListener('blur', function() {
+      let val = this.value.toLowerCase().trim();
+      const corrections = {
+        'gmil.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gmai.com': 'gmail.com',
+        'hotmal.com': 'hotmail.com', 'hotmai.com': 'hotmail.com',
+        'outlok.com': 'outlook.com', 'yaho.com': 'yahoo.com.br'
+      };
+      if (val.includes('@')) {
+        let parts = val.split('@');
+        if (corrections[parts[1]]) {
+          this.value = parts[0] + '@' + corrections[parts[1]];
+        }
+      }
+    });
+  }
+
   // Avanço da Etapa 1 para Etapa 2 (Validação Estrita & Envio ao Telegram)
   const btnAdvanceLead = document.getElementById('btn-advance-lead');
   let currentPaymentId = '';
@@ -2276,7 +2295,15 @@
     checkField('lead-name', name.split(' ').length >= 2, 'Informe seu nome e sobrenome completo.');
     checkField('lead-cpf', isValidCPF(cpf), 'CPF inválido. Verifique os dígitos digitados.');
     checkField('lead-phone', phone.replace(/\D/g, '').length >= 10, 'Celular/WhatsApp com DDD é obrigatório.');
-    checkField('lead-email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'Digite um e-mail válido para rastreamento.');
+    const validEmail = (em) => {
+      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if (!re.test(em)) return false;
+      const domain = em.split('@')[1].toLowerCase();
+      const invalidDomains = ['teste.com', 'test.com', 'asdf.com', '123.com', 'exemplo.com'];
+      if (invalidDomains.includes(domain)) return false;
+      return true;
+    };
+    checkField('lead-email', validEmail(email), 'Digite um e-mail válido para rastreamento.');
     checkField('lead-cep', cep.replace(/\D/g, '').length === 8, 'CEP obrigatório com 8 dígitos.');
     checkField('lead-street', street.length >= 3, 'Informe o nome da sua rua / logradouro.');
     checkField('lead-number', number.length >= 1, 'Informe o número da residência.');
