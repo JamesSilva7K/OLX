@@ -512,7 +512,7 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
 
     conn.execute("""
         INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at, seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time(), seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at))
     conn.commit(); conn.close()
     return code
