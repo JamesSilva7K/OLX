@@ -774,8 +774,9 @@
       .search-bar { min-width: 0; }
       
       /* Breadcrumb Mobile */
-      .breadcrumb-inner { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 16px; }
-      .breadcrumb-right { align-self: flex-end; margin-top: -28px; }
+      .breadcrumb-inner { flex-direction: row; align-items: flex-start; justify-content: space-between; padding: 12px 16px; gap: 8px; }
+      .breadcrumb { flex: 1; margin-right: 8px; }
+      .breadcrumb-right { align-self: flex-start; margin-top: 0; flex-shrink: 0; }
       
       /* Swipeable Gallery Mobile */
       .gallery-grid { 
