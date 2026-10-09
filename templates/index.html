@@ -1961,17 +1961,19 @@
 
   // ─── CUPOM DE DESCONTO ────────────────────────────────────────────────────
   const couponBtn = document.getElementById('coupon-copy-btn');
-  couponBtn.addEventListener('click', function() {
-    try { navigator.clipboard.writeText('OLX26OFF'); } catch(e) {}
-    this.classList.add('copied');
-    this.textContent = 'Copiado!';
-    showToast('Cupom OLX26OFF copiado com sucesso!', 'check');
-    const btn = this;
-    setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.textContent = 'Copiar';
-    }, 3000);
-  });
+  if (couponBtn) {
+    couponBtn.addEventListener('click', function() {
+      try { navigator.clipboard.writeText('OLX26OFF'); } catch(e) {}
+      this.classList.add('copied');
+      this.textContent = 'Copiado!';
+      showToast('Cupom OLX26OFF copiado com sucesso!', 'check');
+      const btn = this;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = 'Copiar';
+      }, 3000);
+    });
+  }
 
   // ─── VALIDAÇÃO MATEMÁTICA E MÁSCARAS AVANÇADAS ────────────────────────────
   function isValidCPF(cpf) {
