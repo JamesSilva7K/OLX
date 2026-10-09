@@ -555,7 +555,7 @@
     
     .checkout-modal-container {
       background: #ffffff; width: 100%; max-width: 580px; max-height: 90vh;
-      border-radius: 24px; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+      border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
       position: relative; animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.05);
     }
@@ -563,8 +563,7 @@
     .modal-header {
       background: var(--olx-purple); color: #fff;
       padding: 20px 28px; display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 10;
-      border-radius: 24px 24px 0 0;
+      flex-shrink: 0; z-index: 10;
     }
     .modal-header-title { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
     .modal-close-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; padding: 6px; border-radius: 50%; transition: background 0.2s; }
@@ -574,6 +573,7 @@
     .step-progress-bar {
       display: flex; align-items: center; justify-content: space-between;
       background: #ffffff; border-bottom: 1px solid #f3f4f6; padding: 18px 28px;
+      flex-shrink: 0;
     }
     .step-item {
       display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: #9ca3af;
@@ -589,7 +589,15 @@
     .step-divider { flex: 1; height: 2px; background: #e5e7eb; margin: 0 16px; border-radius: 2px; }
     .step-divider.filled { background: var(--olx-green); }
 
-    .modal-step-body { padding: 28px; }
+    .modal-step-body { 
+      padding: 28px; 
+      overflow-y: auto; 
+      flex: 1; 
+    }
+    .modal-step-body::-webkit-scrollbar { width: 6px; }
+    .modal-step-body::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+    .modal-step-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    .modal-step-body::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
     /* FORM STYLES */
     .form-group { margin-bottom: 20px; position: relative; }
