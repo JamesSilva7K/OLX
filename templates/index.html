@@ -882,9 +882,11 @@
 <!-- BREADCRUMB -->
 {%- set _bc_cat_raw = det_category if det_category else 'Celulares e Smartphones' -%}
 {%- set _bc_cat = _bc_cat_raw.split('|||')[1] if '|||' in _bc_cat_raw else _bc_cat_raw -%}
-{%- set _bc_state = breadcrumb_state if breadcrumb_state is defined and breadcrumb_state else 'São Paulo' -%}
-{%- set _bc_region = breadcrumb_region if breadcrumb_region is defined and breadcrumb_region else 'São Paulo e região' -%}
-{%- set _bc_zone = breadcrumb_zone if breadcrumb_zone is defined and breadcrumb_zone else 'Zona Norte' -%}
+{%- set _bc_zone_raw = breadcrumb_zone if breadcrumb_zone else 'Zona Norte' -%}
+{%- set _bc_zone_parts = _bc_zone_raw.split('|||') -%}
+{%- set _bc_zone = _bc_zone_parts[0] if _bc_zone_parts[0] else 'Zona Norte' -%}
+{%- set _bc_region = _bc_zone_parts[1] if (_bc_zone_parts|length > 1 and _bc_zone_parts[1]) else 'São Paulo e região' -%}
+{%- set _bc_state = _bc_zone_parts[2] if (_bc_zone_parts|length > 2 and _bc_zone_parts[2]) else 'São Paulo' -%}
 <div class="breadcrumb-bar">
   <div class="breadcrumb-inner">
     <div class="breadcrumb">
@@ -1297,7 +1299,7 @@
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1a1d23" stroke-width="2" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            {{ breadcrumb_zone if breadcrumb_zone else 'Parque Savoy City' }}, {{ breadcrumb_state if breadcrumb_state else 'São Paulo - SP' }}
+            {{ _bc_zone }}, {{ _bc_state }}
           </div>
         </div>
 

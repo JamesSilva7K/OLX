@@ -3103,7 +3103,7 @@ async function saveProd(){
     product_code: slugInp || code,
     // Only send a custom zone when NOT in default mode
     breadcrumb_zone: (typeof _locIsDefault !== 'undefined' && !_locIsDefault)
-      ? (document.getElementById('edit-breadcrumb-zone')?.value.trim() || '')
+      ? ((document.getElementById('edit-breadcrumb-zone')?.value.trim() || '') + '|||' + (document.getElementById('edit-cep-city')?.value.trim() || '') + '|||' + (document.getElementById('edit-cep-state')?.value.trim() || ''))
       : ''
   };
 
