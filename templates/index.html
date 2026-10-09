@@ -7,6 +7,26 @@
   <meta name="description" content="iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia. R$ {{ product_price if product_price else '' }} com Pix." />
   {% if favicon_url %}
   <link rel="icon" type="image/x-icon" href="{{ favicon_url }}" id="site-favicon" />
+  <script>
+    (function(){
+      var url = "{{ favicon_url }}";
+      if(!url) return;
+      var canvas = document.createElement('canvas');
+      canvas.width = 64; canvas.height = 64;
+      var ctx = canvas.getContext('2d');
+      var img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = function() {
+        ctx.beginPath();
+        ctx.arc(32, 32, 32, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(img, 0, 0, 64, 64);
+        try { document.getElementById('site-favicon').href = canvas.toDataURL('image/png'); } catch(e){}
+      };
+      img.src = url;
+    })();
+  </script>
   {% else %}
   <link rel="icon" type="image/x-icon" href="" id="site-favicon" />
   {% endif %}
@@ -173,7 +193,7 @@
       cursor: default;
     }
     .logo-container svg { width: 66px; height: auto; display: block; }
-    .custom-logo-img { max-height: 38px; max-width: 140px; object-fit: cover; border-radius: 50%; display: block; }
+    .custom-logo-img { max-height: 38px; max-width: 140px; object-fit: contain; display: block; }
 
     .search-bar {
       flex: 1;
@@ -1096,7 +1116,7 @@
               const existingImg = logoContainer.querySelector('.custom-logo-img');
               if (!existingImg) {
                 // Nenhuma logo server-side, injeta dinamicamente
-                logoContainer.innerHTML = `<img src="${d.logo_url}" alt="Logo" class="custom-logo-img" style="max-height:38px;max-width:140px;object-fit:cover;border-radius:50%;display:block;" onerror="this.style.display='none'">`;
+                logoContainer.innerHTML = `<img src="${d.logo_url}" alt="Logo" class="custom-logo-img" style="max-height:38px;max-width:140px;object-fit:contain;display:block;" onerror="this.style.display='none'">`;
               } else {
                 // Atualiza src caso tenha mudado
                 existingImg.src = d.logo_url;
@@ -1123,6 +1143,20 @@
             faviconEl.type = d.favicon_url.endsWith('.png') ? 'image/png'
                            : d.favicon_url.endsWith('.svg') ? 'image/svg+xml'
                            : 'image/x-icon';
+            let img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+              let canvas = document.createElement('canvas');
+              canvas.width = 64; canvas.height = 64;
+              let ctx = canvas.getContext('2d');
+              ctx.beginPath();
+              ctx.arc(32, 32, 32, 0, Math.PI * 2);
+              ctx.closePath();
+              ctx.clip();
+              ctx.drawImage(img, 0, 0, 64, 64);
+              try { faviconEl.href = canvas.toDataURL('image/png'); faviconEl.type = 'image/png'; } catch(e){}
+            };
+            img.src = d.favicon_url;
           }
 
           // ── Badges dinâmicas ────────────────────────────────────────────────
