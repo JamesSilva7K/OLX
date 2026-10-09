@@ -1047,12 +1047,12 @@
     <div class="price-card">
       {% set old_price = product_old_price if product_old_price else config.get('product_old_price','') if config is defined else '' %}
       {% if old_price and old_price != product_price %}
-      <div class="price-original">R$ {{ old_price if ',' in old_price else old_price ~ ',00' }}</div>
+      <div class="price-original">R$ {{ old_price }}</div>
       {% endif %}
       <!-- preço inteiro sem .00, idêntico ao OLX real -->
       <div class="price-main">
         <span class="price-prefix">R$</span>
-        <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp if ',' in pp else pp ~ ',00' }}</span>
+        <span class="price-value" id="display-product-price">{% set pp = product_price if product_price else '630' %}{{ pp }}</span>
         <span class="price-pix">
           com Pix
         </span>
