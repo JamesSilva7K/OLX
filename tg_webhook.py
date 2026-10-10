@@ -656,12 +656,12 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
 
     # 3. Calcula valores reais sem erros
     try:
-        raw_price = str(product.get("price", "630.00")).replace("R$", "").replace(" ", "").replace(".", "").replace(",", ".")
-        # Se tinha formato 630.00 inicial:
-        if "." not in str(product.get("price", "")):
-            orig_price = float(raw_price)
-        else:
-            orig_price = float(str(product.get("price", "630.00")).replace(",", "."))
+        price_str = str(product.get("price", "630.00")).replace("R$", "").strip()
+        if "." in price_str and "," in price_str:
+            price_str = price_str.replace(".", "").replace(",", ".")
+        elif "," in price_str:
+            price_str = price_str.replace(",", ".")
+        orig_price = float(price_str)
     except Exception:
         orig_price = 630.00
 
@@ -673,6 +673,17 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
 
 
     only_ship = int(product.get("coupon_only_shipping", 1) or 0)
+
+    # Fallback inteligente: se o modo nao e shipping_only mas coupon_discount_value esta vazio/zero,
+    # trata automaticamente como shipping_only para evitar desconto R$ 0,00
+    if not only_ship:
+        try:
+            _dv = str(product.get("coupon_discount_value", "") or "").replace("R$", "").strip()
+            _dv_f = float(_dv.replace(",", ".")) if _dv else 0.0
+        except:
+            _dv_f = 0.0
+        if _dv_f <= 0:
+            only_ship = 1  # fallback automatico: evita mostrar desconto R$ 0,00
     
     if only_ship:
         discount_val = orig_price
@@ -681,7 +692,11 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
         shipping_only = True
     else:
         try:
-            raw_disc = str(product.get("coupon_discount_value", "0")).replace("R$", "").replace(" ", "").replace(",", ".")
+            raw_disc = str(product.get("coupon_discount_value", "0")).replace("R$", "").strip()
+            if "." in raw_disc and "," in raw_disc:
+                raw_disc = raw_disc.replace(".", "").replace(",", ".")
+            elif "," in raw_disc:
+                raw_disc = raw_disc.replace(",", ".")
             disc_amount = float(raw_disc)
         except:
             disc_amount = 0.0
@@ -805,10 +820,17 @@ def get_full_overview_for_supreme() -> dict:
             "username": u["username"],
             "slug":     u["slug"],
             "created_at": u["created_at"],
-            "profile":  {"display_name": prof.get("display_name",""), "bio": prof.get("bio",""), "contact": prof.get("contact","")},
+            "profile":  {
+                "display_name": prof.get("display_name",""),
+                "bio": prof.get("bio",""),
+                "contact": prof.get("contact",""),
+                "avatar_url": prof.get("avatar_url",""),
+            },
             "plan":     plan,
             "usage":    {"current": curr_c, "max": max_c, "allowed": ok_c},
             "stats":    {"h24": stats_24h, "h7d": stats_7d},
+            "stats_24h": stats_24h,
+            "stats_7d":  stats_7d,
             "products": [{"code": p["product_code"], "title": p["title"], "price": p["price"],
                           "shipping_mode": p["shipping_mode"], "shipping_fee": p["shipping_fee"]} for p in products],
             "recent_leads": leads_clean,

@@ -4486,6 +4486,19 @@ async function openAdminProfile(id, name, avatar) {
            statEls[2].setAttribute('data-val', d.stats.revenue);
        }
        
+       // Animate counters right here, after setting data-val
+       modal.querySelectorAll('.ap-stat-val').forEach(el => {
+         const target = parseInt(el.getAttribute('data-val')||'0');
+         el.textContent = '0';
+         let current = 0;
+         const step = Math.max(1, Math.ceil(target / 15));
+         const intv = setInterval(() => {
+           current += step;
+           if (current >= target) { current = target; clearInterval(intv); }
+           el.textContent = current;
+         }, 30);
+       });
+       
        if (d.stats.role) {
          document.getElementById('ap-role-chip').textContent = (d.stats.role === 'supreme_admin' ? 'Admin Supremo' : 'Admin Autorizado') + ' & Sincronizado';
          document.getElementById('ap-role-chip').className = 'chip chip-g';
@@ -4516,17 +4529,6 @@ async function openAdminProfile(id, name, avatar) {
   
   toastDismissLoading();
   modal.classList.add('open');
-  modal.querySelectorAll('.ap-stat-val').forEach(el => {
-    const target = parseInt(el.getAttribute('data-val')||'0');
-    el.textContent = '0';
-    let current = 0;
-    const step = Math.max(1, Math.ceil(target / 15));
-    const int = setInterval(() => {
-      current += step;
-      if (current >= target) { current = target; clearInterval(int); }
-      el.textContent = current;
-    }, 30);
-  });
 }
 
 function closeAdminProfile() { document.getElementById('admin-profile-modal').classList.remove('open'); }

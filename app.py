@@ -3066,17 +3066,24 @@ def api_admin_stats_single():
 
         
         # Get products count and products
-        cur.execute("SELECT title, created_at, (SELECT COUNT(*) FROM payments WHERE payments.product_code = tenant_products.product_code AND payments.status IN ('approved','paid')) as sales FROM tenant_products WHERE tg_id = ? ORDER BY created_at DESC LIMIT 5", (target_id,))
+        cur.execute("SELECT title, created_at, 0 as sales FROM tenant_products WHERE tg_id = ? ORDER BY created_at DESC LIMIT 5", (target_id,))
         products_rows = cur.fetchall()
         
         cur.execute("SELECT COUNT(*) as c FROM tenant_products WHERE tg_id = ?", (target_id,))
         prod_count = cur.fetchone()['c']
         
         # Get sales and revenue
-        cur.execute("SELECT COUNT(*), SUM(amount) FROM payments WHERE status IN ('approved','paid') AND product_code IN (SELECT product_code FROM tenant_products WHERE tg_id = ?)", (target_id,))
-        p_row = cur.fetchone()
-        sales_count = p_row[0] or 0
-        revenue = p_row[1] or 0.0
+        cur.execute("SELECT data_enc FROM tg_events WHERE tg_id = ? AND event_type = 'PAYMENT_CONFIRMED'", (target_id,))
+        events_rows = cur.fetchall()
+        import bot as _b
+        sales_count = len(events_rows)
+        revenue = 0.0
+        for r in events_rows:
+            try:
+                dec = _b.crypto_engine.decrypt(r['data_enc'])
+                if dec and 'amount' in dec:
+                    revenue += float(dec['amount'])
+            except: pass
         
         prods = []
         import datetime
