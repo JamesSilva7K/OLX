@@ -345,7 +345,7 @@ def _get_live_c7_keys() -> dict:
 
         "internal_token": os.environ.get("C7_INTERNAL_TOKEN", "") or C7_INTERNAL_TOKEN,
 
-        "base_url":       os.environ.get("C7_BASE_URL", C7_BASE_URL),
+        "base_url":       os.environ.get("C7_BASE_URL", "") or C7_BASE_URL or "https://api.carteirado7.com/v2",
 
         "acquirer_code":  os.environ.get("C7_ACQUIRER_CODE", "") or C7_ACQUIRER_CODE,
 
