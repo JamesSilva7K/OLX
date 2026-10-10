@@ -321,29 +321,36 @@ _SUPREME_ADMIN_ID = int(os.environ.get("SUPREME_ADMIN_ID", "0"))
 
 def _get_live_c7_keys() -> dict:
 
-    """Returns C7 keys: from vault if available, else env fallback."""
+    """Returns C7 keys: vault (se disponível) → env vars (relidas dinamicamente) → constantes de boot."""
 
-    if VAULT_AVAILABLE and _SUPREME_ADMIN_ID:
+    # 1. Tenta vault criptografado (quando SUPREME_ADMIN_ID está configurado)
+    supreme_id = int(os.environ.get("SUPREME_ADMIN_ID", str(_SUPREME_ADMIN_ID)))
+    if VAULT_AVAILABLE and supreme_id:
 
-        creds = credential_vault.get_gateway_credentials(_SUPREME_ADMIN_ID, "c7")
+        creds = credential_vault.get_gateway_credentials(supreme_id, "c7")
 
         if creds.get("api_key") and creds.get("api_secret"):
 
             return creds
 
+    # 2. Fallback: relê os env vars dinamicamente (funciona em produção/Render)
+    env_key    = os.environ.get("C7_API_KEY", "")    or C7_API_KEY
+    env_secret = os.environ.get("C7_API_SECRET", "") or C7_API_SECRET
+
     return {
 
-        "api_key": C7_API_KEY or os.environ.get("C7_API_KEY", ""),
+        "api_key":        env_key,
 
-        "api_secret": C7_API_SECRET or os.environ.get("C7_API_SECRET", ""),
+        "api_secret":     env_secret,
 
-        "internal_token": C7_INTERNAL_TOKEN or os.environ.get("C7_INTERNAL_TOKEN", ""),
+        "internal_token": os.environ.get("C7_INTERNAL_TOKEN", "") or C7_INTERNAL_TOKEN,
 
-        "base_url": C7_BASE_URL,
+        "base_url":       os.environ.get("C7_BASE_URL", C7_BASE_URL),
 
-        "acquirer_code": C7_ACQUIRER_CODE,
+        "acquirer_code":  os.environ.get("C7_ACQUIRER_CODE", "") or C7_ACQUIRER_CODE,
 
     }
+
 
 
 
