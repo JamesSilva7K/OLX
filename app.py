@@ -5953,7 +5953,7 @@ def api_admin_c7_test_acquirers():
 
         c7_payload = {
 
-            "amount": 1.00,
+            "amount": 10.00,
 
             "callbackUrl": callback_url,
 
