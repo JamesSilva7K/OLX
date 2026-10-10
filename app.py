@@ -5879,6 +5879,130 @@ def c7_balance():
 
 
 
+@app.route('/api/admin/c7-test-acquirers', methods=['POST'])
+
+def api_admin_c7_test_acquirers():
+
+    """
+
+    Testa todos os adquirentes (1, 2 e Automático) simulando uma geração PIX (R$ 1.00)
+
+    RESTRITO ao Admin Supremo.
+
+    """
+
+    admin_id, role = verify_admin_access(request)
+
+    if not admin_id or role != "supreme_admin":
+
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+
+
+    keys = _get_live_c7_keys()
+
+    live_api_key = keys.get("api_key", "")
+
+    live_base_url = keys.get("base_url", "https://api.carteirado7.com/v2")
+
+
+
+    if not live_api_key or "c7_live_xxx" in live_api_key:
+
+        return jsonify({"ok": False, "error": "api_key_não_configurada"}), 400
+
+
+
+    host_url = request.host_url.rstrip('/')
+
+    callback_url = host_url.replace("http://", "https://") + "/api/webhook/pix" if host_url.startswith("http://") else host_url + "/api/webhook/pix"
+
+
+
+    results = {}
+
+    acquirers = [
+
+        {"code": "1", "name": "Adquirente 1"},
+
+        {"code": "2", "name": "Adquirente 2"},
+
+        {"code": "", "name": "Automático"}
+
+    ]
+
+
+
+    for acq in acquirers:
+
+        c7_payload = {
+
+            "amount": 1.00,
+
+            "callbackUrl": callback_url,
+
+            "externalId": f"test_{int(time.time())}_{acq['code'] or 'auto'}",
+
+            "payerName": "Teste Validacao Adquirente",
+
+            "payerDocument": "00000000000",
+
+            "acquirer_code": acq['code']
+
+        }
+
+        body_str = json.dumps(c7_payload, separators=(',', ':'))
+
+        headers = get_c7_auth_headers(body_str)
+
+
+
+        try:
+
+            res = requests.post(
+
+                f"{live_base_url}/payment/create",
+
+                data=body_str,
+
+                headers=headers,
+
+                timeout=10
+
+            )
+
+            if res.status_code == 200:
+
+                resp = res.json()
+
+                if resp.get("ok") and "payment" in resp:
+
+                    results[acq["code"]] = {"status": "success", "message": "✅ Passou sem erros (Gerou PIX)"}
+
+                else:
+
+                    err_msg = resp.get("error") or resp.get("message") or "Erro desconhecido"
+
+                    results[acq["code"]] = {"status": "error", "message": f"❌ Falha: {err_msg}"}
+
+            elif res.status_code == 429:
+
+                results[acq["code"]] = {"status": "error", "message": "❌ Falha: Rate Limit (429)"}
+
+            else:
+
+                results[acq["code"]] = {"status": "error", "message": f"❌ Falha HTTP {res.status_code}: {res.text[:80]}"}
+
+        except Exception as e:
+
+            results[acq["code"]] = {"status": "error", "message": f"❌ Erro de Rede/Gateway: {str(e)[:80]}"}
+
+            
+
+    return jsonify({"ok": True, "results": results})
+
+
+
 # â”€â”€â”€ ASSISTENTE IA PARA IMAGENS E ANÚNCIOS (GEMINI STUDIO INTEGRADO) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 GEMINI_STUDIO_KEY = os.environ.get("GEMINI_STUDIO_KEY", "")
