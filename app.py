@@ -2,6 +2,15 @@
 
 import os
 
+# Carrega variáveis do .env (desenvolvimento local)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv não instalado; env vars já devem estar no ambiente
+
+
+
 import sys
 
 import json

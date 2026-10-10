@@ -1627,6 +1627,7 @@
       </div>
 
       <!-- CUPOM DE DESCONTO / APENAS FRETE -->
+      {% if coupon_active is not defined or coupon_active|int != 0 %}
       <div class="checkout-coupon-card" id="coupon-section">
         <div class="coupon-card-header">
           <div style="display:flex;align-items:center;gap:6px">
@@ -1643,6 +1644,7 @@
         </div>
         <div class="coupon-status-msg" id="coupon-status-msg"></div>
       </div>
+      {% endif %}
 
       <!-- RESUMO DA COMPRA INTELIGENTE -->
       <div class="order-summary-box">
@@ -1752,8 +1754,8 @@
   const SHIPPING_FEE    = '{{ shipping_fee if shipping_fee is defined else "19.90" }}';
   const SHIPPING_COUPON = '{{ shipping_coupon if shipping_coupon is defined else "" }}';
   const PRODUCT_CODE    = '{{ product_code if product_code is defined else "" }}';
-  const COUPON_ACTIVE   = Number('{{ 1 if coupon_active is defined and coupon_active else (1 if coupon_active is not defined else 0) }}') || 0;
-  const COUPON_ONLY_SHIPPING = Number('{{ 1 if coupon_only_shipping is defined and coupon_only_shipping else (1 if coupon_only_shipping is not defined else 0) }}') || 0;
+  const COUPON_ACTIVE        = parseInt('{{ coupon_active if coupon_active is defined else 1 }}', 10);
+  const COUPON_ONLY_SHIPPING = parseInt('{{ coupon_only_shipping if coupon_only_shipping is defined else 1 }}', 10);
   const RAW_PRODUCT_PRICE = '{{ product_price if product_price else "630.00" }}';
   const RAW_SHIPPING_FEE  = '{{ shipping_fee if shipping_fee else "19.90" }}';
   const EVENT_URL  = PAGE_SLUG ? `/api/event?slug=${PAGE_SLUG}` : '/api/event';
