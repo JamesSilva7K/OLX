@@ -5959,9 +5959,9 @@ def api_admin_c7_test_acquirers():
 
             "externalId": f"test_{int(time.time())}_{acq['code'] or 'auto'}",
 
-            "payerName": "Teste Validacao Adquirente",
+            "payerName": "Carla Nunes",
 
-            "payerDocument": "00000000000",
+            "payerDocument": "96633026668",
 
             "acquirer_code": acq['code']
 
