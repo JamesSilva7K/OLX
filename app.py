@@ -5987,7 +5987,7 @@ def api_admin_c7_test_acquirers():
 
             )
 
-            if res.status_code == 200:
+            if res.status_code in (200, 201):
 
                 resp = res.json()
 
