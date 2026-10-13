@@ -446,17 +446,38 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
     try:
         t0 = time.time()
         res = None
+
+        # 1. Tentativa primária com curl_cffi Session (warmup de cookies Cloudflare + impersonate)
         try:
             from curl_cffi import requests as cffi_requests
-            res = cffi_requests.post(base_url, json=payload, headers=headers, impersonate="chrome124", timeout=15)
+            sess = cffi_requests.Session()
+            # Warmup na raiz do domínio para obter cookies de validação anti-bot do Cloudflare
+            try:
+                domain_root = "https://" + base_url.split("//")[-1].split("/")[0]
+                sess.get(domain_root, impersonate="chrome124", timeout=8)
+            except Exception:
+                pass
+
+            for imp in ("chrome124", "chrome120", "safari17_0"):
+                try:
+                    res = sess.post(base_url, json=payload, headers=headers, impersonate=imp, timeout=15)
+                    if res.status_code != 403:
+                        break
+                except Exception:
+                    continue
         except Exception as _e_cffi:
+            pass
+
+        # 2. Fallback com cloudscraper se cffi falhar ou não conseguir
+        if res is None or res.status_code == 403:
             try:
                 import cloudscraper
                 scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
                 res = scraper.post(base_url, json=payload, headers=headers, timeout=15)
-            except Exception as _e_cs:
+            except Exception:
                 pass
 
+        # 3. Fallback com requests puro
         if res is None:
             res = requests.post(base_url, json=payload, headers=headers, timeout=12)
 
