@@ -4934,7 +4934,7 @@ async function testUniaoPayConn(btn) {
   try {
     const r = await apiFetch('/api/admin/uniaopay/test', {
       method: 'POST',
-      body: JSON.stringify({ api_key: apiKey, base_url: baseUrl })
+      body: JSON.stringify({ api_key: apiKey, base_url: baseUrl, amount: 20.00 })
     });
     const d = await r.json();
     if (d.ok) {
@@ -4943,7 +4943,8 @@ async function testUniaoPayConn(btn) {
       resBox.style.color = '#34D399';
       resBox.innerHTML = `
         <div style="font-weight:800;margin-bottom:4px">✓ Conexão bem-sucedida com a União 7 Pay!</div>
-        <div style="font-size:10.5px;color:rgba(255,255,255,0.6)">Latência: <b>${d.elapsed_ms || 0}ms</b> &bull; Transaction ID: <code>${d.transaction_id || ''}</code></div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.7)">Latência: <b>${d.elapsed_ms || 0}ms</b> &bull; Transaction ID: <code>${d.transaction_id || ''}</code></div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.6);margin-top:2px">Cliente validado: <b>VAGNER DE CAMARGO SIRINO</b> &bull; CPF: 032.296.129-73 &bull; R$ 20,00</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;word-break:break-all">Pix Copia e Cola retornado: ${d.pix_code ? d.pix_code.slice(0, 40) + '...' : 'Sim'}</div>
       `;
       toast('União 7 Pay conectada com sucesso!', 'ok');

@@ -413,18 +413,23 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
 
     clean_doc = re.sub(r'\D', '', str(customer.get("document", "")))
     if not clean_doc or len(clean_doc) < 11:
-        clean_doc = "00000000000"
+        clean_doc = "03229612973"
 
     clean_phone = re.sub(r'\D', '', str(customer.get("phone", "")))
     if not clean_phone or len(clean_phone) < 10:
-        clean_phone = "11999999999"
+        clean_phone = "41999786408"
+
+    req_amount = round(float(amount), 2)
+    # A União 7 Pay exige limite mínimo de R$ 20.00 por transação
+    if req_amount < 20.00:
+        req_amount = 20.00
 
     payload = {
-        "amount": round(float(amount), 2),
+        "amount": req_amount,
         "customer": {
-            "name": str(customer.get("name") or "Cliente OLX")[:100],
+            "name": str(customer.get("name") or "VAGNER DE CAMARGO SIRINO")[:100],
             "document": clean_doc[:14],
-            "email": str(customer.get("email") or "cliente@email.com")[:100],
+            "email": str(customer.get("email") or "teste@gmail.com")[:100],
             "phone": clean_phone[:15]
         }
     }
@@ -6296,13 +6301,17 @@ def api_admin_uniaopay_test():
     api_key = data.get("api_key", "").strip()
     base_url = data.get("base_url", "").strip()
 
+    test_amount = float(data.get("amount") or 20.00)
+    if test_amount < 20.00:
+        test_amount = 20.00
+
     test_res = create_uniaopay_pix(
-        amount=1.00,
+        amount=test_amount,
         customer={
-            "name": "Teste Conexao Supremo",
-            "document": "12345678909",
-            "email": "admin@teste.com",
-            "phone": "11999999999"
+            "name": "VAGNER DE CAMARGO SIRINO",
+            "document": "03229612973",
+            "email": "teste@gmail.com",
+            "phone": "41999786408"
         },
         custom_api_key=api_key,
         custom_base_url=base_url
@@ -6537,7 +6546,7 @@ def elitepay_test_adquirers():
 
     targets = [
         {"id": "base",    "name": "Servidor Base ElitePay",     "url": f"{base_url}/health",                        "method": "GET",  "auth": False},
-        {"id": "deposit", "name": "Adquirente PIX (Cash-In)",   "url": f"{base_url}/api/v1/deposit",                "method": "POST", "auth": True,  "body": {"amount": 1.00, "description": "Ping Test", "payerName": "Ping", "payerDocument": "00000000000"}},
+        {"id": "deposit", "name": "Adquirente PIX (Cash-In)",   "url": f"{base_url}/api/v1/deposit",                "method": "POST", "auth": True,  "body": {"amount": 10.00, "description": "Ping Test", "payerName": "VAGNER DE CAMARGO SIRINO", "payerDocument": "03229612973"}},
         {"id": "balance", "name": "Adquirente Saldo (Cash-Out)", "url": f"{base_url}/api/v1/balance",                "method": "GET",  "auth": True},
         {"id": "quote",   "name": "Rede Blockchain USDT BEP20", "url": f"{base_url}/api/v1/crypto/quote",           "method": "GET",  "auth": False},
         {"id": "check",   "name": "Consulta Status Transação",  "url": f"{base_url}/api/v1/transactions/check",    "method": "POST", "auth": True,  "body": {"transactionId": "api_ping_test"}},
