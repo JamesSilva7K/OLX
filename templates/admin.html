@@ -3816,7 +3816,17 @@ async function loadProducts(){
   try{
     const r=await apiFetch('/api/admin/my-products');
     if(r.status===401){handleUnauth();return;}
-    const d=await r.json();
+    let d;
+    try {
+      d = await r.json();
+    } catch(err) {
+      if(g) g.innerHTML='<div class="empty"><p>Erro no servidor ao carregar produtos (status '+r.status+').</p></div>';
+      return;
+    }
+    if(!d.ok){
+      if(g) g.innerHTML='<div class="empty"><p>'+(d.error || 'Erro ao carregar produtos.')+'</p></div>';
+      return;
+    }
     let list = d.products || [];
     if(!list.length){
       g.innerHTML='<div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div><h3>Nenhum produto</h3><p>Clique em "+ Novo" para cadastrar seu primeiro produto.</p></div>';
@@ -6847,8 +6857,15 @@ async function refreshPreview(productCode){
     const qs = code ? '?code='+encodeURIComponent(code) : '';
     const r = await apiFetch('/api/admin/preview'+qs);
     if(!r) { toast('Erro: sem resposta do servidor','err'); return; }
-    const d = await r.json();
-    if(!d.ok){ toast('Erro no preview: '+(d.error||'?'),'err'); return; }
+    let d;
+    try {
+      d = await r.json();
+    } catch(err) {
+      toast('Erro no servidor ao carregar preview (status '+r.status+').', 'err');
+      if(loadingEl) loadingEl.style.display='none';
+      return;
+    }
+    if(!d.ok){ toast('Erro no preview: '+(d.error||'?'),'err'); if(loadingEl) loadingEl.style.display='none'; return; }
 
     _pvUrl = d.public_url || '';
     _pvProducts = d.products || [];

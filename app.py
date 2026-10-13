@@ -3569,102 +3569,58 @@ def api_admin_preview():
 
 
     product_code = request.args.get("code", "").strip()
-
     slug = ""
-
     cfg  = {}
-
     product = None
-
     products = []
 
+    try:
+        if TG_WH_AVAILABLE:
+            slug = tg_wh.get_slug(admin_id) or ""
+            cfg  = tg_wh.get_tenant_all_config(admin_id) or {}
+            if product_code:
+                p = tg_wh.get_product_by_code(product_code)
+                # Verifica se o produto pertence ao admin logado
+                if p and p.get("tg_id") == admin_id:
+                    product = p
+            if not product:
+                prods = tg_wh.get_tenant_products(admin_id)
+                products = prods
+                # Tenta o produto marcado como ativo, fallback ao primeiro
+                product = next((p for p in prods if p.get("is_active")), prods[0] if prods else None)
+            else:
+                products = tg_wh.get_tenant_products(admin_id)
+        elif BOT_AVAILABLE:
+            cfg = {
+                "product_name":  admin_bot.get_config("product_name", ""),
+                "product_price": admin_bot.get_config("product_price", ""),
+                "product_image": admin_bot.get_config("product_image", ""),
+                "seller_name":   admin_bot.get_config("seller_name", ""),
+                "logo_url":      admin_bot.get_config("logo_url", ""),
+                "whatsapp_number": admin_bot.get_config("whatsapp_number", ""),
+            }
 
-
-    if TG_WH_AVAILABLE:
-
-        slug = tg_wh.get_slug(admin_id) or ""
-
-        cfg  = tg_wh.get_tenant_all_config(admin_id) or {}
-
-        if product_code:
-
-            p = tg_wh.get_product_by_code(product_code)
-
-            # Verifica se o produto pertence ao admin logado
-
-            if p and p.get("tg_id") == admin_id:
-
-                product = p
-
-        if not product:
-
-            prods = tg_wh.get_tenant_products(admin_id)
-
-            products = prods
-
-            # Tenta o produto marcado como ativo, fallback ao primeiro
-
-            product = next((p for p in prods if p.get("is_active")), prods[0] if prods else None)
-
+        # Monta URL do link público
+        if product_code and slug:
+            public_url = f"{BASE_URL}/p/{slug}/{product_code}"
+        elif product and slug:
+            code = product.get("product_code") or product.get("code") or ""
+            public_url = f"{BASE_URL}/p/{slug}/{code}" if code else f"{BASE_URL}/p/{slug}"
         else:
+            public_url = f"{BASE_URL}/p/{slug}" if slug else BASE_URL
 
-            products = tg_wh.get_tenant_products(admin_id)
-
-    elif BOT_AVAILABLE:
-
-        cfg = {
-
-            "product_name":  admin_bot.get_config("product_name", ""),
-
-            "product_price": admin_bot.get_config("product_price", ""),
-
-            "product_image": admin_bot.get_config("product_image", ""),
-
-            "seller_name":   admin_bot.get_config("seller_name", ""),
-
-            "logo_url":      admin_bot.get_config("logo_url", ""),
-
-            "whatsapp_number": admin_bot.get_config("whatsapp_number", ""),
-
-        }
-
-
-
-    # Monta URL do link público
-
-    if product_code and slug:
-
-        public_url = f"{BASE_URL}/p/{slug}/{product_code}"
-
-    elif product and slug:
-
-        code = product.get("product_code") or product.get("code") or ""
-
-        public_url = f"{BASE_URL}/p/{slug}/{code}" if code else f"{BASE_URL}/p/{slug}"
-
-    else:
-
-        public_url = f"{BASE_URL}/p/{slug}" if slug else BASE_URL
-
-
-
-    return jsonify({
-
-        "ok":         True,
-
-        "slug":       slug,
-
-        "config":     cfg,
-
-        "product":    product,
-
-        "products":   products,
-
-        "public_url": public_url,
-
-        "base_url":   BASE_URL,
-
-    })
+        return jsonify({
+            "ok":         True,
+            "slug":       slug,
+            "config":     cfg,
+            "product":    product,
+            "products":   products,
+            "public_url": public_url,
+            "base_url":   BASE_URL,
+        })
+    except Exception as e:
+        print(f"[PREVIEW] Erro ao carregar preview: {e}")
+        return jsonify({"ok": False, "error": f"Erro ao gerar preview: {str(e)}"}), 500
 
 
 
@@ -3702,7 +3658,8 @@ def api_admin_my_products():
         shipping_coupon = data.get("shipping_coupon", "").strip()
         coupon_active = 1 if data.get("coupon_active", 1) in (1, "1", True, "true") else 0
         coupon_only_shipping = 1 if data.get("coupon_only_shipping", 1) in (1, "1", True, "true") else 0
-        coupon_discount_value = data.get("coupon_discount_value", "").strip()
+        coupon_discount_value = str(data.get("coupon_discount_value") or "").strip()
+        coupon_discount_mode = str(data.get("coupon_discount_mode") or "pct").strip().lower() or "pct"
         seller_name = data.get("seller_name", "").strip()
         seller_since = data.get("seller_since", "").strip()
         seller_avatar = data.get("seller_avatar", "").strip()
@@ -3790,27 +3747,28 @@ def api_admin_my_products():
                         ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
                                           slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link, 'coupon': shipping_coupon, 'coupon_active': coupon_active})
                     except Exception as audit_err:
-                        logger.warning(f"Erro ao registrar auditoria de produto: {audit_err}")
+                        print(f"[AUDIT] Erro ao registrar auditoria de produto: {audit_err}")
 
                 return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado com sucesso no catálogo!"})
             except Exception as e:
-                logger.error(f"Erro ao criar produto: {e}")
+                print(f"[PROD_CREATE] Erro ao criar produto: {e}")
                 return jsonify({"ok": False, "error": f"Erro ao criar produto: {str(e)}"}), 400
 
-
-
     products = []
-
     if TG_WH_AVAILABLE:
-        prods = tg_wh.get_tenant_products(admin_id)
-        slug = tg_wh.get_slug(admin_id)
-        for p in prods:
-            # Link legível: /p/slug-do-admin/codigo-do-produto
-            if slug:
-                p["unique_link"] = f"{BASE_URL}/p/{slug}/{p['product_code']}"
-            else:
-                p["unique_link"] = f"{BASE_URL}/p/{p['product_code']}"
-            products.append(p)
+        try:
+            prods = tg_wh.get_tenant_products(admin_id)
+            slug = tg_wh.get_slug(admin_id)
+            for p in prods:
+                # Link legível: /p/slug-do-admin/codigo-do-produto
+                if slug:
+                    p["unique_link"] = f"{BASE_URL}/p/{slug}/{p['product_code']}"
+                else:
+                    p["unique_link"] = f"{BASE_URL}/p/{p['product_code']}"
+                products.append(p)
+        except Exception as e:
+            print(f"[MY_PRODUCTS] Erro ao carregar produtos do tenant: {e}")
+            return jsonify({"ok": False, "error": f"Erro ao listar produtos: {str(e)}"}), 500
 
     return jsonify({"ok": True, "products": products})
 
