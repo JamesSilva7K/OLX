@@ -4956,7 +4956,7 @@ async function testUniaoPayConn(btn) {
         <div style="font-weight:800;margin-bottom:4px">✕ Falha ao conectar na União 7 Pay</div>
         <div style="font-size:10.5px;color:rgba(255,255,255,0.6)">${d.error || 'Verifique a chave API e endpoint.'}</div>
       `;
-      toast('Falha no teste da União 7 Pay', 'err');
+      toast(d.error || 'Falha no teste da União 7 Pay', 'err');
     }
   } catch(e) {
     resBox.style.background = 'rgba(239,68,68,0.08)';
