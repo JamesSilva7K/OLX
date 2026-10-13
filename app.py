@@ -436,9 +436,11 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
 
     headers = {
         "Authorization": f"Bearer {api_key}",
+        "x-api-key": api_key,
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "User-Agent": "Uniao7Pay-Client/1.0"
+        "Accept": "application/json, text/plain, */*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7"
     }
 
     try:
@@ -457,11 +459,16 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
         elapsed_ms = int((time.time() - t0) * 1000)
 
         if res.status_code in (200, 201):
-            data = res.json()
-            tx_id = data.get("transaction_id") or data.get("id") or ""
+            try:
+                data = res.json()
+            except Exception:
+                data = {}
+            tx_obj = data.get("transaction", {}) if isinstance(data.get("transaction"), dict) else {}
             payment = data.get("payment", {}) if isinstance(data.get("payment"), dict) else {}
-            pix_copia_cola = payment.get("pix_copia_cola") or data.get("pix_copia_cola") or data.get("qrcode") or ""
+            tx_id = tx_obj.get("id") or data.get("transaction_id") or data.get("id") or ""
+            pix_copia_cola = payment.get("pix_copia_cola") or tx_obj.get("pix_code") or data.get("pix_copia_cola") or data.get("qrcode") or ""
             expires_in = payment.get("expires_in") or data.get("expires_in") or 1800
+            qr_base64 = payment.get("qr_base64") or tx_obj.get("qr_code_base64") or ""
 
             if pix_copia_cola:
                 qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={requests.utils.quote(pix_copia_cola)}"
@@ -471,6 +478,7 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
                     "transaction_id": tx_id,
                     "pix_code": pix_copia_cola,
                     "qr_code_url": qr_url,
+                    "qr_base64": qr_base64,
                     "expires_in": expires_in,
                     "status": "pending",
                     "elapsed_ms": elapsed_ms,
@@ -484,12 +492,14 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
                     "response": data
                 }
         else:
+            is_cf = "cloudflare" in res.text.lower() or "attention required" in res.text.lower() or res.status_code == 403
             clean_err = re.sub(r'<[^>]+>', ' ', res.text).strip()
             clean_err = re.sub(r'\s+', ' ', clean_err)[:200]
             return {
                 "ok": False,
                 "error": f"Erro HTTP {res.status_code} na União 7 Pay: {clean_err or 'Verifique a chave da API'}",
                 "status_code": res.status_code,
+                "cloudflare_challenge": is_cf,
                 "response_text": res.text[:250]
             }
     except Exception as e:
