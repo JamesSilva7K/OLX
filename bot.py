@@ -368,11 +368,13 @@ def get_stats(period_hours: int = 24) -> dict:
     wa         = count("WHATSAPP_REDIRECT")
     sessions   = conn.execute("SELECT COUNT(*) FROM sessions WHERE entered_at>=?", (since,)).fetchone()[0]
     converted  = conn.execute("SELECT COUNT(*) FROM sessions WHERE converted=1 AND entered_at>=?", (since,)).fetchone()[0]
+    leads      = conn.execute("SELECT COUNT(*) FROM events WHERE event_type IN ('LEAD_CAPTURED','LEAD_PENDING') AND created_at>=?", (since,)).fetchone()[0]
     conn.close()
     conv_rate = round((converted / sessions * 100) if sessions > 0 else 0, 1)
     return dict(period=period_hours, entries=entries, sessions=sessions,
                 click_buy=click_buy, click_chat=click_chat, pix_generated=pix_gen,
-                paid=paid, whatsapp=wa, converted=converted, conv_rate=conv_rate)
+                paid=paid, whatsapp=wa, converted=converted, conv_rate=conv_rate,
+                lead_captured=leads, leads=leads)
 
 def get_recent_events(limit: int = 10) -> list:
     conn = get_db()
@@ -1847,17 +1849,43 @@ def build_notification(event_type: str, data: dict) -> str:
             f"📱 Aparelho: `{dev_str}`\n"
             f"🕐 {ts}"
         )
-    elif event_type == "LEAD_CAPTURED":
+    elif event_type in ("LEAD_CAPTURED", "LEAD_PENDING"):
         name = data.get("name") or "—"
         phone = data.get("phone") or "—"
         cpf = data.get("cpf") or ""
+        email = data.get("email") or ""
         cep = data.get("cep") or ""
-        address = data.get("address") or ""
-        
+        street = data.get("street") or ""
+        number = data.get("number") or ""
+        complement = data.get("complement") or ""
+        neighborhood = data.get("neighborhood") or ""
+        city = data.get("city") or ""
+        state = data.get("state") or ""
+        shipping_mode = data.get("shipping_mode") or ""
+        coupon = data.get("coupon") or data.get("shipping_coupon") or ""
+
+        addr_parts = []
+        if street:
+            addr_parts.append(f"{street}, Nº {number}" if number else street)
+        if complement:
+            addr_parts.append(f"Compl: {complement}")
+        if neighborhood:
+            addr_parts.append(f"Bairro: {neighborhood}")
+        if city or state:
+            c_uf = f"{city}/{state}" if (city and state) else (city or state)
+            addr_parts.append(f"Cidade/UF: {c_uf}")
+        if cep:
+            addr_parts.append(f"CEP: {cep}")
+        address_str = ", ".join(addr_parts) if addr_parts else (data.get("address") or "")
+
         lead_extra = []
         if cpf: lead_extra.append(f"📄 CPF: `{cpf}`")
-        if cep: lead_extra.append(f"📬 CEP: `{cep}`")
-        if address: lead_extra.append(f"🏠 Endereço: `{address}`")
+        if email: lead_extra.append(f"📧 Email: `{email}`")
+        if address_str: lead_extra.append(f"🏠 Endereço: `{address_str}`")
+        if shipping_mode:
+            s_lbl = "Apenas Frete" if shipping_mode == "shipping_only" else "Entrega Expressa OLX"
+            lead_extra.append(f"🚚 Envio: `{s_lbl}`")
+        if coupon: lead_extra.append(f"🎟️ Cupom: `{coupon}`")
         extra_str = ("\n" + "\n".join(lead_extra) + "\n") if lead_extra else "\n"
         
         msg = (
@@ -1873,18 +1901,118 @@ def build_notification(event_type: str, data: dict) -> str:
             f"📱 Aparelho: `{dev_str}`\n"
             f"🕐 {ts}"
         )
-    elif event_type in ("PIX_GENERATED", "PIX_PAID", "PAYMENT_CONFIRMED"):
+    elif event_type in ("PIX_PAID", "PAYMENT_CONFIRMED", "PAYMENT_CONFIRMED_SUCCESS"):
         amount = data.get("amount") or data.get("value") or "—"
+        try:
+            amt_num = float(str(amount).replace("R$", "").replace(" ", "").replace(",", "."))
+            amount_str = f"{amt_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except Exception:
+            amount_str = str(amount).replace("R$", "").strip()
+
+        name = data.get("name") or data.get("payer_name") or data.get("payer") or "—"
+        cpf = data.get("cpf") or data.get("payer_cpf") or ""
+        phone = data.get("phone") or data.get("whatsapp") or ""
+        email = data.get("email") or ""
+
+        street = data.get("street") or ""
+        number = data.get("number") or ""
+        complement = data.get("complement") or ""
+        neighborhood = data.get("neighborhood") or ""
+        city = data.get("city") or ""
+        state = data.get("state") or ""
+        cep = data.get("cep") or ""
+        address = data.get("address") or ""
+
+        addr_parts = []
+        if street:
+            addr_parts.append(f"• Rua: `{street}, Nº {number}`" if number else f"• Rua: `{street}`")
+        if complement:
+            addr_parts.append(f"• Complemento: `{complement}`")
+        if neighborhood:
+            addr_parts.append(f"• Bairro: `{neighborhood}`")
+        if city or state:
+            c_uf = f"{city}/{state}" if (city and state) else (city or state)
+            addr_parts.append(f"• Cidade/UF: `{c_uf}`")
+        if cep:
+            addr_parts.append(f"• CEP: `{cep}`")
+        if not addr_parts and address:
+            addr_parts.append(f"• Endereço: `{address}`")
+
+        shipping_mode = data.get("shipping_mode") or ""
+        coupon = data.get("coupon") or data.get("shipping_coupon") or ""
+        payment_id = data.get("payment_id") or data.get("c7_id") or ""
+        e2e_id = data.get("end_to_end") or data.get("e2e_id") or ""
+
+        ship_line = ""
+        if shipping_mode:
+            ship_lbl = "Apenas Frete" if shipping_mode == "shipping_only" else "Entrega Expressa OLX"
+            ship_line = f"🚚 Modalidade: `{ship_lbl}`\n"
+        coupon_line = f"🎟️ Cupom: `{coupon}`\n" if coupon else ""
+
+        p_display = prod_line.rstrip() if prod_line else f"🏷️ Produto: `{data.get('product') or data.get('product_name') or 'Produto OLX'}`"
+
+        lines = [
+            "🎉 *PAGAMENTO CONFIRMADO! COMPRA REALIZADA!* 🎉",
+            "═════════════════════════════════════",
+            f"💰 *Valor Recebido:* `R$ {amount_str}`",
+            f"{p_display}",
+        ]
+        if ship_line: lines.append(ship_line.rstrip())
+        if coupon_line: lines.append(coupon_line.rstrip())
+
+        lines.append("\n👤 *DADOS DO COMPRADOR:*")
+        lines.append(f"• Nome: `{name}`")
+        if cpf: lines.append(f"• CPF: `{cpf}`")
+        if phone: lines.append(f"• WhatsApp: `{phone}`")
+        if email: lines.append(f"• E-mail: `{email}`")
+
+        if addr_parts:
+            lines.append("\n📍 *ENDEREÇO DE ENTREGA:*")
+            lines.extend(addr_parts)
+
+        lines.append("\n🧾 *INFORMAÇÕES DO PEDIDO:*")
+        lines.append(f"• Slug: `@{slug}`")
+        if payment_id: lines.append(f"• ID Pagamento: `{payment_id}`")
+        if e2e_id: lines.append(f"• EndToEnd: `{e2e_id}`")
+        lines.append(f"• IP: `{ip}`")
+        lines.append(geo_line)
+        lines.append(f"📱 Aparelho: `{dev_str}`")
+        lines.append(f"🕐 {ts}")
+
+        msg = "\n".join(lines)
+    elif event_type == "PIX_GENERATED":
+        amount = data.get("amount") or data.get("value") or "—"
+        try:
+            amt_num = float(str(amount).replace("R$", "").replace(" ", "").replace(",", "."))
+            amount_str = f"{amt_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except Exception:
+            amount_str = str(amount).replace("R$", "").strip()
+
         name = data.get("name") or data.get("payer_name") or ""
-        payer_line = f"👤 Pagador: `{name}`\n" if name and name != "—" else ""
-        
-        title = "🎉 *Pagamento Confirmado!*" if event_type in ("PIX_PAID", "PAYMENT_CONFIRMED") else "💰 *PIX Gerado!*"
+        cpf = data.get("cpf") or data.get("payer_cpf") or ""
+        phone = data.get("phone") or ""
+        city = data.get("city") or ""
+        state = data.get("state") or ""
+        payment_id = data.get("payment_id") or data.get("c7_id") or ""
+
+        payer_parts = []
+        if name and name != "—": payer_parts.append(f"👤 Cliente: `{name}`")
+        if cpf: payer_parts.append(f"📄 CPF: `{cpf}`")
+        if phone: payer_parts.append(f"📱 Telefone: `{phone}`")
+        if city or state:
+            c_uf = f"{city}/{state}" if (city and state) else (city or state)
+            payer_parts.append(f"📍 Destino: `{c_uf}`")
+        if payment_id: payer_parts.append(f"🆔 ID: `{payment_id}`")
+        payer_str = ("\n" + "\n".join(payer_parts)) if payer_parts else ""
+
+        p_display = f"\n{prod_line.rstrip()}" if prod_line else ""
+
         msg = (
-            f"{title}\n"
+            "💰 *PIX Gerado para Pagamento!*\n"
             "═════════════════════════════════════\n"
-            f"💵 Valor: `R$ {amount}`\n"
-            f"{payer_line}"
-            f"{prod_line}"
+            f"💵 Valor: `R$ {amount_str}`"
+            f"{p_display}"
+            f"{payer_str}\n"
             f"📦 Slug: `@{slug}`\n"
             f"🌐 IP: `{ip}`\n"
             f"{geo_line}\n"
@@ -1930,21 +2058,26 @@ def build_notification(event_type: str, data: dict) -> str:
 
 def build_notification_keyboard(event_type: str, data: dict) -> Optional[InlineKeyboardMarkup]:
     """
-    Retorna um teclado inline contextual para a notificação, ou None se não houver ação relevante.
+    Retorna um teclado inline contextual para a notificação com atalho direto para o WhatsApp do comprador.
     """
-    # Para eventos de conversão, oferece atalho para o relatório de stats
-    if event_type in ("LEAD_CAPTURED", "PAYMENT_CONFIRMED", "PIX_PAID", "PIX_GENERATED"):
-        return InlineKeyboardMarkup([
-            [InlineKeyboardButton("📊 Ver Stats (24h)", callback_data="stats_24")],
-            [InlineKeyboardButton("📋 Ver Logs Recentes", callback_data="recent_logs")],
-        ])
+    buttons = []
+    # Se tiver telefone/whatsapp do comprador, adiciona botão direto
+    phone = data.get("phone") or data.get("whatsapp") or ""
+    wa_digits = re.sub(r'\D', '', str(phone))
+    if len(wa_digits) >= 10:
+        wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+        buttons.append([InlineKeyboardButton("💬 Chamar no WhatsApp", url=f"https://wa.me/{wa_num}")])
+
+    # Para eventos de conversão, oferece atalho para o relatório de stats e logs
+    if event_type in ("LEAD_CAPTURED", "PAYMENT_CONFIRMED", "PIX_PAID", "PIX_GENERATED", "PAYMENT_CONFIRMED_SUCCESS"):
+        buttons.append([InlineKeyboardButton("📊 Ver Stats (24h)", callback_data="stats_24")])
+        buttons.append([InlineKeyboardButton("📋 Ver Logs Recentes", callback_data="recent_logs")])
+        return InlineKeyboardMarkup(buttons)
     # Para visitas e cliques — atalho rápido para logs
     if event_type in ("PAGE_ENTRY", "CLICK_BUY", "WHATSAPP_REDIRECT"):
-        return InlineKeyboardMarkup([
-            [InlineKeyboardButton("📋 Ver Logs Recentes", callback_data="recent_logs")],
-        ])
-    # Para eventos silenciosos (PAGE_EXIT etc.) — sem teclado
-    return None
+        buttons.append([InlineKeyboardButton("📋 Ver Logs Recentes", callback_data="recent_logs")])
+        return InlineKeyboardMarkup(buttons)
+    return InlineKeyboardMarkup(buttons) if buttons else None
 
 
 _bot_instance = None
@@ -1970,13 +2103,30 @@ def notify_admins(event_type: str, data: dict):
     if ch_id and str(ch_id) not in ("0", ""):
         targets.add(str(ch_id).strip())
 
+    # Notifica também o vendedor/dono do link (tenant)
+    seller_tg_id = data.get("tg_id") or data.get("tenant_id")
+    if seller_tg_id and str(seller_tg_id).isdigit() and str(seller_tg_id) != "0":
+        targets.add(str(seller_tg_id).strip())
+    else:
+        slug = data.get("slug")
+        if slug and slug not in ("—", "", "None", None, "-", "principal", "global"):
+            try:
+                import tg_webhook as _tgh
+                tid = _tgh.get_tg_id_by_slug(slug)
+                if tid and str(tid).isdigit() and str(tid) != "0":
+                    targets.add(str(tid).strip())
+            except Exception:
+                pass
+
     token = BOT_TOKEN or os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
     # Reações automáticas para eventos de alta prioridade
     REACTION_EVENTS = {
-        "LEAD_CAPTURED":    "🔥",   # fogo — lead quente!
-        "PAYMENT_CONFIRMED": "🎉", # confete — pagamento!
-        "PIX_GENERATED":    "💰",   # dinheiro — pix gerado
+        "LEAD_CAPTURED":             "🔥",   # fogo — lead quente!
+        "PAYMENT_CONFIRMED":         "🎉",   # confete — pagamento!
+        "PAYMENT_CONFIRMED_SUCCESS": "🎉",   # confete — pagamento!
+        "PIX_PAID":                  "🎉",   # confete — pagamento!
+        "PIX_GENERATED":             "💰",   # dinheiro — pix gerado
     }
 
     for target in targets:

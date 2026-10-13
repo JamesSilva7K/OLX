@@ -546,7 +546,7 @@ def get_product_by_code(code: str, tg_id: int = None):
                seller_name, seller_since, COALESCE(seller_avatar, '') AS seller_avatar,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
-               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone, COALESCE(seller_sales_completed, '') AS seller_sales_completed, COALESCE(seller_sales_canceled, '') AS seller_sales_canceled, COALESCE(seller_dispatch_time, '') AS seller_dispatch_time, COALESCE(seller_rating, '') AS seller_rating, COALESCE(seller_reviews, '') AS seller_reviews, COALESCE(seller_level, '') AS seller_level, COALESCE(seller_email_verified, 1) AS seller_email_verified, COALESCE(seller_phone_verified, 1) AS seller_phone_verified, COALESCE(seller_id_verified, 1) AS seller_id_verified, COALESCE(seller_fb_verified, 0) AS seller_fb_verified, COALESCE(seller_fb_url, '') AS seller_fb_url,
+               COALESCE(breadcrumb_zone, '') AS breadcrumb_zone, COALESCE(seller_sales_completed, '') AS seller_sales_completed, COALESCE(seller_sales_canceled, '') AS seller_sales_canceled, COALESCE(seller_dispatch_time, '') AS seller_dispatch_time, COALESCE(seller_rating, '') AS seller_rating, COALESCE(seller_reviews, '') AS seller_reviews, COALESCE(seller_level, '') AS seller_level, COALESCE(seller_email_verified, 1) AS seller_email_verified, COALESCE(seller_phone_verified, 1) AS seller_phone_verified, COALESCE(seller_id_verified, 1) AS seller_id_verified, COALESCE(seller_fb_verified, 0) AS seller_fb_verified, COALESCE(seller_fb_url, '') AS seller_fb_url, COALESCE(product_published_at, '') AS product_published_at,
                created_at
     """
     if tg_id:

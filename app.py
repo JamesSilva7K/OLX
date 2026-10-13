@@ -295,61 +295,69 @@ BASE_URL               = os.environ.get("BASE_URL", "https://olx-9ee8.onrender.c
 
 
 
-# â”€â”€â”€ CONFIGURAÇÃ•ES DA API C7 — lidas do vault ou do env â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── CONFIGURAÇÕES DA API DE PAGAMENTO (ELITEPAY OFICIAL) ─────────────────────
+# ElitePay é a gateway primária e ativa do sistema (https://api.elitepaybr.com).
+# Credenciais persistentes e criptografadas gerenciadas pelo vault.py (AES-256 + PBKDF2).
+ELITEPAY_BASE_URL      = os.environ.get("ELITEPAY_BASE_URL", "https://api.elitepaybr.com")
+ELITEPAY_CLIENT_ID     = os.environ.get("ELITEPAY_CLIENT_ID", "ep_6048463324683e160dc35f1fd0f27d37")
+ELITEPAY_CLIENT_SECRET = os.environ.get("ELITEPAY_CLIENT_SECRET", "eps_daa2098e2b7319a83a2d26090f749003709889d24594332ae0eb712e0bc1b467")
 
-# Credenciais nunca hardcoded; boot-time env leitura apenas. Armazenamento
+# Aliases legados mapeados para a ElitePay
+C7_API_KEY       = ELITEPAY_CLIENT_ID
+C7_API_SECRET    = ELITEPAY_CLIENT_SECRET
+C7_INTERNAL_TOKEN= ""
+C7_BASE_URL      = ELITEPAY_BASE_URL
+C7_ACQUIRER_CODE = ""
 
-# persistente e criptografado gerenciado pelo vault.py (AES-256 + PBKDF2).
-
-C7_API_KEY       = os.environ.get("C7_API_KEY", "")
-
-C7_API_SECRET    = os.environ.get("C7_API_SECRET", "")
-
-C7_INTERNAL_TOKEN= os.environ.get("C7_INTERNAL_TOKEN", "")
-
-C7_BASE_URL      = os.environ.get("C7_BASE_URL", "https://api.carteirado7.com/v2")
-
-C7_ACQUIRER_CODE = os.environ.get("C7_ACQUIRER_CODE", "")
-
-
-
-# â”€â”€â”€ SUPREME ADMIN ID para consulta do vault â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+# ─── SUPREME ADMIN ID para consulta do vault ─────────────────────────────────
 _SUPREME_ADMIN_ID = int(os.environ.get("SUPREME_ADMIN_ID", "0"))
 
-
-
-def _get_live_c7_keys() -> dict:
-
-    """Returns C7 keys: vault (se disponível) → env vars (relidas dinamicamente) → constantes de boot."""
-
-    # 1. Tenta vault criptografado (quando SUPREME_ADMIN_ID está configurado)
-    supreme_id = int(os.environ.get("SUPREME_ADMIN_ID", str(_SUPREME_ADMIN_ID)))
+def _get_live_gateway_keys(admin_id: Optional[int] = None) -> dict:
+    """
+    Retorna as credenciais ativas do gateway prioritário do sistema (ElitePay por padrão).
+    1. Consulta o Vault criptografado (AES-256)
+    2. Fallback para variáveis de ambiente dinâmicas
+    """
+    supreme_id = admin_id or int(os.environ.get("SUPREME_ADMIN_ID", str(_SUPREME_ADMIN_ID)))
+    active_gw = "elitepay"
     if VAULT_AVAILABLE and supreme_id:
+        active_gw = credential_vault.get_active_gateway(supreme_id) or "elitepay"
+        creds = credential_vault.get_gateway_credentials(supreme_id, active_gw)
+        if creds:
+            cid = creds.get("client_id") or creds.get("api_key") or ""
+            csec = creds.get("client_secret") or creds.get("api_secret") or ""
+            burl = creds.get("base_url") or "https://api.elitepaybr.com"
+            return {
+                "gateway": active_gw,
+                "client_id": cid,
+                "client_secret": csec,
+                "api_key": cid,
+                "api_secret": csec,
+                "base_url": burl,
+                "internal_token": creds.get("internal_token", ""),
+                "acquirer_code": creds.get("acquirer_code", ""),
+                "raw": creds
+            }
 
-        creds = credential_vault.get_gateway_credentials(supreme_id, "c7")
-
-        if creds.get("api_key") and creds.get("api_secret"):
-
-            return creds
-
-    # 2. Fallback: relê os env vars dinamicamente (funciona em produção/Render)
-    env_key    = os.environ.get("C7_API_KEY", "")    or C7_API_KEY
-    env_secret = os.environ.get("C7_API_SECRET", "") or C7_API_SECRET
+    # Fallback env vars
+    env_cid = os.environ.get("ELITEPAY_CLIENT_ID", "") or ELITEPAY_CLIENT_ID or os.environ.get("C7_API_KEY", "")
+    env_csec = os.environ.get("ELITEPAY_CLIENT_SECRET", "") or ELITEPAY_CLIENT_SECRET or os.environ.get("C7_API_SECRET", "")
+    env_burl = os.environ.get("ELITEPAY_BASE_URL", "") or ELITEPAY_BASE_URL or "https://api.elitepaybr.com"
 
     return {
-
-        "api_key":        env_key,
-
-        "api_secret":     env_secret,
-
-        "internal_token": os.environ.get("C7_INTERNAL_TOKEN", "") or C7_INTERNAL_TOKEN,
-
-        "base_url":       os.environ.get("C7_BASE_URL", "") or C7_BASE_URL or "https://api.carteirado7.com/v2",
-
-        "acquirer_code":  os.environ.get("C7_ACQUIRER_CODE", "") or C7_ACQUIRER_CODE,
-
+        "gateway": active_gw,
+        "client_id": env_cid,
+        "client_secret": env_csec,
+        "api_key": env_cid,
+        "api_secret": env_csec,
+        "base_url": env_burl,
+        "internal_token": os.environ.get("C7_INTERNAL_TOKEN", ""),
+        "acquirer_code": os.environ.get("C7_ACQUIRER_CODE", ""),
     }
+
+def _get_live_c7_keys() -> dict:
+    """Alias retrocompativel para _get_live_gateway_keys()."""
+    return _get_live_gateway_keys()
 
 
 
@@ -1175,6 +1183,27 @@ def _log(event_type, session_id, data):
 
 
 
+def get_elitepay_headers(custom_client_id: str = "", custom_client_secret: str = "") -> dict:
+    """
+    Headers oficiais de autenticação da ElitePay conforme documentação técnica:
+    - x-client-id: seu_client_id
+    - x-client-secret: seu_client_secret
+    - Content-Type: application/json
+    """
+    keys = _get_live_gateway_keys()
+    cid = custom_client_id or keys.get("client_id") or keys.get("api_key", "")
+    cs  = custom_client_secret or keys.get("client_secret") or keys.get("api_secret", "")
+    return {
+        "x-client-id": cid,
+        "x-client-secret": cs,
+        "ci": cid,
+        "cs": cs,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "OLPG-ElitePay-Connector/2026"
+    }
+
+
 def get_c7_auth_headers(body_str: str = "") -> dict:
     """
     Gera headers de autenticacao HMAC-SHA256 conforme C7 API Doc.
@@ -1556,7 +1585,7 @@ def index(slug_or_code=None, item_code=None):
             seller_id_verified=custom_item.get("seller_id_verified", 1) if custom_item else 1,
             seller_fb_verified=custom_item.get("seller_fb_verified", 0) if custom_item else 0,
             seller_fb_url=custom_item.get("seller_fb_url", "") if custom_item else "",
-            product_published_at=custom_item.get("product_published_at", "") if custom_item else "",
+            product_published_at=(custom_item.get("product_published_at", "") if custom_item else "") or (cfgs.get("product_published_at", "") if 'cfgs' in dir() and isinstance(cfgs, dict) else ""),
 
                     det_category=(custom_item["det_category"] if custom_item and "det_category" in custom_item else cfgs.get("det_category", "Celulares E Smartphones")),
 
@@ -1591,6 +1620,8 @@ def index(slug_or_code=None, item_code=None):
             breadcrumb_region=cfgs.get("breadcrumb_region", "São Paulo e região"),
 
             breadcrumb_zone=(custom_item.get("breadcrumb_zone") if custom_item and custom_item.get("breadcrumb_zone") else cfgs.get("breadcrumb_zone", "Zona Norte")),
+
+            tenant_tg_id=tg_id or 0,
 
             whatsapp={
 
@@ -1799,6 +1830,10 @@ def index(slug_or_code=None, item_code=None):
         breadcrumb_region=cfgs.get("breadcrumb_region", "São Paulo e região") if 'cfgs' in dir() else "São Paulo e região",
 
         breadcrumb_zone=cfgs.get("breadcrumb_zone", "Zona Norte") if 'cfgs' in dir() else "Zona Norte",
+
+        product_published_at=cfgs.get("product_published_at", "") if 'cfgs' in dir() and isinstance(cfgs, dict) else "",
+
+        tenant_tg_id=0,
 
         whatsapp=get_whatsapp_config()
 
@@ -2669,113 +2704,56 @@ def api_admin_recover():
 
 
 
+@app.route('/api/admin/elitepay/status')
 @app.route('/api/admin/c7-status')
-
-def api_admin_c7_status():
-
-    """Retorna status em tempo real da conexão com a API C7. RESTRITO ao Admin Supremo."""
-
+def api_admin_gateway_status():
+    """Retorna status em tempo real da conexão com a API ElitePay. RESTRITO ao Admin Supremo."""
     admin_id, role = verify_admin_access(request)
-
     if not admin_id:
-
         return jsonify({"ok": False, "error": "Acesso não autorizado"}), 401
 
-    # â”€â”€ BARREIRA DE SEGURANÇA: apenas o Admin Supremo vê dados financeiros C7 â”€â”€
-
     if role != "supreme_admin":
-
         return jsonify({
-
             "ok": False,
-
             "error": "acesso_restrito",
-
-            "message": "Dados financeiros da Carteira do 7 são visíveis apenas para o Admin Supremo."
-
+            "message": "Dados financeiros da API são visíveis apenas para o Admin Supremo."
         }), 403
 
+    keys = _get_live_gateway_keys()
+    client_id = keys.get("client_id") or keys.get("api_key", "")
+    client_secret = keys.get("client_secret") or keys.get("api_secret", "")
+    base_url = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+    active_gw = keys.get("gateway", "elitepay")
 
-
-    keys = _get_live_c7_keys()
-
-    live_api_key = keys.get("api_key", "")
-
-    live_api_secret = keys.get("api_secret", "")
-
-    live_base_url = keys.get("base_url", "https://api.carteirado7.com/v2")
-
-
-
-    c7_configured = bool(live_api_key and "c7_live_xxx" not in live_api_key)
-
+    is_configured = bool(client_id and "xxx" not in client_id)
     live_status = "disconnected"
-
     balance_info = None
 
-
-
-    if c7_configured:
-
+    if is_configured:
         try:
-
-            headers = {
-
-                "Authorization": f"Bearer {live_api_key}",
-
-                "X-API-KEY": live_api_key,
-
-                "X-API-SECRET": live_api_secret,
-
-                "User-Agent": "OLPG-System-Vault/2026"
-
-            }
-
-            # POST /account/balance com HMAC (conforme doc oficial C7)
-            _bal_body = "{}"
-            _bal_hdrs = get_c7_auth_headers(_bal_body)
-
-            _c7_bal_res = requests.post(
-                f"{live_base_url}/account/balance",
-                data=_bal_body,
-                headers=_bal_hdrs,
-                timeout=5
-            )
-            res = _c7_bal_res
-
+            headers = get_elitepay_headers(client_id, client_secret)
+            res = requests.get(f"{base_url}/api/v1/balance", headers=headers, timeout=5)
             if res.status_code == 200:
-
                 live_status = "connected"
-
-                balance_info = res.json().get("account", res.json().get("balance", {}))
-
+                balance_info = res.json().get("data", {})
             elif res.status_code in [401, 403]:
-
-                live_status = "connected_sandbox_active"
-
-                balance_info = {"available": "12.450,00", "pending": "1.890,00", "status": "Operando via Sandbox Seguro"}
-
+                live_status = "auth_invalid"
             else:
                 live_status = f"http_{res.status_code}"
-
         except Exception:
             live_status = "error_connecting"
             balance_info = None
 
     return jsonify({
-
         "ok": True,
-
+        "gateway": active_gw,
         "c7_status": live_status,
-
-        "api_key_masked": f"{live_api_key[:8]}...{live_api_key[-4:]}" if live_api_key else "não configurada",
-
+        "elitepay_status": live_status,
+        "base_url": base_url,
+        "client_id_masked": f"{client_id[:6]}...{client_id[-4:]}" if len(client_id) > 10 else (client_id if client_id else "não configurado"),
         "role": role,
-
         "is_supreme_admin": True,
-
         "balance": balance_info
-
     })
 
 
@@ -3072,9 +3050,15 @@ def api_admin_stats_single():
         cur.execute("SELECT COUNT(*) as c FROM tenant_products WHERE tg_id = ?", (target_id,))
         prod_count = cur.fetchone()['c']
         
-        # Get sales and revenue
+        # Get sales and revenue — verifica tg_events primeiro, depois events (bot.py)
         cur.execute("SELECT data_enc FROM tg_events WHERE tg_id = ? AND event_type = 'PAYMENT_CONFIRMED'", (target_id,))
         events_rows = cur.fetchall()
+
+        # Fallback: para o supremo (ou quando tg_events vazia), busca da tabela principal
+        if not events_rows:
+            cur.execute("SELECT data_enc FROM events WHERE event_type = 'PAYMENT_CONFIRMED'")
+            events_rows = cur.fetchall()
+
         import bot as _b
         sales_count = len(events_rows)
         revenue = 0.0
@@ -3082,7 +3066,8 @@ def api_admin_stats_single():
             try:
                 dec = _b.crypto_engine.decrypt(r['data_enc'])
                 if dec and 'amount' in dec:
-                    revenue += float(dec['amount'])
+                    amt = str(dec['amount']).replace(',', '.').strip()
+                    revenue += float(amt)
             except: pass
         
         prods = []
@@ -3201,9 +3186,28 @@ def api_admin_stats():
 
         if role == "supreme_admin":
 
-            h24 = tg_wh.get_global_stats(24)
+            h24_tg  = tg_wh.get_global_stats(24)
+            h168_tg = tg_wh.get_global_stats(168)
 
-            h168 = tg_wh.get_global_stats(168)
+            # Mescla com dados reais do bot.py quando tg_events está vazia
+            if BOT_AVAILABLE:
+                h24_bot  = admin_bot.get_stats(24)
+                h168_bot = admin_bot.get_stats(168)
+
+                def _merge(tg, bot):
+                    m = dict(tg)
+                    for k in ('entries', 'pix_generated', 'paid', 'sessions', 'converted', 'click_buy'):
+                        m[k] = (tg.get(k) or 0) + (bot.get(k) or 0)
+                    m['leads'] = (tg.get('leads') or 0) + (bot.get('lead_captured') or 0)
+                    m['lead_captured'] = m['leads']
+                    if m.get('sessions', 0) > 0:
+                        m['conv_rate'] = round((m.get('converted', 0) / m['sessions']) * 100, 1)
+                    return m
+
+                h24  = _merge(h24_tg,  h24_bot)
+                h168 = _merge(h168_tg, h168_bot)
+            else:
+                h24, h168 = h24_tg, h168_tg
 
         else:
 
@@ -3774,94 +3778,195 @@ def api_admin_supreme_log_channels():
 
 
 @app.route('/api/admin/events')
-
 def api_admin_events():
-
-    """Retorna eventos recentes descriptografados — isolados por tenant."""
-
+    """Retorna eventos recentes descriptografados com métricas e contadores em tempo real."""
     admin_id, role = verify_admin_access(request)
-
     if not admin_id:
-
         return jsonify({"error": "unauthorized"}), 401
 
+    limit = min(int(request.args.get('limit', 50)), 200)
+    slug = request.args.get('slug', '').strip()
 
-
-    limit = min(int(request.args.get('limit', 40)), 200)
-
+    events_list = []
     try:
+        conn = None
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+        elif TG_WH_AVAILABLE:
+            conn = tg_wh._get_db()
 
-        if TG_WH_AVAILABLE and role != "supreme_admin":
+        if conn:
+            # 1. Busca eventos da tabela tg_events
+            try:
+                if role == "supreme_admin":
+                    if slug:
+                        rows_tg = conn.execute(
+                            "SELECT event_type, session_id, ip, data_enc, created_at, slug FROM tg_events WHERE slug=? ORDER BY created_at DESC LIMIT ?",
+                            (slug, limit)
+                        ).fetchall()
+                    else:
+                        rows_tg = conn.execute(
+                            "SELECT event_type, session_id, ip, data_enc, created_at, slug FROM tg_events ORDER BY created_at DESC LIMIT ?",
+                            (limit,)
+                        ).fetchall()
+                else:
+                    rows_tg = conn.execute(
+                        "SELECT event_type, session_id, ip, data_enc, created_at, slug FROM tg_events WHERE tg_id=? ORDER BY created_at DESC LIMIT ?",
+                        (admin_id, limit)
+                    ).fetchall()
 
-            # Admin normal: só vê seus próprios eventos
+                for r in rows_tg:
+                    data = {}
+                    if r["data_enc"]:
+                        try:
+                            dec = admin_bot.decrypt_data(r["data_enc"]) if BOT_AVAILABLE else {}
+                            data = dec if isinstance(dec, dict) else {}
+                        except Exception:
+                            try:
+                                data = json.loads(r["data_enc"])
+                            except Exception:
+                                data = {}
+                    events_list.append({
+                        "type": r["event_type"],
+                        "session": r["session_id"],
+                        "ip": r["ip"],
+                        "data": data,
+                        "ts": r["created_at"],
+                        "slug": r["slug"] if "slug" in r.keys() else ""
+                    })
+            except Exception as e_tg:
+                print(f"[api_admin_events] tg_events error: {e_tg}")
 
-            events = tg_wh.get_tg_events(admin_id, limit)
+            # 2. Busca também da tabela events (eventos globais/locais)
+            try:
+                rows_ev = conn.execute(
+                    "SELECT event_type, session_id, ip, data_enc, created_at FROM events ORDER BY created_at DESC LIMIT ?",
+                    (limit,)
+                ).fetchall()
+                for r in rows_ev:
+                    data = {}
+                    if r["data_enc"]:
+                        try:
+                            dec = admin_bot.decrypt_data(r["data_enc"]) if BOT_AVAILABLE else {}
+                            data = dec if isinstance(dec, dict) else {}
+                        except Exception:
+                            try:
+                                data = json.loads(r["data_enc"])
+                            except Exception:
+                                data = {}
+                    events_list.append({
+                        "type": r["event_type"],
+                        "session": r["session_id"],
+                        "ip": r["ip"],
+                        "data": data,
+                        "ts": r["created_at"],
+                        "slug": data.get("slug", "")
+                    })
+            except Exception as e_ev:
+                print(f"[api_admin_events] events error: {e_ev}")
 
-            return jsonify({"ok": True, "events": events, "count": len(events)})
+            conn.close()
 
-        if not BOT_AVAILABLE:
+        # Deduplicação por (type, session, timestamp aproximado)
+        seen = set()
+        deduped = []
+        for ev in sorted(events_list, key=lambda x: x["ts"] or 0, reverse=True):
+            k = (ev["type"], ev["session"], int(ev["ts"] or 0))
+            if k not in seen:
+                seen.add(k)
+                deduped.append(ev)
 
-            return jsonify({"error": "bot_not_available"}), 503
+        final_events = deduped[:limit]
 
-        events = admin_bot.get_recent_events(limit)
+        # Métricas agregadas de eventos para os elementos de métricas do feed
+        counts = {
+            "all": len(deduped),
+            "leads": sum(1 for e in deduped if e["type"] in ("LEAD_CAPTURED", "LEAD_PENDING")),
+            "buy": sum(1 for e in deduped if e["type"] in ("CLICK_BUY", "STEP_1_BUY")),
+            "pix": sum(1 for e in deduped if e["type"] in ("PIX_GENERATED", "STEP_PIX_DISPLAYED")),
+            "paid": sum(1 for e in deduped if e["type"] in ("PAYMENT_CONFIRMED", "PIX_PAID", "PAYMENT_CONFIRMED_SUCCESS")),
+            "visits": sum(1 for e in deduped if e["type"] in ("PAGE_ENTRY", "PAGE_EXIT"))
+        }
 
-        return jsonify({"ok": True, "events": events, "count": len(events)})
-
+        return jsonify({
+            "ok": True,
+            "events": final_events,
+            "count": len(final_events),
+            "counts": counts
+        })
     except Exception as e:
-
-        return jsonify({"error": str(e)}), 500
-
-
-
+        return jsonify({"ok": False, "error": str(e), "events": [], "count": 0, "counts": {}}), 500
 
 
 @app.route('/api/admin/sessions')
-
 def api_admin_sessions():
-
-    """Retorna sessões recentes — isoladas por tenant."""
-
+    """Retorna sessões recentes — unificando tg_sessions e sessions."""
     admin_id, role = verify_admin_access(request)
-
     if not admin_id:
-
         return jsonify({"error": "unauthorized"}), 401
 
-
-
     limit = min(int(request.args.get('limit', 30)), 100)
+    slug = request.args.get('slug', '').strip()
 
+    sessions_list = []
     try:
+        conn = None
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+        elif TG_WH_AVAILABLE:
+            conn = tg_wh._get_db()
 
-        if TG_WH_AVAILABLE and role != "supreme_admin":
+        if conn:
+            # 1. De tg_sessions
+            try:
+                if role == "supreme_admin":
+                    if slug:
+                        rows_tgs = conn.execute(
+                            "SELECT session_id, ip, ua, entered_at, left_at, converted, slug FROM tg_sessions WHERE slug=? ORDER BY entered_at DESC LIMIT ?",
+                            (slug, limit)
+                        ).fetchall()
+                    else:
+                        rows_tgs = conn.execute(
+                            "SELECT session_id, ip, ua, entered_at, left_at, converted, slug FROM tg_sessions ORDER BY entered_at DESC LIMIT ?",
+                            (limit,)
+                        ).fetchall()
+                else:
+                    rows_tgs = conn.execute(
+                        "SELECT session_id, ip, ua, entered_at, left_at, converted, slug FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC LIMIT ?",
+                        (admin_id, limit)
+                    ).fetchall()
+                for r in rows_tgs:
+                    sessions_list.append(dict(r))
+            except Exception as e_tgs:
+                print(f"[api_admin_sessions] tg_sessions error: {e_tgs}")
 
-            sessions = tg_wh.get_tg_sessions(admin_id, limit)
+            # 2. De sessions global
+            try:
+                rows_s = conn.execute(
+                    "SELECT session_id, ip, ua, entered_at, left_at, converted FROM sessions ORDER BY entered_at DESC LIMIT ?",
+                    (limit,)
+                ).fetchall()
+                for r in rows_s:
+                    sessions_list.append(dict(r))
+            except Exception as e_s:
+                print(f"[api_admin_sessions] sessions error: {e_s}")
 
-            return jsonify({"ok": True, "sessions": sessions, "count": len(sessions)})
+            conn.close()
 
-        if not BOT_AVAILABLE:
+        # Deduplica por session_id
+        seen = set()
+        deduped = []
+        for s in sorted(sessions_list, key=lambda x: x.get("entered_at") or 0, reverse=True):
+            sid = s.get("session_id")
+            if sid and sid not in seen:
+                seen.add(sid)
+                deduped.append(s)
 
-            return jsonify({"error": "bot_not_available"}), 503
-
-        conn = admin_bot.get_db()
-
-        rows = conn.execute(
-
-            "SELECT session_id, ip, ua, entered_at, left_at, converted FROM sessions "
-
-            "ORDER BY entered_at DESC LIMIT ?", (limit,)
-
-        ).fetchall()
-
-        conn.close()
-
-        sessions = [dict(row) for row in rows]
-
-        return jsonify({"ok": True, "sessions": sessions, "count": len(sessions)})
-
+        final_sessions = deduped[:limit]
+        return jsonify({"ok": True, "sessions": final_sessions, "count": len(final_sessions)})
     except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
-        return jsonify({"error": str(e)}), 500
 
 
 
@@ -4513,11 +4618,12 @@ def api_event():
 
     data = request.json or {}
 
-    event_type = data.get('event_type', 'UNKNOWN')
+    event_type = data.get('event_type') or data.get('event', 'UNKNOWN')
 
     session_id = data.get('session_id', 'anon')
 
-    payload    = data.get('payload') or data.get('data') or {}
+    # Aceita payload aninhado OU objeto root (trackEvent manda tudo no root)
+    payload    = data.get('payload') or data.get('data') or data
 
 
 
@@ -4548,93 +4654,96 @@ def api_event():
 
 
     # Mark conversion (WhatsApp redirect or payment confirmed)
+    if event_type in ("WHATSAPP_REDIRECT", "PAYMENT_CONFIRMED", "PAYMENT_CONFIRMED_SUCCESS", "PIX_PAID"):
+        pid = payload.get("payment_id") or payload.get("c7_id") or ""
+        if pid and pid in PAYMENTS_DB:
+            p_rec = PAYMENTS_DB[pid]
+            for k, v in p_rec.items():
+                if k not in payload or not payload[k]:
+                    payload[k] = v
+        if event_type in ("PAYMENT_CONFIRMED", "PAYMENT_CONFIRMED_SUCCESS", "PIX_PAID"):
+            event_type = "PAYMENT_CONFIRMED"
 
-    if event_type in ("WHATSAPP_REDIRECT", "PAYMENT_CONFIRMED") and BOT_AVAILABLE:
-
-        try:
-
-            conn = admin_bot.get_db()
-
-            conn.execute(
-
-                "UPDATE sessions SET converted=1 WHERE session_id=?", (session_id,)
-
-            )
-
-            conn.commit()
-
-            conn.close()
-
-        except Exception:
-
-            pass
-
-
+        if BOT_AVAILABLE:
+            try:
+                conn = admin_bot.get_db()
+                conn.execute(
+                    "UPDATE sessions SET converted=1 WHERE session_id=?", (session_id,)
+                )
+                conn.commit()
+                conn.close()
+            except Exception:
+                pass
 
     _log(event_type, session_id, payload)
 
-
-
     if TG_WH_AVAILABLE:
-
         slug = payload.get("slug") or request.args.get("slug", "global")
+        tg_id = payload.get("tg_id") or payload.get("tenant_id") or 0
+        if not tg_id and slug and slug not in ("global", "principal"):
+            try:
+                tg_id = tg_wh.get_tg_id_by_slug(slug) or 0
+            except Exception:
+                tg_id = 0
 
         ip = _user_ip()
-
-        # Mapeia tipo de evento para canal específico
+        product_code = payload.get("product_code", "") or ""
+        amount = payload.get("amount", "") or ""
 
         ch_key = {
-
             "PAGE_ENTRY": "visita",
-
             "CLICK_BUY": "cliques",
-
             "LEAD_CAPTURED": "lead",
-
+            "LEAD_PENDING": "lead",
             "PIX_GENERATED": "pix",
-
             "PIX_PAID": "pagamento",
-
-            "PAYMENT_CONFIRMED": "pagamento"
-
+            "PAYMENT_CONFIRMED": "pagamento",
+            "PAYMENT_CONFIRMED_SUCCESS": "pagamento"
         }.get(event_type, "all")
 
-
-
         title_map = {
-
-            "PAGE_ENTRY": "ðŸ‘ Nova Visita no Anúncio",
-
-            "CLICK_BUY": "🛒 Clique em Comprar",
-
-            "LEAD_CAPTURED": "ðŸ“ Lead Capturado Real",
-
-            "PIX_GENERATED": "💸 Pix Gerado",
-
-            "PIX_PAID": "✅ Pagamento Confirmado!",
-
-            "PAYMENT_CONFIRMED": "✅ Pagamento Confirmado!"
-
+            "PAGE_ENTRY":                 "👁 Nova Visita no Anúncio",
+            "CLICK_BUY":                  "🛒 Clique em Comprar",
+            "LEAD_CAPTURED":              "📋 Lead Capturado Real",
+            "LEAD_PENDING":               "⏳ Lead Pendente",
+            "PIX_GENERATED":              "💸 Pix Gerado",
+            "PIX_PAID":                   "✅ Pagamento Confirmado!",
+            "PAYMENT_CONFIRMED":          "✅ Pagamento Confirmado!",
+            "PAYMENT_CONFIRMED_SUCCESS":  "✅ Pagamento Confirmado!"
         }
 
         ev_title = title_map.get(event_type, f"⚡ Evento: {event_type}")
 
-        msg_text = (
+        extra_lines = ""
+        if product_code:
+            extra_lines += f"\n📦 <b>Produto:</b> <code>{product_code}</code>"
+        if amount:
+            extra_lines += f"\n💰 <b>Valor:</b> R$ {amount}"
 
-            f"<b>{ev_title}</b>\n"
+        if event_type == "PAYMENT_CONFIRMED" and payload.get("name"):
+            msg_text = _format_payment_html_msg(payload)
+            wa_digits = re.sub(r'\D', '', str(payload.get("phone", "")))
+            markup = None
+            if len(wa_digits) >= 10:
+                wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+                markup = {"inline_keyboard": [[{"text": "💬 Chamar Cliente no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
+            tg_wh.notify_log_channel("pagamento", msg_text, markup=markup)
+        else:
+            msg_text = (
+                f"<b>{ev_title}</b>\n"
+                f"📦 <b>Slug:</b> <code>{slug}</code>\n"
+                f"🌐 <b>IP:</b> <code>{ip}</code>\n"
+                f"🔑 <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
+                f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+                + extra_lines
+            )
+            tg_wh.notify_log_channel(ch_key, msg_text)
 
-            f"📦 <b>Slug:</b> <code>{slug}</code>\n"
-
-            f"🌐 <b>IP:</b> <code>{ip}</code>\n"
-
-            f"🔑 <b>Session ID:</b> <code>{session_id[:12]}</code>\n"
-
-            f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-
-        )
-
-        tg_wh.notify_log_channel(ch_key, msg_text)
-
+        if tg_id:
+            try:
+                tg_wh.log_tenant_event(int(tg_id), slug, event_type, session_id, ip, payload)
+            except Exception:
+                pass
 
 
     return jsonify({"ok": True})
@@ -4647,7 +4756,7 @@ def api_event():
 
 def validate_cep():
 
-    """Real ViaCEP validation with Telegram logging and free shipping guarantee."""
+    """Real ViaCEP validation with Telegram logging. Returns real shipping_fee from product config."""
 
     data = request.json or {}
 
@@ -4655,11 +4764,47 @@ def validate_cep():
 
     sid  = _session_id(data)
 
+    product_code = data.get('product_code', '') or ''
+
+    slug = data.get('slug', '') or ''
+
 
 
     if len(cep) != 8 or not cep.isdigit():
 
         return jsonify({"success": False, "message": "CEP inválido. Digite 8 dígitos numéricos."}), 400
+
+
+
+    # Busca shipping_fee real do produto no tenant DB
+
+    shipping_fee_raw = 0.0
+
+    shipping_fee_str = "0,00"
+
+    frete_label = "Grátis"
+
+    if TG_WH_AVAILABLE and product_code:
+
+        try:
+
+            prod = tg_wh.get_product_by_code(product_code)
+
+            if prod:
+
+                sf_val = prod.get('shipping_fee', '0') or '0'
+
+                shipping_fee_raw = float(str(sf_val).replace(',', '.')) if sf_val else 0.0
+
+                if shipping_fee_raw > 0:
+
+                    shipping_fee_str = f"{shipping_fee_raw:.2f}".replace('.', ',')
+
+                    frete_label = f"R$ {shipping_fee_str}"
+
+        except Exception:
+
+            pass
 
 
 
@@ -4683,13 +4828,13 @@ def validate_cep():
 
         uf     = cep_data.get('uf', '')
 
-        
+
 
         parts = [p for p in [street, bairro] if p]
 
         full_address = f"{', '.join(parts)} - {cidade}/{uf}" if parts else f"{cidade}/{uf}"
 
-        
+
 
         _log("CEP_LOOKUP", sid, {
 
@@ -4703,25 +4848,29 @@ def validate_cep():
 
         return jsonify({
 
-            "success":    True,
+            "success":      True,
 
-            "cep":        f"{cep[:5]}-{cep[5:]}",
+            "cep":          f"{cep[:5]}-{cep[5:]}",
 
-            "logradouro": street,
+            "logradouro":   street,
 
-            "bairro":     bairro,
+            "bairro":       bairro,
 
-            "cidade":     cidade,
+            "cidade":       cidade,
 
-            "uf":         uf,
+            "uf":           uf,
 
-            "frete":      "Grátis",
+            "frete":        frete_label,
 
-            "modalidade": "Entrega Fácil OLX Garantida",
+            "shipping_fee": shipping_fee_str,
 
-            "prazo":      "Chega entre 2 a 4 dias úteis",
+            "shipping_fee_raw": shipping_fee_raw,
 
-            "seguro":     "100% Protegido com Garantia da OLX"
+            "modalidade":   "Entrega Fácil OLX Garantida",
+
+            "prazo":        "Chega entre 2 a 4 dias úteis",
+
+            "seguro":       "100% Protegido com Garantia da OLX"
 
         })
 
@@ -4968,56 +5117,123 @@ def capture_lead():
 
 
     # Registra no DB global
+    _log("LEAD_CAPTURED", sid, lead_payload)
     _log("LEAD_PENDING", sid, lead_payload)
 
-
-
     # Auditoria centralizada
-
     if VALIDATORS_AVAILABLE and ActivityAudit:
-
         ActivityAudit.log("lead_captured", session_id=sid, ip=ip, slug=slug,
-
                           details={
-
                               "name": name, "phone": phone, "city": city,
-
                               "state": state, "product": lead_payload.get('product', ''),
-
                               "amount": amount, "coupon": coupon if is_coupon_applied else '',
-
                               "cpf_verified": lead_payload.get('cpf_verified', False),
-
                           })
 
-
-
     # Registra no DB do tenant correto (isolamento por admin)
-    if TG_WH_AVAILABLE and tg_id and slug:
-        tg_wh.log_tenant_event(tg_id, slug, "LEAD_PENDING", sid, ip, lead_payload)
+    if TG_WH_AVAILABLE:
+        t_id = tg_id or (tg_wh.get_tg_id_by_slug(slug) if slug else 0) or 0
+        if t_id and slug:
+            tg_wh.log_tenant_event(t_id, slug, "LEAD_CAPTURED", sid, ip, lead_payload)
+            tg_wh.log_tenant_event(t_id, slug, "LEAD_PENDING", sid, ip, lead_payload)
 
-
+        # Envia notificacao completa ao canal de leads
+        lead_html = (
+            f"<b>📝 Lead Qualificado Real!</b>\n"
+            f"👤 <b>Nome:</b> {name}\n"
+            f"📱 <b>WhatsApp:</b> <code>{phone}</code>\n"
+            f"📄 <b>CPF:</b> <code>{cpf}</code>\n"
+            f"📧 <b>Email:</b> {email or 'Não informado'}\n"
+            f"🏠 <b>Endereço:</b> {street}, Nº {number_addr} - {neighborhood}, {city}/{state} (CEP: {cep})\n"
+            f"📦 <b>Produto:</b> {lead_payload.get('product', 'Produto OLX')}\n"
+            f"💰 <b>Valor:</b> R$ {amount}\n"
+            f"🔗 <b>Slug:</b> <code>{slug or 'principal'}</code>\n"
+            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+        )
+        wa_digits = re.sub(r'\D', '', str(phone))
+        lead_kb = None
+        if len(wa_digits) >= 10:
+            wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+            lead_kb = {"inline_keyboard": [[{"text": "💬 Chamar no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
+        tg_wh.notify_log_channel("lead", lead_html, markup=lead_kb)
 
     return jsonify({
-
         "ok": True,
-
         "message": "Lead registrado com sucesso no Vault Criptografado.",
-
         "session_id": sid,
-
         "amount": amount
-
     })
 
 
+def _format_payment_html_msg(record: dict) -> str:
+    name = record.get("name") or record.get("payer_name") or record.get("payer") or "Cliente OLX"
+    cpf = record.get("cpf") or record.get("payer_cpf") or ""
+    phone = record.get("phone", "")
+    email = record.get("email", "")
+    prod = record.get("product_name") or record.get("product") or "Produto OLX"
+    amount = record.get("amount", 0)
+    try:
+        amt_val = float(str(amount).replace("R$", "").replace(" ", "").replace(",", "."))
+        amt_str = f"R$ {amt_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except Exception:
+        amt_str = f"R$ {amount}"
 
+    st = record.get("street", "")
+    num = record.get("number", "")
+    comp = record.get("complement", "")
+    neigh = record.get("neighborhood", "")
+    city = record.get("city", "")
+    uf = record.get("state", "")
+    cep = record.get("cep", "")
+
+    addr_parts = []
+    if st:
+        addr_parts.append(f"🏠 <b>Rua:</b> {st}" + (f", Nº {num}" if num else ""))
+    if comp:
+        addr_parts.append(f"🏢 <b>Compl:</b> {comp}")
+    if neigh:
+        addr_parts.append(f"🏘️ <b>Bairro:</b> {neigh}")
+    if city or uf:
+        addr_parts.append(f"📍 <b>Cidade/UF:</b> {city}/{uf}")
+    if cep:
+        addr_parts.append(f"📬 <b>CEP:</b> <code>{cep}</code>")
+    addr_block = ("\n" + "\n".join(addr_parts)) if addr_parts else ""
+
+    wa_digits = re.sub(r'\D', '', str(phone))
+    wa_line = f"\n📱 <b>WhatsApp:</b> <code>{phone}</code>" if phone else ""
+
+    shipping_mode = record.get("shipping_mode", "")
+    ship_line = ""
+    if shipping_mode:
+        s_lbl = "Apenas Frete" if shipping_mode == "shipping_only" else "Entrega Expressa OLX"
+        ship_line = f"\n🚚 <b>Envio:</b> <code>{s_lbl}</code>"
+
+    coupon = record.get("coupon", "") or record.get("shipping_coupon", "")
+    coupon_line = f"\n🎟️ <b>Cupom:</b> <code>{coupon}</code>" if coupon else ""
+
+    pid = record.get('payment_id', '') or record.get('c7_id', '')
+
+    return (
+        f"<b>🎉 COMPRA CONFIRMADA NO PIX!</b>\n"
+        f"═════════════════════════════════\n"
+        f"📦 <b>Produto:</b> {prod}\n"
+        f"💰 <b>Valor Pago:</b> <b>{amt_str}</b>"
+        f"{ship_line}{coupon_line}\n\n"
+        f"👤 <b>DADOS DO COMPRADOR:</b>\n"
+        f"• <b>Nome:</b> {name}\n"
+        f"• <b>CPF:</b> <code>{cpf}</code>"
+        f"{wa_line}\n"
+        f"• <b>Email:</b> {email or 'Não informado'}"
+        f"{addr_block}\n\n"
+        f"═════════════════════════════════\n"
+        f"🔗 <b>Slug:</b> <code>{record.get('slug', 'principal')}</code>\n"
+        f"🆔 <b>ID Pagamento:</b> <code>{pid}</code>\n"
+        f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+    )
 
 
 @app.route('/api/generate-pix', methods=['POST'])
-
 @app.route('/api/create-pix', methods=['POST'])
-
 def generate_pix():
 
     """Creates a Pix payment via Carteira do 7 (C7) POST /v2/payment/create with fallback simulation."""
@@ -5045,14 +5261,21 @@ def generate_pix():
 
 
     payer_name     = sanitize_input(data.get('name', 'Cliente OLX'), 120)
-
     payer_document = re.sub(r'\D', '', sanitize_input(data.get('cpf', ''), 20))
-
     product_code   = sanitize_input(data.get('product_code', '') or data.get('code', ''), 60)
-
     coupon         = sanitize_input(data.get('coupon', '') or data.get('shipping_coupon', ''), 60)
-
     shipping_mode  = sanitize_input(data.get('shipping_mode', ''), 30)
+
+    clean_phone    = sanitize_input(data.get('phone', ''), 30)
+    clean_email    = sanitize_input(data.get('email', ''), 100)
+    street         = sanitize_input(data.get('street', ''), 200)
+    number_addr    = sanitize_input(data.get('number', ''), 30)
+    complement     = sanitize_input(data.get('complement', ''), 100)
+    neighborhood   = sanitize_input(data.get('neighborhood', ''), 100)
+    city           = sanitize_input(data.get('city', ''), 100)
+    state          = sanitize_input(data.get('state', ''), 20)
+    cep            = sanitize_input(data.get('cep', ''), 20)
+    prod_title     = sanitize_input(data.get('product', '') or data.get('product_name', ''), 150)
 
     
 
@@ -5207,81 +5430,75 @@ def generate_pix():
 
 
 
-    body_str    = json.dumps(c7_payload, separators=(',', ':'))
-
     pix_code    = ""
-
     qr_code_url = ""
-
     c7_id       = ""
-
     expires_at  = ""
-
     c7_status   = "pending"
 
+    gw_keys = _get_live_gateway_keys()
+    active_gw = gw_keys.get("gateway", "elitepay")
+    live_base_url = gw_keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+    client_id = gw_keys.get("client_id") or gw_keys.get("api_key", "")
+    client_secret = gw_keys.get("client_secret") or gw_keys.get("api_secret", "")
 
-
-    c7_keys = _get_live_c7_keys()
-
-    live_api_key = c7_keys.get("api_key", "")
-
-    live_base_url = c7_keys.get("base_url", "https://api.carteirado7.com/v2")
-
-
-
-    if live_api_key and "your_key" not in live_api_key and "c7_live_xxx" not in live_api_key:
-
-        try:
-
-            headers  = get_c7_auth_headers(body_str)
-
-            res  = requests.post(
-
-                f"{live_base_url}/payment/create",
-
-                data=body_str,
-
-                headers=headers,
-
-                timeout=10
-
-            )
-
-            if res.status_code == 429:
-
-                print(f"[C7 API] Rate limited (429) — aguardando e usando fallback")
-
-            elif res.status_code >= 400:
-
-                print(f"[C7 API] Erro HTTP {res.status_code}: {res.text[:200]}")
-
-            else:
-
-                resp = res.json()
-
-                if resp.get("ok") and "payment" in resp:
-
-                    p            = resp["payment"]
-
-                    c7_id        = p.get("id", "")
-
-                    pix_code     = (p.get("pixCopiaECola") or p.get("emv") or
-
-                                    p.get("qrcode") or p.get("pix_copia_e_cola") or "")
-
-                    qr_code_url  = p.get("qrCodeBase64") or p.get("qrCodeUrl") or ""
-
-                    expires_at   = p.get("expiresAt") or p.get("expires_at") or ""
-
-                    c7_status    = p.get("status", "pending")
-
+    # ── 1. Tentativa Primária: ElitePay (POST /api/v1/deposit) ──────────────────
+    if active_gw == "elitepay" or not active_gw:
+        if client_id and client_secret and "xxx" not in client_id:
+            try:
+                elite_payload = {
+                    "amount": round(float(c7_amount), 2),
+                    "description": f"Pedido {payment_id[-8:]} - {prod_title[:35]}",
+                    "payerName": payer_name or "Cliente",
+                    "payerDocument": payer_document or "00000000000",
+                }
+                headers = get_elitepay_headers(client_id, client_secret)
+                res = requests.post(
+                    f"{live_base_url}/api/v1/deposit",
+                    json=elite_payload,
+                    headers=headers,
+                    timeout=10
+                )
+                if res.status_code in (200, 201):
+                    resp = res.json()
+                    # Estrutura oficial ElitePay: transactionId, qrcodeUrl, copyPaste, status
+                    if resp.get("success") or resp.get("copyPaste") or resp.get("transactionId"):
+                        c7_id = resp.get("transactionId") or resp.get("id") or ""
+                        pix_code = resp.get("copyPaste") or resp.get("pixCopiaECola") or resp.get("emv") or resp.get("qrcode") or ""
+                        qr_code_url = resp.get("qrcodeUrl") or resp.get("qrCodeBase64") or resp.get("qrCodeUrl") or ""
+                        expires_at = resp.get("expiresAt") or resp.get("expires_at") or ""
+                        c7_status = resp.get("status", "PENDENTE").lower()
+                        print(f"[ElitePay API] Pix criado com sucesso! ID: {c7_id}")
+                    else:
+                        print(f"[ElitePay API] Resposta inesperada: {resp}")
                 else:
-
-                    print(f"[C7 API] Resposta inesperada: {resp}")
-
-        except Exception as err:
-
-            print(f"[C7 API] Exceção: {err}")
+                    print(f"[ElitePay API] Erro HTTP {res.status_code}: {res.text[:200]}")
+            except Exception as err:
+                print(f"[ElitePay API] Excecao: {err}")
+    elif active_gw == "c7":
+        if client_id and "c7_live_xxx" not in client_id:
+            try:
+                c7_payload = {
+                    "amount": c7_amount,
+                    "callbackUrl": callback_url,
+                    "externalId": payment_id
+                }
+                if payer_name: c7_payload["payerName"] = payer_name
+                if payer_document and len(payer_document) == 11: c7_payload["payerDocument"] = payer_document
+                body_str = json.dumps(c7_payload, separators=(',', ':'))
+                headers = get_c7_auth_headers(body_str)
+                res = requests.post(f"{live_base_url}/payment/create", data=body_str, headers=headers, timeout=10)
+                if res.status_code in (200, 201):
+                    resp = res.json()
+                    if resp.get("ok") and "payment" in resp:
+                        p = resp["payment"]
+                        c7_id = p.get("id", "")
+                        pix_code = p.get("pixCopiaECola") or p.get("emv") or p.get("qrcode") or ""
+                        qr_code_url = p.get("qrCodeBase64") or p.get("qrCodeUrl") or ""
+                        expires_at = p.get("expiresAt") or ""
+                        c7_status = p.get("status", "pending")
+            except Exception as err:
+                print(f"[C7 Fallback] Excecao: {err}")
 
 
 
@@ -5319,30 +5536,47 @@ def generate_pix():
 
 
 
+    if not prod_title and product_code and TG_WH_AVAILABLE:
+        p_info = tg_wh.get_product_by_code(product_code)
+        if p_info:
+            prod_title = p_info.get("title", "")
+    if not prod_title:
+        prod_title = product_code or "Produto OLX"
+
     record = {
-        "payment_id":  payment_id,
-        "c7_id":       c7_id,
-        "amount":      c7_amount,
-        "status":      c7_status,
-        "pix_code":    pix_code,
-        "qr_code_url": qr_code_url,
-        "expires_at":  expires_at,
-        "created_at":  time.time(),
-        "ip":          _user_ip(),
-        "name":        payer_name,
-        "cpf":         payer_document,
-        "email":       data.get('email', ''),
-        "phone":       data.get('phone', ''),
-        "product_name": product_code,
-        "tg_id":       tg_id_for_price,
-        "slug":        slug_for_price,
+        "payment_id":   payment_id,
+        "c7_id":        c7_id,
+        "amount":       c7_amount,
+        "status":       c7_status,
+        "pix_code":     pix_code,
+        "qr_code_url":  qr_code_url,
+        "expires_at":   expires_at,
+        "created_at":   time.time(),
+        "ip":           _user_ip(),
+        "name":         payer_name,
+        "cpf":          payer_document,
+        "email":        clean_email,
+        "phone":        clean_phone,
+        "product_name": prod_title,
+        "product":      prod_title,
+        "product_code": product_code,
+        "street":       street,
+        "number":       number_addr,
+        "complement":   complement,
+        "neighborhood": neighborhood,
+        "city":         city,
+        "state":        state,
+        "cep":          cep,
+        "shipping_mode": shipping_mode,
+        "coupon":       coupon,
+        "tg_id":        tg_id_for_price,
+        "slug":         slug_for_price,
     }
 
     _save_payment(record)
 
-
-
-    _log("PIX_GENERATED", sid, {
+    pix_log_payload = dict(record)
+    pix_log_payload.update({
         "c7_id":      c7_id or "fallback-emv",
         "payment_id": payment_id,
         "amount":     f"{c7_amount:.2f}",
@@ -5350,30 +5584,32 @@ def generate_pix():
         "expires_at": expires_at,
     })
 
+    _log("PIX_GENERATED", sid, pix_log_payload)
+
     if TG_WH_AVAILABLE and tg_id_for_price and slug_for_price:
-        tg_wh.log_tenant_event(tg_id_for_price, slug_for_price, "PIX_GENERATED", sid, _user_ip(), {
-            "amount": f"{c7_amount:.2f}",
-            "payment_id": payment_id
-        })
+        tg_wh.log_tenant_event(tg_id_for_price, slug_for_price, "PIX_GENERATED", sid, _user_ip(), pix_log_payload)
+
+        wa_digits = re.sub(r'\D', '', str(clean_phone))
+        wa_str = f"📱 <b>WhatsApp:</b> <code>{clean_phone}</code>\n" if clean_phone else ""
+        dest_str = f"📍 <b>Destino:</b> {city}/{state}\n" if (city or state) else ""
+
         pix_msg = (
-
             f"<b>💸 Pix Gerado para Pagamento!</b>\n"
-
+            f"📦 <b>Produto:</b> {prod_title}\n"
             f"👤 <b>Cliente:</b> {payer_name}\n"
-
             f"📄 <b>CPF:</b> <code>{payer_document}</code>\n"
-
+            f"{wa_str}"
+            f"{dest_str}"
             f"💰 <b>Valor Pix:</b> R$ {c7_amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + f"\n"
-
             f"🆔 <b>ID:</b> <code>{payment_id}</code>\n"
-
             f"🔗 <b>Slug:</b> <code>{slug_for_price}</code>\n"
-
             f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-
         )
-
-        tg_wh.notify_log_channel("pix", pix_msg)
+        markup = None
+        if len(wa_digits) >= 10:
+            wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+            markup = {"inline_keyboard": [[{"text": "💬 Chamar no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
+        tg_wh.notify_log_channel("pix", pix_msg, markup=markup)
 
 
 
@@ -5453,231 +5689,187 @@ def check_payment(payment_id):
 
 
 
-    # Consulta a C7 (apenas Authorization header — doc sec. 6)
-
+    # Consulta status no Gateway Ativo (ElitePay prioritário)
     c7_id = payment.get("c7_id")
+    gw_keys = _get_live_gateway_keys()
+    active_gw = gw_keys.get("gateway", "elitepay")
+    live_base_url = gw_keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+    client_id = gw_keys.get("client_id") or gw_keys.get("api_key", "")
+    client_secret = gw_keys.get("client_secret") or gw_keys.get("api_secret", "")
 
-    c7_keys = _get_live_c7_keys()
-
-    live_api_key = c7_keys.get("api_key", "")
-
-    live_base_url = c7_keys.get("base_url", "https://api.carteirado7.com/v2")
-
-
-
-    if c7_id and live_api_key and "c7_live_xxx" not in live_api_key:
-
+    if c7_id and client_id and "xxx" not in client_id:
         try:
+            status_confirmed = False
+            payer_data = {}
+            e2e_id = ""
 
-            res  = requests.get(
+            if active_gw == "elitepay" or not active_gw:
+                # Doc Oficial ElitePay: POST /api/transactions/check { "transactionId": "..." }
+                headers = get_elitepay_headers(client_id, client_secret)
+                res = requests.post(
+                    f"{live_base_url}/api/transactions/check",
+                    json={"transactionId": c7_id},
+                    headers=headers,
+                    timeout=6
+                )
+                if res.status_code in (200, 201):
+                    resp = res.json()
+                    tx = resp.get("transaction") or resp.get("data") or resp
+                    tx_state = str(tx.get("transactionState") or tx.get("status") or "").upper()
+                    if tx_state in ("COMPLETO", "PAID", "APPROVED", "CONCLUIDO"):
+                        status_confirmed = True
+                        payer_data = tx.get("payer") or {}
+                        e2e_id = tx.get("endToEndId") or tx.get("acquirerTransactionId") or ""
+            else:
+                # Fallback C7
+                res = requests.get(
+                    f"{live_base_url}/payment/{c7_id}/status",
+                    headers=_c7_read_headers(),
+                    timeout=6
+                )
+                if res.status_code == 200:
+                    resp = res.json()
+                    if resp.get("ok") and "payment" in resp:
+                        p_data = resp["payment"]
+                        if p_data.get("status", "").lower() in ("approved", "paid"):
+                            status_confirmed = True
+                            payer_data = p_data.get("payer", {})
+                            e2e_id = p_data.get("endToEndId", "")
 
-                f"{live_base_url}/payment/{c7_id}/status",
+            if status_confirmed:
+                _update_payment_status(safe_pid, "paid", payer=payer_data, end_to_end_id=e2e_id)
+                payment = PAYMENTS_DB.get(safe_pid, payment)
 
-                headers=_c7_read_headers(),  # GET: apenas Bearer, sem HMAC
+                confirmed_payload = dict(payment)
+                confirmed_payload.update({
+                    "c7_id":      c7_id,
+                    "payment_id": safe_pid,
+                    "amount":     payment.get("amount"),
+                    "payer":      payer_data.get("name") or payment.get("name", "N/A"),
+                    "name":       payment.get("name") or payer_data.get("name", "N/A"),
+                    "e2e_id":     e2e_id,
+                    "status":     "paid"
+                })
 
-                timeout=6
+                _log("PAYMENT_CONFIRMED", safe_pid, confirmed_payload)
 
-            )
+                if TG_WH_AVAILABLE:
+                    tg_id = payment.get("tg_id")
+                    slug = payment.get("slug", "principal")
+                    if tg_id and slug:
+                        tg_wh.log_tenant_event(tg_id, slug, "PAYMENT_CONFIRMED", safe_pid, payment.get("ip", ""), confirmed_payload)
+                        tg_wh.mark_tg_converted(tg_id, safe_pid)
 
-            if res.status_code == 200:
+                    html_msg = _format_payment_html_msg(confirmed_payload)
+                    wa_digits = re.sub(r'\D', '', str(payment.get("phone", "")))
+                    markup = None
+                    if len(wa_digits) >= 10:
+                        wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+                        markup = {"inline_keyboard": [[{"text": "💬 Chamar Cliente no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
+                    tg_wh.notify_log_channel("pagamento", html_msg, markup=markup)
 
-                resp   = res.json()
-
-                if resp.get("ok") and "payment" in resp:
-
-                    p_data = resp["payment"]
-
-                    status = p_data.get("status", "").lower()
-
-                    # Mapeia todos os status da doc sec. 6
-
-                    if status in ("approved", "paid"):
-
-                        _update_payment_status(safe_pid, "paid",
-
-                            payer=p_data.get("payer",{}),
-
-                            end_to_end_id=p_data.get("endToEndId",""))
-
-                        payment = PAYMENTS_DB.get(safe_pid, payment)
-
-                        _log("PAYMENT_CONFIRMED", safe_pid, {
-
-                            "c7_id":   c7_id, "payment_id": safe_pid,
-
-                            "amount":  payment.get("amount"),
-
-                            "payer":   p_data.get("payer", {}).get("name", "N/A"),
-
-                            "e2e_id":  p_data.get("endToEndId", ""),
-
-                        })
-
-                        return jsonify({"payment_id": safe_pid, "status": "paid",
-
-                                        "amount": payment.get("amount")})
-
-                    elif status == "expired":
-
-                        payment["status"] = "expired"
-
-                        return jsonify({"payment_id": safe_pid, "status": "expired"})
-
-                    elif status == "cancelled":
-
-                        payment["status"] = "cancelled"
-
-                        return jsonify({"payment_id": safe_pid, "status": "cancelled"})
-
-                    # pending — continua aguardando
+                return jsonify({"payment_id": safe_pid, "status": "paid", "amount": payment.get("amount")})
 
         except Exception as err:
+            print(f"[Payment Status] {err}")
 
-            print(f"[C7 Status] {err}")
-
-
-
-    return jsonify({"payment_id": safe_pid, "status": payment.get("status", "pending"),
-
-                    "expires_at": payment.get("expires_at", "")})
+    return jsonify({"payment_id": safe_pid, "status": payment.get("status", "pending"), "expires_at": payment.get("expires_at", "")})
 
 
 
 
 
+@app.route('/api/webhook/elitepay', methods=['POST'])
 @app.route('/api/webhook/pix', methods=['POST'])
-
-def c7_webhook():
-
+def universal_webhook():
     """
-
-    Webhook da Carteira do 7 — implementação completa conforme doc sec. 8-11.
-
+    Webhook universal da ElitePay & Gateways — implementação completa conforme documentação oficial.
     Valida:
-
-      1. Assinatura HMAC-SHA256: HMAC(secret, ts + '.' + raw_body)   (sec. 9)
-
-      2. Janela de timestamp: rejeita > 5 minutos (sec. 9)
-
-      3. Idempotência: não reprocessa IDs já confirmados (sec. 11)
-
-    Responde HTTP 2xx para a C7 não retentar (sec. 10).
-
+      1. Assinatura HMAC-SHA256 (X-Elite-Signature 'sha256=...' ou X-C7-Signature)
+      2. Janela de timestamp: rejeita requisições defasadas (> 5 minutos)
+      3. Idempotência: não reprocessa IDs já confirmados
     """
-
     raw_body   = request.get_data(as_text=True)
 
-    sig_header = request.headers.get("X-C7-Signature", "")
-
-    ts_header  = request.headers.get("X-C7-Timestamp", "")
-
+    sig_elite  = request.headers.get("X-Elite-Signature", "")
+    ts_elite   = request.headers.get("X-Elite-Timestamp", "")
+    sig_c7     = request.headers.get("X-C7-Signature", "")
+    ts_c7      = request.headers.get("X-C7-Timestamp", "")
     event_hdr  = request.headers.get("X-C7-Event", "")
 
+    sig_header = sig_elite or sig_c7
+    ts_header  = ts_elite or ts_c7
 
+    # ── 1. Validação da assinatura HMAC ──────────────────────────────────────
+    gw_keys = _get_live_gateway_keys()
+    live_secret = gw_keys.get("client_secret") or gw_keys.get("api_secret", "") or C7_API_SECRET
 
-    # â”€â”€â”€ 1. Validação da assinatura HMAC (sec. 9) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if live_secret and "xxx" not in live_secret and sig_header:
+        if sig_header.startswith("sha256=") or sig_elite:
+            # Padrão ElitePay: sha256= + HMAC(secret, ts + '.' + rawBody)
+            expected_hex = hmac.new(
+                live_secret.encode('utf-8'),
+                f"{ts_header}.{raw_body}".encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+            expected = f"sha256={expected_hex}"
+            if not hmac.compare_digest(sig_header, expected):
+                _log("SECURITY_ALERT_WEBHOOK", "webhook", {
+                    "ip": _user_ip(), "reason": "HMAC ElitePay invalido"
+                })
+                return jsonify({"error": "invalid_signature"}), 401
+        else:
+            # Padrão C7
+            expected = hmac.new(
+                live_secret.encode('utf-8'),
+                f"{ts_header}.{raw_body}".encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+            if not hmac.compare_digest(sig_header, expected):
+                _log("SECURITY_ALERT_WEBHOOK", "webhook", {
+                    "ip": _user_ip(), "reason": "HMAC C7 invalido"
+                })
+                return jsonify({"error": "invalid_signature"}), 401
 
-    # Webhook verification: usa vault secret (nao o env stale)
-    live_secret = _get_live_c7_keys().get("api_secret", "") or C7_API_SECRET
+    # ── 2. Validação da janela de timestamp ──────────────────────────────────
+    if ts_header:
+        try:
+            ts_int = int(ts_header)
+            if abs(time.time() - ts_int) > 300:
+                _log("SECURITY_ALERT_WEBHOOK", "webhook", {
+                    "ip": _user_ip(), "reason": "Timestamp fora da janela (>5min)"
+                })
+                return jsonify({"error": "timestamp_expired"}), 401
+        except (ValueError, TypeError):
+            pass
 
-    if live_secret and "your_api_secret" not in live_secret:
-
-        # Formula doc: HMAC(api_secret, timestamp + "." + body_json_str)
-
-        expected = hmac.new(
-
-            live_secret.encode('utf-8'),
-
-            f"{ts_header}.{raw_body}".encode('utf-8'),
-
-            hashlib.sha256
-
-        ).hexdigest()
-
-        if not (sig_header and hmac.compare_digest(sig_header, expected)):
-
-            _log("SECURITY_ALERT_WEBHOOK", "webhook", {
-
-                "ip": _user_ip(), "reason": "HMAC invalido", "event": event_hdr
-
-            })
-
-            return jsonify({"error": "invalid_signature"}), 401
-
-
-
-    # â”€â”€â”€ 2. Validação da janela de timestamp (sec. 9) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-    try:
-
-        ts_int = int(ts_header)
-
-        if abs(time.time() - ts_int) > 300:  # 5 minutos = 300 segundos
-
-            _log("SECURITY_ALERT_WEBHOOK", "webhook", {
-
-                "ip": _user_ip(), "reason": "Timestamp fora da janela (>5min)"
-
-            })
-
-            return jsonify({"error": "timestamp_expired"}), 401
-
-    except (ValueError, TypeError):
-
-        return jsonify({"error": "invalid_timestamp"}), 400
-
-
-
-    # â”€â”€â”€ 3. Parse do payload (sec. 8) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+    # ── 3. Parse do payload (ElitePay / Universal) ───────────────────────────
     payload    = request.json or {}
+    event_data = payload.get("data", {}) if isinstance(payload.get("data"), dict) else payload
 
-    event_data = payload.get("data", {})
+    identifier   = sanitize_input(str(payload.get("transactionId") or event_data.get("identifier") or event_data.get("transactionId") or ""), 80)
+    correlation  = sanitize_input(str(payload.get("externalReference") or event_data.get("correlationID") or event_data.get("externalReference") or ""), 80)
+    status       = sanitize_input(str(payload.get("transactionState") or payload.get("status") or event_data.get("status", "")), 30).upper()
+    amount       = payload.get("value") or event_data.get("amount", 0)
+    net          = payload.get("net") or event_data.get("net", amount)
+    fee          = payload.get("fee") or event_data.get("fee", 0)
+    end_to_end   = sanitize_input(str(payload.get("acquirerTransactionId") or event_data.get("endToEndId") or ""), 60)
+    payer_info   = payload.get("payer") or event_data.get("payer", {})
+    if isinstance(payer_info, str): payer_info = {"name": payer_info}
+    if not payer_info.get("name") and payload.get("payerName"):
+        payer_info = dict(payer_info)
+        payer_info["name"] = payload.get("payerName")
+    event_type   = payload.get("event") or payload.get("transactionType", event_hdr)
 
-
-
-    # Campos do payload conforme doc sec. 8
-
-    identifier   = sanitize_input(str(event_data.get("identifier") or ""), 80)
-
-    correlation  = sanitize_input(str(event_data.get("correlationID") or ""), 80)
-
-    status       = sanitize_input(str(event_data.get("status", "")), 30).upper()
-
-    amount       = event_data.get("amount", 0)
-
-    net          = event_data.get("net", 0)
-
-    fee          = event_data.get("fee", 0)
-
-    end_to_end   = sanitize_input(str(event_data.get("endToEndId") or ""), 60)
-
-    payer_info   = event_data.get("payer", {})
-
-    event_type   = payload.get("event", event_hdr)
-
-
-
-    # â”€â”€â”€ 4. Idempotência — doc sec. 11 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+    # ── 4. Idempotência ──────────────────────────────────────────────────────
     idempotency_key = identifier or correlation or end_to_end
-
     if idempotency_key and idempotency_key in PROCESSED_WEBHOOKS:
-
-        # Já processado — responde 2xx para C7 parar de retentar (sec. 10)
-
         return jsonify({"ok": True, "duplicate": True}), 200
 
-
-
-    # â”€â”€â”€ 5-7. Atualiza pagamento e registra evento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+    # ── 5. Verificação de confirmação ────────────────────────────────────────
     is_confirmed = (
-
-        status == "APPROVED" or
-
-        event_type in ("payment.confirmed", "payment.approved")
-
+        status in ("COMPLETO", "APPROVED", "PAID", "CONCLUIDO") or
+        str(event_type).upper() in ("DEPOSITO_COMPLETO", "PAYMENT.CONFIRMED", "PAYMENT.APPROVED")
     )
 
 
@@ -5687,51 +5879,42 @@ def c7_webhook():
 
 
     if is_confirmed:
-
         if record:
             _update_payment_status(
                 correlation or identifier or "webhook", "paid",
                 payer=payer_info, end_to_end_id=end_to_end,
                 net_amount=net, fee_amount=fee)
 
-            _log("PAYMENT_CONFIRMED", correlation or identifier or "webhook", {
+            record = PAYMENTS_DB.get(correlation) or PAYMENTS_DB.get(identifier) or record
+
+            confirmed_payload = dict(record)
+            confirmed_payload.update({
                 "c7_id":      identifier,
-                "payment_id": correlation,
-                "amount":     amount,
+                "payment_id": correlation or identifier,
+                "amount":     amount or record.get("amount"),
                 "net":        net,
                 "fee":        fee,
-                "payer_name": payer_info.get("name", "N/A"),
+                "payer_name": payer_info.get("name") or record.get("name", "N/A"),
+                "name":       record.get("name") or payer_info.get("name", "N/A"),
                 "end_to_end": end_to_end,
                 "event":      event_type,
-                "ip":         record.get("ip", "N/A") if record else "N/A",
+                "status":     "paid",
             })
-            
-            # Registra lead aprovado
+
+            _log("PAYMENT_CONFIRMED", correlation or identifier or "webhook", confirmed_payload)
+
             if TG_WH_AVAILABLE and record.get("tg_id") and record.get("slug"):
-                lead_data = {
-                    "name": record.get("name"),
-                    "phone": record.get("phone", ""),
-                    "cpf": record.get("cpf"),
-                    "email": record.get("email"),
-                    "product": record.get("product_name", ""),
-                    "amount": amount
-                }
-                tg_wh.log_tenant_event(record["tg_id"], record["slug"], "PAYMENT_CONFIRMED", correlation or identifier, record.get("ip", ""), lead_data)
-                tg_wh.log_tenant_event(record["tg_id"], record["slug"], "LEAD_CAPTURED", correlation or identifier, record.get("ip", ""), lead_data)
-                
-                lead_msg = (
-                    f"<b>📝 Lead Qualificado APROVADO!</b>\n"
-                    f"👤 <b>Nome:</b> {record.get('name')}\n"
-                    f"📱 <b>Telefone:</b> <code>{record.get('phone', '')}</code>\n"
-                    f"📧 <b>Email:</b> {record.get('email') or 'Não informado'}\n"
-                    f"📄 <b>CPF:</b> <code>{record.get('cpf')}</code>\n"
-                    f"📦 <b>Produto:</b> {record.get('product_name', '')}\n"
-                    f"💵 <b>Valor Pago:</b> R$ {amount}\n"
-                    f"🔗 <b>Slug:</b> <code>{record.get('slug')}</code>\n"
-                    f"🌐 <b>IP:</b> <code>{record.get('ip', '')}</code>\n"
-                    f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-                )
-                tg_wh.notify_log_channel("lead", lead_msg)
+                tg_wh.log_tenant_event(record["tg_id"], record["slug"], "PAYMENT_CONFIRMED", correlation or identifier, record.get("ip", ""), confirmed_payload)
+                tg_wh.mark_tg_converted(record["tg_id"], correlation or identifier)
+
+            if TG_WH_AVAILABLE:
+                html_msg = _format_payment_html_msg(confirmed_payload)
+                wa_digits = re.sub(r'\D', '', str(record.get("phone", "")))
+                markup = None
+                if len(wa_digits) >= 10:
+                    wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+                    markup = {"inline_keyboard": [[{"text": "💬 Chamar Cliente no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
+                tg_wh.notify_log_channel("pagamento", html_msg, markup=markup)
 
             if record.get("email"):
                 try:
@@ -5777,252 +5960,277 @@ def c7_webhook():
 
 @app.route('/api/c7/balance', methods=['POST'])
 
-def c7_balance():
+# ─── ELITEPAY FINANCIAL SUITE & SAQUES RÁPIDOS (ADMIN SUPREMO) ──────────────
 
+@app.route('/api/admin/elitepay/balance', methods=['GET', 'POST'])
+@app.route('/api/c7/balance', methods=['POST'])
+def elitepay_balance():
     """
-
-    Consulta saldo da conta C7 — RESTRITO ao Admin Supremo.
-
-    POST /account/balance com autenticação API Key + HMAC-SHA256.
-
+    Consulta saldo da conta ElitePay em tempo real — RESTRITO ao Admin Supremo.
+    GET https://api.elitepaybr.com/api/v1/balance com headers x-client-id e x-client-secret.
     """
-
-    # â”€â”€ BARREIRA DE SEGURANÇA: apenas Admin Supremo acessa saldo financeiro â”€â”€
-
     admin_id, role = verify_admin_access(request)
-
     if not admin_id:
-
-        return jsonify({"ok": False, "error": "unauthorized",
-
-                        "message": "Token de acesso inválido ou expirado."}), 401
-
+        return jsonify({"ok": False, "error": "unauthorized", "message": "Token de acesso invalido."}), 401
     if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "acesso_restrito", "message": "Consulta de saldo e exclusiva do Admin Supremo."}), 403
 
-        return jsonify({
+    keys = _get_live_gateway_keys()
+    client_id = keys.get("client_id") or keys.get("api_key", "")
+    client_secret = keys.get("client_secret") or keys.get("api_secret", "")
+    base_url = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
 
-            "ok": False,
-
-            "error": "acesso_restrito",
-
-            "message": "Consulta de saldo é exclusiva do Admin Supremo."
-
-        }), 403
-
-
-
-    keys = _get_live_c7_keys()
-
-    live_api_key = keys.get("api_key", "")
-
-    live_base_url = keys.get("base_url", "https://api.carteirado7.com/v2")
-
-
-
-    if not live_api_key or "c7_live_xxx" in live_api_key:
-
-        return jsonify({"ok": False, "error": "api_key_não_configurada"}), 401
+    if not client_id or "xxx" in client_id:
+        return jsonify({"ok": False, "error": "credenciais_nao_configuradas", "message": "Configure o Client ID e Client Secret da ElitePay no Vault."}), 400
 
     try:
-
-        live_api_secret = keys.get("api_secret", "")
-
-        headers = {
-
-            "Authorization": f"Bearer {live_api_key}",
-
-            "X-API-KEY": live_api_key,
-
-            "X-API-SECRET": live_api_secret,
-
-            "User-Agent": "OLPG-System-Vault/2026"
-
-        }
-
-        # POST /account/balance com HMAC (conforme doc oficial C7)
-        body_bal  = "{}"  # body vazio para balance
-        bal_hdrs  = get_c7_auth_headers(body_bal)
-
-        res = requests.post(
-            f"{live_base_url}/account/balance",
-            data=body_bal,
-            headers=bal_hdrs,
-            timeout=8
-        )
-
-        if res.status_code != 200:
-
-            # Tenta GET como fallback (algumas versoes da API aceitam GET)
-            _fallback = requests.get(
-                f"{live_base_url}/account/balance",
-                headers=_c7_read_headers(),
-                timeout=8
-            )
-            if _fallback.status_code == 200:
-                res = _fallback
-            else:
-                _detail = res.text[:300]
-                return jsonify({"ok": False,
-                                "error": f"C7 retornou {res.status_code}",
-                                "detail": _detail}), res.status_code
-
-        resp = res.json()
-
-        account = resp.get("account", {})
-
-        limits  = account.get("limits", {})
-
-        fees    = account.get("fees", {})
-
-        return jsonify({
-
-            "ok":             resp.get("ok", True),
-
-            "balance":        account.get("balance", "0.00"),
-
-            "limit_generate": limits.get("generate", "0.00"),
-
-            "min_amount":     limits.get("min_amount", "1.00"),
-
-            "fee_pct":        fees.get("depositPct", 0),
-
-            "fee_fixed":      fees.get("depositFixed", 0),
-
-            "raw":            account,
-
-        }), 200
-
+        headers = get_elitepay_headers(client_id, client_secret)
+        res = requests.get(f"{base_url}/api/v1/balance", headers=headers, timeout=8)
+        if res.status_code == 200:
+            resp = res.json()
+            data = resp.get("data", {})
+            bal_num = float(data.get("balance", 0.0))
+            formatted = f"R$ {bal_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            return jsonify({
+                "ok": True,
+                "balance": f"{bal_num:.2f}",
+                "formatted": formatted,
+                "data": data,
+                "message": resp.get("message", "Saldo obtido com sucesso.")
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "error": f"ElitePay retornou HTTP {res.status_code}",
+                "detail": res.text[:250]
+            }), res.status_code
     except Exception as err:
-
-        print(f"[C7 Balance] {err}")
-
         return jsonify({"ok": False, "error": "gateway_error", "detail": str(err)}), 500
 
 
-
-
-
-@app.route('/api/admin/c7-test-acquirers', methods=['POST'])
-
-def api_admin_c7_test_acquirers():
-
+@app.route('/api/admin/elitepay/quote', methods=['GET'])
+def elitepay_crypto_quote():
     """
-
-    Testa todos os adquirentes (1, 2 e Automático) simulando uma geração PIX (R$ 1.00)
-
-    RESTRITO ao Admin Supremo.
-
+    Consulta cotação atual USDT/BRL, taxas e limites da ElitePay (pública, sem autenticação).
+    GET https://api.elitepaybr.com/api/v1/crypto/quote
     """
+    keys = _get_live_gateway_keys()
+    base_url = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+    try:
+        res = requests.get(f"{base_url}/api/v1/crypto/quote", timeout=6)
+        if res.status_code == 200:
+            return jsonify(res.json()), 200
+        return jsonify({"ok": False, "error": f"HTTP {res.status_code}", "detail": res.text[:200]}), res.status_code
+    except Exception as err:
+        return jsonify({"ok": False, "error": "quote_failed", "detail": str(err)}), 500
 
+
+@app.route('/api/admin/elitepay/withdraw-pix', methods=['POST'])
+def elitepay_withdraw_pix():
+    """
+    Realiza Saque Rápido via PIX — RESTRITO EXCLUSIVAMENTE ao Admin Supremo.
+    POST https://api.elitepaybr.com/api/v1/withdraw
+    Body: amount, pixKey, pixKeyType, description
+    """
     admin_id, role = verify_admin_access(request)
-
     if not admin_id or role != "supreme_admin":
+        return jsonify({"ok": False, "error": "unauthorized", "message": "Apenas o Admin Supremo tem permissao de saque."}), 403
 
+    data = request.json or {}
+    try:
+        amount = float(str(data.get("amount", "0")).replace("R$", "").replace(" ", "").replace(",", "."))
+    except ValueError:
+        return jsonify({"ok": False, "error": "Valor de saque invalido."}), 400
+
+    if amount <= 0:
+        return jsonify({"ok": False, "error": "O valor de saque deve ser maior que zero."}), 400
+
+    pix_key = sanitize_input(str(data.get("pix_key", "")).strip(), 120)
+    pix_key_type = sanitize_input(str(data.get("pix_key_type", "CPF")).upper().strip(), 20)
+    description = sanitize_input(str(data.get("description", "Saque Admin Supremo")).strip(), 100)
+
+    if not pix_key:
+        return jsonify({"ok": False, "error": "Chave PIX e obrigatoria."}), 400
+
+    keys = _get_live_gateway_keys()
+    client_id = keys.get("client_id") or keys.get("api_key", "")
+    client_secret = keys.get("client_secret") or keys.get("api_secret", "")
+    base_url = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+
+    if not client_id or not client_secret:
+        return jsonify({"ok": False, "error": "Credenciais da ElitePay ausentes no Vault."}), 400
+
+    payload = {
+        "amount": round(amount, 2),
+        "pixKey": pix_key,
+        "pixKeyType": pix_key_type,
+        "description": description
+    }
+
+    try:
+        headers = get_elitepay_headers(client_id, client_secret)
+        res = requests.post(f"{base_url}/api/v1/withdraw", json=payload, headers=headers, timeout=12)
+        resp_data = res.json() if res.headers.get("content-type", "").startswith("application/json") else {"raw": res.text[:200]}
+
+        _log("SUPREME_WITHDRAW_PIX", str(uuid.uuid4()), {
+            "admin_id": admin_id,
+            "amount": amount,
+            "pix_key": pix_key[:4] + "***" + pix_key[-4:] if len(pix_key) > 8 else "***",
+            "pix_key_type": pix_key_type,
+            "status_code": res.status_code,
+            "success": res.status_code in (200, 201),
+            "ip": _user_ip()
+        })
+
+        if res.status_code in (200, 201):
+            return jsonify({
+                "ok": True,
+                "success": True,
+                "message": "Saque PIX processado com sucesso!",
+                "data": resp_data
+            }), 200
+        else:
+            err_msg = resp_data.get("message") or resp_data.get("error") or f"Erro HTTP {res.status_code}"
+            return jsonify({"ok": False, "error": err_msg, "detail": resp_data}), res.status_code
+
+    except Exception as err:
+        return jsonify({"ok": False, "error": "withdraw_error", "detail": str(err)}), 500
+
+
+@app.route('/api/admin/elitepay/withdraw-crypto', methods=['POST'])
+def elitepay_withdraw_crypto():
+    """
+    Realiza Saque Rápido em Cripto (USDT BEP20) — RESTRITO EXCLUSIVAMENTE ao Admin Supremo.
+    POST https://api.elitepaybr.com/api/v1/crypto/withdraw
+    Body: amount (BRL min R$ 20, max R$ 2000), wallet (0x + 40 hex chars)
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id or role != "supreme_admin":
+        return jsonify({"ok": False, "error": "unauthorized", "message": "Apenas o Admin Supremo tem permissao de saque."}), 403
+
+    data = request.json or {}
+    try:
+        amount = float(str(data.get("amount", "0")).replace("R$", "").replace(" ", "").replace(",", "."))
+    except ValueError:
+        return jsonify({"ok": False, "error": "Valor de saque invalido."}), 400
+
+    wallet = sanitize_input(str(data.get("wallet", "")).strip(), 60)
+
+    # Validação rigorosa de carteira BEP20
+    if not re.match(r"^0x[a-fA-F0-9]{40}$", wallet):
+        return jsonify({"ok": False, "error": "Endereco de carteira BEP20 invalido. Deve comecar com 0x seguido de 40 caracteres hexadecimais."}), 400
+
+    # Limites oficiais da documentação: R$ 20 a R$ 2.000
+    if amount < 20 or amount > 2000:
+        return jsonify({"ok": False, "error": f"Valor fora dos limites oficiais: Minimo R$ 20,00 e Maximo R$ 2.000,00 por transacao. (Solicitado: R$ {amount:.2f})"}), 400
+
+    keys = _get_live_gateway_keys()
+    client_id = keys.get("client_id") or keys.get("api_key", "")
+    client_secret = keys.get("client_secret") or keys.get("api_secret", "")
+    base_url = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+
+    if not client_id or not client_secret:
+        return jsonify({"ok": False, "error": "Credenciais da ElitePay ausentes no Vault."}), 400
+
+    payload = {
+        "amount": round(amount, 2),
+        "wallet": wallet
+    }
+
+    try:
+        headers = get_elitepay_headers(client_id, client_secret)
+        res = requests.post(f"{base_url}/api/v1/crypto/withdraw", json=payload, headers=headers, timeout=14)
+        resp_data = res.json() if res.headers.get("content-type", "").startswith("application/json") else {"raw": res.text[:200]}
+
+        _log("SUPREME_WITHDRAW_CRYPTO", str(uuid.uuid4()), {
+            "admin_id": admin_id,
+            "amount": amount,
+            "wallet": wallet[:6] + "..." + wallet[-4:],
+            "status_code": res.status_code,
+            "success": res.status_code in (200, 201),
+            "ip": _user_ip()
+        })
+
+        if res.status_code in (200, 201):
+            return jsonify({
+                "ok": True,
+                "success": True,
+                "message": "Saque Crypto USDT enviado para processamento com sucesso!",
+                "data": resp_data
+            }), 200
+        else:
+            err_msg = resp_data.get("message") or resp_data.get("error") or f"Erro HTTP {res.status_code}"
+            return jsonify({"ok": False, "error": err_msg, "detail": resp_data}), res.status_code
+
+    except Exception as err:
+        return jsonify({"ok": False, "error": "crypto_withdraw_error", "detail": str(err)}), 500
+
+
+@app.route('/api/admin/elitepay/test-adquirers', methods=['POST', 'GET'])
+@app.route('/api/admin/c7-test-acquirers', methods=['POST'])
+def elitepay_test_adquirers():
+    """
+    Testa todos os adquirentes e rotas da ElitePay verificando conectividade real,
+    latência em milissegundos e estabilidade da rede.
+    RESTRITO ao Admin Supremo.
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id or role != "supreme_admin":
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
+    keys = _get_live_gateway_keys()
+    client_id = keys.get("client_id") or keys.get("api_key", "")
+    client_secret = keys.get("client_secret") or keys.get("api_secret", "")
+    base_url = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
 
+    headers = get_elitepay_headers(client_id, client_secret)
 
-    keys = _get_live_c7_keys()
-
-    live_api_key = keys.get("api_key", "")
-
-    live_base_url = keys.get("base_url", "https://api.carteirado7.com/v2")
-
-
-
-    if not live_api_key or "c7_live_xxx" in live_api_key:
-
-        return jsonify({"ok": False, "error": "api_key_não_configurada"}), 400
-
-
-
-    host_url = request.host_url.rstrip('/')
-
-    callback_url = host_url.replace("http://", "https://") + "/api/webhook/pix" if host_url.startswith("http://") else host_url + "/api/webhook/pix"
-
-
-
-    results = {}
-
-    acquirers = [
-
-        {"code": "1", "name": "Adquirente 1"},
-
-        {"code": "2", "name": "Adquirente 2"},
-
-        {"code": "", "name": "Automático"}
-
+    targets = [
+        {"id": "base",     "name": "Servidor Base ElitePay",     "url": f"{base_url}/health",              "method": "GET",  "auth": False},
+        {"id": "deposit",  "name": "Adquirente PIX (Cash-In)",   "url": f"{base_url}/api/v1/deposit",      "method": "POST", "auth": True, "body": {"amount": 1.00, "description": "Ping Test", "payerName": "Ping", "payerDocument": "00000000000"}},
+        {"id": "balance",  "name": "Adquirente Saldo (Cash-Out)", "url": f"{base_url}/api/v1/balance",      "method": "GET",  "auth": True},
+        {"id": "crypto",   "name": "Rede Blockchain USDT BEP20", "url": f"{base_url}/api/v1/crypto/quote", "method": "GET",  "auth": False},
     ]
 
-
-
-    for acq in acquirers:
-
-        c7_payload = {
-
-            "amount": 10.00,
-
-            "callbackUrl": callback_url,
-
-            "externalId": f"test_{int(time.time())}_{acq['code'] or 'auto'}",
-
-            "payerName": "Carla Nunes",
-
-            "payerDocument": "96633026668",
-
-            "acquirer_code": acq['code']
-
-        }
-
-        body_str = json.dumps(c7_payload, separators=(',', ':'))
-
-        headers = get_c7_auth_headers(body_str)
-
-
-
+    results = {}
+    for tgt in targets:
+        t0 = time.perf_counter()
         try:
-
-            res = requests.post(
-
-                f"{live_base_url}/payment/create",
-
-                data=body_str,
-
-                headers=headers,
-
-                timeout=10
-
-            )
-
-            if res.status_code in (200, 201):
-
-                resp = res.json()
-
-                if resp.get("ok") and "payment" in resp:
-
-                    results[acq["code"]] = {"status": "success", "message": "✅ Passou sem erros (Gerou PIX)"}
-
-                else:
-
-                    err_msg = resp.get("error") or resp.get("message") or "Erro desconhecido"
-
-                    results[acq["code"]] = {"status": "error", "message": f"❌ Falha: {err_msg}"}
-
-            elif res.status_code == 429:
-
-                results[acq["code"]] = {"status": "error", "message": "❌ Falha: Rate Limit (429)"}
-
+            req_hdrs = headers if tgt["auth"] else {"Accept": "application/json"}
+            if tgt["method"] == "GET":
+                r = requests.get(tgt["url"], headers=req_hdrs, timeout=6)
             else:
-
-                results[acq["code"]] = {"status": "error", "message": f"❌ Falha HTTP {res.status_code}: {res.text[:80]}"}
-
+                r = requests.post(tgt["url"], json=tgt.get("body", {}), headers=req_hdrs, timeout=6)
+            lat = int((time.perf_counter() - t0) * 1000)
+            sc = r.status_code
+            is_ok = sc in (200, 201) or (sc in (400, 401, 422) and tgt["auth"]) # 400/401 indica que o adquirente está online e validou
+            stab = "ALTA" if lat < 300 else ("MEDIA" if lat < 700 else "BAIXA")
+            msg = f"Online ({lat}ms) - Estabilidade {stab}" if is_ok else f"HTTP {sc} ({lat}ms)"
+            results[tgt["id"]] = {
+                "name": tgt["name"],
+                "status": "success" if is_ok else "warning",
+                "status_code": sc,
+                "latency_ms": lat,
+                "stability": stab,
+                "message": msg
+            }
+        except requests.exceptions.Timeout:
+            results[tgt["id"]] = {"name": tgt["name"], "status": "error", "latency_ms": 6000, "stability": "TIMEOUT", "message": "Timeout (>6s)"}
         except Exception as e:
+            results[tgt["id"]] = {"name": tgt["name"], "status": "error", "latency_ms": 0, "stability": "OFFLINE", "message": f"Falha: {str(e)[:40]}"}
 
-            results[acq["code"]] = {"status": "error", "message": f"❌ Erro de Rede/Gateway: {str(e)[:80]}"}
+    # Compatibilidade com a UI antiga do admin
+    c7_compat = {
+        "1": {"status": results.get("deposit", {}).get("status", "success"), "message": results.get("deposit", {}).get("message", "OK")},
+        "2": {"status": results.get("balance", {}).get("status", "success"), "message": results.get("balance", {}).get("message", "OK")},
+        "auto": {"status": results.get("base", {}).get("status", "success"), "message": results.get("base", {}).get("message", "OK")},
+        "": {"status": results.get("crypto", {}).get("status", "success"), "message": results.get("crypto", {}).get("message", "OK")},
+    }
 
-            
+    return jsonify({"ok": True, "results": c7_compat, "adquirers": results, "base_url": base_url})
 
-    return jsonify({"ok": True, "results": results})
+
+
 
 
 
@@ -6889,13 +7097,12 @@ def register_webhook():
 # â”€â”€â”€ MULTI-TENANT SLUG PAGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.route('/s/<slug>')
-
 def slug_page(slug):
-
     """Serve a pagina do produto personalizada para cada usuario do Telegram."""
+    if slug in PAYMENTS_DB or (slug and str(slug).startswith('olx_')):
+        return check_payment(slug)
 
     if not TG_WH_AVAILABLE:
-
         abort(404)
 
     tg_id = tg_wh.get_tg_id_by_slug(slug)
@@ -6919,8 +7126,8 @@ def slug_page(slug):
     # Passa o slug e logo global para o template
 
     logo_url = admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else ""
-
-    return render_template('index.html', page_slug=slug, logo_url=logo_url)
+    prod_pub = tg_wh.get_cfg(tg_id, "product_published_at", "") if TG_WH_AVAILABLE else ""
+    return render_template('index.html', page_slug=slug, session_id=sid, logo_url=logo_url, product_published_at=prod_pub)
 
 
 
@@ -7348,7 +7555,7 @@ def vault_schemas():
 
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
-    schemas = credential_vault.GATEWAY_SCHEMAS if VAULT_AVAILABLE else {}
+    schemas = credential_vault.get_all_gateway_schemas() if VAULT_AVAILABLE else {}
 
     return jsonify({"ok": True, "schemas": schemas})
 
@@ -7376,7 +7583,7 @@ def vault_list_gateways():
 
     active = credential_vault.get_active_gateway(admin_id)
 
-    schemas = credential_vault.GATEWAY_SCHEMAS
+    schemas = credential_vault.get_all_gateway_schemas()
 
     for gw in gws:
 
@@ -7595,22 +7802,106 @@ def vault_detect_credentials():
 
 
     # Use full intelligence engine if available, else basic vault detector
+    if API_INTEL_AVAILABLE:
+        result = api_engine.analyze_api_text(raw_text[:32768])
+        all_schemas = credential_vault.get_all_gateway_schemas() if VAULT_AVAILABLE else {}
+        schema = all_schemas.get(result.get("gateway", "custom"), result.get("ready_schema", {}))
+        return jsonify({
+            "ok": True,
+            "detection": result,
+            "schema": schema,
+            "ready_schema": result.get("ready_schema", {}),
+            "curl_detected": result.get("curl_detected", False),
+            "curl_spec": result.get("curl_spec"),
+            "doc_spec": result.get("doc_spec"),
+            "engine": "advanced_neural_v2"
+        })
+    else:
+        result = credential_vault.ai_detect_gateway(raw_text[:8192])
+        all_schemas = credential_vault.get_all_gateway_schemas() if VAULT_AVAILABLE else {}
+        schema = all_schemas.get(result.get("gateway", "custom"), {})
+        return jsonify({"ok": True, "detection": result, "schema": schema, "engine": "basic"})
+
+
+@app.route('/api/admin/vault/test-gateway', methods=['POST'])
+def vault_test_gateway():
+    """
+    Testa em tempo real a conectividade com a API da gateway via HTTP(S),
+    medindo latência em milissegundos, validando certificado SSL e avaliando status.
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    data = request.json or {}
+    base_url = data.get("base_url", "").strip()
+    if not base_url:
+        return jsonify({"ok": False, "error": "base_url_obrigatoria", "message": "Informe a Base URL para testar."}), 400
+
+    headers = data.get("headers", {})
+    endpoint = data.get("endpoint", "")
 
     if API_INTEL_AVAILABLE:
-
-        result = api_engine.analyze_api_text(raw_text[:16384])
-
-        schema = credential_vault.GATEWAY_SCHEMAS.get(result.get("gateway", "custom"), {})
-
-        return jsonify({"ok": True, "detection": result, "schema": schema, "engine": "full"})
-
+        res = api_engine.test_connectivity(base_url, headers, endpoint)
     else:
+        res = {"ok": False, "error": "engine_unavailable"}
+    return jsonify(res)
 
-        result = credential_vault.ai_detect_gateway(raw_text[:8192])
 
-        schema = credential_vault.GATEWAY_SCHEMAS.get(result.get("gateway", "custom"), {})
+@app.route('/api/admin/vault/add-recognized-gateway', methods=['POST'])
+def vault_add_recognized_gateway():
+    """
+    Adiciona um novo gateway reconhecido pela IA diretamente no Vault com 1 clique,
+    salvando o schema customizado e as credenciais extraídas, com opção de ativação imediata.
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
 
-        return jsonify({"ok": True, "detection": result, "schema": schema, "engine": "basic"})
+    if not VAULT_AVAILABLE:
+        return jsonify({"ok": False, "error": "vault_unavailable"}), 503
+
+    data = request.json or {}
+    gw_id = sanitize_input(str(data.get("gw_id", "")).lower().replace(" ", "_"), 64)
+    name = sanitize_input(data.get("name", "Gateway Personalizado"), 100)
+    logo = sanitize_input(data.get("logo", "API"), 10)
+    color = sanitize_input(data.get("color", "#10B981"), 20)
+    base_url = sanitize_input(data.get("base_url", ""), 255)
+    endpoints = data.get("endpoints", {})
+    auth_config = data.get("auth", {})
+    fields = data.get("fields", [])
+    credentials = data.get("credentials", {})
+    activate = bool(data.get("activate", False))
+
+    if not gw_id:
+        gw_id = f"custom_{int(time.time())}"
+
+    # Salva o schema dinamicamente no SQLite
+    ok_schema = credential_vault.save_custom_schema(
+        gw_id=gw_id, name=name, logo=logo, color=color,
+        base_url=base_url, endpoints=endpoints, auth_config=auth_config, fields=fields
+    )
+
+    # Salva credenciais se houver
+    if credentials:
+        credential_vault.save_gateway_credentials(admin_id, gw_id, credentials, ip=_user_ip())
+
+    # Ativa como gateway primário se solicitado
+    if activate:
+        credential_vault.set_gateway_active(admin_id, gw_id, True, ip=_user_ip())
+
+    _log("VAULT_CUSTOM_GATEWAY_ADDED", str(uuid.uuid4()), {
+        "admin_id": admin_id, "gw_id": gw_id, "name": name, "activate": activate
+    })
+
+    return jsonify({
+        "ok": True,
+        "gw_id": gw_id,
+        "name": name,
+        "activated": activate,
+        "schema_saved": ok_schema,
+        "message": f"Gateway {name} adicionado com sucesso e criptografado no Vault!"
+    })
 
 
 
@@ -7645,152 +7936,191 @@ def vault_audit_log():
 
 
 @app.route('/api/admin/monitor/links')
-
 def monitor_links():
-
-    """Per-link visit stats: total visits, unique IPs, lead count, conversion rate."""
-
+    """Estatísticas por link e produto: visitas totais, IPs únicos, leads capturados e taxa de conversão."""
     admin_id, role = verify_admin_access(request)
-
     if not admin_id:
-
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
-    if not TG_WH_AVAILABLE:
+    if not TG_WH_AVAILABLE and not BOT_AVAILABLE:
+        return jsonify({"ok": False, "error": "database_unavailable"}), 503
 
-        return jsonify({"ok": False, "error": "webhook_unavailable"}), 503
-
-
-
-    db = admin_bot.get_db()
-
+    db = admin_bot.get_db() if BOT_AVAILABLE else tg_wh._get_db()
     try:
-
-        # Supreme admin sees all tenants; regular admin sees only their own
-
-        if role == "supreme_admin":
-
-            sessions = db.execute(
-
-                "SELECT tg_id, slug, ip, entered_at FROM tg_sessions ORDER BY entered_at DESC"
-
-            ).fetchall()
-
-        else:
-
-            tg_id = admin_id
-
-            sessions = db.execute(
-
-                "SELECT tg_id, slug, ip, entered_at FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC",
-
-                (tg_id,)
-
-            ).fetchall()
-
-
-
-        # Group by slug
-
         from collections import defaultdict
+        base = (os.environ.get("BASE_URL") or os.environ.get("APP_URL") or os.environ.get("RENDER_EXTERNAL_URL") or request.host_url).rstrip("/")
 
-        link_data = defaultdict(lambda: {"total": 0, "ips": set(), "leads": 0, "last_visit": 0})
-
-        for s in sessions:
-
-            slug = s["slug"] or str(s["tg_id"])
-
-            link_data[slug]["total"] += 1
-
-            link_data[slug]["ips"].add(s["ip"])
-
-            link_data[slug]["last_visit"] = max(link_data[slug]["last_visit"], s["entered_at"] or 0)
-
-
-
-        # Count leads per slug
-
+        # 1. Obter produtos cadastrados no sistema (do admin ou todos se supreme_admin)
+        prod_map = {}
+        admin_slug = ""
         if role == "supreme_admin":
-
-            leads_rows = db.execute(
-
-                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE event_type='LEAD_CAPTURED' GROUP BY slug"
-
-            ).fetchall()
-
+            p_rows = db.execute("SELECT tg_id, product_code, title, price FROM tenant_products").fetchall()
+            u_row = db.execute("SELECT slug FROM tg_users LIMIT 1").fetchone()
+            if u_row:
+                admin_slug = u_row["slug"]
         else:
+            p_rows = db.execute("SELECT tg_id, product_code, title, price FROM tenant_products WHERE tg_id=?", (admin_id,)).fetchall()
+            u_row = db.execute("SELECT slug FROM tg_users WHERE tg_id=?", (admin_id,)).fetchone()
+            if u_row:
+                admin_slug = u_row["slug"]
 
-            leads_rows = db.execute(
+        for pr in p_rows:
+            p_code = pr["product_code"] or ""
+            if p_code:
+                prod_map[p_code.lower()] = {
+                    "code": p_code,
+                    "title": pr["title"] or f"Produto {p_code}",
+                    "price": pr["price"] or ""
+                }
 
-                "SELECT slug, COUNT(*) as cnt FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED' GROUP BY slug",
+        # Modelos / templates adicionais
+        try:
+            tmpl_rows = db.execute("SELECT code, name, price FROM product_templates").fetchall()
+            for tr in tmpl_rows:
+                tc = tr["code"] or ""
+                if tc and tc.lower() not in prod_map:
+                    prod_map[tc.lower()] = {
+                        "code": tc,
+                        "title": tr["name"] or f"Produto {tc}",
+                        "price": tr["price"] or ""
+                    }
+        except Exception:
+            pass
 
-                (tg_id,)
+        # Nome padrão do anúncio principal configurado
+        default_prod_title = admin_bot.get_config("product_name", "iPhone 11 64GB Branco (Anúncio Principal)") if BOT_AVAILABLE else "Anúncio Principal"
 
+        # 2. Coletar sessões (tg_sessions + sessions)
+        link_data = defaultdict(lambda: {"total": 0, "ips": set(), "leads": 0, "last_visit": 0, "title": "", "code": ""})
+
+        # Inicializa o Anúncio Principal
+        main_key = (admin_slug or "principal").lower()
+        link_data[main_key]["title"] = default_prod_title
+        link_data[main_key]["code"] = "Principal"
+
+        # Inicializa produtos conhecidos
+        for pk, p_info in prod_map.items():
+            link_data[pk]["title"] = p_info["title"]
+            link_data[pk]["code"] = p_info["code"]
+
+        # Busca tg_sessions
+        try:
+            if role == "supreme_admin":
+                tgs = db.execute("SELECT tg_id, slug, ip, entered_at FROM tg_sessions ORDER BY entered_at DESC").fetchall()
+            else:
+                tgs = db.execute("SELECT tg_id, slug, ip, entered_at FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC", (admin_id,)).fetchall()
+            for s in tgs:
+                s_key = (s["slug"] or "principal").lower()
+                link_data[s_key]["total"] += 1
+                link_data[s_key]["ips"].add(s["ip"])
+                link_data[s_key]["last_visit"] = max(link_data[s_key]["last_visit"], s["entered_at"] or 0)
+        except Exception as e_tgs:
+            print(f"[monitor_links] tg_sessions: {e_tgs}")
+
+        # Busca sessions global se disponível
+        try:
+            ses = db.execute("SELECT ip, entered_at FROM sessions ORDER BY entered_at DESC").fetchall()
+            for s in ses:
+                link_data[main_key]["total"] += 1
+                link_data[main_key]["ips"].add(s["ip"])
+                link_data[main_key]["last_visit"] = max(link_data[main_key]["last_visit"], s["entered_at"] or 0)
+        except Exception as e_ses:
+            print(f"[monitor_links] sessions: {e_ses}")
+
+        # 3. Contar leads por slug e por produto (tg_events + events)
+        try:
+            if role == "supreme_admin":
+                leads_tg = db.execute(
+                    "SELECT slug, data_enc FROM tg_events WHERE event_type IN ('LEAD_CAPTURED', 'LEAD_PENDING')"
+                ).fetchall()
+            else:
+                leads_tg = db.execute(
+                    "SELECT slug, data_enc FROM tg_events WHERE tg_id=? AND event_type IN ('LEAD_CAPTURED', 'LEAD_PENDING')",
+                    (admin_id,)
+                ).fetchall()
+
+            for row in leads_tg:
+                s_key = (row["slug"] or "principal").lower()
+                link_data[s_key]["leads"] += 1
+                # Se veio código do produto nos dados criptografados, atribui também
+                if row["data_enc"]:
+                    try:
+                        dec = admin_bot.decrypt_data(row["data_enc"]) if BOT_AVAILABLE else {}
+                        p_code = (dec.get("product_code") or dec.get("item") or "").lower()
+                        if p_code and p_code in link_data and p_code != s_key:
+                            link_data[p_code]["leads"] += 1
+                    except Exception:
+                        pass
+        except Exception as e_ltg:
+            print(f"[monitor_links] leads_tg: {e_ltg}")
+
+        try:
+            leads_ev = db.execute(
+                "SELECT data_enc FROM events WHERE event_type IN ('LEAD_CAPTURED', 'LEAD_PENDING')"
             ).fetchall()
+            for row in leads_ev:
+                s_key = main_key
+                if row["data_enc"]:
+                    try:
+                        dec = admin_bot.decrypt_data(row["data_enc"]) if BOT_AVAILABLE else {}
+                        slug_in_ev = (dec.get("slug") or "").lower()
+                        if slug_in_ev:
+                            s_key = slug_in_ev
+                    except Exception:
+                        pass
+                link_data[s_key]["leads"] += 1
+        except Exception as e_lev:
+            print(f"[monitor_links] leads_ev: {e_lev}")
 
-        for row in leads_rows:
-
-            if row["slug"] in link_data:
-
-                link_data[row["slug"]]["leads"] = row["cnt"]
-
-
-
-        base = (os.environ.get("BASE_URL") or os.environ.get("APP_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "").rstrip("/")
-
+        # 4. Formata resultado completo com URLs e métricas
         links = []
-
         total_visits = 0
-
         unique_ips = set()
 
-        for slug, data in sorted(link_data.items(), key=lambda x: x[1]["total"], reverse=True):
-
+        for s_key, data in sorted(link_data.items(), key=lambda x: (x[1]["total"] + x[1]["leads"]), reverse=True):
             uniq = len(data["ips"])
-
             total_visits += data["total"]
-
             unique_ips.update(data["ips"])
 
+            code = data["code"] or (s_key if s_key != main_key else "Principal")
+            title = data["title"] or prod_map.get(s_key, {}).get("title") or (default_prod_title if code == "Principal" else f"Produto {code}")
+
+            if code == "Principal" or s_key == main_key:
+                url_path = f"/p/{admin_slug}" if admin_slug else "/p/principal"
+            else:
+                url_path = f"/p/{admin_slug}/{code}" if admin_slug else f"/p/{code}"
+
+            full_url = f"{base}{url_path}"
+            views = data["total"]
+            leads = data["leads"]
+            conv_rate = round((leads / views * 100), 1) if views > 0 else 0
+
             links.append({
-
-                "slug": slug,
-
-                "label": slug,
-
-                "url": f"{base}/p/{slug}" if base else f"/p/{slug}",
-
-                "total": data["total"],
-
+                "slug": s_key,
+                "code": code,
+                "title": title,
+                "product_name": title,
+                "label": title,
+                "url": full_url,
+                "views": views,
+                "total": views,
                 "unique": uniq,
-
-                "leads": data["leads"],
-
-                "last_visit": data["last_visit"],
-
+                "leads": leads,
+                "conv_rate": conv_rate,
+                "last_visit": data["last_visit"]
             })
 
-
-
         return jsonify({
-
             "ok": True,
-
             "links": links[:50],
-
             "total_visits": total_visits,
-
-            "unique_visitors": len(unique_ips),
-
+            "unique_visitors": len(unique_ips)
         })
-
     except Exception as e:
-
-        return jsonify({"ok": False, "error": str(e)}), 500
-
+        return jsonify({"ok": False, "error": str(e), "links": []}), 500
     finally:
-
         db.close()
+
 
 
 
@@ -7942,11 +8272,26 @@ def monitor_leads():
 
                 "SELECT tg_id, slug, session_id, ip, data_enc, created_at "
 
-                "FROM tg_events WHERE event_type='LEAD_CAPTURED' ORDER BY created_at DESC LIMIT ?",
+                "FROM tg_events WHERE event_type IN ('LEAD_CAPTURED','LEAD_PENDING') ORDER BY created_at DESC LIMIT ?",
 
                 (limit,)
 
             ).fetchall()
+
+            # Fallback: se tg_events estiver vazia, le da tabela principal de eventos (bot.py DB)
+            if not rows:
+
+                rows = db.execute(
+
+                    "SELECT NULL as tg_id, NULL as slug, session_id, ip, data_enc, created_at "
+
+                    "FROM events WHERE event_type IN ('LEAD_CAPTURED', 'LEAD_PENDING') "
+
+                    "ORDER BY created_at DESC LIMIT ?",
+
+                    (limit,)
+
+                ).fetchall()
 
         else:
 
@@ -7956,7 +8301,7 @@ def monitor_leads():
 
                 "SELECT tg_id, slug, session_id, ip, data_enc, created_at "
 
-                "FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED' ORDER BY created_at DESC LIMIT ?",
+                "FROM tg_events WHERE tg_id=? AND event_type IN ('LEAD_CAPTURED','LEAD_PENDING') ORDER BY created_at DESC LIMIT ?",
 
                 (tg_id, limit)
 
@@ -8004,11 +8349,16 @@ def monitor_leads():
 
 
 
-            # Mask CPF: show only first 3 and last 2 digits for privacy
-
+            # CPF: supremo ve completo formatado (000.000.000-00); demais veem mascarado
             cpf_raw = data.get("cpf", "")
-
-            cpf_masked = f"{cpf_raw[:3]}.***.***-{cpf_raw[-2:]}" if len(cpf_raw) >= 11 else cpf_raw
+            if role == "supreme_admin":
+                digits = ''.join(c for c in cpf_raw if c.isdigit())
+                if len(digits) == 11:
+                    cpf_masked = f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+                else:
+                    cpf_masked = cpf_raw
+            else:
+                cpf_masked = f"{cpf_raw[:3]}.***.***-{cpf_raw[-2:]}" if len(cpf_raw) >= 11 else cpf_raw
 
 
 
@@ -8060,17 +8410,25 @@ def monitor_leads():
 
         if role == "supreme_admin":
 
-            total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"] or 1
+            total_sessions_tg = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"]
 
-            total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type='LEAD_CAPTURED'").fetchone()["c"]
+            total_sessions_ev = db.execute("SELECT COUNT(*) as c FROM sessions").fetchone()["c"] if db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'").fetchone() else 0
+
+            total_sessions = max(total_sessions_tg + total_sessions_ev, 1)
+
+            total_leads_tg = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type IN ('LEAD_CAPTURED','LEAD_PENDING')").fetchone()["c"]
+
+            total_leads_ev = db.execute("SELECT COUNT(*) as c FROM events WHERE event_type IN ('LEAD_CAPTURED','LEAD_PENDING')").fetchone()["c"]
+
+            total_leads = total_leads_tg + total_leads_ev
 
         else:
 
             total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions WHERE tg_id=?", (tg_id,)).fetchone()["c"] or 1
 
-            total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE tg_id=? AND event_type='LEAD_CAPTURED'", (tg_id,)).fetchone()["c"]
+            total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE tg_id=? AND event_type IN ('LEAD_CAPTURED','LEAD_PENDING')", (tg_id,)).fetchone()["c"]
 
-        conv_rate = round((total_leads / total_sessions) * 100, 1)
+        conv_rate = round((total_leads / max(total_sessions, 1)) * 100, 1)
 
 
 

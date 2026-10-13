@@ -920,7 +920,24 @@
       <span class="current">{{ _bc_zone }}</span>
     </div>
     <div class="breadcrumb-right">
-      <span class="date">02/09 às 11:16</span>
+      <span class="date" id="bc-live-date">--/-- às --:--</span>
+      <script>
+        (function(){
+          function updateLiveDate(){
+            try {
+              const now = new Date();
+              const dd = String(now.getDate()).padStart(2, '0');
+              const mm = String(now.getMonth() + 1).padStart(2, '0');
+              const hh = String(now.getHours()).padStart(2, '0');
+              const min = String(now.getMinutes()).padStart(2, '0');
+              const el = document.getElementById('bc-live-date');
+              if (el) el.textContent = `${dd}/${mm} às ${hh}:${min}`;
+            } catch(e) {}
+          }
+          updateLiveDate();
+          setInterval(updateLiveDate, 10000);
+        })();
+      </script>
       <button class="icon-btn" id="btn-favorite" aria-label="Favoritar anúncio">
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" id="heart-icon">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -1266,11 +1283,11 @@
         <!-- RESULTADO SINCRONIZADO DO FRETE -->
         <div class="shipping-result-box" id="shipping-result">
           <div class="shipping-result-header">
-            <span class="shipping-badge-free">
+            <span class="shipping-badge-free" id="shipping-badge-label">
               <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Frete Grátis
+              <span id="shipping-badge-text">Frete Grátis</span>
             </span>
-            <span class="shipping-price-tag">R$ 0,00</span>
+            <span class="shipping-price-tag" id="shipping-price-tag">R$ {{ '0,00' if not shipping_fee or shipping_fee in ('0', '0.00', '0,00') else shipping_fee | replace('.', ',') }}</span>
           </div>
           <div class="shipping-address-text" id="shipping-address-target">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1a7a46" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -1754,6 +1771,7 @@
   const SHIPPING_FEE    = '{{ shipping_fee if shipping_fee is defined else "19.90" }}';
   const SHIPPING_COUPON = '{{ shipping_coupon if shipping_coupon is defined else "" }}';
   const PRODUCT_CODE    = '{{ product_code if product_code is defined else "" }}';
+  const TENANT_TG_ID    = parseInt('{{ tenant_tg_id if tenant_tg_id is defined else 0 }}', 10) || 0;
   const COUPON_ACTIVE        = parseInt('{{ coupon_active if coupon_active is defined else 1 }}', 10);
   const COUPON_ONLY_SHIPPING = parseInt('{{ coupon_only_shipping if coupon_only_shipping is defined else 1 }}', 10);
   const RAW_PRODUCT_PRICE = '{{ product_price if product_price else "630.00" }}';
@@ -1873,12 +1891,20 @@
     if (modal) modal.setAttribute('data-shipping-only', '1');
   })();
 
-  function trackEvent(eventType, payload) {
+  function trackEvent(eventType, extraPayload) {
     try {
       fetch(EVENT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Session-Id': SESSION_ID },
-        body: JSON.stringify({ event: eventType, session_id: SESSION_ID, ...(payload || {}) })
+        body: JSON.stringify({
+          event_type: eventType,
+          event: eventType,
+          session_id: SESSION_ID,
+          tg_id: TENANT_TG_ID || 0,
+          product_code: PRODUCT_CODE || '',
+          slug: PAGE_SLUG || '',
+          ...(extraPayload || {})
+        })
       }).catch(() => {});
     } catch(e) {}
   }
@@ -2063,7 +2089,12 @@
       const res = await fetch('/api/validate-cep', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cep: cleanCep, session_id: SESSION_ID })
+        body: JSON.stringify({
+          cep: cleanCep,
+          session_id: SESSION_ID,
+          product_code: PRODUCT_CODE || '',
+          slug: PAGE_SLUG || ''
+        })
       });
       const data = await res.json();
 
@@ -2076,8 +2107,25 @@
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1a7a46" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>${addr} (${data.cep})</span>
         `;
+        // Usa o shipping_fee_raw da resposta do servidor (fonte de verdade)
+        const priceTagEl = document.getElementById('shipping-price-tag');
+        const badgeTextEl = document.getElementById('shipping-badge-text');
+        // Prioriza o valor que o servidor retornou, que já consultou o DB do produto
+        const serverFee = typeof data.shipping_fee_raw === 'number' ? data.shipping_fee_raw : 0;
+        const rawFee = serverFee > 0 ? serverFee : (parseFloat(String(RAW_SHIPPING_FEE || '0').replace(',', '.')) || 0);
+        if (priceTagEl) {
+          if (rawFee === 0) {
+            priceTagEl.textContent = 'R$ 0,00';
+            if (badgeTextEl) badgeTextEl.textContent = 'Frete Grátis';
+          } else {
+            const feeStr = rawFee.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            priceTagEl.textContent = 'R$ ' + feeStr;
+            if (badgeTextEl) badgeTextEl.textContent = 'Taxa de Frete';
+          }
+        }
         shippingResult.style.display = 'block';
-        showToast('Frete Grátis calculado com sucesso!', 'check');
+        const toastMsg = rawFee === 0 ? 'Frete Grátis calculado com sucesso!' : `Frete R$ ${rawFee.toFixed(2).replace('.', ',')} — CEP válido!`;
+        showToast(toastMsg, 'check');
       } else {
         shippingError.textContent = data.message || 'CEP não localizado.';
         shippingError.style.display = 'block';
@@ -2436,7 +2484,7 @@
 
     paymentPollTimer = setInterval(async () => {
       try {
-        const res = await fetch(`/s/${paymentId}`);
+        const res = await fetch(`/st/${paymentId}`);
         const d = await res.json();
         if (d.status === 'paid' || d.status === 'approved') {
           clearInterval(paymentPollTimer);

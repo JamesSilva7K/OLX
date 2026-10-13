@@ -24,18 +24,17 @@ _LOCK = threading.Lock()
 
 # ── Gateway Schemas ─────────────────────────────────────────────────────────
 GATEWAY_SCHEMAS: Dict[str, dict] = {
-    "c7": {
-        "name": "Carteira do 7",
-        "logo": "C7",
-        "color": "#7C3AED",
+    "elitepay": {
+        "name": "ElitePay",
+        "logo": "EP",
+        "color": "#10B981",
         "fields": [
-            {"key": "api_key",        "label": "API Key",           "hint": "c7_live_..."},
-            {"key": "api_secret",     "label": "API Secret",        "hint": "0449fb23..."},
-            {"key": "internal_token", "label": "Token Interno",     "hint": "39Qrhfyc..."},
-            {"key": "base_url",       "label": "Base URL",          "hint": "https://api.carteirado7.com/v2"},
-            {"key": "acquirer_code",  "label": "Cod. Adquirente",   "hint": "Opcional"},
+            {"key": "client_id",      "label": "Client ID (x-client-id)",         "hint": "ep_... ou seu client_id"},
+            {"key": "client_secret",  "label": "Client Secret (x-client-secret)", "hint": "eps_... ou seu client_secret"},
+            {"key": "base_url",       "label": "Base URL",                        "hint": "https://api.elitepaybr.com"},
         ]
     },
+
     "mercadopago": {
         "name": "Mercado Pago",
         "logo": "MP",
@@ -165,6 +164,18 @@ def init_vault_tables():
             ip TEXT,
             ts REAL DEFAULT (unixepoch())
         );
+        CREATE TABLE IF NOT EXISTS custom_gateway_schemas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            gw_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            logo TEXT,
+            color TEXT,
+            base_url TEXT,
+            endpoints_json TEXT,
+            auth_config_json TEXT,
+            fields_json TEXT,
+            created_at REAL DEFAULT (unixepoch())
+        );
         """)
     print("[VAULT] Tables ready.")
 
@@ -238,6 +249,66 @@ def set_gateway_active(admin_id: int, gateway: str, active: bool, ip: str = "") 
             print(f"[VAULT] active error: {e}")
             return False
 
+def save_custom_schema(gw_id: str, name: str, logo: str = "API", color: str = "#10B981",
+                       base_url: str = "", endpoints: dict = None, auth_config: dict = None,
+                       fields: list = None) -> bool:
+    """Persists a recognized or custom gateway schema into the vault database."""
+    with _LOCK:
+        try:
+            with _conn() as c:
+                c.execute(
+                    "INSERT INTO custom_gateway_schemas (gw_id,name,logo,color,base_url,endpoints_json,auth_config_json,fields_json) "
+                    "VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(gw_id) DO UPDATE SET "
+                    "name=excluded.name,logo=excluded.logo,color=excluded.color,base_url=excluded.base_url,"
+                    "endpoints_json=excluded.endpoints_json,auth_config_json=excluded.auth_config_json,fields_json=excluded.fields_json",
+                    (gw_id, name, logo, color, base_url, json.dumps(endpoints or {}), json.dumps(auth_config or {}), json.dumps(fields or []))
+                )
+            return True
+        except Exception as e:
+            print(f"[VAULT] save_custom_schema error: {e}")
+            return False
+
+def get_custom_schemas() -> Dict[str, dict]:
+    """Retrieves all dynamically registered gateway schemas."""
+    result = {}
+    try:
+        with _conn() as c:
+            rows = c.execute("SELECT gw_id,name,logo,color,base_url,endpoints_json,auth_config_json,fields_json FROM custom_gateway_schemas").fetchall()
+        for r in rows:
+            try:
+                flds = json.loads(r["fields_json"] or "[]")
+            except Exception:
+                flds = []
+            try:
+                endpoints = json.loads(r["endpoints_json"] or "{}")
+            except Exception:
+                endpoints = {}
+            try:
+                auth = json.loads(r["auth_config_json"] or "{}")
+            except Exception:
+                auth = {}
+            result[r["gw_id"]] = {
+                "name": r["name"],
+                "logo": r["logo"] or "API",
+                "color": r["color"] or "#10B981",
+                "base_url": r["base_url"] or "",
+                "endpoints": endpoints,
+                "auth": auth,
+                "fields": flds or [
+                    {"key": "api_key", "label": "API Key / Token", "hint": "Chave de autenticacao"},
+                    {"key": "base_url", "label": "Base URL", "hint": r["base_url"] or "https://..."},
+                ]
+            }
+    except Exception as e:
+        print(f"[VAULT] get_custom_schemas error: {e}")
+    return result
+
+def get_all_gateway_schemas() -> Dict[str, dict]:
+    """Returns static native schemas merged with dynamic custom schemas."""
+    schemas = dict(GATEWAY_SCHEMAS)
+    schemas.update(get_custom_schemas())
+    return schemas
+
 def get_active_gateway(admin_id: int) -> Optional[str]:
     try:
         with _conn() as c:
@@ -245,9 +316,12 @@ def get_active_gateway(admin_id: int) -> Optional[str]:
                 "SELECT gateway FROM payment_gateways WHERE admin_id=? AND is_active=1 ORDER BY updated_at DESC LIMIT 1",
                 (admin_id,)
             ).fetchone()
-        return r["gateway"] if r else None
+        if r and r["gateway"]:
+            return r["gateway"]
+        # Default supremo: ElitePay é a API padrão ativa
+        return "elitepay"
     except Exception:
-        return None
+        return "elitepay"
 
 def list_gateways(admin_id: int) -> list:
     try:
@@ -266,6 +340,7 @@ def delete_gateway(admin_id: int, gateway: str, ip: str = "") -> bool:
             with _conn() as c:
                 c.execute("DELETE FROM gateway_credentials WHERE admin_id=? AND gateway=?", (admin_id, gateway))
                 c.execute("DELETE FROM payment_gateways WHERE admin_id=? AND gateway=?", (admin_id, gateway))
+                c.execute("DELETE FROM custom_gateway_schemas WHERE gw_id=?", (gateway,))
                 c.execute(
                     "INSERT INTO vault_audit (admin_id,action,gateway,ip) VALUES (?,'DELETE_GATEWAY',?,?)",
                     (admin_id, gateway, ip)
@@ -292,6 +367,7 @@ def ai_detect_gateway(raw_text: str) -> dict:
     text = raw_text.strip()
     det = {"gateway": None, "confidence": 0.0, "fields": {}, "warnings": []}
     patterns = [
+        ("elitepay",    r"(api\.elitepaybr\.com|elitepay|elite_pay)", 0.98),
         ("c7",          r"c7_(live|test)_[a-f0-9]{40,}",            0.95),
         ("mercadopago", r"(APP_USR|TEST)-[0-9]+-",                  0.95),
         ("stripe",      r"(sk|pk)_(live|test)_[A-Za-z0-9]{24,}",   0.95),

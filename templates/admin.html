@@ -815,13 +815,50 @@
         </div>
       </div>
 
-      <div class="fin-card" id="fin-card" data-sup>
-        <div class="fin-lbl">Carteira C7 — Saldo</div>
-        <div class="fin-bal" id="c7-bal">R$ —</div>
-        <div class="fin-sub-grid">
-          <div class="fin-sub"><div class="fin-sub-lbl">Limite</div><div class="fin-sub-val" id="c7-lim">—</div></div>
-          <div class="fin-sub"><div class="fin-sub-lbl">Taxa</div><div class="fin-sub-val" id="c7-fee">—</div></div>
+      <div class="fin-card" id="fin-card" data-sup style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(13,0,32,0.95));border:1px solid rgba(16,185,129,0.3);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.2),transparent 70%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:11px;box-shadow:0 0 12px rgba(16,185,129,0.4)">EP</div>
+            <div>
+              <div class="fin-lbl" style="margin:0;font-size:13px;font-weight:800;color:#fff">ElitePay &bull; Saldo & Finanças</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45)">Gateway Ativo &bull; Servidor-para-Servidor (x-client-id / x-client-secret)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="chip chip-g" id="elite-status-chip" style="font-size:10px;padding:3px 8px">Online</span>
+            <button class="btn btn-g btn-xs" onclick="loadC7()" title="Sincronizar Saldo"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+          </div>
         </div>
+
+        <div class="fin-bal" id="c7-bal" style="color:#F8F8FF;font-size:34px;letter-spacing:-1px">R$ —</div>
+
+        <div class="fin-sub-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:8px;margin:12px 0">
+          <div class="fin-sub" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px">
+            <div class="fin-sub-lbl" style="font-size:9.5px;color:rgba(255,255,255,0.4)">Cotação USDT/BRL</div>
+            <div class="fin-sub-val" id="elite-usdt-rate" style="font-size:13.5px;font-weight:800;color:#34D399;margin-top:2px">USDT R$ —</div>
+          </div>
+          <div class="fin-sub" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px">
+            <div class="fin-sub-lbl" style="font-size:9.5px;color:rgba(255,255,255,0.4)">Taxa Cripto</div>
+            <div class="fin-sub-val" id="c7-fee" style="font-size:13.5px;font-weight:800;color:#A78BFA;margin-top:2px">4% + R$ 4</div>
+          </div>
+          <div class="fin-sub" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px">
+            <div class="fin-sub-lbl" style="font-size:9.5px;color:rgba(255,255,255,0.4)">Limites Saque</div>
+            <div class="fin-sub-val" id="c7-lim" style="font-size:13.5px;font-weight:800;color:#FCD34D;margin-top:2px">R$ 20 ~ 2.000</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-p" onclick="openWithdrawModal()" style="flex:1.2;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 15px rgba(16,185,129,0.3);font-weight:800;font-size:13px;padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Saque Rápido (Pix / Cripto)
+          </button>
+          <button class="btn btn-g" onclick="testElitePayAdquirers(this)" style="flex:0.8;font-weight:700;font-size:12px;padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            Testar Rotas
+          </button>
+        </div>
+
         <div id="c7-err" style="display:none;margin-top:10px;font-size:12px;color:var(--c-red)"></div>
       </div>
 
@@ -860,7 +897,43 @@
 
     <!-- EVENTS -->
     <section class="page" id="page-events">
-      <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Feed de Eventos</div>
+      <div class="flex-b mb-8" style="align-items:center">
+        <div class="sec-ttl" style="margin:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Feed de Eventos</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="ev-live-pill" class="chip chip-g" style="font-size:10.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:5px">
+            <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981"></span>
+            Tempo Real Ativo
+          </span>
+          <button class="btn btn-g btn-xs" onclick="toast('Sincronizando feed...', 'load'); loadEvents().then(()=>toastDismissLoading())" title="Sincronizar agora">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Métricas em Tempo Real do Feed de Eventos -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:14px">
+        <div class="stat-card">
+          <div class="stat-val" id="ev-kpi-all" style="color:var(--c-purple3)">0</div>
+          <div class="stat-lbl">Total de Eventos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="ev-kpi-visits">0</div>
+          <div class="stat-lbl">Visitas (Entradas)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="ev-kpi-leads" style="color:var(--c-green)">0</div>
+          <div class="stat-lbl">Leads Capturados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="ev-kpi-buy" style="color:#f59e0b">0</div>
+          <div class="stat-lbl">Cliques Comprar</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="ev-kpi-pix" style="color:#06b6d4">0</div>
+          <div class="stat-lbl">Pix & Pagamentos</div>
+        </div>
+      </div>
+
       <div class="tabs-pill" id="ev-tabs">
         <button class="tp active" onclick="filterEv('all',this)">Todos</button>
         <button class="tp" onclick="filterEv('LEAD_CAPTURED',this)">Leads</button>
@@ -1151,34 +1224,41 @@
         <div class="card-body">
           <div class="cfg-row"><span class="cfg-k">Backend Flask</span><span class="chip chip-g">Online</span></div>
           <div class="cfg-row"><span class="cfg-k">Banco de Dados</span><span class="chip chip-g" id="st-db">Online</span></div>
-          <div class="cfg-row"><span class="cfg-k">API C7 (Pix)</span><span class="chip chip-o" id="st-c7">Verificando</span></div>
+          <div class="cfg-row"><span class="cfg-k">ElitePay (Pix & Crypto)</span><span class="chip chip-g" id="st-c7">Online</span></div>
           <div class="cfg-row"><span class="cfg-k">Bot Telegram</span><span class="chip chip-g">Ativo</span></div>
         </div></div>
-        <!-- VALIDAÇÃO DE ADQUIRENTES C7 -->
-        <div class="card mt-12">
+        <!-- VALIDAÇÃO DE ADQUIRENTES & ROTAS ELITEPAY -->
+        <div class="card mt-12" id="elite-acq-card">
           <div class="card-hdr">
             <div class="card-ttl">
-              <div class="ci" style="background:linear-gradient(135deg,#7C3AED,#5c21c7);width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center">
-                <svg width="14" height="14" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <div class="ci" style="background:linear-gradient(135deg,#10B981,#059669);width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center">
+                <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               </div>
-              Validação de Adquirentes (C7)
+              Validação de Adquirentes & Rotas (ElitePay)
             </div>
-            <span class="chip chip-o" style="font-size:10px">Supremo</span>
+            <span class="chip chip-g" id="elite-stability-badge" style="font-size:10px">Estabilidade 100%</span>
           </div>
           <div class="card-body">
-            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:10px">
-              Execute testes reais simulando uma transação para descobrir qual adquirente (1, 2 ou Automático) está passando sem erros no momento.
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px">
+              Testa em tempo real a latência em milissegundos, segurança SSL e disponibilidade dos microserviços e adquirentes integrados à ElitePay (Depósito Pix, Saque Pix, Cotação USDT BEP20, Saldo e Status).
             </div>
             
-            <button class="btn btn-p btn-sm btn-w mb-12" onclick="testC7Acquirers(this)" style="background:linear-gradient(135deg, #7C3AED, #5c21c7);border:none;box-shadow:0 4px 15px rgba(124,58,237,0.3)">
+            <button class="btn btn-p btn-sm btn-w mb-12" onclick="testElitePayAdquirers(this)" style="background:linear-gradient(135deg, #10B981, #059669);border:none;box-shadow:0 4px 15px rgba(16,185,129,0.3)">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:6px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-              Iniciar Validação
+              Executar Teste de Estabilidade das Rotas
             </button>
 
             <div id="c7-test-results" style="display:flex;flex-direction:column;gap:8px">
-              <div class="cfg-row"><span class="cfg-k">Adquirente 1</span><span class="chip chip-o" id="c7-test-1">Aguardando</span></div>
-              <div class="cfg-row"><span class="cfg-k">Adquirente 2</span><span class="chip chip-o" id="c7-test-2">Aguardando</span></div>
-              <div class="cfg-row"><span class="cfg-k">Automático</span><span class="chip chip-o" id="c7-test-auto">Aguardando</span></div>
+              <div class="cfg-row"><span class="cfg-k">Base & Health (/health)</span><span class="chip chip-o" id="c7-test-base">Aguardando</span></div>
+              <div class="cfg-row"><span class="cfg-k">Depósito PIX (/deposit)</span><span class="chip chip-o" id="c7-test-1">Aguardando</span></div>
+              <div class="cfg-row"><span class="cfg-k">Saldo (/balance)</span><span class="chip chip-o" id="c7-test-balance">Aguardando</span></div>
+              <div class="cfg-row"><span class="cfg-k">Cotação USDT Crypto (/crypto/quote)</span><span class="chip chip-o" id="c7-test-2">Aguardando</span></div>
+              <div class="cfg-row"><span class="cfg-k">Consulta Status (/transactions/check)</span><span class="chip chip-o" id="c7-test-auto">Aguardando</span></div>
+            </div>
+
+            <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;color:rgba(255,255,255,0.5)">Último teste: <span id="elite-last-test-time">—</span></div>
+              <div style="font-size:11px;color:#10B981;font-weight:700" id="elite-overall-health"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" style="display:inline-block;vertical-align:-1px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sistema Operacional</div>
             </div>
           </div>
         </div>
@@ -1307,13 +1387,22 @@
               <ol id="ai-instructions-list" style="padding-left:16px;font-size:11.5px;color:rgba(255,255,255,0.6);line-height:2"></ol>
             </div>
             <!-- Action -->
-            <div style="padding:12px 14px;background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px">
-              <button class="btn btn-p" style="flex:1" id="ai-use-btn" onclick="useAiDetection()">
+            <div style="padding:12px 14px;background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-p" style="flex:1;min-width:130px" id="ai-use-btn" onclick="useAiDetection()">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Preencher Campos
               </button>
+              <button class="btn btn-g" style="flex:1;min-width:140px;border-color:rgba(16,185,129,0.3);color:#34D399" id="ai-test-conn-btn" onclick="testRecognizedGateway(this)">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                Testar Ping & SSL
+              </button>
+              <button class="btn btn-p" style="flex:1.2;min-width:160px;background:linear-gradient(135deg,#8B5CF6,#7C3AED)" id="ai-add-activate-btn" onclick="saveAndActivateRecognized(this)">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Salvar & Ativar (1-Clique)
+              </button>
               <button class="btn btn-g btn-xs" onclick="document.getElementById('ai-result').style.display='none'">&#10005;</button>
             </div>
+            <div id="ai-conn-test-box" style="display:none;padding:10px 14px;background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px"></div>
           </div>
         </div>
         <div id="vault-active-banner" style="display:none;margin-bottom:14px;padding:14px 16px;border-radius:14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)">
@@ -1333,8 +1422,7 @@
           <div class="card-body">
             <div class="fg"><label class="flbl">Tipo de Gateway</label>
               <select class="fsel" id="vault-gw-sel" onchange="onGwSelChange()">
-                <option value="">Selecione...</option>
-                <option value="c7">Carteira do 7 (C7)</option>
+                <option value="elitepay" selected>ElitePay (https://api.elitepaybr.com) [Recomendado]</option>
                 <option value="mercadopago">Mercado Pago</option>
                 <option value="pagseguro">PagSeguro</option>
                 <option value="stripe">Stripe</option>
@@ -2554,7 +2642,7 @@ function bootApp(a){
   updLink();
   // Load initial page data then hide loader
   loadStats().then(()=>{ hideLoader(); }).catch(()=>hideLoader());
-  _REF=setInterval(fullRefresh,30000);
+  _REF=setInterval(fullRefresh,10000);
 }
 
 function doLogout(){
@@ -2711,34 +2799,99 @@ async function loadStats(){
 
 async function loadEvents(){
   const tb=document.getElementById('ev-tbody');
-  if(tb) tb.innerHTML='<tr><td colspan="4">'+skelRows(5)+'</td></tr>';
   try{
-    const url=_SLUG?'/api/admin/events?slug='+_SLUG+'&limit=50':'/api/admin/events?limit=50';
+    const url=_SLUG?'/api/admin/events?slug='+_SLUG+'&limit=60':'/api/admin/events?limit=60';
     const r=await apiFetch(url);
     if(!r||r.status===401){handleUnauth();return;}
     const d=await r.json();
-  _allEv=d.events||d.logs||[];
+    _allEv=d.events||d.logs||[];
     _ALL_EV = _allEv;
+
+    // Atualiza contadores em tempo real do feed de eventos
+    const counts = d.counts || {};
+    const totalEv = counts.all ?? _allEv.length;
+    const leadsEv = counts.leads ?? _allEv.filter(e=>e.type==='LEAD_CAPTURED'||e.type==='LEAD_PENDING').length;
+    const buyEv   = counts.buy ?? _allEv.filter(e=>e.type==='CLICK_BUY'||e.type==='STEP_1_BUY').length;
+    const pixEv   = (counts.pix ?? 0) + (counts.paid ?? 0) || _allEv.filter(e=>e.type==='PIX_GENERATED'||e.type==='PAYMENT_CONFIRMED'||e.type==='PIX_PAID').length;
+    const visEv   = counts.visits ?? _allEv.filter(e=>e.type==='PAGE_ENTRY'||e.type==='PAGE_EXIT').length;
+
+    const sv = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = String(v ?? '0'); };
+    sv('ev-kpi-all', totalEv);
+    sv('ev-kpi-visits', visEv);
+    sv('ev-kpi-leads', leadsEv);
+    sv('ev-kpi-buy', buyEv);
+    sv('ev-kpi-pix', pixEv);
+
     renderEv(_EV_F);
-    const c=document.getElementById('ev-cnt');if(c)c.textContent=_allEv.length+' evento(s)';
+    const c=document.getElementById('ev-cnt');if(c)c.textContent=_allEv.length+' evento(s) sincronizado(s)';
   }catch(e){
     console.warn('loadEvents:',e);
-    if(tb) tb.innerHTML='<tr><td colspan="4"><div class="empty"><p>Erro ao carregar eventos.</p></div></td></tr>';
+    if(tb && (!tb.children || tb.children.length === 0)) tb.innerHTML='<tr><td colspan="4"><div class="empty"><p>Erro ao carregar eventos.</p></div></td></tr>';
   }
 }
 
-function filterEv(t,btn){_EV_F=t;document.querySelectorAll('#ev-tabs .tp').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');const titles={all:'Todos os Eventos',LEAD_CAPTURED:'Leads',CLICK_BUY:'Compras',PIX_GENERATED:'Pix Gerado',PAYMENT_CONFIRMED:'Pagamentos'};const el=document.getElementById('ev-title');if(el)el.textContent=titles[t]||'Eventos';renderEv(t);}
+function filterEv(t,btn){
+  _EV_F=t;
+  document.querySelectorAll('#ev-tabs .tp').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const titles={all:'Todos os Eventos',LEAD_CAPTURED:'Leads Capturados',CLICK_BUY:'Intenções de Compra',PIX_GENERATED:'Pix Gerados',PAYMENT_CONFIRMED:'Pagamentos Confirmados'};
+  const el=document.getElementById('ev-title');if(el)el.textContent=titles[t]||'Eventos';
+  renderEv(t);
+}
+
 function renderEv(f){
   const tb=document.getElementById('ev-tbody');if(!tb)return;
   const src = (typeof _ALL_EV !== 'undefined' && _ALL_EV.length) ? _ALL_EV : (typeof _allEv !== 'undefined' ? _allEv : []);
-  const list=f==='all'?src:src.filter(e=>e.type===f);
-  if(!list.length){tb.innerHTML='<tr><td colspan="4"><div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3>Sem eventos</h3><p>Nenhum evento nessa categoria.</p></div></td></tr>';return;}
-  const bc={PAGE_ENTRY:'ev-entry',CLICK_BUY:'ev-buy',LEAD_CAPTURED:'ev-lead',PIX_GENERATED:'ev-pix',PAYMENT_CONFIRMED:'ev-paid',CLICK_CHAT:'ev-chat'};
-  const lb={PAGE_ENTRY:'Visita',CLICK_BUY:'Compra',LEAD_CAPTURED:'Lead',PIX_GENERATED:'Pix',PAYMENT_CONFIRMED:'Pago',CLICK_CHAT:'Chat',WHATSAPP_REDIRECT:'WhatsApp',CEP_LOOKUP:'CEP'};
-  tb.innerHTML=list.slice(0,40).map(ev=>{
-    const dt=new Date((ev.ts||0)*1000),tm=dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');
-    const info=ev.data?(ev.data.name||ev.data.amount||ev.data.cep||''):'';
-    return '<tr><td><span class="evb '+(bc[ev.type]||'ev-def')+'">'+(lb[ev.type]||ev.type)+'</span></td><td style="font-size:11px;font-family:monospace;color:var(--c-t3)">'+(ev.ip||'—')+'</td><td style="font-size:11.5px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+info+'</td><td style="font-size:11px;color:var(--c-t3);white-space:nowrap">'+tm+'</td></tr>';
+  const list = f === 'all' ? src : (f === 'LEAD_CAPTURED' ? src.filter(e => e.type === 'LEAD_CAPTURED' || e.type === 'LEAD_PENDING') : src.filter(e => e.type === f));
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="4"><div class="empty"><div class="empty-ico"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3>Sem eventos</h3><p>Nenhum evento registrado nessa categoria ainda.</p></div></td></tr>';
+    return;
+  }
+  const bc = {
+    PAGE_ENTRY: 'ev-entry',
+    CLICK_BUY: 'ev-buy',
+    LEAD_CAPTURED: 'ev-lead',
+    LEAD_PENDING: 'ev-lead',
+    PIX_GENERATED: 'ev-pix',
+    PAYMENT_CONFIRMED: 'ev-paid',
+    PIX_PAID: 'ev-paid',
+    CLICK_CHAT: 'ev-chat',
+    SECURITY_BLOCKED_BOT: 'ev-def',
+    CEP_LOOKUP: 'ev-def'
+  };
+  const lb = {
+    PAGE_ENTRY: 'Visita',
+    CLICK_BUY: 'Compra',
+    LEAD_CAPTURED: 'Lead',
+    LEAD_PENDING: 'Lead Pendente',
+    PIX_GENERATED: 'Pix',
+    PAYMENT_CONFIRMED: 'Pago',
+    PIX_PAID: 'Pix Pago',
+    CLICK_CHAT: 'Chat',
+    WHATSAPP_REDIRECT: 'WhatsApp',
+    CEP_LOOKUP: 'CEP',
+    SECURITY_BLOCKED_BOT: 'Bot Bloqueado',
+    PHOTO_CLICK: 'Foto'
+  };
+  tb.innerHTML = list.slice(0, 50).map(ev => {
+    const dt = new Date((ev.ts || 0) * 1000);
+    const tm = dt.toLocaleDateString('pt-BR') + ' ' + dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0');
+    const d = ev.data || {};
+    let parts = [];
+    if(d.name) parts.push(`<strong>${d.name}</strong>`);
+    if(d.product) parts.push(d.product);
+    if(d.amount) parts.push(`R$ ${d.amount}`);
+    if(d.phone) parts.push(d.phone);
+    if(d.city) parts.push(d.city);
+    if(d.cep) parts.push('CEP: ' + d.cep);
+    if(ev.slug && ev.slug !== 'principal') parts.push(`<span style="color:var(--c-purple3);font-family:monospace">${ev.slug}</span>`);
+    const info = parts.join(' &bull; ') || (ev.type === 'PAGE_ENTRY' ? 'Acesso ao anúncio' : '—');
+    return `<tr>
+      <td><span class="evb ${bc[ev.type] || 'ev-def'}">${lb[ev.type] || ev.type}</span></td>
+      <td style="font-size:11px;font-family:monospace;color:var(--c-t3)">${ev.ip || '—'}</td>
+      <td style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${info}</td>
+      <td style="font-size:11px;color:var(--c-t3);white-space:nowrap">${tm}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -2813,9 +2966,9 @@ async function loadProducts(){
       let couponBadge = '';
       if(p.shipping_coupon && p.shipping_coupon.trim()){
         if(isCouponActive){
-          couponBadge = '<span class="chip chip-g" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 0)" title="Clique para Desativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Frete: Ativo ✅)</span>';
+          couponBadge = '<span class="chip chip-g" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 0)" title="Clique para Desativar"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:3px"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg>' + p.shipping_coupon.toUpperCase() + ' (Frete: Ativo)</span>';
         } else {
-          couponBadge = '<span class="chip chip-o" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 1)" title="Clique para Ativar">🎟 ' + p.shipping_coupon.toUpperCase() + ' (Pausado ⏸)</span>';
+          couponBadge = '<span class="chip chip-o" style="font-size:10px;cursor:pointer" onclick="toggleProdCoupon(\''+code+'\', 1)" title="Clique para Ativar"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:3px"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg>' + p.shipping_coupon.toUpperCase() + ' (Pausado)</span>';
         }
       }
 
@@ -2923,7 +3076,7 @@ function clearProdBadges() {
 
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
-  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-seller-avatar','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color'].forEach(id=>{
+  ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-seller-avatar','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color','edit-product-published-at','edit-seller-level','edit-seller-rating','edit-seller-reviews','edit-seller-sales-completed','edit-seller-sales-canceled','edit-seller-dispatch-time','edit-seller-fb-url'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) { el.value = ''; el.disabled = false; }
   });
@@ -3332,7 +3485,110 @@ async function saveProf(){
   if(btn)btn.textContent='Salvar Perfil';
 }
 
-async function loadC7(){if(!_SUP)return;try{const r=await apiFetch('/api/c7/balance',{method:'POST'});const d=await r.json();const fmt=v=>'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});if(d.ok||d.balance!==undefined){document.getElementById('c7-bal').textContent=fmt(d.balance);document.getElementById('c7-lim').textContent=fmt(d.limit_generate);const fp=parseFloat(d.fee_pct||0),ff=parseFloat(d.fee_fixed||0);document.getElementById('c7-fee').textContent=ff>0?fp+'% + '+fmt(ff):fp+'%';}else{document.getElementById('c7-bal').textContent=d.message || (d.error && d.error.includes('api_key') ? 'Sem API Key' : d.error) || 'Erro API';document.getElementById('c7-lim').textContent='--';}}catch{document.getElementById('c7-bal').textContent='Offline';document.getElementById('c7-lim').textContent='--';}}
+let _ELITE_BALANCE = 0;
+let _ELITE_QUOTE = null;
+
+async function loadC7(){
+  if(!_SUP) return;
+  try {
+    // 1. Fetch real-time balance
+    const r = await apiFetch('/api/admin/elitepay/balance');
+    const d = await r.json();
+    const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2});
+    
+    if (d.ok && d.data && d.data.balance !== undefined) {
+      _ELITE_BALANCE = parseFloat(d.data.balance);
+      document.getElementById('c7-bal').textContent = fmt(_ELITE_BALANCE);
+      const chip = document.getElementById('elite-status-chip');
+      if (chip) { chip.className = 'chip chip-g'; chip.textContent = 'Online'; }
+      const errEl = document.getElementById('c7-err');
+      if (errEl) errEl.style.display = 'none';
+    } else if (d.balance !== undefined) {
+      _ELITE_BALANCE = parseFloat(d.balance);
+      document.getElementById('c7-bal').textContent = fmt(_ELITE_BALANCE);
+    } else {
+      document.getElementById('c7-bal').textContent = d.message || d.error || 'R$ 0,00';
+      const chip = document.getElementById('elite-status-chip');
+      if (chip) { chip.className = 'chip chip-o'; chip.textContent = 'Credenciais?'; }
+    }
+
+    // 2. Fetch live crypto quote
+    try {
+      const qr = await fetch('/api/admin/elitepay/quote');
+      const qd = await qr.json();
+      if (qd.success && qd.cotacao) {
+        _ELITE_QUOTE = qd;
+        const rateEl = document.getElementById('elite-usdt-rate');
+        if (rateEl) rateEl.textContent = '1 USDT = R$ ' + parseFloat(qd.cotacao.usdt_brl||0).toFixed(2);
+        const feeEl = document.getElementById('c7-fee');
+        if (feeEl) feeEl.textContent = (qd.taxas?.plataforma_percent||4) + '% + R$ 4';
+        const limEl = document.getElementById('c7-lim');
+        if (limEl) limEl.textContent = 'R$ ' + (qd.limites?.minimo||20) + ' ~ ' + (qd.limites?.maximo||2000);
+      }
+    } catch(qe){}
+  } catch(e) {
+    document.getElementById('c7-bal').textContent = 'Offline';
+    const chip = document.getElementById('elite-status-chip');
+    if (chip) { chip.className = 'chip chip-r'; chip.textContent = 'Offline'; }
+  }
+}
+
+async function testElitePayAdquirers(btn){
+  if(!_SUP) return;
+  const oTxt = btn ? btn.innerHTML : '';
+  if(btn){
+    btn.innerHTML = '<svg class="spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:6px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Testando Rotas...';
+    btn.disabled = true;
+  }
+
+  ['base','1','balance','2','auto'].forEach(k => {
+    const el = document.getElementById('c7-test-'+k);
+    if(el) { el.className = 'chip chip-o'; el.textContent = 'Medindo...'; }
+  });
+
+  try {
+    const r = await apiFetch('/api/admin/elitepay/test-adquirers', {method: 'POST'});
+    const d = await r.json();
+    if(d.ok && d.endpoints){
+      const ep = d.endpoints;
+      
+      const setBadge = (domId, data) => {
+        const el = document.getElementById(domId);
+        if(!el || !data) return;
+        const ms = data.latency_ms || 0;
+        const color = data.ok ? (ms < 350 ? 'chip-g' : 'chip-o') : 'chip-r';
+        const txt = data.ok ? `Online (${ms}ms)` : `Falha (${data.http_code})`;
+        el.className = 'chip ' + color;
+        el.textContent = txt;
+      };
+
+      setBadge('c7-test-base', ep.base);
+      setBadge('c7-test-1', ep.deposit);
+      setBadge('c7-test-balance', ep.balance);
+      setBadge('c7-test-2', ep.quote);
+      setBadge('c7-test-auto', ep.check);
+
+      const stabBadge = document.getElementById('elite-stability-badge');
+      if(stabBadge) {
+        stabBadge.textContent = 'Estabilidade: ' + (d.stability_score || '100%');
+        stabBadge.className = 'chip chip-g';
+      }
+      const timeEl = document.getElementById('elite-last-test-time');
+      if(timeEl) timeEl.textContent = new Date().toLocaleTimeString('pt-BR');
+      
+      toast(`ElitePay validada! Latência média: ${Math.round((ep.base?.latency_ms + ep.deposit?.latency_ms)/2)}ms`, 'ok');
+    } else {
+      toast(d.error || 'Erro no teste de rotas', 'err');
+    }
+  } catch(e) {
+    toast('Erro ao conectar nos servidores da ElitePay', 'err');
+  }
+
+  if(btn){
+    btn.innerHTML = oTxt;
+    btn.disabled = false;
+  }
+}
 
 async function loadStatus(){try{const r=await apiFetch('/api/admin/c7-status');const d=await r.json();const el=document.getElementById('st-c7');if(el){let t='Verificando',c='chip-o';if(d.c7_status==='connected'||d.c7_status==='connected_sandbox_active'){t='Conectado';c='chip-g';}else if(d.c7_status==='error_connecting'){t='Offline / Falha';c='chip-r';}else if(d.c7_status==='disconnected'){t='Não Configurada';c='chip-o';}else if(d.c7_status&&d.c7_status.startsWith('http_')){t='Erro API ('+d.c7_status.replace('http_','')+')';c='chip-r';}el.className='chip '+c;el.textContent=t;}}catch{}}
 
@@ -3370,6 +3626,68 @@ async function testC7Acquirers(btn){
   }
   btn.innerHTML=oTxt;
   btn.disabled=false;
+}
+
+// ─── SELETOR DE ADQUIRENTE ATIVO ──────────────────────────────────────────────
+let _curAcq = null;
+
+async function loadC7Acquirer() {
+  try {
+    const r = await apiFetch('/api/admin/c7-get-acquirer');
+    const d = await r.json();
+    if (d.ok !== false) {
+      _curAcq = d.acquirer_code ?? '';
+      updateAcqUI(_curAcq);
+    }
+  } catch(e) {
+    const s = document.getElementById('acq-status-line');
+    if (s) s.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Erro ao carregar adquirente.';
+  }
+}
+
+function updateAcqUI(code) {
+  const map = {'1': 'acq-btn-1', '2': 'acq-btn-2', '': 'acq-btn-auto'};
+  const labels = {'1': 'Adquirente 1', '2': 'Adquirente 2', '': 'Automático'};
+  Object.entries(map).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const active = k === code;
+    el.style.background = active ? 'linear-gradient(135deg,#7C3AED,#5c21c7)' : 'rgba(124,58,237,0.08)';
+    el.style.color      = active ? '#fff' : 'rgba(255,255,255,0.7)';
+    el.style.borderColor = active ? '#7C3AED' : 'rgba(124,58,237,0.3)';
+    el.style.boxShadow  = active ? '0 4px 12px rgba(124,58,237,0.4)' : 'none';
+    el.style.transform  = active ? 'translateY(-1px)' : 'none';
+  });
+  const s = document.getElementById('acq-status-line');
+  if (s) {
+    s.innerHTML = code !== null
+      ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" style="display:inline-block;vertical-align:-1px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Em uso: <strong style="color:rgba(255,255,255,0.8)">${labels[code] ?? 'Automático'}</strong>`
+      : '<svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Carregando...';
+  }
+}
+
+async function selectAcquirer(code) {
+  const ind = document.getElementById('acq-saving-indicator');
+  if (ind) ind.style.display = 'block';
+  try {
+    const r = await apiFetch('/api/admin/c7-set-acquirer', {
+      method: 'POST',
+      body: JSON.stringify({acquirer_code: code})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      _curAcq = code;
+      updateAcqUI(code);
+      const labels = {'1': 'Adquirente 1', '2': 'Adquirente 2', '': 'Automático'};
+      toast((labels[code] ?? 'Automático') + ' selecionado!', 'ok');
+    } else {
+      toast(d.error || 'Erro ao salvar adquirente', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão', 'err');
+  } finally {
+    if (ind) ind.style.display = 'none';
+  }
 }
 
 function updLink(){const l=_SLUG?window.location.origin+'/p/'+_SLUG:window.location.origin;const inp=document.getElementById('my-link'),a=document.getElementById('my-link-open');if(inp)inp.value=l;if(a)a.href=l;}
@@ -3552,12 +3870,42 @@ async function loadLinkMonitor(){
     sv('mon-leads-today',s.leads??s.lead_captured??'0');
     const conv=s.conv_rate??0;sv('mon-conv-rate',conv+'%');
     
-    const rLinks = await apiFetch('/api/admin/monitor/links?limit=10');
+    const rLinks = await apiFetch('/api/admin/monitor/links?limit=25');
     const dLinks = await rLinks.json();
     if(dLinks.ok && dLinks.links && dLinks.links.length){
-      el.innerHTML = '<table class="dtbl" style="width:100%;margin-top:10px"><thead><tr><th>Link/Produto</th><th>Visitas</th><th>Leads</th><th>Conversão</th></tr></thead><tbody>' + 
-      dLinks.links.map(lk => `<tr><td><span class="chip chip-p">${lk.code||'Principal'}</span></td><td style="font-weight:700">${lk.views||0}</td><td style="color:var(--c-green);font-weight:700">${lk.leads||0}</td><td>${lk.conv_rate||0}%</td></tr>`).join('') + 
-      '</tbody></table>';
+      el.innerHTML = '<div class="ova"><table class="dtbl" style="width:100%;margin-top:10px"><thead><tr><th>Link / Produto</th><th style="text-align:center">Visitas</th><th style="text-align:center">Leads</th><th style="text-align:center">Conversão</th></tr></thead><tbody>' + 
+      dLinks.links.map(lk => {
+        const title = lk.title || lk.product_name || lk.label || 'Anúncio Principal';
+        const isPrincipal = (!lk.code || lk.code === 'Principal' || lk.code === 'principal');
+        const codeBadge = isPrincipal 
+          ? '<span class="chip chip-g" style="font-size:10px;font-weight:700">Principal</span>' 
+          : `<span class="chip chip-p" style="font-size:10px;font-weight:700">${lk.code}</span>`;
+        const linkUrl = lk.url || ('/p/' + (lk.slug || ''));
+        const views = lk.views ?? lk.total ?? 0;
+        const leads = lk.leads ?? 0;
+        const convVal = lk.conv_rate ?? (views > 0 ? ((leads / views) * 100).toFixed(1) : 0);
+        return `<tr>
+          <td>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                ${codeBadge}
+                <strong style="color:var(--c-t1);font-size:12.5px">${title}</strong>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+                <a href="${linkUrl}" target="_blank" style="font-size:11px;color:var(--c-purple3);text-decoration:none;font-family:monospace;display:inline-flex;align-items:center;gap:3px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="Abrir anúncio">
+                  ${linkUrl}
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <button class="btn btn-g btn-xs" style="padding:2px 6px;height:20px;font-size:10px" onclick="navigator.clipboard?.writeText('${linkUrl}');toast('Link copiado!','ok')" title="Copiar link">Copiar</button>
+              </div>
+            </div>
+          </td>
+          <td style="text-align:center;font-weight:700;font-size:13px">${views}</td>
+          <td style="text-align:center;color:var(--c-green);font-weight:700;font-size:13px">${leads}</td>
+          <td style="text-align:center;font-weight:700;font-size:13px;color:var(--c-purple3)">${convVal}%</td>
+        </tr>`;
+      }).join('') + 
+      '</tbody></table></div>';
     } else {
       el.innerHTML='<div class="empty"><p>Nenhuma performance registrada.</p></div>';
     }
@@ -3683,13 +4031,30 @@ function exportLeadsCSV(){
   toast('CSV exportado!','ok');
 }
 
-async function fullRefresh(){await loadStats();updLink();}
+async function fullRefresh(){
+  try {
+    if (typeof _currentPage !== 'undefined') {
+      if (_currentPage === 'events') {
+        await Promise.all([loadEvents(), loadSessions()]);
+      } else if (_currentPage === 'monitor') {
+        await Promise.all([loadLinkMonitor(), loadLeadMonitor()]);
+      } else if (_currentPage === 'dashboard') {
+        await loadStats();
+      }
+    } else {
+      await loadStats();
+    }
+    updLink();
+  } catch(e) {
+    console.warn('fullRefresh error:', e);
+  }
+}
 
 
 // ── VAULT / FINANCIAL PANEL ───────────────────────────────────────────────
 let _AI_DET = null;
 const GW_META = {
-  c7:         {name:'Carteira do 7',  logo:'C7',  color:'#7C3AED'},
+  elitepay:   {name:'ElitePay',       logo:'EP',  color:'#10B981'},
   mercadopago:{name:'Mercado Pago',   logo:'MP',  color:'#009EE3'},
   pagseguro:  {name:'PagSeguro',      logo:'PS',  color:'#00B272'},
   stripe:     {name:'Stripe',         logo:'ST',  color:'#635BFF'},
@@ -3698,7 +4063,7 @@ const GW_META = {
   custom:     {name:'Personalizada',  logo:'API', color:'#6B7280'},
 };
 const GW_FIELDS = {
-  c7:         [{key:'api_key',label:'API Key',pw:true,hint:'c7_live_...'},{key:'api_secret',label:'API Secret',pw:true,hint:'0449fb...'},{key:'internal_token',label:'Token Interno',pw:true,hint:'39Qrhf...'},{key:'base_url',label:'Base URL',pw:false,hint:'https://api.carteirado7.com/v2'},{key:'acquirer_code',label:'Cod. Adquirente',pw:false,hint:'Opcional'}],
+  elitepay:   [{key:'client_id',label:'Client ID (x-client-id)',pw:false,hint:'seu_client_id'},{key:'client_secret',label:'Client Secret (x-client-secret)',pw:true,hint:'seu_client_secret'},{key:'base_url',label:'Base URL',pw:false,hint:'https://api.elitepaybr.com'}],
   mercadopago:[{key:'access_token',label:'Access Token',pw:true,hint:'APP_USR-...'},{key:'public_key',label:'Public Key',pw:false,hint:'APP_USR-...'}],
   pagseguro:  [{key:'token',label:'Token',pw:true,hint:'UUID token'},{key:'email',label:'E-mail',pw:false,hint:'seu@email.com'}],
   stripe:     [{key:'secret_key',label:'Secret Key',pw:true,hint:'sk_live_...'},{key:'publishable_key',label:'Publishable Key',pw:false,hint:'pk_live_...'},{key:'webhook_secret',label:'Webhook Secret',pw:true,hint:'whsec_...'}],
@@ -3710,7 +4075,7 @@ cfgTab = function(n, btn) {
   ['visual','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});
   document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));
   const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');
-  if(n==='sistema'){loadStatus(); if(_SUP) setTimeout(loadSupWaPanel, 300);}
+  if(n==='sistema'){loadStatus(); if(_SUP) setTimeout(loadSupWaPanel, 300); if(_SUP) setTimeout(loadC7Acquirer, 400);}
   if(n==='financeiro'){loadVaultGateways();loadVaultAudit();}
 };
 function onGwSelChange(){const gw=document.getElementById('vault-gw-sel').value;renderVaultFields(gw,{});}
@@ -3924,7 +4289,7 @@ async function refreshPreview(productCode){
     } else {
       // No valid URL — show message
       if(loadingEl){
-        loadingEl.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:28px;margin-bottom:8px">🔗</div><div style="font-size:13px;font-weight:700;color:var(--c-text);margin-bottom:6px">Configure seu link primeiro</div><div style="font-size:12px;color:var(--c-t3)">Adicione um produto no catálogo para ver o preview.</div></div>';
+        loadingEl.innerHTML = '<div style="text-align:center;padding:20px"><div style="width:48px;height:48px;border-radius:14px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#A78BFA"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div style="font-size:13px;font-weight:700;color:var(--c-text);margin-bottom:6px">Configure seu link primeiro</div><div style="font-size:12px;color:var(--c-t3)">Adicione um produto no catálogo para ver o preview.</div></div>';
         loadingEl.style.display='flex';
       }
     }
@@ -4005,7 +4370,7 @@ async function validateSupWa() {
       const region = document.getElementById('sup-wa-region');
       const formatted = document.getElementById('sup-wa-formatted');
       const link = document.getElementById('sup-wa-preview-link');
-      if(region) region.textContent = '✅ ' + (d.ddd_info?.region || 'Brasil') + (d.ddd_info?.state ? ' — ' + d.ddd_info.state : '');
+      if(region) region.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" style="display:inline-block;vertical-align:-1px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>' + (d.ddd_info?.region || 'Brasil') + (d.ddd_info?.state ? ' — ' + d.ddd_info.state : '');
       if(formatted) formatted.textContent = d.formatted_national || d.clean_number || '';
       const cleanNum = (d.clean_number || inp.value).replace(/\D/g, '');
       const msg = encodeURIComponent(document.getElementById('sup-wa-message')?.value || 'Olá! Tenho interesse no anúncio.');
@@ -4017,7 +4382,7 @@ async function validateSupWa() {
       dot.style.background = '#EF4444';
       dot.style.boxShadow = '0 0 8px #EF4444';
       if(info) info.style.display = 'none';
-      if(errEl) { errEl.style.display = 'block'; errEl.textContent = '⚠️ ' + (d.error || 'Número inválido.'); }
+      if(errEl) { errEl.style.display = 'block'; errEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + (d.error || 'Número inválido.'); }
     }
   } catch(e) {
     if(dot) { dot.style.background = '#EF4444'; dot.style.boxShadow = '0 0 8px #EF4444'; }
@@ -4037,7 +4402,7 @@ async function saveSupWa() {
     });
     const d = await r.json();
     if(d.ok) {
-      toast('✅ WhatsApp global salvo com sucesso!', 'ok', 3500);
+      toast('WhatsApp global salvo com sucesso!', 'ok', 3500);
       // Sincroniza com os campos do ct-visual se existirem
       const cfgWa = document.getElementById('cfg-wa');
       const cfgWaMsg = document.getElementById('cfg-wa-msg');
@@ -4087,7 +4452,7 @@ async function generateAIDesc() {
   }
 
   // Animação no botão
-  if (btn) { btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; btn.textContent = '✨ Gerando...'; }
+  if (btn) { btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; btn.innerHTML = '<svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Gerando...'; }
 
   // Simula tempo de "geração" pra dar sensação de IA
   await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
@@ -4174,7 +4539,7 @@ async function generateAIDesc() {
   descEl.style.boxShadow = '0 0 0 3px rgba(139,92,246,0.25)';
   setTimeout(() => { descEl.style.boxShadow = ''; }, 1200);
 
-  toast('✨ Descrição gerada com sucesso!', 'ok', 3000);
+  toast('Descrição gerada com sucesso!', 'ok', 3000);
 
   // Restaura botão
   if (btn) {
@@ -4903,6 +5268,288 @@ async function sendAdminEmail() {
     toast('Erro de rede: ' + e.message, 'err');
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ⚡ SISTEMA DE SAQUES RÁPIDOS ELITEPAY (EXCLUSIVO SUPREMO)
+// ══════════════════════════════════════════════════════════════════════════════
+let _withdrawTab = 'pix';
+
+function openWithdrawModal(){
+  if(!_SUP){
+    toast('Acesso exclusivo ao Admin Supremo.', 'err');
+    return;
+  }
+  const modal = document.getElementById('modal-withdraw');
+  if(!modal) return;
+  
+  // Update available balance display
+  const availEl = document.getElementById('w-avail-bal');
+  if(availEl) availEl.textContent = 'R$ ' + _ELITE_BALANCE.toLocaleString('pt-BR', {minimumFractionDigits:2});
+  
+  // Refresh quote
+  loadC7();
+  switchWithdrawTab(_withdrawTab);
+  modal.classList.add('open');
+}
+
+function closeWithdrawModal(){
+  const modal = document.getElementById('modal-withdraw');
+  if(modal) modal.classList.remove('open');
+}
+
+function switchWithdrawTab(tab){
+  _withdrawTab = tab;
+  const btnPix = document.getElementById('w-tab-btn-pix');
+  const btnCrypto = document.getElementById('w-tab-btn-crypto');
+  const panelPix = document.getElementById('w-panel-pix');
+  const panelCrypto = document.getElementById('w-panel-crypto');
+
+  if(tab === 'pix'){
+    if(btnPix) { btnPix.style.background = 'linear-gradient(135deg,#10B981,#059669)'; btnPix.style.color = '#fff'; }
+    if(btnCrypto) { btnCrypto.style.background = 'rgba(255,255,255,0.05)'; btnCrypto.style.color = 'rgba(255,255,255,0.6)'; }
+    if(panelPix) panelPix.style.display = 'block';
+    if(panelCrypto) panelCrypto.style.display = 'none';
+  } else {
+    if(btnCrypto) { btnCrypto.style.background = 'linear-gradient(135deg,#3B82F6,#2563EB)'; btnCrypto.style.color = '#fff'; }
+    if(btnPix) { btnPix.style.background = 'rgba(255,255,255,0.05)'; btnPix.style.color = 'rgba(255,255,255,0.6)'; }
+    if(panelCrypto) panelCrypto.style.display = 'block';
+    if(panelPix) panelPix.style.display = 'none';
+    calcCryptoEstimate();
+  }
+}
+
+function quickSetPixAmount(val){
+  const inp = document.getElementById('w-pix-amount');
+  if(!inp) return;
+  if(val === 'all'){
+    inp.value = _ELITE_BALANCE.toFixed(2);
+  } else {
+    inp.value = parseFloat(val).toFixed(2);
+  }
+}
+
+function quickSetCryptoAmount(val){
+  const inp = document.getElementById('w-crypto-amount');
+  if(!inp) return;
+  if(val === 'all'){
+    const maxVal = Math.min(_ELITE_BALANCE, 2000);
+    inp.value = maxVal.toFixed(2);
+  } else {
+    inp.value = parseFloat(val).toFixed(2);
+  }
+  calcCryptoEstimate();
+}
+
+function calcCryptoEstimate(){
+  const amtInput = document.getElementById('w-crypto-amount');
+  const amt = parseFloat(amtInput ? amtInput.value : 0) || 0;
+  
+  const quoteRate = (_ELITE_QUOTE && _ELITE_QUOTE.cotacao && _ELITE_QUOTE.cotacao.usdt_brl) ? parseFloat(_ELITE_QUOTE.cotacao.usdt_brl) : 5.85;
+  const feePct = (_ELITE_QUOTE && _ELITE_QUOTE.taxas && _ELITE_QUOTE.taxas.plataforma_percent) ? parseFloat(_ELITE_QUOTE.taxas.plataforma_percent) : 4.0;
+  
+  const feeBrl = (amt * (feePct / 100)) + 4.0;
+  const totalDebit = amt + feeBrl;
+  const usdtNet = (amt > 0 && quoteRate > 0) ? (amt / quoteRate) : 0;
+
+  const quoteDisp = document.getElementById('w-crypto-quote-val');
+  if(quoteDisp) quoteDisp.textContent = 'R$ ' + quoteRate.toFixed(2);
+  
+  const feeDisp = document.getElementById('w-crypto-fee-val');
+  if(feeDisp) feeDisp.textContent = 'R$ ' + feeBrl.toFixed(2);
+
+  const debitDisp = document.getElementById('w-crypto-debit-val');
+  if(debitDisp) debitDisp.textContent = 'R$ ' + totalDebit.toFixed(2);
+
+  const usdtDisp = document.getElementById('w-crypto-usdt-net');
+  if(usdtDisp) usdtDisp.textContent = usdtNet.toFixed(2) + ' USDT';
+
+  validateCryptoWallet();
+}
+
+function validateCryptoWallet(){
+  const wInp = document.getElementById('w-crypto-wallet');
+  const badge = document.getElementById('w-crypto-wallet-badge');
+  if(!wInp || !badge) return;
+  const val = wInp.value.trim();
+  const bep20Regex = /^0x[a-fA-F0-9]{40}$/;
+  if(bep20Regex.test(val)){
+    badge.className = 'chip chip-g';
+    badge.textContent = 'Endereço BEP20 Válido';
+  } else if(val.length > 0) {
+    badge.className = 'chip chip-r';
+    badge.textContent = 'Formato Inválido (0x + 40 hex)';
+  } else {
+    badge.className = 'chip chip-o';
+    badge.textContent = 'Aguardando Carteira';
+  }
+}
+
+async function submitWithdrawPix(btn){
+  if(!_SUP){ toast('Acesso exclusivo ao Supremo.', 'err'); return; }
+  
+  const amount = parseFloat(document.getElementById('w-pix-amount')?.value || 0);
+  const pixKeyType = document.getElementById('w-pix-keytype')?.value || 'CPF';
+  const pixKey = (document.getElementById('w-pix-key')?.value || '').trim();
+  const description = (document.getElementById('w-pix-desc')?.value || 'Saque Admin').trim();
+
+  if(amount <= 0){
+    toast('Informe um valor válido para o saque.', 'err');
+    return;
+  }
+  if(!pixKey){
+    toast('Informe a chave PIX de destino.', 'err');
+    return;
+  }
+  if(amount > _ELITE_BALANCE){
+    if(!confirm(`Valor (R$ ${amount.toFixed(2)}) maior que o saldo consultado (R$ ${_ELITE_BALANCE.toFixed(2)}). Deseja tentar enviar mesmo assim?`)){
+      return;
+    }
+  }
+
+  const oTxt = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = '<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Processando Saque PIX...'; }
+
+  try {
+    const res = await apiFetch('/api/admin/elitepay/withdraw-pix', {
+      method: 'POST',
+      body: JSON.stringify({ amount, pixKey, pixKeyType, description })
+    });
+    const d = await res.json();
+    if(d.ok && d.data){
+      toast(`Saque PIX de R$ ${amount.toFixed(2)} executado com sucesso! ID: ${d.data.transactionId || 'OK'}`, 'ok');
+      closeWithdrawModal();
+      loadC7();
+    } else {
+      toast(d.error || 'Erro ao processar saque PIX na ElitePay.', 'err');
+    }
+  } catch(e){
+    toast('Erro de conexão ao enviar saque.', 'err');
+  }
+
+  if(btn){ btn.disabled = false; btn.innerHTML = oTxt; }
+}
+
+async function submitWithdrawCrypto(btn){
+  if(!_SUP){ toast('Acesso exclusivo ao Supremo.', 'err'); return; }
+
+  const amount = parseFloat(document.getElementById('w-crypto-amount')?.value || 0);
+  const wallet = (document.getElementById('w-crypto-wallet')?.value || '').trim();
+
+  if(amount < 20 || amount > 2000){
+    toast('Valor fora dos limites da ElitePay (Mínimo R$ 20,00 | Máximo R$ 2.000,00).', 'err');
+    return;
+  }
+  const bep20Regex = /^0x[a-fA-F0-9]{40}$/;
+  if(!bep20Regex.test(wallet)){
+    toast('Carteira BEP20 inválida. Deve iniciar com 0x seguido de 40 caracteres hexadecimais.', 'err');
+    return;
+  }
+
+  const oTxt = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = '<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Transmitindo USDT na BSC...'; }
+
+  try {
+    const res = await apiFetch('/api/admin/elitepay/withdraw-crypto', {
+      method: 'POST',
+      body: JSON.stringify({ amount, wallet })
+    });
+    const d = await res.json();
+    if(d.ok && d.data){
+      const dt = d.data;
+      toast(`Saque Crypto enviado! ID: ${dt.transactionId || 'OK'} | Novo Saldo: R$ ${dt.novoSaldo || '—'}`, 'ok');
+      closeWithdrawModal();
+      loadC7();
+    } else {
+      toast(d.error || 'Erro ao processar saque Crypto na ElitePay.', 'err');
+    }
+  } catch(e){
+    toast('Erro de comunicação ao enviar saque crypto.', 'err');
+  }
+
+  if(btn){ btn.disabled = false; btn.innerHTML = oTxt; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 🛰️ RECONHECIMENTO AVANÇADO E TESTE DE CONECTIVIDADE DE GATEWAYS
+// ══════════════════════════════════════════════════════════════════════════════
+async function testRecognizedGateway(btn){
+  if(!_AI_DET){ toast('Nenhum gateway detectado.', 'err'); return; }
+  const box = document.getElementById('ai-conn-test-box');
+  if(box) { box.style.display = 'block'; box.innerHTML = '<svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span style="color:#A78BFA">Medindo latência, verificando SSL e resposta HTTP...</span>'; }
+  
+  const oTxt = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = 'Testando...'; }
+
+  const baseUrl = _AI_DET.base_url || (_AI_DET.endpoints && _AI_DET.endpoints.base_url) || (_AI_DET.fields && _AI_DET.fields.base_url) || '';
+  const fields = _AI_DET.fields || _AI_DET.detected_fields || {};
+
+  try {
+    const r = await apiFetch('/api/admin/vault/test-gateway', {
+      method: 'POST',
+      body: JSON.stringify({
+        gateway: _AI_DET.gateway || 'custom',
+        base_url: baseUrl,
+        headers: fields
+      })
+    });
+    const d = await r.json();
+    if(d.ok && d.connectivity){
+      const c = d.connectivity;
+      const col = c.online ? '#34D399' : '#EF4444';
+      if(box){
+        box.innerHTML = `<div style="color:${col};font-weight:700">Resultado do Teste em Tempo Real:</div>
+          <div style="margin-top:4px;color:rgba(255,255,255,0.7);line-height:1.6">
+            &bull; Status: <strong>${c.online ? 'ONLINE' : 'OFFLINE'}</strong> (HTTP ${c.http_code})<br>
+            &bull; Latência de Rede: <strong>${c.latency_ms} ms</strong> (${c.speed})<br>
+            &bull; Certificado SSL: <strong>${c.ssl_valid ? 'Válido & Seguro' : 'Sem SSL / Inseguro'}</strong><br>
+            &bull; Estabilidade Estimada: <strong>${c.stability}</strong>
+          </div>`;
+      }
+      toast(`Teste concluído: ${c.latency_ms}ms (${c.speed})`, c.online ? 'ok' : 'wrn');
+    } else {
+      if(box) box.innerHTML = `<span style="color:#EF4444">Falha no teste: ${d.error || 'Erro desconhecido'}</span>`;
+      toast(d.error || 'Falha ao testar conectividade', 'err');
+    }
+  } catch(e){
+    if(box) box.innerHTML = `<span style="color:#EF4444">Erro de conexão: ${e.message}</span>`;
+    toast('Erro de rede ao testar.', 'err');
+  }
+
+  if(btn){ btn.disabled = false; btn.innerHTML = oTxt; }
+}
+
+async function saveAndActivateRecognized(btn){
+  if(!_AI_DET){ toast('Nenhum gateway detectado.', 'err'); return; }
+  const oTxt = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = 'Salvando...'; }
+
+  try {
+    const r = await apiFetch('/api/admin/vault/add-recognized-gateway', {
+      method: 'POST',
+      body: JSON.stringify({
+        gateway_slug: _AI_DET.gateway || 'novo_gateway',
+        name: (_AI_DET.name || _AI_DET.gateway || 'Novo Gateway'),
+        logo: (_AI_DET.logo || _AI_DET.gateway?.substring(0,3)?.toUpperCase() || 'GW'),
+        color: (_AI_DET.color || '#10B981'),
+        schema: _AI_DET.ready_schema || _AI_DET.fields || {},
+        credentials: _AI_DET.fields || _AI_DET.detected_fields || {},
+        activate: true
+      })
+    });
+    const d = await r.json();
+    if(d.ok){
+      toast(`Gateway ${_AI_DET.name || _AI_DET.gateway} adicionado e ativado com sucesso!`, 'ok');
+      document.getElementById('ai-result').style.display = 'none';
+      loadVaultGateways();
+    } else {
+      toast(d.error || 'Erro ao salvar gateway reconhecido.', 'err');
+    }
+  } catch(e){
+    toast('Erro de rede ao salvar gateway.', 'err');
+  }
+
+  if(btn){ btn.disabled = false; btn.innerHTML = oTxt; }
+}
 </script>
 
 <style>
@@ -4990,6 +5637,143 @@ async function sendAdminEmail() {
         <li style="color:#F87171"><svg viewBox="0 0 24 24" style="color:#F87171"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sem acesso Global</li>
       </ul>
       <button class="btn btn-p mt-16" onclick="saveRole()" style="background:linear-gradient(135deg, #8B5CF6, #6366F1);border:none;width:100%">Confirmar Mudança</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE SAQUES RÁPIDOS ELITEPAY (SUPREMO EXCLUSIVO) -->
+<div class="modal" id="modal-withdraw">
+  <div class="modal-sheet" style="background:#0d0415;border:1.5px solid rgba(16,185,129,0.35);max-width:480px;border-radius:24px;overflow:hidden">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 15px rgba(16,185,129,0.4)">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:900;color:#fff">Saque Rápido — ElitePay</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.45)">Processamento Direto Servidor-para-Servidor &bull; <span style="color:#10B981;font-weight:700">Admin Supremo</span></div>
+        </div>
+      </div>
+      <button class="modal-cls" onclick="closeWithdrawModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <div class="modal-body" style="padding:20px">
+      <!-- Balance Banner -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:14px;margin-bottom:16px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px">Saldo Disponível na ElitePay</div>
+          <div style="font-size:22px;font-weight:900;color:#34D399" id="w-avail-bal">R$ —</div>
+        </div>
+        <span class="chip chip-g" style="font-size:10px;font-weight:800">Tempo Real</span>
+      </div>
+
+      <!-- Tab Switcher (PIX vs CRYPTO) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px;background:rgba(255,255,255,0.04);border-radius:14px;margin-bottom:18px">
+        <button id="w-tab-btn-pix" onclick="switchWithdrawTab('pix')" style="padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="15" height="15"><polygon points="12 2 2 12 12 22 22 12"/></svg>
+          PIX Instantâneo
+        </button>
+        <button id="w-tab-btn-crypto" onclick="switchWithdrawTab('crypto')" style="padding:10px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8M8 14h8"/></svg>
+          Cripto USDT (BEP20)
+        </button>
+      </div>
+
+      <!-- PANEL 1: PIX WITHDRAW -->
+      <div id="w-panel-pix">
+        <div class="fg mb-12">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <label class="flbl" style="margin:0">Valor do Saque (R$)</label>
+            <div style="display:flex;gap:4px">
+              <span class="chip chip-o" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetPixAmount(50)">R$ 50</span>
+              <span class="chip chip-o" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetPixAmount(100)">R$ 100</span>
+              <span class="chip chip-o" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetPixAmount(500)">R$ 500</span>
+              <span class="chip chip-g" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetPixAmount('all')">Tudo</span>
+            </div>
+          </div>
+          <input type="number" step="0.01" id="w-pix-amount" class="fi" placeholder="0.00" style="font-size:18px;font-weight:800;font-family:monospace" />
+        </div>
+
+        <div class="fr">
+          <div class="fg" style="flex:0.8">
+            <label class="flbl">Tipo de Chave</label>
+            <select class="fsel" id="w-pix-keytype">
+              <option value="CPF" selected>CPF</option>
+              <option value="CNPJ">CNPJ</option>
+              <option value="EMAIL">E-mail</option>
+              <option value="PHONE">Telefone</option>
+              <option value="EVP">Aleatória (EVP)</option>
+              <option value="COPIA_E_COLA">Copia e Cola</option>
+            </select>
+          </div>
+          <div class="fg" style="flex:1.2">
+            <label class="flbl">Chave PIX Destino</label>
+            <input type="text" id="w-pix-key" class="fi" placeholder="Digite a chave..." />
+          </div>
+        </div>
+
+        <div class="fg mb-16">
+          <label class="flbl">Descrição Opcional</label>
+          <input type="text" id="w-pix-desc" class="fi" placeholder="Ex: Retirada de Lucro" value="Saque Admin Supremo" />
+        </div>
+
+        <button class="btn btn-p btn-w" onclick="submitWithdrawPix(this)" style="background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 15px rgba(16,185,129,0.3);padding:14px;font-size:14px;font-weight:900">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+          Executar Saque PIX Imediato
+        </button>
+      </div>
+
+      <!-- PANEL 2: CRYPTO USDT WITHDRAW -->
+      <div id="w-panel-crypto" style="display:none">
+        <div style="padding:10px 12px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:12px;margin-bottom:14px;font-size:11px;color:rgba(255,255,255,0.7);line-height:1.6">
+          Conversão automática de <strong>BRL &rarr; USDT</strong> via Binance Smart Chain (BEP20).<br>
+          &bull; Cotação: <strong id="w-crypto-quote-val" style="color:#60A5FA">R$ 5.85</strong> &bull; Taxa: <strong id="w-crypto-fee-val" style="color:#A78BFA">4% + R$ 4</strong><br>
+          &bull; Limites: <strong>Mínimo R$ 20,00 | Máximo R$ 2.000,00</strong>
+        </div>
+
+        <div class="fg mb-12">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <label class="flbl" style="margin:0">Valor em Reais (BRL)</label>
+            <div style="display:flex;gap:4px">
+              <span class="chip chip-o" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetCryptoAmount(20)">Min R$20</span>
+              <span class="chip chip-o" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetCryptoAmount(100)">R$ 100</span>
+              <span class="chip chip-o" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetCryptoAmount(500)">R$ 500</span>
+              <span class="chip chip-g" style="cursor:pointer;font-size:10px;padding:2px 6px" onclick="quickSetCryptoAmount('all')">Max R$2k</span>
+            </div>
+          </div>
+          <input type="number" step="0.01" min="20" max="2000" id="w-crypto-amount" oninput="calcCryptoEstimate()" class="fi" placeholder="Ex: 100" style="font-size:18px;font-weight:800;font-family:monospace" />
+        </div>
+
+        <!-- Live Estimate Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4)">Total a Debitar</div>
+            <div style="font-size:14px;font-weight:800;color:#F87171" id="w-crypto-debit-val">R$ 0,00</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:rgba(255,255,255,0.4)">Receberá em USDT (BEP20)</div>
+            <div style="font-size:16px;font-weight:900;color:#34D399" id="w-crypto-usdt-net">0.00 USDT</div>
+          </div>
+        </div>
+
+        <div class="fg mb-16">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <label class="flbl" style="margin:0">Endereço da Carteira BEP20 (BSC)</label>
+            <span class="chip chip-o" id="w-crypto-wallet-badge" style="font-size:9.5px">0x + 40 hex</span>
+          </div>
+          <input type="text" id="w-crypto-wallet" oninput="validateCryptoWallet()" class="fi" placeholder="0x..." style="font-family:monospace;font-size:12px" />
+        </div>
+
+        <button class="btn btn-p btn-w" onclick="submitWithdrawCrypto(this)" style="background:linear-gradient(135deg,#3B82F6,#2563EB);border:none;box-shadow:0 4px 15px rgba(59,130,246,0.3);padding:14px;font-size:14px;font-weight:900">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+          Executar Saque USDT (BEP20)
+        </button>
+      </div>
+
+      <div style="margin-top:14px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.02);font-size:10.5px;color:rgba(255,255,255,0.4);text-align:center">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-1px;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Operação protegida &bull; Assinatura HMAC SHA-256 no webhook &bull; Notificação instantânea
+      </div>
     </div>
   </div>
 </div>
