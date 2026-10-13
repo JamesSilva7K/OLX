@@ -437,14 +437,8 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "Accept": "application/json, text/plain, */*",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Origin": "https://meupagamento.site",
-        "Referer": "https://meupagamento.site/",
-        "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"'
+        "Accept": "application/json",
+        "User-Agent": "Uniao7Pay-Client/1.0"
     }
 
     try:
@@ -452,43 +446,21 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
         res = requests.post(base_url, json=payload, headers=headers, timeout=12)
         elapsed_ms = int((time.time() - t0) * 1000)
 
-        # Se Cloudflare bloquear por ASN de datacenter (HTTP 403), aciona fallback cURL com HTTP/2 nativo
+        # Se Cloudflare retornar 403, tenta com User-Agent alternativo de ferramenta de terminal (curl)
         if res.status_code == 403:
+            alt_headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": "curl/8.5.0"
+            }
             try:
-                import subprocess, json as _json, shutil
-                curl_bin = shutil.which("curl") or "curl"
-                cmd = [
-                    curl_bin, "-s", "-X", "POST", base_url,
-                    "-H", f"Authorization: Bearer {api_key}",
-                    "-H", "Content-Type: application/json",
-                    "-H", "Accept: application/json",
-                    "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-                    "-d", _json.dumps(payload),
-                    "--connect-timeout", "10",
-                    "--max-time", "15"
-                ]
-                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-                if proc.returncode == 0 and proc.stdout and ("{" in proc.stdout):
-                    cdata = _json.loads(proc.stdout)
-                    tx_id = cdata.get("transaction_id") or cdata.get("id") or ""
-                    payment = cdata.get("payment", {}) if isinstance(cdata.get("payment"), dict) else {}
-                    pix_copia_cola = payment.get("pix_copia_cola") or cdata.get("pix_copia_cola") or cdata.get("qrcode") or ""
-                    expires_in = payment.get("expires_in") or cdata.get("expires_in") or 1800
-                    if pix_copia_cola:
-                        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={requests.utils.quote(pix_copia_cola)}"
-                        return {
-                            "ok": True,
-                            "gateway": "uniaopay",
-                            "transaction_id": tx_id,
-                            "pix_code": pix_copia_cola,
-                            "qr_code_url": qr_url,
-                            "expires_in": expires_in,
-                            "status": "pending",
-                            "elapsed_ms": int((time.time() - t0) * 1000),
-                            "raw": cdata
-                        }
-            except Exception as _e_curl:
-                print(f"[Uniao7Pay] Fallback cURL falhou: {_e_curl}")
+                res_alt = requests.post(base_url, json=payload, headers=alt_headers, timeout=12)
+                if res_alt.status_code in (200, 201):
+                    res = res_alt
+                    elapsed_ms = int((time.time() - t0) * 1000)
+            except Exception:
+                pass
 
         if res.status_code in (200, 201):
             data = res.json()
@@ -518,9 +490,11 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
                     "response": data
                 }
         else:
+            clean_err = re.sub(r'<[^>]+>', ' ', res.text).strip()
+            clean_err = re.sub(r'\s+', ' ', clean_err)[:200]
             return {
                 "ok": False,
-                "error": f"Erro HTTP {res.status_code} na União 7 Pay: {res.text[:250]}",
+                "error": f"Erro HTTP {res.status_code} na União 7 Pay: {clean_err or 'Verifique a chave da API'}",
                 "status_code": res.status_code,
                 "response_text": res.text[:250]
             }
