@@ -160,7 +160,7 @@
     .auth-inp::placeholder{color:var(--c-t3)}
     .auth-inp:focus{border-color:var(--c-purple);background:rgba(139,92,246,0.06);box-shadow:0 0 0 4px rgba(139,92,246,0.12)}
     /* ── Step 1: TG ID input ── */
-    #auth-step1{}
+    #auth-step1{display:block}
     /* ── Step 2: Admin Profile Card + PIN ── */
     #auth-step2{display:none}
     .admin-profile-card{display:flex;align-items:center;gap:14px;padding:16px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(167,139,250,0.05));border:1px solid rgba(139,92,246,0.25);border-radius:var(--r-md);margin-bottom:20px;animation:authIn .4s ease}
@@ -869,14 +869,14 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:10px;margin-top:6px">
-          <button class="btn btn-p" onclick="openWithdrawModal()" style="flex:1.2;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 18px rgba(16,185,129,0.35);font-weight:800;font-size:13px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            Saque Rápido (Pix / Cripto)
+        <div class="fin-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;width:100%;box-sizing:border-box">
+          <button class="btn btn-p" onclick="openWithdrawModal()" style="min-width:0;width:100%;padding:0 8px;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 18px rgba(16,185,129,0.3);font-weight:700;font-size:12px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;white-space:nowrap;overflow:hidden" title="Saque Rápido via Pix ou Cripto">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="15" height="15" style="flex-shrink:0"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Saque Rápido</span>
           </button>
-          <button class="btn btn-g" onclick="testElitePayAdquirers(this)" style="flex:0.8;font-weight:700;font-size:12.5px;height:44px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;gap:7px">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-            Testar Rotas
+          <button class="btn btn-g" onclick="testElitePayAdquirers(this)" style="min-width:0;width:100%;padding:0 8px;font-weight:700;font-size:12px;height:42px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;white-space:nowrap;overflow:hidden" title="Testar Rotas e Adquirentes">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Testar Rotas</span>
           </button>
         </div>
 
@@ -1125,9 +1125,14 @@
             </button>
           </div>
         </div>
-        <!-- Search bar -->
-        <div style="padding:0 14px 10px;border-bottom:1px solid var(--c-border)">
+        <!-- Search bar & Filter Tabs -->
+        <div style="padding:0 14px 10px;border-bottom:1px solid var(--c-border);display:flex;flex-direction:column;gap:8px">
           <input type="text" id="lead-search" class="fi" placeholder="Buscar por nome, CPF, telefone, email..." oninput="filterLeadsUI()" style="height:36px;font-size:13px" />
+          <div style="display:flex;gap:6px;align-items:center;overflow-x:auto;padding-bottom:2px">
+            <button class="tp active" id="lead-tab-all" onclick="setLeadFilter('all',this)" style="font-size:11px;padding:4px 10px;border-radius:20px">Todos (<span id="cnt-leads-all">0</span>)</button>
+            <button class="tp" id="lead-tab-paid" onclick="setLeadFilter('paid',this)" style="font-size:11px;padding:4px 10px;border-radius:20px;color:#34D399"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10B981;margin-right:4px"></span>Pagos (<span id="cnt-leads-paid">0</span>)</button>
+            <button class="tp" id="lead-tab-pending" onclick="setLeadFilter('pending',this)" style="font-size:11px;padding:4px 10px;border-radius:20px;color:#FBBF24"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#F59E0B;margin-right:4px"></span>Pendentes (<span id="cnt-leads-pending">0</span>)</button>
+          </div>
         </div>
         <div class="card-body" id="mon-leads-list" style="padding:0"><div class="empty"><p>Carregando leads...</p></div></div>
       </div>
@@ -1426,6 +1431,90 @@
             <div id="ai-conn-test-box" style="display:none;padding:10px 14px;background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px"></div>
           </div>
         </div>
+        <!-- CARD DEDICADO: UNIÃO 7 PAY (GATEWAY SECUNDÁRIO & FAILOVER AUTOMÁTICO) -->
+        <div class="card mb-16" style="border:1.5px solid rgba(245,158,11,0.3);background:linear-gradient(135deg,rgba(245,158,11,0.06),rgba(0,0,0,0.3));border-radius:18px;overflow:hidden;margin-bottom:14px">
+          <div class="card-hdr" style="background:rgba(245,158,11,0.08);padding:14px 18px;border-bottom:1px solid rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:12px;box-shadow:0 2px 8px rgba(245,158,11,0.3);flex-shrink:0">
+                U7
+              </div>
+              <div>
+                <div style="font-size:13.5px;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px">
+                  União 7 Pay
+                  <span id="u7-status-badge" class="chip chip-o" style="font-size:9.5px;padding:2px 7px">Secundária Ativa</span>
+                </div>
+                <div style="font-size:10.5px;color:rgba(255,255,255,0.45)">Gateway Secundário com Failover Automático & Chave Live</div>
+              </div>
+            </div>
+            <button class="btn btn-g btn-xs" onclick="loadUniaoPayConfig()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+          </div>
+
+          <div class="card-body" style="padding:16px 18px">
+            <div style="display:grid;grid-template-columns:1fr;gap:12px">
+              <!-- Chave API -->
+              <div class="fg">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <label class="flbl" style="margin:0">Chave de API (Bearer)</label>
+                  <button type="button" onclick="toggleU7KeyVisibility()" style="border:none;background:transparent;color:#F59E0B;font-size:10px;cursor:pointer;font-weight:700">Mostrar/Ocultar</button>
+                </div>
+                <input type="password" id="u7-api-key" class="fi" value="up_live_4dfac754f54c28d4f692fa1f58752e66354a36346c589cac" placeholder="up_live_..." autocomplete="off" spellcheck="false" style="font-family:monospace;font-size:12px"/>
+              </div>
+
+              <!-- Endpoint URL -->
+              <div class="fg">
+                <label class="flbl">Endpoint PIX Base</label>
+                <input type="text" id="u7-base-url" class="fi" value="https://meupagamento.site/api/v1/uniaopay/pix/create" placeholder="https://meupagamento.site/api/v1/uniaopay/pix/create" style="font-family:monospace;font-size:12px"/>
+              </div>
+
+              <!-- Toggles e Status -->
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 14px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div>
+                    <div style="font-size:12px;font-weight:700;color:#fff">Fallback Automático Secundário</div>
+                    <div style="font-size:10.5px;color:rgba(255,255,255,0.45);margin-top:2px">Se a primeira API (ElitePay/C7) der falha ou timeout, aciona a União 7 Pay na hora</div>
+                  </div>
+                  <label class="u-sw">
+                    <input type="checkbox" id="u7-fallback-toggle" checked onchange="saveUniaoPayFallbackState(this.checked)"/>
+                    <span class="u-sw-track" id="u7-fb-trk" style="background:#22c55e"><span class="u-sw-thumb" style="left:18px"></span></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Comandos Webhook -->
+              <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:12px 14px">
+                <div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:4px;display:flex;align-items:center;gap:5px">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Configuração de Webhook no Bot
+                </div>
+                <div style="font-size:10.5px;color:rgba(255,255,255,0.5);margin-bottom:8px">Envie este comando no bot da União 7 Pay para receber confirmações instantâneas:</div>
+                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 10px">
+                  <code id="u7-webhook-cmd" style="font-size:10px;color:#34D399;flex:1;word-break:break-all;font-family:monospace">/set_webhook https://seusite.com/api/webhook/uniaopay</code>
+                  <button type="button" class="btn btn-g btn-xs" onclick="copyU7WebhookCmd()" style="flex-shrink:0">Copiar</button>
+                </div>
+              </div>
+
+              <!-- Ações -->
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+                <button type="button" class="btn btn-p" onclick="saveUniaoPayConfig()" style="flex:1.2;background:linear-gradient(135deg,#F59E0B,#D97706)" id="u7-save-btn">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+                  Salvar Chave & Config
+                </button>
+                <button type="button" class="btn btn-g" onclick="testUniaoPayConn(this)" style="flex:1;border-color:rgba(245,158,11,0.3);color:#F59E0B" id="u7-test-btn">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
+                  Testar Conexão Real
+                </button>
+                <button type="button" class="btn btn-s" onclick="toggleU7AsPrimary()" style="flex:1" id="u7-primary-btn">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+                  Ativar como Primária
+                </button>
+              </div>
+
+              <!-- Box de feedback do teste -->
+              <div id="u7-test-result" style="display:none;margin-top:6px;border-radius:10px;padding:10px 14px;font-size:11.5px"></div>
+            </div>
+          </div>
+        </div>
+
         <div id="vault-active-banner" style="display:none;margin-bottom:14px;padding:14px 16px;border-radius:14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:10px;height:10px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;flex-shrink:0"></div>
@@ -1444,6 +1533,7 @@
             <div class="fg"><label class="flbl">Tipo de Gateway</label>
               <select class="fsel" id="vault-gw-sel" onchange="onGwSelChange()">
                 <option value="elitepay" selected>ElitePay (https://api.elitepaybr.com) [Recomendado]</option>
+                <option value="uniaopay">União 7 Pay (https://meupagamento.site) [Secundária / Fallback Automático]</option>
                 <option value="mercadopago">Mercado Pago</option>
                 <option value="pagseguro">PagSeguro</option>
                 <option value="stripe">Stripe</option>
@@ -2419,6 +2509,208 @@
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     UPSELL MANAGER MODAL — PROFISSIONAL
+═══════════════════════════════════════════════════════════════ -->
+<style>
+.uic-btn{width:44px;height:44px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .17s;flex-shrink:0}
+.uic-btn:hover{border-color:rgba(251,146,60,0.5);background:rgba(251,146,60,0.08)}
+.uic-btn.sel{border-color:#fb923c;background:rgba(251,146,60,0.15)}
+.uic-btn svg{pointer-events:none}
+.utc-chip{padding:5px 10px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03);color:var(--c-t2);font-size:10px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.utc-chip:hover{border-color:rgba(139,92,246,0.4);background:rgba(139,92,246,0.08);color:#A78BFA}
+.utc-chip.sel{border-color:#8B5CF6;background:rgba(139,92,246,0.14);color:#A78BFA}
+.u-toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02)}
+.u-sw{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0;display:inline-block}
+.u-sw input{opacity:0;width:0;height:0}
+.u-sw-track{position:absolute;inset:0;border-radius:10px;transition:.2s}
+.u-sw-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+</style>
+<div class="modal" id="upsell-modal">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto;max-width:580px">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr" style="position:sticky;top:0;z-index:10;background:var(--c-card);border-bottom:1px solid var(--c-border);padding-bottom:14px;margin-bottom:0">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span class="modal-ttl" style="display:flex;align-items:center;gap:8px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#fb923c" stroke-width="2" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          Upsell Manager
+        </span>
+        <span id="upsell-prod-label" style="font-size:11px;color:var(--c-t2);font-weight:500"></span>
+      </div>
+      <button class="modal-cls" onclick="closeUpsellModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body" style="padding-top:16px">
+
+      <!-- FORM CRIAR / EDITAR MODAL -->
+      <div id="upsell-form-wrap" style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px;margin-bottom:18px">
+
+        <!-- Form header -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,rgba(251,146,60,0.2),rgba(245,101,7,0.08));display:flex;align-items:center;justify-content:center">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#fb923c" stroke-width="2.5" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <span id="upsell-form-ttl" style="font-size:13px;font-weight:700;color:var(--c-text)">Novo Modal de Cobrança</span>
+        </div>
+
+        <input type="hidden" id="upsell-edit-id" value=""/>
+        <input type="hidden" id="upsell-icon" value="shield-check"/>
+        <input type="hidden" id="upsell-type" value="Seguro"/>
+
+        <!-- ÍCONE SVG PICKER -->
+        <div style="margin-bottom:16px">
+          <label class="flbl" style="margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Ícone do Modal
+          </label>
+          <div style="display:flex;gap:7px;flex-wrap:wrap" id="upsell-icon-grid">
+            <button type="button" class="uic-btn sel" data-icon="shield-check" onclick="selectUpsellIcon(this,'shield-check')" title="Seguro Garantido">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#fb923c" stroke-width="1.8" width="22" height="22"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="truck" onclick="selectUpsellIcon(this,'truck')" title="Entrega / Frete">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="lock" onclick="selectUpsellIcon(this,'lock')" title="Taxa de Segurança">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="package" onclick="selectUpsellIcon(this,'package')" title="Embalagem">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="tag" onclick="selectUpsellIcon(this,'tag')" title="Taxa">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="dollar" onclick="selectUpsellIcon(this,'dollar')" title="Taxa Financeira">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="star" onclick="selectUpsellIcon(this,'star')" title="Premium">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="alert" onclick="selectUpsellIcon(this,'alert')" title="Aviso Obrigatório">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="zap" onclick="selectUpsellIcon(this,'zap')" title="Urgente">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </button>
+            <button type="button" class="uic-btn" data-icon="heart" onclick="selectUpsellIcon(this,'heart')" title="Garantia">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- CATEGORIA (chips) -->
+        <div style="margin-bottom:14px">
+          <label class="flbl" style="margin-bottom:8px;display:block">Categoria</label>
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="upsell-type-chips">
+            <button type="button" class="utc-chip sel" data-type="Seguro" onclick="selectUpsellType(this,'Seguro')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              Seguro
+            </button>
+            <button type="button" class="utc-chip" data-type="Taxa de Entrega" onclick="selectUpsellType(this,'Taxa de Entrega')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              Taxa de Entrega
+            </button>
+            <button type="button" class="utc-chip" data-type="Taxa de Segurança" onclick="selectUpsellType(this,'Taxa de Segurança')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Taxa de Segurança
+            </button>
+            <button type="button" class="utc-chip" data-type="Garantia" onclick="selectUpsellType(this,'Garantia')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              Garantia
+            </button>
+            <button type="button" class="utc-chip" data-type="Embalagem" onclick="selectUpsellType(this,'Embalagem')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Embalagem
+            </button>
+            <button type="button" class="utc-chip" data-type="Premium" onclick="selectUpsellType(this,'Premium')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Premium
+            </button>
+          </div>
+        </div>
+
+        <!-- Título -->
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Título do Modal *</label>
+          <input type="text" class="fi" id="upsell-title" placeholder="Ex: Taxa de Seguro do Produto OLX"/>
+        </div>
+
+        <!-- Descrição -->
+        <div class="fg" style="margin-bottom:12px">
+          <label class="flbl">Descrição</label>
+          <textarea class="fi" id="upsell-desc" rows="2" placeholder="Explique ao cliente o motivo desta taxa..." style="resize:none;font-family:var(--font)"></textarea>
+        </div>
+
+        <!-- Valor + Posição -->
+        <div class="fr" style="gap:10px;margin-bottom:14px">
+          <div class="fg">
+            <label class="flbl">Valor (R$) *</label>
+            <input type="text" class="fi" id="upsell-amount" placeholder="0,00" oninput="maskMoneyField(this)" style="font-size:17px;font-weight:700"/>
+          </div>
+          <div class="fg" style="max-width:90px">
+            <label class="flbl">Posição</label>
+            <input type="number" class="fi" id="upsell-position" placeholder="0" min="0" style="width:100%;text-align:center"/>
+          </div>
+        </div>
+
+        <!-- Toggles: Ativo + Replay -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+          <div class="u-toggle-wrap">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--c-text)">Modal Ativo</div>
+              <div style="font-size:10px;color:var(--c-t3);margin-top:2px">Exibe ao lead após pagamento</div>
+            </div>
+            <label class="u-sw">
+              <input type="checkbox" id="upsell-active" checked onchange="upsellToggle('active-trk',this.checked,'#22c55e')"/>
+              <span class="u-sw-track" id="active-trk" style="background:#22c55e"><span class="u-sw-thumb" style="left:18px"></span></span>
+            </label>
+          </div>
+          <div class="u-toggle-wrap" style="border-color:rgba(251,146,60,0.15);background:rgba(251,146,60,0.03)">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#fb923c">Modo Replay</div>
+              <div style="font-size:10px;color:var(--c-t3);margin-top:2px">Repete após cada pagamento</div>
+            </div>
+            <label class="u-sw">
+              <input type="checkbox" id="upsell-replay" onchange="upsellToggle('replay-trk',this.checked,'#fb923c')"/>
+              <span class="u-sw-track" id="replay-trk" style="background:rgba(255,255,255,0.12)"><span class="u-sw-thumb"></span></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-p" onclick="saveUpsellModal()" id="upsell-save-btn" style="flex:1;background:linear-gradient(135deg,#fb923c,#ea580c)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="upsell-save-txt">Criar Modal</span>
+          </button>
+          <button class="btn btn-g" onclick="resetUpsellForm()" id="upsell-cancel-btn" style="display:none">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTA DE MODAIS -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:12px;font-weight:700;color:var(--c-t2);display:flex;align-items:center;gap:5px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Sequência de Modais
+        </span>
+        <span id="upsell-count-badge" style="font-size:10px;background:rgba(251,146,60,0.15);color:#fb923c;border-radius:20px;padding:2px 10px;font-weight:700">0</span>
+      </div>
+
+      <div id="upsell-list" style="display:flex;flex-direction:column;gap:8px;min-height:60px">
+        <div style="text-align:center;padding:28px 16px;color:var(--c-t3);font-size:12px;border:1px dashed rgba(255,255,255,0.07);border-radius:12px" id="upsell-empty-msg">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="opacity:.22;display:block;margin:0 auto 8px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          Nenhum modal criado. Configure acima e clique em Criar Modal.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast-host" id="toast-host"></div>
 
 <script>
@@ -3061,6 +3353,7 @@ async function loadProducts(){
         '<div class="prod-acts" style="flex-wrap:wrap">'+
         '<button class="btn btn-s btn-xs" data-code="'+code.replace(/"/g,'&quot;')+'" data-title="'+title.replace(/"/g,'&quot;')+'" onclick="applyProd(this.dataset.code, this.dataset.title)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ativar</button>'+
         '<button class="btn btn-g btn-xs" data-code="'+code.replace(/"/g,'&quot;')+'" onclick="openEditProd(_pmap[this.dataset.code])">Editar</button>'+
+        '<button class="btn btn-xs" data-code="'+code.replace(/"/g,'&quot;')+'" onclick="openUpsellManager(this.dataset.code)" title="Gerenciar Upsell Modais" style="background:linear-gradient(135deg,rgba(251,146,60,0.15),rgba(245,101,7,0.15));border:1px solid rgba(251,146,60,0.35);color:#fb923c;font-weight:700;font-size:10px;border-radius:7px;padding:3px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Upsell</button>'+
         '<button class="btn btn-g btn-xs" data-code="'+code.replace(/"/g,'&quot;')+'" onclick="openLivePreview(this.dataset.code)" title="Preview da página do cliente" style="color:var(--c-purple3);border-color:rgba(139,92,246,0.3)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
         '<button class="btn btn-d btn-xs" data-code="'+code.replace(/"/g,'&quot;')+'" data-title="'+title.replace(/"/g,'&quot;')+'" onclick="delProd(this.dataset.code, this.dataset.title)" title="Excluir"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'+
         '</div></div>';
@@ -3393,6 +3686,310 @@ async function delProd(code,name){
   }catch{toast('Erro.','err');}
 }
 
+// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// UPSELL MODAL MANAGER — PROFISSIONAL (SVG ICONS)
+// ─────────────────────────────────────────────────────────────────
+let _upsellProductCode = '';
+let _upsellModals = [];
+
+// SVG map for icon rendering
+const UPSELL_SVGS = {
+  'shield-check': `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+  'truck':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  'lock':         `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  'package':      `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+  'tag':          `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+  'dollar':       `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+  'star':         `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  'alert':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  'zap':          `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  'heart':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+};
+
+// Large SVG for popup use (index.html gets icon key, renders SVG there too)
+const UPSELL_SVGS_LG = {
+  'shield-check': `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+  'truck':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  'lock':         `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  'package':      `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,
+  'tag':          `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+  'dollar':       `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+  'star':         `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  'alert':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  'zap':          `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  'heart':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" width="38" height="38"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+};
+
+function maskMoneyField(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (!v) { el.value = ''; return; }
+  v = (parseInt(v, 10) / 100).toFixed(2);
+  el.value = v.replace('.', ',');
+}
+
+function selectUpsellIcon(btn, iconKey) {
+  document.querySelectorAll('#upsell-icon-grid .uic-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('upsell-icon').value = iconKey;
+}
+
+function selectUpsellType(chip, type) {
+  document.querySelectorAll('#upsell-type-chips .utc-chip').forEach(c => c.classList.remove('sel'));
+  chip.classList.add('sel');
+  document.getElementById('upsell-type').value = type;
+}
+
+function upsellToggle(trackId, active, color) {
+  const track = document.getElementById(trackId);
+  if (!track) return;
+  track.style.background = active ? color : 'rgba(255,255,255,0.12)';
+  const thumb = track.querySelector('.u-sw-thumb');
+  if (thumb) thumb.style.left = active ? '18px' : '2px';
+}
+
+async function openUpsellManager(code) {
+  _upsellProductCode = code;
+  const prod = _pmap ? _pmap[code] : null;
+  const label = prod ? `${prod.title || code}  ·  Cód: ${code}` : `Cód: ${code}`;
+  document.getElementById('upsell-prod-label').textContent = label;
+  resetUpsellForm();
+  document.getElementById('upsell-modal').classList.add('open');
+  await loadUpsellModals();
+}
+
+function closeUpsellModal() {
+  document.getElementById('upsell-modal').classList.remove('open');
+  _upsellProductCode = '';
+  resetUpsellForm();
+}
+
+function resetUpsellForm() {
+  document.getElementById('upsell-edit-id').value = '';
+  document.getElementById('upsell-icon').value = 'shield-check';
+  document.getElementById('upsell-title').value = '';
+  document.getElementById('upsell-desc').value = '';
+  document.getElementById('upsell-amount').value = '';
+  document.getElementById('upsell-position').value = '';
+  // Reset icon picker to first (shield-check)
+  document.querySelectorAll('#upsell-icon-grid .uic-btn').forEach(b => b.classList.remove('sel'));
+  const firstBtn = document.querySelector('#upsell-icon-grid .uic-btn[data-icon="shield-check"]');
+  if (firstBtn) firstBtn.classList.add('sel');
+  // Reset type chips to first
+  document.querySelectorAll('#upsell-type-chips .utc-chip').forEach(c => c.classList.remove('sel'));
+  const firstChip = document.querySelector('#upsell-type-chips .utc-chip');
+  if (firstChip) { firstChip.classList.add('sel'); document.getElementById('upsell-type').value = firstChip.dataset.type; }
+  // Toggles
+  const activeBox = document.getElementById('upsell-active');
+  if (activeBox) activeBox.checked = true;
+  const replayBox = document.getElementById('upsell-replay');
+  if (replayBox) replayBox.checked = false;
+  upsellToggle('active-trk', true, '#22c55e');
+  upsellToggle('replay-trk', false, '#fb923c');
+  // Form header
+  document.getElementById('upsell-form-ttl').textContent = 'Novo Modal de Cobrança';
+  document.getElementById('upsell-save-txt').textContent = 'Criar Modal';
+  document.getElementById('upsell-cancel-btn').style.display = 'none';
+  document.getElementById('upsell-save-btn').style.background = 'linear-gradient(135deg,#fb923c,#ea580c)';
+}
+
+function editUpsellModal(m) {
+  document.getElementById('upsell-edit-id').value = m.id;
+  const iconKey = m.icon || 'shield-check';
+  document.getElementById('upsell-icon').value = iconKey;
+  // Select icon button
+  document.querySelectorAll('#upsell-icon-grid .uic-btn').forEach(b => {
+    b.classList.toggle('sel', b.dataset.icon === iconKey);
+  });
+  // Select type chip
+  const mType = m.type || '';
+  document.querySelectorAll('#upsell-type-chips .utc-chip').forEach(c => {
+    c.classList.toggle('sel', c.dataset.type === mType);
+  });
+  document.getElementById('upsell-type').value = mType;
+  document.getElementById('upsell-title').value = m.title || '';
+  document.getElementById('upsell-desc').value = m.description || '';
+  const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
+  document.getElementById('upsell-amount').value = amt.toFixed(2).replace('.', ',');
+  document.getElementById('upsell-position').value = m.position ?? '';
+  const isActive = !!m.active;
+  const isReplay = !!m.replay;
+  document.getElementById('upsell-active').checked = isActive;
+  document.getElementById('upsell-replay').checked = isReplay;
+  upsellToggle('active-trk', isActive, '#22c55e');
+  upsellToggle('replay-trk', isReplay, '#fb923c');
+  document.getElementById('upsell-form-ttl').textContent = 'Editando Modal';
+  document.getElementById('upsell-save-txt').textContent = 'Salvar Alterações';
+  document.getElementById('upsell-cancel-btn').style.display = '';
+  document.getElementById('upsell-save-btn').style.background = 'linear-gradient(135deg,#8B5CF6,#7C3AED)';
+  document.getElementById('upsell-form-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function saveUpsellModal() {
+  if (!_upsellProductCode) return;
+  const title = document.getElementById('upsell-title').value.trim();
+  if (!title) { toast('Título é obrigatório.', 'err'); return; }
+  const rawAmt = document.getElementById('upsell-amount').value.replace(',', '.').trim();
+  const amount = parseFloat(rawAmt) || 0;
+  if (amount <= 0) { toast('Informe um valor válido maior que zero.', 'err'); return; }
+  const editId = document.getElementById('upsell-edit-id').value;
+  const payload = {
+    icon:        document.getElementById('upsell-icon').value || 'shield-check',
+    type:        document.getElementById('upsell-type').value || 'Seguro',
+    title,
+    description: document.getElementById('upsell-desc').value.trim(),
+    amount:      amount.toFixed(2),
+    position:    parseInt(document.getElementById('upsell-position').value) || 0,
+    active:      document.getElementById('upsell-active').checked,
+    replay:      document.getElementById('upsell-replay').checked,
+  };
+  const btn = document.getElementById('upsell-save-btn');
+  btn.disabled = true;
+  document.getElementById('upsell-save-txt').textContent = 'Salvando...';
+  try {
+    let r, d;
+    if (editId) {
+      r = await apiFetch('/api/admin/upsell/modal/' + editId, { method: 'PUT', body: JSON.stringify(payload) });
+      d = await r.json();
+      if (d.ok) { toast('Modal atualizado!', 'ok'); resetUpsellForm(); }
+      else toast(d.error || 'Erro.', 'err');
+    } else {
+      r = await apiFetch('/api/admin/upsell/' + _upsellProductCode, { method: 'POST', body: JSON.stringify(payload) });
+      d = await r.json();
+      if (d.ok) { toast('Modal criado!', 'ok'); resetUpsellForm(); }
+      else toast(d.error || 'Erro.', 'err');
+    }
+    await loadUpsellModals();
+  } catch(e) {
+    toast('Erro de conexão.', 'err');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('upsell-save-txt').textContent = editId ? 'Salvar Alterações' : 'Criar Modal';
+  }
+}
+
+async function deleteUpsellModal(id, title) {
+  if (!confirm(`Excluir modal "${title}"?`)) return;
+  try {
+    const r = await apiFetch('/api/admin/upsell/modal/' + id, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) { toast('Modal removido.', 'ok'); await loadUpsellModals(); }
+    else toast(d.error || 'Erro.', 'err');
+  } catch(e) { toast('Erro.', 'err'); }
+}
+
+async function toggleUpsellActive(id, nowActive) {
+  try {
+    const r = await apiFetch('/api/admin/upsell/modal/' + id, { method: 'PUT', body: JSON.stringify({ active: nowActive }) });
+    const d = await r.json();
+    if (d.ok) await loadUpsellModals();
+    else toast(d.error || 'Erro.', 'err');
+  } catch(e) { toast('Erro.', 'err'); }
+}
+
+async function moveUpsellModal(id, direction) {
+  const idx = _upsellModals.findIndex(m => m.id === id);
+  if (idx < 0) return;
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= _upsellModals.length) return;
+  const arr = [..._upsellModals];
+  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+  const order = arr.map(m => m.id);
+  try {
+    const r = await apiFetch('/api/admin/upsell/' + _upsellProductCode + '/reorder', {
+      method: 'POST', body: JSON.stringify({ order })
+    });
+    const d = await r.json();
+    if (d.ok) await loadUpsellModals();
+  } catch(e) { toast('Erro.', 'err'); }
+}
+
+async function loadUpsellModals() {
+  if (!_upsellProductCode) return;
+  try {
+    const r = await apiFetch('/api/admin/upsell/' + _upsellProductCode);
+    const d = await r.json();
+    _upsellModals = d.modals || [];
+    renderUpsellList(_upsellModals);
+  } catch(e) { toast('Erro ao carregar modais.', 'err'); }
+}
+
+function renderUpsellList(modals) {
+  const list = document.getElementById('upsell-list');
+  const badge = document.getElementById('upsell-count-badge');
+  const empty = document.getElementById('upsell-empty-msg');
+  badge.textContent = modals.length;
+  if (!modals.length) {
+    list.innerHTML = '';
+    if (empty) { empty.style.display = ''; list.appendChild(empty); }
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  list.innerHTML = modals.map((m, i) => {
+    const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
+    const fmtAmt = 'R$ ' + amt.toFixed(2).replace('.', ',');
+    const isActive = !!m.active;
+    const isReplay = !!m.replay;
+    const iconKey = m.icon || 'shield-check';
+    const iconSvg = UPSELL_SVGS[iconKey] || UPSELL_SVGS['shield-check'];
+    const typeLabel = m.type || '';
+    const safeM = JSON.stringify(m).replace(/"/g, '&quot;');
+    return `
+    <div style="background:rgba(255,255,255,0.025);border:1.5px solid ${isActive ? 'rgba(251,146,60,0.22)' : 'rgba(255,255,255,0.05)'};border-radius:12px;padding:12px;transition:border-color .2s" id="ucard-${m.id}">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <!-- Icon bubble -->
+        <div style="width:38px;height:38px;border-radius:10px;background:${isActive ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.05)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${isActive ? '#fb923c' : 'var(--c-t3)'}">
+          ${iconSvg}
+        </div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px">
+            <span style="font-size:12px;font-weight:700;color:var(--c-text)">${m.title}</span>
+            ${typeLabel ? `<span style="font-size:9px;background:rgba(139,92,246,0.12);color:#A78BFA;border-radius:20px;padding:1px 6px;font-weight:700">${typeLabel}</span>` : ''}
+            ${isActive
+              ? '<span style="font-size:9px;background:rgba(16,185,129,0.12);color:#34D399;border-radius:20px;padding:1px 6px;font-weight:700;display:inline-flex;align-items:center;gap:2px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>ATIVO</span>'
+              : '<span style="font-size:9px;background:rgba(239,68,68,0.1);color:#F87171;border-radius:20px;padding:1px 6px;font-weight:700">INATIVO</span>'}
+            ${isReplay
+              ? '<span style="font-size:9px;background:rgba(251,146,60,0.12);color:#fb923c;border-radius:20px;padding:1px 6px;font-weight:700;display:inline-flex;align-items:center;gap:2px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="8" height="8"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>REPLAY</span>'
+              : ''}
+          </div>
+          ${m.description ? `<div style="font-size:10px;color:var(--c-t2);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;margin-bottom:4px">${m.description}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:15px;font-weight:800;color:#fb923c">${fmtAmt}</span>
+            <span style="font-size:10px;color:var(--c-t3);display:flex;align-items:center;gap:3px">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="9" height="9"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/></svg>
+              Posição ${m.position ?? i}
+            </span>
+          </div>
+        </div>
+        <!-- Action buttons -->
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+          <button onclick="editUpsellModal(${safeM})" title="Editar" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.08);color:#A78BFA;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button onclick="deleteUpsellModal(${m.id}, '${(m.title || '').replace(/'/g, "\\'")}')" title="Excluir" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(239,68,68,0.22);background:rgba(239,68,68,0.06);color:#F87171;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Bottom bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;color:var(--c-t2)">
+          <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleUpsellActive(${m.id}, this.checked)" style="accent-color:#fb923c;width:12px;height:12px"/>
+          ${isActive ? 'Desativar' : 'Ativar'}
+        </label>
+        <div style="display:flex;gap:3px">
+          ${i > 0 ? `<button onclick="moveUpsellModal(${m.id}, -1)" title="Subir" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--c-border);background:rgba(255,255,255,0.03);color:var(--c-t2);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="9" height="9"><polyline points="18 15 12 9 6 15"/></svg></button>` : '<span style="width:22px"></span>'}
+          ${i < modals.length - 1 ? `<button onclick="moveUpsellModal(${m.id}, 1)" title="Descer" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--c-border);background:rgba(255,255,255,0.03);color:var(--c-t2);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="9" height="9"><polyline points="6 9 12 15 18 9"/></svg></button>` : '<span style="width:22px"></span>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+
 async function loadCfg(){
   try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);sv('cfg-favicon',d.favicon_url);if(d.logo_url)prevLogo(d.logo_url);if(d.favicon_url)prevFavicon(d.favicon_url);const defBadges = Object.values(PB).map(b => ({url:b.url, label:b.label, active:true}));if(d.payment_badges){try{_BADGES=fixBadgeUrls(JSON.parse(d.payment_badges));if(!Array.isArray(_BADGES))_BADGES=defBadges;}catch(e){_BADGES=defBadges;}}else{_BADGES=defBadges;}renderBadges();loadTgls();}catch(e){}
 }
@@ -3609,7 +4206,7 @@ async function testElitePayAdquirers(btn){
   if(!_SUP) return;
   const oTxt = btn ? btn.innerHTML : '';
   if(btn){
-    btn.innerHTML = '<svg class="spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:6px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Testando Rotas...';
+    btn.innerHTML = '<svg class="spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:4px;flex-shrink:0"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Testando...</span>';
     btn.disabled = true;
   }
 
@@ -4006,60 +4603,115 @@ async function loadVisitorsMonitor() {
   }catch(e){if(el)el.innerHTML='<div class="empty"><p>Erro ao carregar visitantes.</p></div>';}
 }
 let _LEADS_CACHE = [];
+let _LEAD_FILTER = 'all';
+
+function setLeadFilter(flt, btn){
+  _LEAD_FILTER = flt;
+  const card = document.getElementById('leads-monitor-card');
+  if(card){
+    card.querySelectorAll('.tp').forEach(b => b.classList.remove('active'));
+  }
+  if(btn) btn.classList.add('active');
+  filterLeadsUI();
+}
+
 async function loadLeadMonitor(){
-  const el=document.getElementById('mon-leads-list');if(!el)return;
+  const el = document.getElementById('mon-leads-list');
+  if(!el) return;
   try{
-    const r=await apiFetch('/api/admin/monitor/leads?limit=50');
-    const d=await r.json();
-    if(!d.ok){el.innerHTML='<div class="empty"><p>Erro ao carregar leads.</p></div>';return;}
-    _LEADS_CACHE = d.leads||[];
-    const badge=document.getElementById('leads-badge');
-    if(badge)badge.textContent=_LEADS_CACHE.length+' leads';
-    // Update today counter
-    const todayEl=document.getElementById('mon-leads-today');if(todayEl)todayEl.textContent=d.today_count??'—';
-    renderLeadsUI(_LEADS_CACHE);
-  }catch(e){if(el)el.innerHTML='<div class="empty"><p>Erro.</p></div>';}
+    const r = await apiFetch('/api/admin/monitor/leads?limit=50');
+    const d = await r.json();
+    if(!d.ok){ el.innerHTML = '<div class="empty"><p>Erro ao carregar leads.</p></div>'; return; }
+    _LEADS_CACHE = d.leads || [];
+
+    const paidCount = d.paid_count !== undefined ? d.paid_count : _LEADS_CACHE.filter(x => x.is_paid).length;
+    const pendingCount = d.pending_count !== undefined ? d.pending_count : (_LEADS_CACHE.length - paidCount);
+
+    const badge = document.getElementById('leads-badge');
+    if(badge){
+      badge.textContent = `${_LEADS_CACHE.length} leads · ${paidCount} pagos`;
+      badge.className = paidCount > 0 ? 'chip chip-g' : 'chip chip-o';
+    }
+
+    const todayEl = document.getElementById('mon-leads-today');
+    if(todayEl) todayEl.textContent = d.today_count ?? '—';
+
+    // Atualiza contadores das abas
+    const cAll = document.getElementById('cnt-leads-all'); if(cAll) cAll.textContent = _LEADS_CACHE.length;
+    const cPaid = document.getElementById('cnt-leads-paid'); if(cPaid) cPaid.textContent = paidCount;
+    const cPend = document.getElementById('cnt-leads-pending'); if(cPend) cPend.textContent = pendingCount;
+
+    filterLeadsUI();
+  }catch(e){
+    if(el) el.innerHTML = '<div class="empty"><p>Erro ao carregar dados.</p></div>';
+  }
 }
 
 function filterLeadsUI(){
-  const q=(document.getElementById('lead-search')?.value||'').toLowerCase();
-  if(!q){renderLeadsUI(_LEADS_CACHE);return;}
-  const filtered=_LEADS_CACHE.filter(ld=>{
-    return (ld.name||'').toLowerCase().includes(q)||(ld.cpf||'').toLowerCase().includes(q)||
-           (ld.phone||'').toLowerCase().includes(q)||(ld.email||'').toLowerCase().includes(q)||
-           (ld.city||'').toLowerCase().includes(q)||(ld.slug||'').toLowerCase().includes(q);
-  });
-  renderLeadsUI(filtered);
+  const q = (document.getElementById('lead-search')?.value || '').toLowerCase();
+  let list = _LEADS_CACHE;
+  if(_LEAD_FILTER === 'paid'){
+    list = list.filter(ld => ld.is_paid);
+  } else if(_LEAD_FILTER === 'pending'){
+    list = list.filter(ld => !ld.is_paid);
+  }
+  if(q){
+    list = list.filter(ld => {
+      return (ld.name||'').toLowerCase().includes(q) ||
+             (ld.cpf||'').toLowerCase().includes(q) ||
+             (ld.phone||'').toLowerCase().includes(q) ||
+             (ld.email||'').toLowerCase().includes(q) ||
+             (ld.city||'').toLowerCase().includes(q) ||
+             (ld.slug||'').toLowerCase().includes(q);
+    });
+  }
+  renderLeadsUI(list);
 }
 
 function renderLeadsUI(list){
-  const el=document.getElementById('mon-leads-list');if(!el)return;
-  if(!list.length){el.innerHTML='<div class="empty"><p>Nenhum lead encontrado.</p></div>';return;}
-  el.innerHTML=list.map(ld=>{
-    const dt=new Date((ld.ts||0)*1000);
-    const tm=dt.toLocaleDateString('pt-BR')+' '+dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');
-    const name=ld.name||'—';
-    const phone=ld.phone||'—';
-    const cpf=ld.cpf||'—';
-    const email=ld.email||'';
-    const city=ld.city?(ld.city+(ld.state?'/'+ld.state:'')):'—';
-    const product=ld.product||'—';
-    const amount=ld.amount?'R$ '+parseFloat(ld.amount).toFixed(2).replace('.',','):'—';
-    const verified=ld.cpf_verified;
-    const addr=ld.street?(ld.street+(ld.number?', '+ld.number:'')+(ld.neighborhood?', '+ld.neighborhood:'')):'—';
-    const initials=name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?';
+  const el = document.getElementById('mon-leads-list');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="empty"><p>Nenhum lead encontrado para este filtro.</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(ld => {
+    const dt = new Date((ld.ts || 0) * 1000);
+    const tm = dt.toLocaleDateString('pt-BR') + ' ' + dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0');
+    const name = ld.name || '—';
+    const phone = ld.phone || '—';
+    const cpf = ld.cpf || '—';
+    const email = ld.email || '';
+    const city = ld.city ? (ld.city + (ld.state ? '/' + ld.state : '')) : '—';
+    const product = ld.product || '—';
+    const rawAmt = ld.amount ? parseFloat(ld.amount) : 0;
+    const amountStr = rawAmt > 0 ? 'R$ ' + rawAmt.toFixed(2).replace('.', ',') : '—';
+    const isPaid = !!ld.is_paid;
+    const paidAmt = ld.paid_amount ? parseFloat(ld.paid_amount) : rawAmt;
+    const paidAmtStr = 'R$ ' + paidAmt.toFixed(2).replace('.', ',');
+    const verified = ld.cpf_verified;
+    const addr = ld.street ? (ld.street + (ld.number ? ', ' + ld.number : '') + (ld.neighborhood ? ', ' + ld.neighborhood : '')) : '—';
+    const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+    const gateway = ld.paid_gateway || 'Gateway';
+
+    // Status de pagamento real e validado sem métricas falsas
+    const statusHtml = isPaid
+      ? `<div style="font-size:13px;font-weight:800;color:var(--c-green)">${paidAmtStr}</div>` +
+        `<div style="margin-top:3px"><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.3);display:inline-flex;align-items:center;gap:3px"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Pago via ${gateway}</span></div>`
+      : `<div style="font-size:13px;font-weight:700;color:var(--c-t2)">${amountStr}</div>` +
+        `<div style="margin-top:3px"><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(245,158,11,0.12);color:#FBBF24;border:1px solid rgba(245,158,11,0.25);display:inline-flex;align-items:center;gap:3px"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Aguardando Pagamento</span></div>`;
+
     return `<div class="lead-card" style="border-bottom:1px solid var(--c-border);padding:12px 14px;display:flex;flex-direction:column;gap:8px;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">` +
       `<div style="display:flex;align-items:center;gap:10px">` +
         `<div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials}</div>` +
         `<div style="flex:1;min-width:0">` +
           `<div style="font-size:14px;font-weight:700;color:var(--c-text);display:flex;align-items:center;gap:6px">${name}` +
-            (verified?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.3);display:inline-flex;align-items:center;gap:2px"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>CPF OK</span>':'')+
+            (verified ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.3);display:inline-flex;align-items:center;gap:2px"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>CPF OK</span>' : '') +
           `</div>` +
-          `<div style="font-size:12px;color:var(--c-t3);margin-top:2px">${tm} · <code style="font-size:11px">${ld.ip||'—'}</code></div>` +
+          `<div style="font-size:12px;color:var(--c-t3);margin-top:2px">${tm} · <code style="font-size:11px">${ld.ip || '—'}</code></div>` +
         `</div>` +
         `<div style="text-align:right;flex-shrink:0">` +
-          `<div style="font-size:13px;font-weight:800;color:var(--c-green)">${amount}</div>` +
-          `<div style="font-size:10px;color:var(--c-t3);margin-top:2px">${ld.slug||'—'}</div>` +
+          statusHtml +
         `</div>` +
       `</div>` +
       `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">` +
@@ -4071,10 +4723,10 @@ function renderLeadsUI(list){
           `<div style="font-size:10px;color:var(--c-t3);font-weight:600;letter-spacing:.5px;margin-bottom:2px">CPF</div>` +
           `<div style="font-size:13px;font-weight:600;font-family:monospace;color:var(--c-text)">${cpf}</div>` +
         `</div>` +
-        (email?`<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:7px 10px;grid-column:1/-1">` +
+        (email ? `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:7px 10px;grid-column:1/-1">` +
           `<div style="font-size:10px;color:var(--c-t3);font-weight:600;letter-spacing:.5px;margin-bottom:2px">EMAIL</div>` +
           `<div style="font-size:13px;font-weight:600;color:var(--c-text)">${email}</div>` +
-        `</div>`:'')+
+        `</div>` : '') +
         `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:7px 10px">` +
           `<div style="font-size:10px;color:var(--c-t3);font-weight:600;letter-spacing:.5px;margin-bottom:2px">CIDADE</div>` +
           `<div style="font-size:13px;font-weight:600;color:var(--c-text)">${city}</div>` +
@@ -4083,28 +4735,41 @@ function renderLeadsUI(list){
           `<div style="font-size:10px;color:var(--c-t3);font-weight:600;letter-spacing:.5px;margin-bottom:2px">PRODUTO</div>` +
           `<div style="font-size:13px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${product}</div>` +
         `</div>` +
-        (addr&&addr!=='—'?`<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:7px 10px;grid-column:1/-1">` +
+        (addr && addr !== '—' ? `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:7px 10px;grid-column:1/-1">` +
           `<div style="font-size:10px;color:var(--c-t3);font-weight:600;letter-spacing:.5px;margin-bottom:2px">ENDEREÇO</div>` +
           `<div style="font-size:12px;font-weight:600;color:var(--c-t2)">${addr}</div>` +
-        `</div>`:'')+
+        `</div>` : '') +
       `</div>` +
     `</div>`;
   }).join('');
 }
 
 function exportLeadsCSV(){
-  if(!_LEADS_CACHE.length){toast('Sem leads para exportar.','wrn');return;}
-  const headers=['Nome','CPF','Telefone','Email','Cidade','Estado','CEP','Endereço','Número','Bairro','Produto','Valor','Verificado','Slug','IP','Data'];
-  const rows=_LEADS_CACHE.map(ld=>[
-    ld.name||'',ld.cpf||'',ld.phone||'',ld.email||'',ld.city||'',ld.state||'',ld.cep||'',
-    ld.street||'',ld.number||'',ld.neighborhood||'',ld.product||'',ld.amount||'',
-    ld.cpf_verified?'Sim':'Não',ld.slug||'',ld.ip||'',
-    ld.ts?new Date(ld.ts*1000).toLocaleString('pt-BR'):''
-  ].map(v=>'"'+String(v).replace(/"/g,'""')+'"'));
-  const csv=[headers.join(','),...rows.map(r=>r.join(','))].join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='leads_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-  toast('CSV exportado!','ok');
+  if(!_LEADS_CACHE.length){ toast('Sem leads para exportar.', 'wrn'); return; }
+  const headers = ['Nome','CPF','Telefone','Email','Cidade','Estado','CEP','Endereço','Número','Bairro','Produto','Valor Intenção','Status Pagamento','Gateway','Data'];
+  const rows = _LEADS_CACHE.map(ld => [
+    ld.name || '',
+    ld.cpf || '',
+    ld.phone || '',
+    ld.email || '',
+    ld.city || '',
+    ld.state || '',
+    ld.cep || '',
+    ld.street || '',
+    ld.number || '',
+    ld.neighborhood || '',
+    ld.product || '',
+    ld.amount || '',
+    ld.is_paid ? 'Pago' : 'Aguardando Pagamento',
+    ld.paid_gateway || (ld.is_paid ? 'Confirmado' : 'Pendente'),
+    ld.ts ? new Date(ld.ts * 1000).toLocaleString('pt-BR') : ''
+  ].map(v => '"' + String(v).replace(/"/g, '""') + '"'));
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = 'leads_validados_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  toast('CSV exportado com dados validados!', 'ok');
 }
 
 async function fullRefresh(){
@@ -4131,6 +4796,7 @@ async function fullRefresh(){
 let _AI_DET = null;
 const GW_META = {
   elitepay:   {name:'ElitePay',       logo:'EP',  color:'#10B981'},
+  uniaopay:   {name:'União 7 Pay',    logo:'U7',  color:'#F59E0B'},
   mercadopago:{name:'Mercado Pago',   logo:'MP',  color:'#009EE3'},
   pagseguro:  {name:'PagSeguro',      logo:'PS',  color:'#00B272'},
   stripe:     {name:'Stripe',         logo:'ST',  color:'#635BFF'},
@@ -4140,6 +4806,7 @@ const GW_META = {
 };
 const GW_FIELDS = {
   elitepay:   [{key:'client_id',label:'Client ID (x-client-id)',pw:false,hint:'seu_client_id'},{key:'client_secret',label:'Client Secret (x-client-secret)',pw:true,hint:'seu_client_secret'},{key:'base_url',label:'Base URL',pw:false,hint:'https://api.elitepaybr.com'}],
+  uniaopay:   [{key:'api_key',label:'Chave API (Bearer)',pw:true,hint:'up_live_...'},{key:'base_url',label:'Endpoint PIX',pw:false,hint:'https://meupagamento.site/api/v1/uniaopay/pix/create'},{key:'fallback_enabled',label:'Fallback Automático (1 ou 0)',pw:false,hint:'1 = ativa se a primária falhar'}],
   mercadopago:[{key:'access_token',label:'Access Token',pw:true,hint:'APP_USR-...'},{key:'public_key',label:'Public Key',pw:false,hint:'APP_USR-...'}],
   pagseguro:  [{key:'token',label:'Token',pw:true,hint:'UUID token'},{key:'email',label:'E-mail',pw:false,hint:'seu@email.com'}],
   stripe:     [{key:'secret_key',label:'Secret Key',pw:true,hint:'sk_live_...'},{key:'publishable_key',label:'Publishable Key',pw:false,hint:'pk_live_...'},{key:'webhook_secret',label:'Webhook Secret',pw:true,hint:'whsec_...'}],
@@ -4147,12 +4814,165 @@ const GW_FIELDS = {
   pix_manual: [{key:'pix_key',label:'Chave Pix',pw:false,hint:'CPF, CNPJ, e-mail...'},{key:'pix_name',label:'Nome Recebedor',pw:false,hint:'Nome completo'},{key:'pix_city',label:'Cidade',pw:false,hint:'Sao Paulo'}],
   custom:     [{key:'raw_credentials',label:'Credenciais JSON',pw:false,hint:'{"key":"..."}'},{key:'base_url',label:'URL Base',pw:false,hint:'https://...'}],
 };
+
+async function loadUniaoPayConfig() {
+  try {
+    const r = await apiFetch('/api/admin/uniaopay/config');
+    const d = await r.json();
+    if (d.ok && d.config) {
+      const c = d.config;
+      if (document.getElementById('u7-api-key')) document.getElementById('u7-api-key').value = c.api_key || '';
+      if (document.getElementById('u7-base-url')) document.getElementById('u7-base-url').value = c.base_url || 'https://meupagamento.site/api/v1/uniaopay/pix/create';
+      const fbTgl = document.getElementById('u7-fallback-toggle');
+      if (fbTgl) {
+        fbTgl.checked = !!c.fallback_enabled;
+        const trk = document.getElementById('u7-fb-trk');
+        if (trk) {
+          trk.style.background = c.fallback_enabled ? '#22c55e' : 'rgba(255,255,255,0.12)';
+          const thumb = trk.querySelector('.u-sw-thumb');
+          if (thumb) thumb.style.left = c.fallback_enabled ? '18px' : '2px';
+        }
+      }
+      const badge = document.getElementById('u7-status-badge');
+      const primBtn = document.getElementById('u7-primary-btn');
+      if (c.is_active_primary) {
+        if (badge) { badge.className = 'chip chip-g'; badge.textContent = 'ATIVO COMO PRIMÁRIO'; }
+        if (primBtn) { primBtn.className = 'btn btn-d'; primBtn.textContent = 'Definir como Secundária'; }
+      } else {
+        if (badge) {
+          if (c.fallback_enabled) { badge.className = 'chip chip-o'; badge.textContent = 'SECUNDÁRIO AUTOMÁTICO (FAILOVER)'; }
+          else { badge.className = 'chip chip-d'; badge.textContent = 'DESATIVADA'; }
+        }
+        if (primBtn) { primBtn.className = 'btn btn-s'; primBtn.textContent = 'Ativar como Primária'; }
+      }
+      const origin = window.location.origin;
+      const cmdEl = document.getElementById('u7-webhook-cmd');
+      if (cmdEl) cmdEl.textContent = `/set_webhook ${origin}/api/webhook/uniaopay`;
+    }
+  } catch(e) {}
+}
+
+function toggleU7KeyVisibility() {
+  const inp = document.getElementById('u7-api-key');
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function copyU7WebhookCmd() {
+  const cmd = document.getElementById('u7-webhook-cmd').textContent;
+  try { navigator.clipboard.writeText(cmd); } catch(e) {}
+  toast('Comando copiado! Cole no bot da União 7 Pay.', 'ok');
+}
+
+async function saveUniaoPayConfig() {
+  const apiKey = document.getElementById('u7-api-key').value.trim();
+  const baseUrl = document.getElementById('u7-base-url').value.trim();
+  const fallback = document.getElementById('u7-fallback-toggle').checked;
+  const btn = document.getElementById('u7-save-btn');
+  btn.disabled = true;
+  try {
+    const r = await apiFetch('/api/admin/uniaopay/config', {
+      method: 'POST',
+      body: JSON.stringify({ api_key: apiKey, base_url: baseUrl, fallback_enabled: fallback })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      toast('Configuração da União 7 Pay salva!', 'ok');
+      await loadUniaoPayConfig();
+    } else {
+      toast(d.error || 'Erro ao salvar.', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function saveUniaoPayFallbackState(active) {
+  const trk = document.getElementById('u7-fb-trk');
+  if (trk) {
+    trk.style.background = active ? '#22c55e' : 'rgba(255,255,255,0.12)';
+    const thumb = trk.querySelector('.u-sw-thumb');
+    if (thumb) thumb.style.left = active ? '18px' : '2px';
+  }
+  await saveUniaoPayConfig();
+}
+
+async function toggleU7AsPrimary() {
+  const badge = document.getElementById('u7-status-badge');
+  const isPrimary = badge && badge.textContent.includes('PRIMÁRIO');
+  try {
+    const r = await apiFetch('/api/admin/uniaopay/activate', {
+      method: 'POST',
+      body: JSON.stringify({ active: !isPrimary })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      toast(d.message || 'Status alterado!', 'ok');
+      await loadUniaoPayConfig();
+      if (typeof loadVaultGateways === 'function') loadVaultGateways();
+    } else {
+      toast(d.error || 'Erro.', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão.', 'err');
+  }
+}
+
+async function testUniaoPayConn(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Testando...'; }
+  const resBox = document.getElementById('u7-test-result');
+  resBox.style.display = 'block';
+  resBox.style.background = 'rgba(255,255,255,0.03)';
+  resBox.style.border = '1px solid rgba(255,255,255,0.08)';
+  resBox.style.color = 'var(--c-t2)';
+  resBox.textContent = 'Enviando requisição teste para a União 7 Pay...';
+
+  const apiKey = document.getElementById('u7-api-key').value.trim();
+  const baseUrl = document.getElementById('u7-base-url').value.trim();
+
+  try {
+    const r = await apiFetch('/api/admin/uniaopay/test', {
+      method: 'POST',
+      body: JSON.stringify({ api_key: apiKey, base_url: baseUrl })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      resBox.style.background = 'rgba(16,185,129,0.08)';
+      resBox.style.border = '1px solid rgba(16,185,129,0.25)';
+      resBox.style.color = '#34D399';
+      resBox.innerHTML = `
+        <div style="font-weight:800;margin-bottom:4px">✓ Conexão bem-sucedida com a União 7 Pay!</div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.6)">Latência: <b>${d.elapsed_ms || 0}ms</b> &bull; Transaction ID: <code>${d.transaction_id || ''}</code></div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;word-break:break-all">Pix Copia e Cola retornado: ${d.pix_code ? d.pix_code.slice(0, 40) + '...' : 'Sim'}</div>
+      `;
+      toast('União 7 Pay conectada com sucesso!', 'ok');
+    } else {
+      resBox.style.background = 'rgba(239,68,68,0.08)';
+      resBox.style.border = '1px solid rgba(239,68,68,0.25)';
+      resBox.style.color = '#F87171';
+      resBox.innerHTML = `
+        <div style="font-weight:800;margin-bottom:4px">✕ Falha ao conectar na União 7 Pay</div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.6)">${d.error || 'Verifique a chave API e endpoint.'}</div>
+      `;
+      toast('Falha no teste da União 7 Pay', 'err');
+    }
+  } catch(e) {
+    resBox.style.background = 'rgba(239,68,68,0.08)';
+    resBox.style.border = '1px solid rgba(239,68,68,0.25)';
+    resBox.style.color = '#F87171';
+    resBox.textContent = 'Erro de rede ao testar União 7 Pay: ' + e.message;
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg> Testar Conexão Real'; }
+  }
+}
+
 cfgTab = function(n, btn) {
   ['visual','sistema','financeiro'].forEach(t=>{const e=document.getElementById('ct-'+t);if(e)e.classList.add('hidden');});
   document.querySelectorAll('#cfg-tabs .tp').forEach(b=>b.classList.remove('active'));
   const t=document.getElementById('ct-'+n);if(t)t.classList.remove('hidden');if(btn)btn.classList.add('active');
   if(n==='sistema'){loadStatus(); if(_SUP) setTimeout(loadSupWaPanel, 300); if(_SUP) setTimeout(loadC7Acquirer, 400);}
-  if(n==='financeiro'){loadVaultGateways();loadVaultAudit();}
+  if(n==='financeiro'){loadVaultGateways();loadVaultAudit();loadUniaoPayConfig();}
 };
 function onGwSelChange(){const gw=document.getElementById('vault-gw-sel').value;renderVaultFields(gw,{});}
 function renderVaultFields(gw,prefill){

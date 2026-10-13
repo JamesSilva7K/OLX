@@ -35,6 +35,17 @@ GATEWAY_SCHEMAS: Dict[str, dict] = {
         ]
     },
 
+    "uniaopay": {
+        "name": "União 7 Pay",
+        "logo": "U7",
+        "color": "#F59E0B",
+        "fields": [
+            {"key": "api_key",        "label": "Chave API (Bearer)",              "hint": "up_live_..."},
+            {"key": "base_url",       "label": "Endpoint PIX",                    "hint": "https://meupagamento.site/api/v1/uniaopay/pix/create"},
+            {"key": "fallback_enabled", "label": "Fallback Ativo (1 ou 0)",        "hint": "1 para acionar se a primária falhar"},
+        ]
+    },
+
     "mercadopago": {
         "name": "Mercado Pago",
         "logo": "MP",

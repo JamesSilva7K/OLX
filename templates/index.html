@@ -1761,6 +1761,92 @@
   <img class="lightbox-img" id="lightbox-img" src="" alt="Foto do produto" />
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     UPSELL POPUP OVERLAY — OBRIGATÓRIO (sem botão sair)
+═══════════════════════════════════════════════════════════════ -->
+<style>
+@keyframes upsellPop { 0%{transform:scale(.82) translateY(28px);opacity:0} 70%{transform:scale(1.02) translateY(-3px);opacity:1} 100%{transform:scale(1) translateY(0);opacity:1} }
+@keyframes upsellSpin { to{transform:rotate(360deg)} }
+@keyframes upsellPulse { 0%,100%{box-shadow:0 0 0 0 rgba(123,2,232,.35)} 50%{box-shadow:0 0 0 10px rgba(123,2,232,0)} }
+#upsell-overlay { display:none; position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.78); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:12px; }
+#upsell-overlay.active { display:flex !important; }
+#upsell-popup { animation:upsellPop .42s cubic-bezier(.34,1.56,.64,1) forwards; }
+</style>
+<div id="upsell-overlay">
+  <div id="upsell-popup" style="background:#fff;border-radius:24px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 32px 100px rgba(0,0,0,.5)">
+
+    <!-- ── HEADER ── -->
+    <div id="upsell-popup-header" style="background:linear-gradient(135deg,#6600CC,#9333EA);padding:24px 20px 20px;text-align:center;position:relative;overflow:hidden">
+      <!-- Decorative rings -->
+      <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+      <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+      <!-- Progress dots -->
+      <div id="upsell-progress-dots" style="display:flex;justify-content:center;gap:5px;margin-bottom:14px;position:relative;z-index:1"></div>
+      <!-- Icon circle -->
+      <div id="upsell-popup-icon" style="width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:white;position:relative;z-index:1;animation:upsellPulse 2.5s infinite"></div>
+      <!-- Title -->
+      <h3 id="upsell-popup-title" style="font-size:17px;font-weight:900;color:#fff;margin:0;line-height:1.3;position:relative;z-index:1"></h3>
+      <!-- Category badge -->
+      <div id="upsell-popup-badge" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);position:relative;z-index:1"></div>
+    </div>
+
+    <!-- ── BODY ── -->
+    <div style="padding:18px 20px 20px">
+
+      <!-- Description -->
+      <p id="upsell-popup-desc" style="font-size:13px;color:#555;line-height:1.65;margin:0 0 16px;text-align:center"></p>
+
+      <!-- Amount box -->
+      <div style="background:linear-gradient(135deg,#f5f0ff,#faf4ff);border:1.5px solid rgba(102,0,204,0.14);border-radius:16px;padding:14px 16px;text-align:center;margin-bottom:16px">
+        <div style="font-size:10px;color:#6600CC;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:4px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="11" height="11"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Valor desta taxa
+        </div>
+        <div id="upsell-popup-amount" style="font-size:32px;font-weight:900;color:#6600CC;letter-spacing:-.01em"></div>
+        <div style="font-size:10px;color:#888;margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Pagamento via Pix · Aprovação imediata
+        </div>
+      </div>
+
+      <!-- Loading PIX -->
+      <div id="upsell-pix-loading" style="text-align:center;padding:16px 0;display:none">
+        <div style="width:26px;height:26px;border:3px solid rgba(102,0,204,.15);border-top-color:#6600CC;border-radius:50%;animation:upsellSpin 1s linear infinite;display:inline-block"></div>
+        <div style="font-size:12px;color:#888;margin-top:10px;font-weight:600">Gerando código Pix...</div>
+      </div>
+
+      <!-- QR + Copy -->
+      <div id="upsell-pix-ready" style="display:none;text-align:center">
+        <img id="upsell-qr-img" src="" alt="QR Code Pix" style="width:150px;height:150px;display:block;margin:0 auto 12px;border-radius:12px;border:1.5px solid #e8e0f7"/>
+        <div style="display:flex;align-items:center;gap:6px;border:1.5px solid #e0d4f7;border-radius:10px;padding:8px 10px;background:#fafafa;margin-bottom:10px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#6600CC" stroke-width="2" width="13" height="13" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <input type="text" id="upsell-pix-code" readonly style="flex:1;font-size:9.5px;border:none;background:transparent;color:#555;font-family:monospace;outline:none"/>
+          <button onclick="copyUpsellPix()" style="flex-shrink:0;padding:5px 12px;background:linear-gradient(135deg,#6600CC,#9333EA);color:#fff;border:none;border-radius:7px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">Copiar</button>
+        </div>
+        <div style="font-size:11px;color:#777;background:#f5f0ff;border-radius:10px;padding:10px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#6600CC" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="upsell-poll-status">Aguardando confirmação do pagamento...</span>
+        </div>
+      </div>
+
+      <!-- CTA: only pay button, no skip -->
+      <div id="upsell-cta-area">
+        <button id="upsell-pay-btn" onclick="initiateUpsellPayment()" style="width:100%;padding:15px;background:linear-gradient(135deg,#6600CC,#9333EA);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.01em;transition:opacity .2s">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          Pagar Agora
+        </button>
+        <!-- Subtle trust note -->
+        <div style="text-align:center;margin-top:10px;font-size:10px;color:#aaa;display:flex;align-items:center;justify-content:center;gap:4px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Ambiente seguro · Criptografado
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <!-- TOAST ALERT COM ÍCONES SVG EXCLUSIVOS -->
 <div class="toast-box" id="toast-box"></div>
 
@@ -2499,11 +2585,242 @@
 
           showToast('Pagamento confirmado com sucesso!', 'check');
           trackEvent('PAYMENT_CONFIRMED_SUCCESS', { payment_id: paymentId });
+
+          // ─── ACIONAR FILA DE UPSELL ───────────────────────
+          await loadAndStartUpsellQueue();
         }
       } catch(e) {}
     }, 3000);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // UPSELL POPUP SYSTEM — SVG ICONS + PERSISTÊNCIA
+  // ═══════════════════════════════════════════════════════════
+  const UPSELL_ICON_SVGS = {
+    'shield-check': `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+    'truck':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+    'lock':         `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    'package':      `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+    'tag':          `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+    'dollar':       `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+    'star':         `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+    'alert':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    'zap':          `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    'heart':        `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+  };
+  const UPSELL_LS_KEY = 'ups_' + (PRODUCT_CODE || 'x') + '_' + (SESSION_ID || '');
+
+  let _upsellQueue = [];
+  let _upsellIdx = 0;
+  let _upsellCurrentModal = null;
+  let _upsellPollTimer = null;
+  let _upsellPending = false; // true = overlay must stay open
+
+  // ── Persistence helpers ─────────────────────────────────────
+  function upsellSaveState() {
+    try {
+      localStorage.setItem(UPSELL_LS_KEY, JSON.stringify({
+        queue: _upsellQueue, idx: _upsellIdx, pending: _upsellPending
+      }));
+    } catch(e) {}
+  }
+  function upsellLoadState() {
+    try {
+      const raw = localStorage.getItem(UPSELL_LS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+  function upsellClearState() {
+    try { localStorage.removeItem(UPSELL_LS_KEY); } catch(e) {}
+  }
+
+  // ── Block browser back/close while pending ──────────────────
+  window.addEventListener('beforeunload', e => {
+    if (_upsellPending) {
+      e.preventDefault();
+      e.returnValue = 'Você possui pagamentos pendentes. Conclua antes de sair.';
+    }
+  });
+  window.addEventListener('popstate', () => {
+    if (_upsellPending) {
+      history.pushState(null, '', location.href);
+      showNextUpsell(); // re-show overlay
+    }
+  });
+
+  // ── Check on page load if there's pending state ─────────────
+  window.addEventListener('load', () => {
+    const saved = upsellLoadState();
+    if (saved && saved.pending && saved.queue && saved.queue.length) {
+      _upsellQueue = saved.queue;
+      _upsellIdx = saved.idx || 0;
+      _upsellPending = true;
+      showNextUpsell();
+    }
+  });
+
+  async function loadAndStartUpsellQueue() {
+    const code = PRODUCT_CODE;
+    if (!code) return;
+    try {
+      const r = await fetch('/api/upsell/' + code);
+      const d = await r.json();
+      if (!d.ok || !d.modals || !d.modals.length) return;
+      _upsellQueue = d.modals;
+      _upsellIdx = 0;
+      _upsellPending = true;
+      upsellSaveState();
+      history.pushState(null, '', location.href); // lock back button
+      showNextUpsell();
+    } catch(e) {}
+  }
+
+  function renderUpsellDots() {
+    const dots = document.getElementById('upsell-progress-dots');
+    if (!dots) return;
+    dots.innerHTML = _upsellQueue.map((_, i) => {
+      const active = i === _upsellIdx;
+      const done = i < _upsellIdx;
+      return `<div style="width:${active ? 20 : 8}px;height:8px;border-radius:4px;background:${done ? 'rgba(255,255,255,0.9)' : active ? 'white' : 'rgba(255,255,255,0.3)'};transition:all .3s"></div>`;
+    }).join('');
+  }
+
+  function showNextUpsell() {
+    if (_upsellIdx >= _upsellQueue.length) {
+      // All done
+      _upsellPending = false;
+      upsellClearState();
+      closeUpsellOverlay();
+      return;
+    }
+    const m = _upsellQueue[_upsellIdx];
+    _upsellCurrentModal = m;
+    upsellSaveState();
+
+    // Icon SVG
+    const iconKey = m.icon || 'shield-check';
+    const iconSvg = UPSELL_ICON_SVGS[iconKey] || UPSELL_ICON_SVGS['shield-check'];
+    document.getElementById('upsell-popup-icon').innerHTML = iconSvg;
+
+    // Badge with SVG
+    const badgeEl = document.getElementById('upsell-popup-badge');
+    if (badgeEl) badgeEl.innerHTML = m.type ? `
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="9" height="9">${iconKey === 'truck' ? '<rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>' : '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'}</svg>
+      ${m.type}` : '';
+
+    document.getElementById('upsell-popup-title').textContent = m.title || '';
+    document.getElementById('upsell-popup-desc').textContent = m.description || '';
+
+    const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
+    document.getElementById('upsell-popup-amount').textContent = 'R$ ' + amt.toFixed(2).replace('.', ',');
+
+    // Reset state
+    document.getElementById('upsell-pix-loading').style.display = 'none';
+    document.getElementById('upsell-pix-ready').style.display = 'none';
+    document.getElementById('upsell-cta-area').style.display = '';
+    const payBtn = document.getElementById('upsell-pay-btn');
+    payBtn.disabled = false;
+    payBtn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> Pagar Agora`;
+
+    renderUpsellDots();
+
+    // Show overlay
+    document.getElementById('upsell-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeUpsellOverlay() {
+    document.getElementById('upsell-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+    if (_upsellPollTimer) clearInterval(_upsellPollTimer);
+    _upsellPollTimer = null;
+  }
+
+  async function initiateUpsellPayment() {
+    if (!_upsellCurrentModal) return;
+    const btn = document.getElementById('upsell-pay-btn');
+    btn.disabled = true;
+    btn.innerHTML = `<div style="width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:upsellSpin 1s linear infinite"></div> Gerando Pix...`;
+
+    document.getElementById('upsell-pix-loading').style.display = 'block';
+    document.getElementById('upsell-cta-area').style.display = 'none';
+
+    try {
+      const pixPayload = {
+        session_id: SESSION_ID,
+        slug: PAGE_SLUG || '',
+        product_code: PRODUCT_CODE,
+        amount: String(parseFloat(String(_upsellCurrentModal.amount || '0').replace(',', '.')) || 0),
+        name:  document.getElementById('lead-name')  ? document.getElementById('lead-name').value  : '',
+        cpf:   document.getElementById('lead-cpf')   ? document.getElementById('lead-cpf').value   : '',
+        phone: document.getElementById('lead-phone') ? document.getElementById('lead-phone').value : '',
+        email: document.getElementById('lead-email') ? document.getElementById('lead-email').value : '',
+        upsell_modal_id: _upsellCurrentModal.id,
+        upsell_title:    _upsellCurrentModal.title,
+        upsell_type:     _upsellCurrentModal.type || '',
+      };
+      const pixRes = await fetch('/p', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pixPayload)
+      });
+      const pixData = await pixRes.json();
+
+      document.getElementById('upsell-pix-loading').style.display = 'none';
+
+      if (!pixData.ok && !pixData.success) throw new Error('Falha ao gerar Pix.');
+
+      document.getElementById('upsell-pix-ready').style.display = 'block';
+      if (pixData.qr_code_url) document.getElementById('upsell-qr-img').src = pixData.qr_code_url;
+      document.getElementById('upsell-pix-code').value = pixData.pix_code || pixData.pix_copy_paste || '';
+
+      const upsellPaymentId = pixData.payment_id || pixData.external_id;
+      startUpsellPolling(upsellPaymentId);
+
+    } catch(err) {
+      document.getElementById('upsell-pix-loading').style.display = 'none';
+      document.getElementById('upsell-cta-area').style.display = '';
+      btn.disabled = false;
+      btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> Tentar Novamente`;
+      document.getElementById('upsell-poll-status').textContent = 'Erro: ' + err.message;
+    }
+  }
+
+  function startUpsellPolling(paymentId) {
+    if (!paymentId) return;
+    if (_upsellPollTimer) clearInterval(_upsellPollTimer);
+    _upsellPollTimer = setInterval(async () => {
+      try {
+        const res = await fetch(`/st/${paymentId}`);
+        const d = await res.json();
+        if (d.status === 'paid' || d.status === 'approved') {
+          clearInterval(_upsellPollTimer);
+          _upsellPollTimer = null;
+          document.getElementById('upsell-poll-status').textContent = 'Pagamento confirmado!';
+          showToast('Taxa paga com sucesso!', 'check');
+          const m = _upsellCurrentModal;
+          setTimeout(() => {
+            if (m && m.replay) {
+              showNextUpsell(); // stay at same index (replay)
+            } else {
+              _upsellIdx++;
+              showNextUpsell(); // advance to next
+            }
+          }, 1600);
+        }
+      } catch(e) {}
+    }, 3000);
+  }
+
+  function copyUpsellPix() {
+    const inp = document.getElementById('upsell-pix-code');
+    try { navigator.clipboard.writeText(inp.value); } catch(e) {}
+    showToast('Código Pix copiado!', 'check');
+  }
 </script>
+
+
 
 <!-- BLINDAGEM DE SISTEMA AVANÇADA -->
 <script>

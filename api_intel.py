@@ -65,6 +65,43 @@ GATEWAY_INTELLIGENCE: Dict[str, Dict] = {
             "missing_secret": "Client Secret nao encontrado — necessario para autenticar chamadas de deposito e saques.",
         }
     },
+    "uniaopay": {
+        "name": "União 7 Pay",
+        "logo": "U7",
+        "color": "#F59E0B",
+        "doc_keywords": [
+            "uniao 7 pay", "uniaopay", "uniao pay", "meupagamento.site",
+            "up_live_", "pix_copia_cola"
+        ],
+        "detection_patterns": [
+            r"meupagamento\.site",
+            r"uniaopay",
+            r"uniao\s*7\s*pay",
+            r"up_live_[A-Za-z0-9]+",
+        ],
+        "field_extractors": {
+            "api_key":   r"(up_live_[A-Za-z0-9_]{16,})|(?:Bearer\s+)([A-Za-z0-9_]{16,})|(?:Chave\s*API[:\s]+)([A-Za-z0-9_]{16,})",
+            "base_url":  r"(https?://meupagamento\.site[^\s\"']*)",
+        },
+        "field_validators": {
+            "api_key": r"^up_live_[A-Za-z0-9_]{16,}$",
+        },
+        "endpoints": {
+            "create_pix": "/api/v1/uniaopay/pix/create",
+            "webhook":    "/api/webhook/uniaopay",
+        },
+        "auth_headers": {
+            "Authorization": "Bearer {api_key}"
+        },
+        "setup_instructions": [
+            "1. Endpoint oficial de criação PIX: https://meupagamento.site/api/v1/uniaopay/pix/create",
+            "2. Header de autenticação: Authorization: Bearer <SUA_CHAVE>",
+            "3. Webhook para notificações: /set_webhook https://seusite.com/api/webhook/uniaopay",
+        ],
+        "warnings": {
+            "missing_key": "Chave API (up_live_...) não encontrada.",
+        }
+    },
     "c7": {
         "name": "Carteira do 7 (C7)",
         "logo": "C7",

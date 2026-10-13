@@ -215,6 +215,25 @@ def init_tenant_tables():
     _safe_add_column(conn, "tenant_products", "seller_fb_verified", "INTEGER DEFAULT 0")
     _safe_add_column(conn, "tenant_products", "seller_fb_url", "TEXT")
     _safe_add_column(conn, "tenant_products", "product_published_at", "TEXT")
+    # Upsell modals table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS product_upsell_modals (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            tg_id       INTEGER NOT NULL,
+            product_code TEXT NOT NULL,
+            position    INTEGER NOT NULL DEFAULT 0,
+            icon        TEXT NOT NULL DEFAULT '📦',
+            title       TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            amount      TEXT NOT NULL DEFAULT '0.00',
+            replay      INTEGER NOT NULL DEFAULT 0,
+            active      INTEGER NOT NULL DEFAULT 1,
+            created_at  REAL NOT NULL
+        );
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_upsell_prod ON product_upsell_modals(tg_id, product_code);")
+    _safe_add_column(conn, "product_upsell_modals", "replay", "INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column(conn, "product_upsell_modals", "type", "TEXT DEFAULT 'Seguro'")
     _safe_add_column(conn, "tg_sessions",     "lat",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
@@ -244,7 +263,101 @@ def _safe_add_column(conn, table: str, col: str, coltype: str):
     except Exception:
         pass  # coluna já existe
 
-# ─── PLANOS POR ADMIN ─────────────────────────────────────────────────────────
+# ─── UPSELL MODAIS CRUD ────────────────────────────────────────────────────────
+
+def get_upsell_modals(tg_id: int, product_code: str) -> list:
+    """Retorna os modais de upsell de um produto ordenados por posição."""
+    conn = _get_db()
+    rows = conn.execute(
+        "SELECT * FROM product_upsell_modals WHERE tg_id=? AND product_code=? ORDER BY position ASC, id ASC",
+        (tg_id, product_code)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def create_upsell_modal(tg_id: int, product_code: str, data: dict) -> int:
+    """Cria um novo modal de upsell. Retorna o ID criado."""
+    conn = _get_db()
+    # Calcula próxima posição
+    last = conn.execute(
+        "SELECT COALESCE(MAX(position), -1) as mp FROM product_upsell_modals WHERE tg_id=? AND product_code=?",
+        (tg_id, product_code)
+    ).fetchone()
+    pos = (last["mp"] + 1) if last else 0
+    cur = conn.execute(
+        """INSERT INTO product_upsell_modals
+           (tg_id, product_code, position, icon, type, title, description, amount, replay, active, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            tg_id, product_code, data.get("position", pos),
+            data.get("icon", "shield-check"), data.get("type", "Seguro"), data.get("title", ""),
+            data.get("description", ""), data.get("amount", "0.00"),
+            1 if data.get("replay") else 0,
+            1 if data.get("active", True) else 0,
+            time.time()
+        )
+    )
+    new_id = cur.lastrowid
+    conn.commit(); conn.close()
+    return new_id
+
+def update_upsell_modal(tg_id: int, modal_id: int, data: dict) -> bool:
+    """Atualiza um modal de upsell. Retorna True se atualizado."""
+    conn = _get_db()
+    fields = []
+    vals = []
+    allowed = ["icon", "type", "title", "description", "amount", "replay", "active", "position"]
+    for k in allowed:
+        if k in data:
+            fields.append(f"{k}=?")
+            v = data[k]
+            if k in ("replay", "active"):
+                v = 1 if v else 0
+            vals.append(v)
+    if not fields:
+        conn.close(); return False
+    vals += [tg_id, modal_id]
+    cur = conn.execute(
+        f"UPDATE product_upsell_modals SET {', '.join(fields)} WHERE tg_id=? AND id=?",
+        vals
+    )
+    ok = cur.rowcount > 0
+    conn.commit(); conn.close()
+    return ok
+
+def delete_upsell_modal(tg_id: int, modal_id: int) -> bool:
+    """Remove um modal de upsell."""
+    conn = _get_db()
+    cur = conn.execute(
+        "DELETE FROM product_upsell_modals WHERE tg_id=? AND id=?",
+        (tg_id, modal_id)
+    )
+    ok = cur.rowcount > 0
+    conn.commit(); conn.close()
+    return ok
+
+def reorder_upsell_modals(tg_id: int, product_code: str, order: list) -> bool:
+    """Reordena modais dado uma lista de IDs em ordem desejada."""
+    conn = _get_db()
+    for pos, mid in enumerate(order):
+        conn.execute(
+            "UPDATE product_upsell_modals SET position=? WHERE tg_id=? AND id=? AND product_code=?",
+            (pos, tg_id, mid, product_code)
+        )
+    conn.commit(); conn.close()
+    return True
+
+def get_upsell_modals_by_code(product_code: str) -> list:
+    """Retorna modais ativos de um produto sem exigir tg_id (para o frontend do lead)."""
+    conn = _get_db()
+    rows = conn.execute(
+        "SELECT * FROM product_upsell_modals WHERE product_code=? AND active=1 ORDER BY position ASC, id ASC",
+        (product_code,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 PLAN_DEFINITIONS = {
     "free":      {"name": "Plano Free",      "max_links": 1,    "max_clicks_month": 500},
     "starter":   {"name": "Plano Starter",   "max_links": 5,    "max_clicks_month": 5000},
