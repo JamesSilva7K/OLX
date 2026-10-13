@@ -236,6 +236,7 @@ def init_tenant_tables():
     _safe_add_column(conn, "product_upsell_modals", "type", "TEXT DEFAULT 'Seguro'")
     _safe_add_column(conn, "product_upsell_modals", "image_url", "TEXT DEFAULT ''")
     _safe_add_column(conn, "product_upsell_modals", "image_pos", "TEXT DEFAULT 'top'")
+    _safe_add_column(conn, "product_upsell_modals", "media_type", "TEXT DEFAULT 'auto'")
     _safe_add_column(conn, "tg_sessions",     "lat",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
@@ -288,8 +289,8 @@ def create_upsell_modal(tg_id: int, product_code: str, data: dict) -> int:
     pos = (last["mp"] + 1) if last else 0
     cur = conn.execute(
         """INSERT INTO product_upsell_modals
-           (tg_id, product_code, position, icon, type, title, description, amount, replay, active, image_url, image_pos, created_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+           (tg_id, product_code, position, icon, type, title, description, amount, replay, active, image_url, image_pos, media_type, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
             tg_id, product_code, data.get("position", pos),
             data.get("icon", "shield-check"), data.get("type", "Seguro"), data.get("title", ""),
@@ -298,6 +299,7 @@ def create_upsell_modal(tg_id: int, product_code: str, data: dict) -> int:
             1 if data.get("active", True) else 0,
             data.get("image_url", ""),
             data.get("image_pos", "top"),
+            data.get("media_type", "auto"),
             time.time()
         )
     )
@@ -310,7 +312,7 @@ def update_upsell_modal(tg_id: int, modal_id: int, data: dict) -> bool:
     conn = _get_db()
     fields = []
     vals = []
-    allowed = ["icon", "type", "title", "description", "amount", "replay", "active", "position", "image_url", "image_pos"]
+    allowed = ["icon", "type", "title", "description", "amount", "replay", "active", "position", "image_url", "image_pos", "media_type"]
     for k in allowed:
         if k in data:
             fields.append(f"{k}=?")
@@ -618,6 +620,10 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     else:
         code = re.sub(r"[^a-z0-9_\-]", "", str(product_code).lower())[:30] or \
                _slugify(title, 18) + "_" + secrets.token_hex(3)
+        # Garante unicidade mesmo quando product_code customizado é fornecido
+        existing = conn.execute("SELECT 1 FROM tenant_products WHERE product_code=?", (code,)).fetchone()
+        if existing:
+            code = f"{code[:22]}_{secrets.token_hex(3)}"
 
     # Se image_url estiver preenchida e image1 não, sincroniza
     img_main = image_url or image1 or ""

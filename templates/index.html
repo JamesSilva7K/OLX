@@ -1768,7 +1768,7 @@
 @keyframes upsellPop { 0%{transform:scale(.82) translateY(28px);opacity:0} 70%{transform:scale(1.02) translateY(-3px);opacity:1} 100%{transform:scale(1) translateY(0);opacity:1} }
 @keyframes upsellSpin { to{transform:rotate(360deg)} }
 @keyframes upsellPulse { 0%,100%{box-shadow:0 0 0 0 rgba(123,2,232,.35)} 50%{box-shadow:0 0 0 10px rgba(123,2,232,0)} }
-#upsell-overlay { display:none; position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.78); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:12px; }
+#upsell-overlay { display:none; position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.78); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:12px; }
 #upsell-overlay.active { display:flex !important; }
 #upsell-popup { animation:upsellPop .42s cubic-bezier(.34,1.56,.64,1) forwards; }
 </style>
@@ -1782,9 +1782,10 @@
       <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
       <!-- Progress dots -->
       <div id="upsell-progress-dots" style="display:flex;justify-content:center;gap:5px;margin-bottom:14px;position:relative;z-index:1"></div>
-      <!-- Banner Imagem ou GIF inteligente no Topo (se position == 'top') -->
+      <!-- Banner Imagem, GIF ou Vídeo no Topo (se position == 'top') -->
       <div id="upsell-popup-img-top-wrap" style="display:none;margin-bottom:12px;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.25);max-height:160px;background:rgba(0,0,0,0.15)">
-        <img id="upsell-popup-img-top" src="" alt="Imagem do Modal" style="width:100%;height:100%;max-height:160px;object-fit:cover;display:block"/>
+        <img id="upsell-popup-img-top" src="" alt="Imagem do Modal" style="width:100%;height:100%;max-height:160px;object-fit:cover;display:none"/>
+        <video id="upsell-popup-video-top" autoplay loop muted playsinline style="width:100%;height:100%;max-height:160px;object-fit:cover;display:none"></video>
       </div>
       <!-- Icon circle (exibido quando não há imagem no topo ou quando selecionado) -->
       <div id="upsell-popup-icon" style="width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:white;position:relative;z-index:1;animation:upsellPulse 2.5s infinite"></div>
@@ -1797,9 +1798,10 @@
     <!-- ── BODY ── -->
     <div style="padding:18px 20px 20px">
 
-      <!-- Imagem ou GIF inteligente no Meio (se position == 'middle') -->
+      <!-- Imagem, GIF ou Vídeo no Meio (se position == 'middle') -->
       <div id="upsell-popup-img-mid-wrap" style="display:none;margin-bottom:14px;border-radius:14px;overflow:hidden;border:1.5px solid rgba(102,0,204,0.15);box-shadow:0 6px 16px rgba(102,0,204,0.1);max-height:180px;background:#f5f0ff">
-        <img id="upsell-popup-img-mid" src="" alt="Destaque" style="width:100%;height:100%;max-height:180px;object-fit:cover;display:block"/>
+        <img id="upsell-popup-img-mid" src="" alt="Destaque" style="width:100%;height:100%;max-height:180px;object-fit:cover;display:none"/>
+        <video id="upsell-popup-video-mid" autoplay loop muted playsinline style="width:100%;height:100%;max-height:180px;object-fit:cover;display:none"></video>
       </div>
 
       <!-- Description -->
@@ -2707,32 +2709,61 @@
     _upsellCurrentModal = m;
     upsellSaveState();
 
-    // Imagem / GIF Inteligente e Ícone
+    // Imagem / GIF / Vídeo Inteligente e Ícone
     const imgUrl = (m.image_url || '').trim();
     const imgPos = m.image_pos || 'top';
     const topWrap = document.getElementById('upsell-popup-img-top-wrap');
     const midWrap = document.getElementById('upsell-popup-img-mid-wrap');
     const topImg = document.getElementById('upsell-popup-img-top');
+    const topVid = document.getElementById('upsell-popup-video-top');
     const midImg = document.getElementById('upsell-popup-img-mid');
+    const midVid = document.getElementById('upsell-popup-video-mid');
     const iconCircle = document.getElementById('upsell-popup-icon');
 
     if (topWrap) topWrap.style.display = 'none';
     if (midWrap) midWrap.style.display = 'none';
+    if (topImg) { topImg.style.display = 'none'; topImg.src = ''; }
+    if (topVid) { topVid.style.display = 'none'; topVid.pause(); topVid.src = ''; }
+    if (midImg) { midImg.style.display = 'none'; midImg.src = ''; }
+    if (midVid) { midVid.style.display = 'none'; midVid.pause(); midVid.src = ''; }
+
+    const isVideo = imgUrl && (
+      imgUrl.toLowerCase().split('?')[0].endsWith('.mp4') ||
+      imgUrl.toLowerCase().split('?')[0].endsWith('.webm') ||
+      imgUrl.toLowerCase().split('?')[0].endsWith('.mov') ||
+      imgUrl.toLowerCase().split('?')[0].endsWith('.ogg') ||
+      imgUrl.startsWith('data:video') ||
+      m.media_type === 'video'
+    );
 
     if (imgUrl) {
       if (imgPos === 'middle') {
-        if (midWrap && midImg) {
-          midImg.src = imgUrl;
+        if (midWrap) {
+          if (isVideo && midVid) {
+            midVid.src = imgUrl;
+            midVid.style.display = 'block';
+            midVid.play().catch(()=>{});
+          } else if (midImg) {
+            midImg.src = imgUrl;
+            midImg.style.display = 'block';
+          }
           midWrap.style.display = 'block';
         }
         if (iconCircle) iconCircle.style.display = 'flex';
       } else {
         // top ou background
-        if (topWrap && topImg) {
-          topImg.src = imgUrl;
+        if (topWrap) {
+          if (isVideo && topVid) {
+            topVid.src = imgUrl;
+            topVid.style.display = 'block';
+            topVid.play().catch(()=>{});
+          } else if (topImg) {
+            topImg.src = imgUrl;
+            topImg.style.display = 'block';
+          }
           topWrap.style.display = 'block';
         }
-        if (iconCircle) iconCircle.style.display = 'none'; // Imagem substitui o círculo de ícone no topo
+        if (iconCircle) iconCircle.style.display = 'none'; // Banner substitui o ícone no topo
       }
     } else {
       if (iconCircle) iconCircle.style.display = 'flex';
@@ -2773,6 +2804,10 @@
   function closeUpsellOverlay() {
     document.getElementById('upsell-overlay').classList.remove('active');
     document.body.style.overflow = '';
+    const topVid = document.getElementById('upsell-popup-video-top');
+    const midVid = document.getElementById('upsell-popup-video-mid');
+    if (topVid) { topVid.pause(); }
+    if (midVid) { midVid.pause(); }
     if (_upsellPollTimer) clearInterval(_upsellPollTimer);
     _upsellPollTimer = null;
   }

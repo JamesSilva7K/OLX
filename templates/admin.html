@@ -573,6 +573,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  -webkit-user-select: none;
   user-select: none;
 }
 .upsell-choice-chip:hover {
@@ -601,6 +602,7 @@
   color: var(--c-t3);
   cursor: pointer;
   transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
   user-select: none;
 }
 .upsell-icon-tile:hover {
@@ -679,8 +681,8 @@
 
 /* Dropdown fix for WebKit/Mobile */
 .fsel {
-  appearance: none;
   -webkit-appearance: none;
+  appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -2747,6 +2749,57 @@
                 </div>
               </div>
 
+              <!-- MÍDIA AVANÇADA DO MODAL (IMAGEM, VÍDEO MP4/WEBM OU GIF ANIMADO) -->
+              <div style="margin-bottom:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.22);border-radius:12px;padding:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <label class="flbl" style="margin:0;display:flex;align-items:center;gap:6px">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2" width="13" height="13"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Mídia Visual (Imagem, GIF ou Vídeo)
+                  </label>
+                  <span style="font-size:9.5px;color:#C4B5FD;font-weight:700;background:rgba(124,58,237,0.18);padding:1px 7px;border-radius:20px;border:1px solid rgba(139,92,246,0.3)">Avançado · Opcional</span>
+                </div>
+
+                <div style="display:flex;gap:7px;margin-bottom:8px">
+                  <input type="text" class="fi" id="iuf-media-url" placeholder="URL da Imagem, GIF ou Vídeo MP4 (https://...)" oninput="onInlineUpsellMediaChange(this.value)" style="flex:1;font-size:11px"/>
+                  <label class="btn btn-g btn-xs" style="cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:4px;border-color:rgba(139,92,246,0.3);color:#C4B5FD;font-size:10.5px;padding:4px 9px">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload
+                    <input type="file" id="iuf-media-file" accept="image/*,video/mp4,video/webm,video/ogg,video/quicktime" style="display:none" onchange="uploadInlineUpsellMediaFile(this)"/>
+                  </label>
+                  <button type="button" class="btn btn-d btn-xs" onclick="clearInlineUpsellMedia()" id="iuf-media-clear-btn" style="display:none;padding:4px 8px;font-size:11px" title="Remover mídia">✕</button>
+                </div>
+
+                <!-- Tipo e Posicionamento -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+                  <div>
+                    <label style="font-size:10px;color:var(--c-t3);font-weight:700;display:block;margin-bottom:4px">Tipo de Mídia:</label>
+                    <select class="fi" id="iuf-media-type" onchange="onInlineUpsellMediaTypeChange(this.value)" style="font-size:11px;padding:4px 8px;height:auto">
+                      <option value="auto">⚡ Auto-detectar</option>
+                      <option value="image">🖼️ Imagem (PNG/JPG/WebP)</option>
+                      <option value="gif">✨ GIF Animado</option>
+                      <option value="video">🎥 Vídeo (MP4/WebM)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size:10px;color:var(--c-t3);font-weight:700;display:block;margin-bottom:4px">Posicionamento:</label>
+                    <select class="fi" id="iuf-media-pos" onchange="onInlineUpsellMediaPosChange(this.value)" style="font-size:11px;padding:4px 8px;height:auto">
+                      <option value="top">Topo (Banner Cabeçalho)</option>
+                      <option value="middle">Centro (Destaque do Card)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Preview da Mídia dentro do Formulário Inline -->
+                <div id="iuf-media-prev-wrap" style="display:none;margin-top:10px;text-align:center;background:rgba(0,0,0,0.35);border-radius:10px;padding:8px;border:1px dashed rgba(139,92,246,0.35);position:relative">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                    <span id="iuf-media-badge" style="font-size:9.5px;color:#A78BFA;font-weight:700">Preview da Mídia</span>
+                    <button type="button" class="btn btn-g btn-xs" onclick="previewInlineUpsellForm()" style="font-size:9.5px;padding:2px 7px;border-color:rgba(139,92,246,0.3);color:#C4B5FD">Ver no Modal</button>
+                  </div>
+                  <img id="iuf-media-prev-img" src="" style="max-height:130px;max-width:100%;border-radius:6px;object-fit:cover;display:none;margin:0 auto" alt="Preview Mídia"/>
+                  <video id="iuf-media-prev-video" autoplay loop muted playsinline controls style="max-height:140px;max-width:100%;border-radius:6px;display:none;margin:0 auto"></video>
+                </div>
+              </div>
+
               <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border-radius:9px;padding:8px 12px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)">
                 <div>
                   <div style="font-size:11px;font-weight:600;color:var(--c-text)">Modal ativo</div>
@@ -2828,9 +2881,10 @@
     <!-- Simulação da Tela Mobile do Cliente -->
     <div style="background:#ffffff;color:#222;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;position:relative">
       
-      <!-- Top Image/GIF Banner (Opcional) -->
+      <!-- Top Image/GIF/Video Banner (Opcional) -->
       <div id="prev-img-top-wrap" style="display:none;width:100%;max-height:190px;overflow:hidden;background:#181528;position:relative">
-        <img id="prev-img-top" src="" style="width:100%;height:100%;max-height:190px;object-fit:cover;display:block" alt="Banner Modal"/>
+        <img id="prev-img-top" src="" style="width:100%;height:100%;max-height:190px;object-fit:cover;display:none" alt="Banner Modal"/>
+        <video id="prev-video-top" autoplay loop muted playsinline style="width:100%;height:100%;max-height:190px;object-fit:cover;display:none"></video>
         <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.45));pointer-events:none"></div>
       </div>
 
@@ -2855,9 +2909,10 @@
 
       <!-- CORPO DO MODAL -->
       <div style="padding:20px 22px 24px">
-        <!-- Middle Image/GIF Card (Opcional) -->
+        <!-- Middle Image/GIF/Video Card (Opcional) -->
         <div id="prev-img-mid-wrap" style="display:none;margin-bottom:16px;text-align:center;border-radius:14px;overflow:hidden;border:1px solid rgba(102,0,204,0.15);box-shadow:0 6px 16px rgba(102,0,204,0.08)">
-          <img id="prev-img-mid" src="" style="width:100%;max-height:200px;object-fit:cover;display:block" alt="Destaque Modal"/>
+          <img id="prev-img-mid" src="" style="width:100%;max-height:200px;object-fit:cover;display:none" alt="Destaque Modal"/>
+          <video id="prev-video-mid" autoplay loop muted playsinline style="width:100%;max-height:200px;object-fit:cover;display:none"></video>
         </div>
 
         <p id="prev-desc" style="font-size:13px;color:#555;line-height:1.6;margin:0 0 16px;text-align:center">
@@ -3066,45 +3121,57 @@
           </div>
         </div>
 
-        <!-- Imagem ou GIF do Modal (Opcional - Inteligente) -->
+        <!-- Imagem, GIF ou Vídeo do Modal (Opcional - Inteligente) -->
         <div style="margin-bottom:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.18);border-radius:12px;padding:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <label class="flbl" style="margin:0;display:flex;align-items:center;gap:6px">
               <svg fill="none" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2" width="13" height="13"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              Imagem ou GIF do Modal (Opcional)
+              Mídia Visual (Imagem, GIF ou Vídeo)
             </label>
-            <span style="font-size:9.5px;color:var(--c-t3)">Banner / Animação</span>
+            <span style="font-size:9.5px;color:#C4B5FD;font-weight:700;background:rgba(124,58,237,0.18);padding:1px 7px;border-radius:20px;border:1px solid rgba(139,92,246,0.3)">Banner / Animação</span>
           </div>
 
           <div style="display:flex;gap:8px;margin-bottom:8px">
-            <input type="text" class="fi" id="upsell-image-url" placeholder="URL da Imagem ou GIF (ex: https://...)" oninput="onUpsellImageChange(this.value)" style="flex:1;font-size:11.5px"/>
+            <input type="text" class="fi" id="upsell-image-url" placeholder="URL da Imagem, GIF ou Vídeo MP4 (ex: https://...)" oninput="onUpsellImageChange(this.value)" style="flex:1;font-size:11.5px"/>
             <label class="btn btn-g btn-xs" style="cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;border-color:rgba(139,92,246,0.3);color:#C4B5FD">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Upload
-              <input type="file" id="upsell-image-file" accept="image/*" style="display:none" onchange="uploadUpsellImageFile(this)"/>
+              <input type="file" id="upsell-image-file" accept="image/*,video/mp4,video/webm,video/ogg,video/quicktime" style="display:none" onchange="uploadUpsellImageFile(this)"/>
             </label>
-            <button type="button" class="btn btn-d btn-xs" onclick="clearUpsellImage()" id="upsell-image-clear-btn" style="display:none;padding:4px 8px" title="Remover imagem">✕</button>
+            <button type="button" class="btn btn-d btn-xs" onclick="clearUpsellImage()" id="upsell-image-clear-btn" style="display:none;padding:4px 8px" title="Remover mídia">✕</button>
           </div>
 
-          <!-- Posição da Imagem -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:8px;flex-wrap:wrap">
-            <span style="font-size:10.5px;color:var(--c-t3);font-weight:600">Posicionamento Inteligente:</span>
-            <div style="display:flex;gap:6px">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;color:var(--c-t2)">
-                <input type="radio" name="upsell-img-pos-rad" value="top" checked onchange="document.getElementById('upsell-image-pos').value='top'"/>
-                Topo (Banner Cabeçalho)
-              </label>
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;color:var(--c-t2)">
-                <input type="radio" name="upsell-img-pos-rad" value="middle" onchange="document.getElementById('upsell-image-pos').value='middle'"/>
-                Centro (Destaque do Card)
-              </label>
+          <!-- Posição da Imagem e Tipo -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+            <div>
+              <span style="font-size:10px;color:var(--c-t3);font-weight:700;display:block;margin-bottom:4px">Tipo de Mídia:</span>
+              <select class="fi" id="upsell-media-type" onchange="onUpsellMediaTypeChange(this.value)" style="font-size:11px;padding:4px 8px;height:auto">
+                <option value="auto">⚡ Auto-detectar</option>
+                <option value="image">🖼️ Imagem (PNG/JPG/WebP)</option>
+                <option value="gif">✨ GIF Animado</option>
+                <option value="video">🎥 Vídeo (MP4/WebM)</option>
+              </select>
             </div>
-            <input type="hidden" id="upsell-image-pos" value="top"/>
+            <div>
+              <span style="font-size:10px;color:var(--c-t3);font-weight:700;display:block;margin-bottom:4px">Posicionamento:</span>
+              <div style="display:flex;gap:6px;margin-top:3px">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;color:var(--c-t2)">
+                  <input type="radio" name="upsell-img-pos-rad" value="top" checked onchange="document.getElementById('upsell-image-pos').value='top'"/>
+                  Topo
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;color:var(--c-t2)">
+                  <input type="radio" name="upsell-img-pos-rad" value="middle" onchange="document.getElementById('upsell-image-pos').value='middle'"/>
+                  Centro
+                </label>
+              </div>
+              <input type="hidden" id="upsell-image-pos" value="top"/>
+            </div>
           </div>
 
-          <!-- Preview da imagem dentro do form -->
-          <div id="upsell-form-img-prev-wrap" style="display:none;margin-top:10px;text-align:center;background:rgba(0,0,0,0.25);border-radius:10px;padding:6px;border:1px dashed rgba(139,92,246,0.3)">
-            <img id="upsell-form-img-prev" src="" style="max-height:120px;max-width:100%;border-radius:6px;object-fit:cover;display:inline-block"/>
+          <!-- Preview da imagem/vídeo dentro do form -->
+          <div id="upsell-form-img-prev-wrap" style="display:none;margin-top:10px;text-align:center;background:rgba(0,0,0,0.35);border-radius:10px;padding:8px;border:1px dashed rgba(139,92,246,0.3)">
+            <img id="upsell-form-img-prev" src="" style="max-height:120px;max-width:100%;border-radius:6px;object-fit:cover;display:none;margin:0 auto" alt="Preview"/>
+            <video id="upsell-form-video-prev" autoplay loop muted playsinline controls style="max-height:130px;max-width:100%;border-radius:6px;display:none;margin:0 auto"></video>
           </div>
         </div>
 
@@ -4088,8 +4155,8 @@ async function saveProd(){
     coupon_discount_mode: coupon_discount_mode,
     coupon_active: coupon_active,
     coupon_only_shipping: coupon_only_shipping,
-    seller_name: document.getElementById('edit-seller-name').value.trim(),
-    seller_since: document.getElementById('edit-seller-since').value.trim(),
+    seller_name: (document.getElementById('edit-seller-name')?.value || '').trim(),
+    seller_since: (document.getElementById('edit-seller-since')?.value || '').trim(),
     seller_avatar: (document.getElementById('edit-seller-avatar')?.value||'').trim(),
     seller_sales_completed: document.getElementById('edit-seller-sales-completed') ? document.getElementById('edit-seller-sales-completed').value.trim() : "",
     seller_sales_canceled: document.getElementById('edit-seller-sales-canceled') ? document.getElementById('edit-seller-sales-canceled').value.trim() : "",
@@ -4125,7 +4192,14 @@ async function saveProd(){
     }else{
       r=await apiFetch('/api/admin/my-products', {method:'POST', body:JSON.stringify(payload)});
     }
-    const d=await r.json();
+    if(!r){
+      toast('Sem resposta do servidor.','err');
+      return;
+    }
+    const d = await r.json().catch(err => {
+      console.warn('Resposta não é JSON:', err);
+      return { ok: false, error: 'Erro de comunicação (' + (r.status || '500') + ')' };
+    });
     if(d.ok){
       toast(code?'Produto atualizado com sucesso!':'Produto criado com sucesso!','ok');
       // Atualiza o campo de link com o link real retornado pelo servidor
@@ -4145,8 +4219,9 @@ async function saveProd(){
     }else{
       toast(d.error||'Erro ao salvar produto.','err');
     }
-  }catch{
-    toast('Erro de conexão.','err');
+  }catch(err){
+    console.error('Erro em saveProd:', err);
+    toast(err && err.message ? err.message : 'Erro de conexão.','err');
   }finally{
     if(btn) btn.disabled = false;
     if(sp) sp.textContent = 'Salvar Produto';
@@ -4268,6 +4343,8 @@ function resetUpsellForm() {
   document.querySelectorAll('input[name="upsell-img-pos-rad"]').forEach(r => {
     r.checked = (r.value === 'top');
   });
+  const typeMediaSel = document.getElementById('upsell-media-type');
+  if (typeMediaSel) typeMediaSel.value = 'auto';
   onUpsellImageChange('');
 
   // Reset icon picker to first (shield-check)
@@ -4315,6 +4392,7 @@ function editUpsellModal(m) {
   // Imagem e posicionamento
   const imgUrl = m.image_url || '';
   const imgPos = m.image_pos || 'top';
+  const mediaType = m.media_type || 'auto';
   const urlInp = document.getElementById('upsell-image-url');
   if (urlInp) urlInp.value = imgUrl;
   const posInp = document.getElementById('upsell-image-pos');
@@ -4322,6 +4400,8 @@ function editUpsellModal(m) {
   document.querySelectorAll('input[name="upsell-img-pos-rad"]').forEach(r => {
     r.checked = (r.value === imgPos);
   });
+  const typeMediaSel = document.getElementById('upsell-media-type');
+  if (typeMediaSel) typeMediaSel.value = mediaType;
   onUpsellImageChange(imgUrl);
 
   const isActive = !!m.active;
@@ -4347,6 +4427,7 @@ async function saveUpsellModal() {
   const editId = document.getElementById('upsell-edit-id').value;
   const imgUrl = (document.getElementById('upsell-image-url')?.value || '').trim();
   const imgPos = document.getElementById('upsell-image-pos')?.value || 'top';
+  const mediaType = document.getElementById('upsell-media-type')?.value || 'auto';
 
   const payload = {
     icon:        document.getElementById('upsell-icon').value || 'shield-check',
@@ -4358,7 +4439,8 @@ async function saveUpsellModal() {
     active:      document.getElementById('upsell-active').checked,
     replay:      document.getElementById('upsell-replay').checked,
     image_url:   imgUrl,
-    image_pos:   imgPos
+    image_pos:   imgPos,
+    media_type:  mediaType
   };
   const btn = document.getElementById('upsell-save-btn');
   btn.disabled = true;
@@ -4476,6 +4558,15 @@ function customConfirm({ title = 'Confirmação', desc = 'Deseja prosseguir com 
   });
 }
 
+// Helper para detectar vídeo
+function isVideoMedia(url, explicitType) {
+  if (explicitType === 'video') return true;
+  if (explicitType === 'image' || explicitType === 'gif') return false;
+  if (!url) return false;
+  const clean = String(url).toLowerCase().split('?')[0];
+  return clean.endsWith('.mp4') || clean.endsWith('.webm') || clean.endsWith('.ogg') || clean.endsWith('.mov') || String(url).startsWith('data:video');
+}
+
 // ── SISTEMA DE PREVIEW REAL DO CLIENTE (FIDELIDADE MOBILE) ──
 function openUpsellPreview(m, orderIndex = 0, totalModals = 1) {
   if (!m) return;
@@ -4491,8 +4582,16 @@ function openUpsellPreview(m, orderIndex = 0, totalModals = 1) {
 
   const topWrap = document.getElementById('prev-img-top-wrap');
   const topImg = document.getElementById('prev-img-top');
+  const topVid = document.getElementById('prev-video-top');
   const midWrap = document.getElementById('prev-img-mid-wrap');
   const midImg = document.getElementById('prev-img-mid');
+  const midVid = document.getElementById('prev-video-mid');
+
+  // Limpa estados prévios
+  if (topImg) { topImg.style.display = 'none'; topImg.src = ''; }
+  if (topVid) { topVid.style.display = 'none'; topVid.pause(); topVid.src = ''; }
+  if (midImg) { midImg.style.display = 'none'; midImg.src = ''; }
+  if (midVid) { midVid.style.display = 'none'; midVid.pause(); midVid.src = ''; }
 
   const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
   if (tEl) tEl.textContent = m.title || 'Taxa Obrigatória';
@@ -4511,21 +4610,40 @@ function openUpsellPreview(m, orderIndex = 0, totalModals = 1) {
     }
   }
 
-  // Posicionamento inteligente de Imagem/GIF no Preview
-  const imgUrl = (m.image_url || '').trim();
-  const imgPos = m.image_pos || 'top';
+  // Posicionamento inteligente de Imagem/GIF/Vídeo no Preview
+  const imgUrl = (m.image_url || m.media_url || '').trim();
+  const imgPos = m.image_pos || m.media_pos || 'top';
+  const isVideo = isVideoMedia(imgUrl, m.media_type);
 
   if (imgUrl) {
     if (imgPos === 'middle') {
       if (topWrap) topWrap.style.display = 'none';
-      if (midImg) midImg.src = imgUrl;
-      if (midWrap) midWrap.style.display = 'block';
+      if (midWrap) {
+        if (isVideo && midVid) {
+          midVid.src = imgUrl;
+          midVid.style.display = 'block';
+          midVid.play().catch(()=>{});
+        } else if (midImg) {
+          midImg.src = imgUrl;
+          midImg.style.display = 'block';
+        }
+        midWrap.style.display = 'block';
+      }
       if (icEl) icEl.style.display = 'flex';
     } else {
       // Top banner
       if (midWrap) midWrap.style.display = 'none';
-      if (topImg) topImg.src = imgUrl;
-      if (topWrap) topWrap.style.display = 'block';
+      if (topWrap) {
+        if (isVideo && topVid) {
+          topVid.src = imgUrl;
+          topVid.style.display = 'block';
+          topVid.play().catch(()=>{});
+        } else if (topImg) {
+          topImg.src = imgUrl;
+          topImg.style.display = 'block';
+        }
+        topWrap.style.display = 'block';
+      }
       if (icEl) icEl.style.display = 'none'; // visual banner limpo
     }
   } else {
@@ -4546,6 +4664,10 @@ function openUpsellPreview(m, orderIndex = 0, totalModals = 1) {
 function closeUpsellPreview() {
   const modal = document.getElementById('upsell-preview-modal');
   if (modal) modal.classList.remove('open');
+  const topVid = document.getElementById('prev-video-top');
+  const midVid = document.getElementById('prev-video-mid');
+  if (topVid) { topVid.pause(); }
+  if (midVid) { midVid.pause(); }
 }
 
 function previewFormUpsell() {
@@ -4557,6 +4679,7 @@ function previewFormUpsell() {
   const pos = parseInt(document.getElementById('upsell-position')?.value || '0', 10) || 0;
   const imgUrl = (document.getElementById('upsell-image-url')?.value || '').trim();
   const imgPos = document.getElementById('upsell-image-pos')?.value || 'top';
+  const mediaType = document.getElementById('upsell-media-type')?.value || 'auto';
 
   openUpsellPreview({
     title,
@@ -4565,7 +4688,8 @@ function previewFormUpsell() {
     type,
     icon,
     image_url: imgUrl,
-    image_pos: imgPos
+    image_pos: imgPos,
+    media_type: mediaType
   }, pos, Math.max((_upsellModals || []).length, 1));
 }
 
@@ -4755,6 +4879,17 @@ function renderProdUpsellCards(modals) {
       ? '<span style="font-size:9px;background:rgba(234,179,8,0.15);color:#FDE047;border-radius:20px;padding:2px 7px;font-weight:700;border:1px solid rgba(234,179,8,0.3);display:inline-flex;align-items:center;gap:3px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="9" height="9"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Salvará junto</span>'
       : '';
 
+    const hasMedia = !!(m.image_url || m.media_url);
+    const isVid = hasMedia && isVideoMedia(m.image_url || m.media_url, m.media_type);
+    const isGif = hasMedia && !isVid && (((m.image_url || m.media_url || '').toLowerCase().includes('.gif')) || m.media_type === 'gif');
+    const mediaBadge = hasMedia
+      ? (isVid
+          ? '<span style="font-size:9px;background:rgba(239,68,68,0.15);color:#FCA5A5;border-radius:20px;padding:2px 7px;font-weight:700;border:1px solid rgba(239,68,68,0.3)">🎥 Vídeo</span>'
+          : (isGif
+              ? '<span style="font-size:9px;background:rgba(236,72,153,0.15);color:#F472B6;border-radius:20px;padding:2px 7px;font-weight:700;border:1px solid rgba(236,72,153,0.3)">✨ GIF</span>'
+              : '<span style="font-size:9px;background:rgba(59,130,246,0.15);color:#93C5FD;border-radius:20px;padding:2px 7px;font-weight:700;border:1px solid rgba(59,130,246,0.3)">🖼️ Imagem</span>'))
+      : '';
+
     return `
       <div style="background:rgba(255,255,255,0.03);border:1px solid ${isActive ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.07)'};border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
         <div style="display:flex;align-items:center;gap:10px;flex-1;min-width:0">
@@ -4766,6 +4901,7 @@ function renderProdUpsellCards(modals) {
               <span style="font-size:12px;font-weight:800;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title || 'Taxa sem título'}</span>
               ${orderTag}
               ${pendingBadge}
+              ${mediaBadge}
               <span class="chip" style="font-size:9px;padding:1px 6px;background:rgba(124,58,237,0.12);color:#C4B5FD;border:1px solid rgba(139,92,246,0.25)">${m.type || 'Taxa'}</span>
             </div>
             <div style="font-size:10.5px;color:var(--c-t3);margin-top:2px;display:flex;align-items:center;gap:8px">
@@ -4863,6 +4999,7 @@ function cancelInlineUpsellEdit() {
   });
   selectInlineUpsellType('Seguro');
   selectInlineUpsellIcon('shield-check');
+  clearInlineUpsellMedia();
   const aChk = document.getElementById('iuf-active');
   if (aChk) aChk.checked = true;
   const sTxt = document.getElementById('iuf-save-txt');
@@ -4920,6 +5057,9 @@ async function saveInlineUpsell() {
   const type = document.getElementById('iuf-type')?.value || 'Seguro';
   const icon = document.getElementById('iuf-icon')?.value || 'shield-check';
   const active = !!(document.getElementById('iuf-active')?.checked);
+  const mediaUrl = (document.getElementById('iuf-media-url')?.value || '').trim();
+  const mediaPos = document.getElementById('iuf-media-pos')?.value || 'top';
+  const mediaType = document.getElementById('iuf-media-type')?.value || 'auto';
 
   if (!title) { toast('Informe o título do modal de taxa.', 'err'); return; }
   if (!rawAmt) { toast('Informe o valor da taxa.', 'err'); return; }
@@ -4943,7 +5083,10 @@ async function saveInlineUpsell() {
             amount: amt,
             type: type,
             icon: icon,
-            active: active
+            active: active,
+            image_url: mediaUrl,
+            image_pos: mediaPos,
+            media_type: mediaType
           })
         });
         const d = await r.json();
@@ -4959,6 +5102,9 @@ async function saveInlineUpsell() {
     cur.type = type;
     cur.icon = icon;
     cur.active = active;
+    cur.image_url = mediaUrl;
+    cur.image_pos = mediaPos;
+    cur.media_type = mediaType;
     toast('Modal atualizado com sucesso!', 'ok');
   } else {
     // Criando novo modal
@@ -4971,8 +5117,9 @@ async function saveInlineUpsell() {
       active: active,
       position: _prodInlineUpsells.length,
       replay: false,
-      image_url: '',
-      image_pos: 'top'
+      image_url: mediaUrl,
+      image_pos: mediaPos,
+      media_type: mediaType
     };
 
     if (code) {
@@ -5023,6 +5170,18 @@ function editInlineUpsell(idx) {
   selectInlineUpsellIcon(m.icon || 'shield-check');
   const aChk = document.getElementById('iuf-active');
   if (aChk) aChk.checked = !!m.active;
+
+  // Carrega Mídia
+  const mediaUrl = m.image_url || m.media_url || '';
+  const mediaPos = m.image_pos || m.media_pos || 'top';
+  const mediaType = m.media_type || 'auto';
+  const uInp = document.getElementById('iuf-media-url');
+  if (uInp) uInp.value = mediaUrl;
+  const pInp = document.getElementById('iuf-media-pos');
+  if (pInp) pInp.value = mediaPos;
+  const tSel = document.getElementById('iuf-media-type');
+  if (tSel) tSel.value = mediaType;
+  onInlineUpsellMediaChange(mediaUrl);
 
   const sTxt = document.getElementById('iuf-save-txt');
   if (sTxt) sTxt.textContent = 'Salvar Alterações';
@@ -5122,6 +5281,9 @@ function previewInlineUpsellForm() {
   const desc = (document.getElementById('iuf-desc')?.value || '').trim() || 'Taxa obrigatória para processamento seguro e envio do pedido.';
   const type = document.getElementById('iuf-type')?.value || 'Seguro';
   const icon = document.getElementById('iuf-icon')?.value || 'shield-check';
+  const mediaUrl = (document.getElementById('iuf-media-url')?.value || '').trim();
+  const mediaPos = document.getElementById('iuf-media-pos')?.value || 'top';
+  const mediaType = document.getElementById('iuf-media-type')?.value || 'auto';
 
   const tempModal = {
     title: title,
@@ -5130,10 +5292,11 @@ function previewInlineUpsellForm() {
     type: type,
     icon: icon,
     active: true,
-    image_url: '',
-    image_pos: 'top'
+    image_url: mediaUrl,
+    image_pos: mediaPos,
+    media_type: mediaType
   };
-  openUpsellPreview(tempModal, 0, 1);
+  openUpsellPreview(tempModal, 0, Math.max((_prodInlineUpsells || []).length, 1));
 }
 
 /** Pré-visualiza um modal da fila pelo índice */
@@ -5143,15 +5306,30 @@ function previewInlineUpsellItem(idx) {
   openUpsellPreview(m, idx, _prodInlineUpsells.length);
 }
 
-/** Pré-visualiza o primeiro modal ativo da fila */
+/** Pré-visualiza o primeiro modal ativo da fila ou do formulário */
 function previewCurrentFirstUpsell() {
-  if (!_prodInlineUpsells || _prodInlineUpsells.length === 0) {
-    toast('Nenhum modal configurado para pré-visualizar.', 'err');
+  if (_prodInlineUpsells && _prodInlineUpsells.length > 0) {
+    const firstActive = _prodInlineUpsells.find(m => m.active) || _prodInlineUpsells[0];
+    const idx = _prodInlineUpsells.indexOf(firstActive);
+    openUpsellPreview(firstActive, idx >= 0 ? idx : 0, _prodInlineUpsells.length);
     return;
   }
-  const firstActive = _prodInlineUpsells.find(m => m.active) || _prodInlineUpsells[0];
-  const idx = _prodInlineUpsells.indexOf(firstActive);
-  openUpsellPreview(firstActive, idx >= 0 ? idx : 0, _prodInlineUpsells.length);
+  const inlineTitle = (document.getElementById('iuf-title')?.value || '').trim();
+  if (inlineTitle) {
+    previewInlineUpsellForm();
+    return;
+  }
+  openUpsellPreview({
+    title: 'Taxa de Envio Seguro OLX',
+    description: 'Taxa obrigatória para processamento seguro e envio prioritário com rastreio protegido.',
+    amount: 29.90,
+    type: 'Seguro & Proteção',
+    icon: 'shield-check',
+    active: true,
+    image_url: '',
+    image_pos: 'top',
+    media_type: 'auto'
+  }, 0, 1);
 }
 
 /** Salva no servidor todos os modais de upsell pendentes quando um novo produto for salvo */
@@ -5199,40 +5377,221 @@ function deleteUpsellModalFromProd(id, title) {
   if (idx >= 0) deleteInlineUpsell(idx);
 }
 
-// ─── Funções de imagem do upsell ───
+// ─── Funções de mídia do upsell (Gerenciador Standalone) ───
 function onUpsellImageChange(url) {
   const prevWrap = document.getElementById('upsell-form-img-prev-wrap');
   const prevImg = document.getElementById('upsell-form-img-prev');
+  const prevVid = document.getElementById('upsell-form-video-prev');
   const clearBtn = document.getElementById('upsell-image-clear-btn');
   const urlInp = document.getElementById('upsell-image-url');
-  if (urlInp && url !== undefined) urlInp.value = url;
-  if (url && url.trim()) {
-    if (prevImg) prevImg.src = url.trim();
-    if (prevWrap) prevWrap.style.display = '';
-    if (clearBtn) clearBtn.style.display = '';
-  } else {
+  if (urlInp && url !== undefined && urlInp.value !== url) urlInp.value = url;
+  const val = (url !== undefined ? url : (urlInp ? urlInp.value : '')).trim();
+  const typeSel = document.getElementById('upsell-media-type');
+  const explicitType = typeSel ? typeSel.value : 'auto';
+
+  if (!val) {
     if (prevWrap) prevWrap.style.display = 'none';
-    if (prevImg) prevImg.src = '';
+    if (prevImg) { prevImg.style.display = 'none'; prevImg.src = ''; }
+    if (prevVid) { prevVid.style.display = 'none'; prevVid.pause(); prevVid.src = ''; }
     if (clearBtn) clearBtn.style.display = 'none';
+    return;
+  }
+
+  if (clearBtn) clearBtn.style.display = 'inline-flex';
+  if (prevWrap) prevWrap.style.display = 'block';
+
+  const isVid = isVideoMedia(val, explicitType);
+  if (isVid) {
+    if (prevImg) { prevImg.style.display = 'none'; prevImg.src = ''; }
+    if (prevVid) {
+      prevVid.style.display = 'block';
+      if (prevVid.src !== val) {
+        prevVid.src = val;
+        prevVid.load();
+        prevVid.play().catch(() => {});
+      }
+    }
+  } else {
+    if (prevVid) { prevVid.style.display = 'none'; prevVid.pause(); prevVid.src = ''; }
+    if (prevImg) {
+      prevImg.style.display = 'block';
+      prevImg.src = val;
+    }
   }
 }
 
-function uploadUpsellImageFile(input) {
+function onUpsellMediaTypeChange(type) {
+  const urlInp = document.getElementById('upsell-image-url');
+  const url = urlInp ? urlInp.value.trim() : '';
+  if (url) onUpsellImageChange(url);
+}
+
+async function uploadUpsellImageFile(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
+  const urlInp = document.getElementById('upsell-image-url');
+  
+  // Tenta upload no servidor para ter link estável
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    toast('Enviando mídia...', 'info');
+    const res = await apiFetch('/api/admin/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const d = await res.json();
+    if (d.ok && d.url) {
+      if (urlInp) urlInp.value = d.url;
+      if (isVideoMedia(d.url)) {
+        const typeSel = document.getElementById('upsell-media-type');
+        if (typeSel) typeSel.value = 'video';
+      }
+      onUpsellImageChange(d.url);
+      toast('Mídia carregada com sucesso!', 'ok');
+      return;
+    }
+  } catch (err) {
+    console.warn('Upload server fallback para FileReader:', err);
+  }
+
+  // Fallback local via FileReader
   const reader = new FileReader();
   reader.onload = function(e) {
-    const urlInp = document.getElementById('upsell-image-url');
-    if (urlInp) urlInp.value = e.target.result;
-    onUpsellImageChange(e.target.result);
+    const dataUrl = e.target.result;
+    if (urlInp) urlInp.value = dataUrl;
+    if (file.type && file.type.startsWith('video/')) {
+      const typeSel = document.getElementById('upsell-media-type');
+      if (typeSel) typeSel.value = 'video';
+    }
+    onUpsellImageChange(dataUrl);
+    toast('Mídia carregada!', 'ok');
   };
   reader.readAsDataURL(file);
 }
 
 function clearUpsellImage() {
-  onUpsellImageChange('');
   const fileInp = document.getElementById('upsell-image-file');
   if (fileInp) fileInp.value = '';
+  const typeSel = document.getElementById('upsell-media-type');
+  if (typeSel) typeSel.value = 'auto';
+  onUpsellImageChange('');
+}
+
+// ─── Funções de mídia do upsell (Formulário Inline no Cadastro do Produto) ───
+function onInlineUpsellMediaChange(url) {
+  const urlInp = document.getElementById('iuf-media-url');
+  if (urlInp && url !== undefined && urlInp.value !== url) urlInp.value = url;
+  const val = (url !== undefined ? url : (urlInp ? urlInp.value : '')).trim();
+  const wrap = document.getElementById('iuf-media-prev-wrap');
+  const img = document.getElementById('iuf-media-prev-img');
+  const vid = document.getElementById('iuf-media-prev-video');
+  const clearBtn = document.getElementById('iuf-media-clear-btn');
+  const typeSel = document.getElementById('iuf-media-type');
+  const explicitType = typeSel ? typeSel.value : 'auto';
+
+  if (!val) {
+    if (wrap) wrap.style.display = 'none';
+    if (img) { img.style.display = 'none'; img.src = ''; }
+    if (vid) { vid.style.display = 'none'; vid.pause(); vid.src = ''; }
+    if (clearBtn) clearBtn.style.display = 'none';
+    return;
+  }
+
+  if (clearBtn) clearBtn.style.display = 'inline-flex';
+  if (wrap) wrap.style.display = 'block';
+
+  const isVid = isVideoMedia(val, explicitType);
+  if (isVid) {
+    if (img) { img.style.display = 'none'; img.src = ''; }
+    if (vid) {
+      vid.style.display = 'block';
+      if (vid.src !== val) {
+        vid.src = val;
+        vid.load();
+        vid.play().catch(() => {});
+      }
+    }
+    const badge = document.getElementById('iuf-media-badge');
+    if (badge) badge.textContent = 'Preview do Vídeo (Auto-play)';
+  } else {
+    if (vid) { vid.style.display = 'none'; vid.pause(); vid.src = ''; }
+    if (img) {
+      img.style.display = 'block';
+      img.src = val;
+    }
+    const badge = document.getElementById('iuf-media-badge');
+    if (badge) {
+      const isGif = val.toLowerCase().split('?')[0].endsWith('.gif') || explicitType === 'gif';
+      badge.textContent = isGif ? 'Preview do GIF Animado' : 'Preview da Imagem';
+    }
+  }
+}
+
+function onInlineUpsellMediaTypeChange(type) {
+  const urlInp = document.getElementById('iuf-media-url');
+  const url = urlInp ? urlInp.value.trim() : '';
+  if (url) onInlineUpsellMediaChange(url);
+}
+
+function onInlineUpsellMediaPosChange(pos) {
+  // Posição alterada (top ou middle)
+}
+
+async function uploadInlineUpsellMediaFile(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const urlInp = document.getElementById('iuf-media-url');
+  
+  // Tenta upload via endpoint do servidor
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    toast('Enviando mídia...', 'info');
+    const res = await apiFetch('/api/admin/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const d = await res.json();
+    if (d.ok && d.url) {
+      if (urlInp) urlInp.value = d.url;
+      if (isVideoMedia(d.url)) {
+        const typeSel = document.getElementById('iuf-media-type');
+        if (typeSel) typeSel.value = 'video';
+      }
+      onInlineUpsellMediaChange(d.url);
+      toast('Mídia carregada com sucesso!', 'ok');
+      return;
+    }
+  } catch (err) {
+    console.warn('Upload server fallback para FileReader:', err);
+  }
+
+  // Fallback para FileReader dataURL
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    if (urlInp) urlInp.value = dataUrl;
+    if (file.type && file.type.startsWith('video/')) {
+      const typeSel = document.getElementById('iuf-media-type');
+      if (typeSel) typeSel.value = 'video';
+    }
+    onInlineUpsellMediaChange(dataUrl);
+    toast('Mídia carregada!', 'ok');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearInlineUpsellMedia() {
+  const urlInp = document.getElementById('iuf-media-url');
+  if (urlInp) urlInp.value = '';
+  const fileInp = document.getElementById('iuf-media-file');
+  if (fileInp) fileInp.value = '';
+  const typeSel = document.getElementById('iuf-media-type');
+  if (typeSel) typeSel.value = 'auto';
+  const posSel = document.getElementById('iuf-media-pos');
+  if (posSel) posSel.value = 'top';
+  onInlineUpsellMediaChange('');
 }
 
 // ─── Modo de desconto do cupom ───

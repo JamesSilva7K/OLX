@@ -3740,54 +3740,62 @@ def api_admin_my_products():
             if not description:   description   = _cfgs.get("product_description", "")
 
         if TG_WH_AVAILABLE:
-            code = tg_wh.create_tenant_product(
-                admin_id, title, price, old_price, description,
-                image_url, image1, image2, image3,
-                product_code=product_code,
-                shipping_mode=shipping_mode,
-                shipping_fee=shipping_fee,
-                shipping_coupon=shipping_coupon,
-                coupon_active=coupon_active,
-                coupon_only_shipping=coupon_only_shipping,
-                coupon_discount_value=coupon_discount_value,
-                seller_name=seller_name,
-                seller_since=seller_since,
-                seller_avatar=seller_avatar,
-                det_category=det_category,
-                det_brand=det_brand,
-                det_model=det_model,
-                det_condition=det_condition,
-                det_memory=det_memory,
-                det_color=det_color,
-                payment_badges=payment_badges,
-                breadcrumb_zone=breadcrumb_zone,
-                seller_sales_completed=seller_sales_completed,
-                seller_sales_canceled=seller_sales_canceled,
-                seller_dispatch_time=seller_dispatch_time,
-                seller_rating=seller_rating,
-                seller_reviews=seller_reviews,
-                seller_level=seller_level,
-                seller_email_verified=seller_email_verified,
-                seller_phone_verified=seller_phone_verified,
-                seller_id_verified=seller_id_verified,
-                seller_fb_verified=seller_fb_verified,
-                seller_fb_url=seller_fb_url,
-                product_published_at=product_published_at
-            )
+            try:
+                code = tg_wh.create_tenant_product(
+                    admin_id, title, price, old_price, description,
+                    image_url, image1, image2, image3,
+                    product_code=product_code,
+                    shipping_mode=shipping_mode,
+                    shipping_fee=shipping_fee,
+                    shipping_coupon=shipping_coupon,
+                    coupon_active=coupon_active,
+                    coupon_only_shipping=coupon_only_shipping,
+                    coupon_discount_value=coupon_discount_value,
+                    coupon_discount_mode=coupon_discount_mode or "pct",
+                    seller_name=seller_name,
+                    seller_since=seller_since,
+                    seller_avatar=seller_avatar,
+                    det_category=det_category,
+                    det_brand=det_brand,
+                    det_model=det_model,
+                    det_condition=det_condition,
+                    det_memory=det_memory,
+                    det_color=det_color,
+                    payment_badges=payment_badges,
+                    breadcrumb_zone=breadcrumb_zone,
+                    seller_sales_completed=seller_sales_completed,
+                    seller_sales_canceled=seller_sales_canceled,
+                    seller_dispatch_time=seller_dispatch_time,
+                    seller_rating=seller_rating,
+                    seller_reviews=seller_reviews,
+                    seller_level=seller_level,
+                    seller_email_verified=seller_email_verified,
+                    seller_phone_verified=seller_phone_verified,
+                    seller_id_verified=seller_id_verified,
+                    seller_fb_verified=seller_fb_verified,
+                    seller_fb_url=seller_fb_url,
+                    product_published_at=product_published_at
+                )
 
-            slug = tg_wh.get_slug(admin_id)
+                slug = tg_wh.get_slug(admin_id)
 
-            # Link legível: /p/slug-do-admin/codigo-do-produto
-            if slug:
-                unique_link = f"{BASE_URL}/p/{slug}/{code}"
-            else:
-                unique_link = f"{BASE_URL}/p/{code}"
+                # Link legível: /p/slug-do-admin/codigo-do-produto
+                if slug:
+                    unique_link = f"{BASE_URL}/p/{slug}/{code}"
+                else:
+                    unique_link = f"{BASE_URL}/p/{code}"
 
-            if VALIDATORS_AVAILABLE:
-                ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
-                                  slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link, 'coupon': shipping_coupon, 'coupon_active': coupon_active})
+                if VALIDATORS_AVAILABLE and ActivityAudit:
+                    try:
+                        ActivityAudit.log('admin_product_create', actor_id=admin_id, ip=_user_ip(),
+                                          slug=slug, details={'code': code, 'title': title, 'price': price, 'link': unique_link, 'coupon': shipping_coupon, 'coupon_active': coupon_active})
+                    except Exception as audit_err:
+                        logger.warning(f"Erro ao registrar auditoria de produto: {audit_err}")
 
-            return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado com sucesso no catálogo!"})
+                return jsonify({"ok": True, "product_code": code, "unique_link": unique_link, "message": "Produto criado com sucesso no catálogo!"})
+            except Exception as e:
+                logger.error(f"Erro ao criar produto: {e}")
+                return jsonify({"ok": False, "error": f"Erro ao criar produto: {str(e)}"}), 400
 
 
 
@@ -4139,25 +4147,21 @@ def api_admin_upload():
 
     ext = os.path.splitext(file.filename)[1].lower()
 
-    allowed_exts = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'}
+    allowed_exts = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.mp4', '.webm', '.ogg', '.mov'}
 
     if ext not in allowed_exts:
 
-        return jsonify({"ok": False, "error": "Formato invalido. Use PNG, JPG, WEBP, GIF ou SVG."}), 400
+        return jsonify({"ok": False, "error": "Formato inválido. Use PNG, JPG, WEBP, GIF, SVG ou vídeos MP4, WEBM, MOV."}), 400
 
 
 
-    # Limite de tamanho: 8MB
-
+    # Limite de tamanho: 50MB para vídeos / imagens
     file.seek(0, 2)
-
     size = file.tell()
-
     file.seek(0)
 
-    if size > 8 * 1024 * 1024:
-
-        return jsonify({"ok": False, "error": "Arquivo muito grande. Máximo 8MB."}), 413
+    if size > 50 * 1024 * 1024:
+        return jsonify({"ok": False, "error": "Arquivo muito grande. Máximo 50MB."}), 413
 
 
 
