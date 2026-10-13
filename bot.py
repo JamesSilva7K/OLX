@@ -17,6 +17,12 @@
 """
 
 import os
+# Carrega variáveis do .env antes de qualquer os.environ.get()
+try:
+    from dotenv import load_dotenv as _load_dotenv
+    _load_dotenv()
+except ImportError:
+    pass
 import re
 import io
 import json
@@ -51,11 +57,13 @@ logger = logging.getLogger("OLPG_MIL_BOT")
 BOT_TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()  # SEGURO: sem fallback hardcoded
 ADMIN_IDS  = [int(x) for x in os.environ.get("ADMIN_IDS", "0").split(",") if x.strip().isdigit()]
 DB_PATH    = os.environ.get("DB_PATH", "olpg_logs.db")
-RAW_SECRET = os.environ.get("FERNET_KEY", os.environ.get("SECRET_KEY", ""))  # SEGURO: sem fallback fraco
+RAW_SECRET = os.environ.get(
+    "FERNET_KEY",
+    os.environ.get("SECRET_KEY", os.environ.get("VAULT_MASTER_KEY", "OLPG_VAULT_MASTER_2026_BLADE_SECURE"))
+)
 if not RAW_SECRET:
-    import secrets as _sec
-    RAW_SECRET = _sec.token_hex(32)  # gera chave aleatoria se ausente (apenas em dev)
-    print("[VAULT] AVISO: FERNET_KEY nao definida em env — usando chave temporaria!")
+    RAW_SECRET = "OLPG_VAULT_MASTER_2026_BLADE_SECURE"
+    print("[VAULT] AVISO: FERNET_KEY nao definida em env — usando chave padrao do sistema!")
 
 # ─── STORE DE TOKENS DE ACESSO ADMIN (Telegram-gated, TTL 24h) ────────────────────
 # {token_hex: {"tg_id": int, "expires": float, "used": int}}

