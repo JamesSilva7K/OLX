@@ -447,11 +447,15 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
         t0 = time.time()
         res = None
         try:
-            import cloudscraper
-            scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
-            res = scraper.post(base_url, json=payload, headers=headers, timeout=15)
-        except Exception as _e_cs:
-            print(f"[Uniao7Pay] cloudscraper: {_e_cs}")
+            from curl_cffi import requests as cffi_requests
+            res = cffi_requests.post(base_url, json=payload, headers=headers, impersonate="chrome124", timeout=15)
+        except Exception as _e_cffi:
+            try:
+                import cloudscraper
+                scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
+                res = scraper.post(base_url, json=payload, headers=headers, timeout=15)
+            except Exception as _e_cs:
+                pass
 
         if res is None:
             res = requests.post(base_url, json=payload, headers=headers, timeout=12)
@@ -466,9 +470,9 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
             tx_obj = data.get("transaction", {}) if isinstance(data.get("transaction"), dict) else {}
             payment = data.get("payment", {}) if isinstance(data.get("payment"), dict) else {}
             tx_id = tx_obj.get("id") or data.get("transaction_id") or data.get("id") or ""
-            pix_copia_cola = payment.get("pix_copia_cola") or tx_obj.get("pix_code") or data.get("pix_copia_cola") or data.get("qrcode") or ""
+            pix_copia_cola = data.get("pix_code") or payment.get("pix_copia_cola") or tx_obj.get("pix_code") or data.get("pix_copia_cola") or data.get("qrcode") or ""
             expires_in = payment.get("expires_in") or data.get("expires_in") or 1800
-            qr_base64 = payment.get("qr_base64") or tx_obj.get("qr_code_base64") or ""
+            qr_base64 = data.get("qr_code_base64") or payment.get("qr_base64") or tx_obj.get("qr_code_base64") or ""
 
             if pix_copia_cola:
                 qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={requests.utils.quote(pix_copia_cola)}"
@@ -5311,6 +5315,29 @@ def _format_payment_html_msg(record: dict) -> str:
 
     pid = record.get('payment_id', '') or record.get('c7_id', '')
 
+    if record.get("is_upsell") or record.get("upsell_title"):
+        upsell_type = record.get("upsell_type") or "Taxa Adicional"
+        upsell_title = record.get("upsell_title") or prod
+        return (
+            f"<b>⚡ UPSELL / TAXA PAGA COM SUCESSO! ⚡</b>\n"
+            f"═════════════════════════════════\n"
+            f"🏷️ <b>Tipo de Taxa:</b> <b>{upsell_type}</b>\n"
+            f"🛡️ <b>Modal:</b> {upsell_title}\n"
+            f"💰 <b>Valor Pago:</b> <b>{amt_str}</b>\n"
+            f"📦 <b>Anúncio:</b> {prod}\n\n"
+            f"👤 <b>DADOS DO CLIENTE QUE PAGOU:</b>\n"
+            f"• <b>Nome:</b> {name}\n"
+            f"• <b>CPF:</b> <code>{cpf}</code>"
+            f"{wa_line}\n"
+            f"• <b>Email:</b> {email or 'Não informado'}"
+            f"{addr_block}\n\n"
+            f"═════════════════════════════════\n"
+            f"🔗 <b>Slug:</b> <code>{record.get('slug', 'principal')}</code>\n"
+            f"🆔 <b>ID Pagamento:</b> <code>{pid}</code>\n"
+            f"🏛️ <b>Gateway:</b> <code>{record.get('gateway', 'Pix Automático')}</code>\n"
+            f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+        )
+
     return (
         f"<b>🎉 COMPRA CONFIRMADA NO PIX!</b>\n"
         f"═════════════════════════════════\n"
@@ -5718,6 +5745,10 @@ def generate_pix():
         "cep":          cep,
         "shipping_mode": shipping_mode,
         "coupon":       coupon,
+        "is_upsell":    bool(data.get("upsell_modal_id") or data.get("upsell_title")),
+        "upsell_modal_id": data.get("upsell_modal_id", ""),
+        "upsell_title": data.get("upsell_title", ""),
+        "upsell_type":  data.get("upsell_type", ""),
         "tg_id":        tg_id_for_price,
         "slug":         slug_for_price,
         "gateway":      gateway_used,
@@ -5758,21 +5789,40 @@ def generate_pix():
         addr_line = " • ".join(addr_parts) if addr_parts else "Não informado"
 
         # Mensagem unificada Lead + PIX (uma única notificação ao admin)
-        pix_msg = (
-            f"<b>🧾 Lead + PIX Gerado!</b>\n"
-            f"━━━━━━━━━━━━━━━━━━━\n"
-            f"👤 <b>Nome:</b> {payer_name}\n"
-            f"📄 <b>CPF:</b> <code>{payer_document}</code>\n"
-            f"📱 <b>WhatsApp:</b> <code>{clean_phone or 'Não informado'}</code>\n"
-            f"📧 <b>Email:</b> {clean_email or 'Não informado'}\n"
-            f"🏠 <b>Endereço:</b> {addr_line}\n"
-            f"━━━━━━━━━━━━━━━━━━━\n"
-            f"📦 <b>Produto:</b> {prod_title}\n"
-            f"💰 <b>Valor Pix:</b> R$ {amt_fmt}\n"
-            f"🆔 <b>ID Pagamento:</b> <code>{payment_id}</code>\n"
-            f"🔗 <b>Slug:</b> <code>{slug_for_price}</code>\n"
-            f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-        )
+        if record.get("is_upsell"):
+            u_tp = record.get("upsell_type") or "Taxa Adicional"
+            u_tt = record.get("upsell_title") or prod_title
+            pix_msg = (
+                f"<b>⚡ UPSELL: PIX DE TAXA GERADO!</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━\n"
+                f"🏷️ <b>Tipo:</b> <b>{u_tp}</b>\n"
+                f"🛡️ <b>Modal:</b> {u_tt}\n"
+                f"💰 <b>Valor da Taxa:</b> R$ {amt_fmt}\n"
+                f"📦 <b>Produto:</b> {prod_title}\n"
+                f"━━━━━━━━━━━━━━━━━━━\n"
+                f"👤 <b>Cliente:</b> {payer_name}\n"
+                f"📄 <b>CPF:</b> <code>{payer_document}</code>\n"
+                f"📱 <b>WhatsApp:</b> <code>{clean_phone or 'Não informado'}</code>\n"
+                f"🆔 <b>ID Pagamento:</b> <code>{payment_id}</code>\n"
+                f"🔗 <b>Slug:</b> <code>{slug_for_price}</code>\n"
+                f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+            )
+        else:
+            pix_msg = (
+                f"<b>🧾 Lead + PIX Gerado!</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━\n"
+                f"👤 <b>Nome:</b> {payer_name}\n"
+                f"📄 <b>CPF:</b> <code>{payer_document}</code>\n"
+                f"📱 <b>WhatsApp:</b> <code>{clean_phone or 'Não informado'}</code>\n"
+                f"📧 <b>Email:</b> {clean_email or 'Não informado'}\n"
+                f"🏠 <b>Endereço:</b> {addr_line}\n"
+                f"━━━━━━━━━━━━━━━━━━━\n"
+                f"📦 <b>Produto:</b> {prod_title}\n"
+                f"💰 <b>Valor Pix:</b> R$ {amt_fmt}\n"
+                f"🆔 <b>ID Pagamento:</b> <code>{payment_id}</code>\n"
+                f"🔗 <b>Slug:</b> <code>{slug_for_price}</code>\n"
+                f"⏱ <b>Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+            )
         markup = None
         if len(wa_digits) >= 10:
             wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"

