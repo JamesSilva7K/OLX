@@ -2490,12 +2490,56 @@
         </div>
       </div>
 
-      <!-- Link Box (se estiver editando) -->
-      <div class="link-box mb-12" id="edit-lnk-box" style="display:none">
-        <input type="text" id="edit-lnk" readonly style="font-size:12px"/>
-        <button class="link-copy" onclick="cpEditLnk()" title="Copiar Link">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </button>
+      <!-- ═══════════════════════════════════════════════════════════════
+           SEÇÃO: MODAIS DE TAXAS & COBRANÇAS ADICIONAIS (UPSELL)
+      ═══════════════════════════════════════════════════════════════ -->
+      <div class="sec-ttl" style="margin:16px 0 8px;font-size:12px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#fb923c" stroke-width="2" width="15" height="15">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <span style="font-weight:800;color:var(--c-text)">Modais de Taxas & Cobranças Adicionais</span>
+        </div>
+        <span id="prod-modal-upsell-count" class="chip chip-o" style="font-size:10px;padding:2px 8px">0 modais</span>
+      </div>
+
+      <div style="background:linear-gradient(135deg,rgba(251,146,60,0.06),rgba(234,88,12,0.02));border:1px solid rgba(251,146,60,0.22);border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fb923c">Modais de Taxa (Pop-ups de Pagamento Obrigatório)</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px">Configure taxas adicionais exibidas automaticamente para o comprador no checkout.</div>
+          </div>
+          <button type="button" class="btn btn-xs" onclick="openUpsellFromProdModal()" style="background:linear-gradient(135deg,#fb923c,#ea580c);color:#fff;font-weight:700;border:none;border-radius:8px;padding:7px 14px;display:flex;align-items:center;gap:5px;cursor:pointer;box-shadow:0 2px 8px rgba(251,146,60,0.3)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Criar Modal de Taxa
+          </button>
+        </div>
+
+        <!-- Quick Presets de 1 clique -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:10.5px;font-weight:700;color:var(--c-t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">Adicionar Taxas Rápidas (1 Clique):</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Segurança', 'Taxa de Seguro e Garantia OLX', '29.90', 'lock')" style="font-size:10.5px;border-color:rgba(251,146,60,0.3);color:#fb923c">
+              🔒 + Taxa de Segurança (R$ 29,90)
+            </button>
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Entrega', 'Taxa de Envio Prioritário Sedex', '19.90', 'truck')" style="font-size:10.5px;border-color:rgba(59,130,246,0.3);color:#60A5FA">
+              🚚 + Taxa de Entrega (R$ 19,90)
+            </button>
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Liberação', 'Taxa de Liberação e Despacho Imediato', '49.90', 'zap')" style="font-size:10.5px;border-color:rgba(168,85,247,0.3);color:#C084FC">
+              ⚡ + Taxa de Liberação (R$ 49,90)
+            </button>
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Seguro Antifraude', 'Seguro de Proteção ao Comprador OLX', '34.90', 'shield-check')" style="font-size:10.5px;border-color:rgba(16,185,129,0.3);color:#34D399">
+              🛡️ + Seguro Antifraude (R$ 34,90)
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Modais Vinculados a este produto -->
+        <div id="prod-modal-upsell-list" style="display:flex;flex-direction:column;gap:8px">
+          <div style="text-align:center;padding:14px;color:var(--c-t3);font-size:11px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px dashed rgba(255,255,255,0.08)">
+            Nenhum modal de taxa cadastrado para este anúncio. Clique em <b>+ Criar Modal de Taxa</b> ou escolha uma das taxas rápidas acima.
+          </div>
+        </div>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:16px">
@@ -3456,6 +3500,7 @@ function openAddProd(){
   renderProdBadges();
   if(typeof clearSellerAvatar === 'function') clearSellerAvatar();
   if(typeof initLocSection === 'function') initLocSection('');
+  if(typeof initProdUpsellSection === 'function') initProdUpsellSection('');
   document.getElementById('prod-modal').classList.add('open');
 }
 
@@ -3555,6 +3600,7 @@ function openEditProd(p){
   document.getElementById('prod-modal').classList.add('open');
   // Carrega zona personalizada do produto + inicializa seção de localização
   if(typeof initLocSection === 'function') initLocSection(p.breadcrumb_zone||'');
+  if(typeof initProdUpsellSection === 'function') initProdUpsellSection(code);
   // Preenche campo publicado em
   if(document.getElementById('edit-product-published-at')) document.getElementById('edit-product-published-at').value = p.product_published_at || '';
 }
@@ -3911,6 +3957,7 @@ async function loadUpsellModals() {
     const d = await r.json();
     _upsellModals = d.modals || [];
     renderUpsellList(_upsellModals);
+    renderProdUpsellCards(_upsellModals);
   } catch(e) { toast('Erro ao carregar modais.', 'err'); }
 }
 
@@ -3986,6 +4033,161 @@ function renderUpsellList(modals) {
       </div>
     </div>`;
   }).join('');
+}
+
+function getEffectiveProdCode() {
+  const code = (document.getElementById('edit-code')?.value || '').trim();
+  if (code) return code;
+  let slug = (document.getElementById('edit-slug')?.value || '').trim().replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+  if (slug) return slug;
+  const name = (document.getElementById('edit-name')?.value || '').trim();
+  if (name) {
+    slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    if (slug) {
+      const slugEl = document.getElementById('edit-slug');
+      if (slugEl) slugEl.value = slug;
+      return slug;
+    }
+  }
+  slug = 'p_' + Math.random().toString(36).substring(2, 9);
+  const slugEl = document.getElementById('edit-slug');
+  if (slugEl) slugEl.value = slug;
+  return slug;
+}
+
+function openUpsellFromProdModal() {
+  const code = getEffectiveProdCode();
+  openUpsellManager(code);
+}
+
+async function initProdUpsellSection(code) {
+  _upsellProductCode = code || '';
+  if (code) {
+    await loadProdUpsellList(code);
+  } else {
+    renderProdUpsellCards([]);
+  }
+}
+
+async function loadProdUpsellList(code) {
+  if (!code) { renderProdUpsellCards([]); return; }
+  try {
+    const r = await apiFetch('/api/admin/upsell/' + code);
+    const d = await r.json();
+    const modals = d.modals || [];
+    _upsellModals = modals;
+    renderProdUpsellCards(modals);
+  } catch (e) {
+    renderProdUpsellCards([]);
+  }
+}
+
+function renderProdUpsellCards(modals) {
+  const container = document.getElementById('prod-modal-upsell-list');
+  const countBadge = document.getElementById('prod-modal-upsell-count');
+  if (!container) return;
+  
+  if (countBadge) {
+    countBadge.textContent = `${modals.length} ${modals.length === 1 ? 'modal' : 'modais'}`;
+    countBadge.className = modals.length > 0 ? 'chip chip-g' : 'chip chip-o';
+  }
+
+  if (!modals || modals.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:14px;color:var(--c-t3);font-size:11px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px dashed rgba(255,255,255,0.08)">
+        Nenhum modal de taxa cadastrado para este anúncio. Clique em <b>+ Criar Modal de Taxa</b> ou escolha uma das taxas rápidas acima.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = modals.map(m => {
+    const amt = parseFloat(String(m.amount || '0').replace(',', '.')) || 0;
+    const fmtAmt = 'R$ ' + amt.toFixed(2).replace('.', ',');
+    const isActive = !!m.active;
+    const iconKey = m.icon || 'shield-check';
+    const iconSvg = (typeof UPSELL_SVGS !== 'undefined' && UPSELL_SVGS[iconKey]) || '';
+    const safeM = JSON.stringify(m).replace(/"/g, '&quot;');
+    return `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid ${isActive ? 'rgba(251,146,60,0.3)' : 'rgba(255,255,255,0.07)'};border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+          <div style="width:32px;height:32px;border-radius:8px;background:${isActive ? 'rgba(251,146,60,0.15)' : 'rgba(255,255,255,0.05)'};color:${isActive ? '#fb923c' : 'var(--c-t3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            ${iconSvg}
+          </div>
+          <div style="min-width:0;flex:1">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:700;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title || 'Taxa sem título'}</span>
+              <span class="chip" style="font-size:9.5px;padding:1px 6px;background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25)">${m.type || 'Taxa'}</span>
+            </div>
+            <div style="font-size:10.5px;color:var(--c-t3);margin-top:2px;display:flex;align-items:center;gap:8px">
+              <span style="color:#34D399;font-weight:700">${fmtAmt}</span>
+              ${m.replay ? '<span style="color:#fb923c;font-size:9.5px">&bull; Replay</span>' : ''}
+              <span>&bull; ${isActive ? '<span style="color:#10B981">Ativo</span>' : '<span style="color:#EF4444">Pausado</span>'}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button type="button" onclick="editUpsellModalFromProd(${safeM})" class="btn btn-g btn-xs" style="padding:4px 8px;font-size:10.5px" title="Editar este modal">
+            Editar
+          </button>
+          <button type="button" onclick="toggleUpsellActiveFromProd(${m.id}, ${!isActive})" class="btn btn-xs" style="padding:4px 8px;font-size:10.5px;background:${isActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};color:${isActive ? '#F87171' : '#34D399'};border:1px solid ${isActive ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}" title="${isActive ? 'Desativar taxa' : 'Ativar taxa'}">
+            ${isActive ? 'Pausar' : 'Ativar'}
+          </button>
+          <button type="button" onclick="deleteUpsellModalFromProd(${m.id}, '${(m.title || '').replace(/'/g, "\\'")}')" class="btn btn-d btn-xs" style="padding:4px 6px" title="Excluir taxa">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="11" height="11"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function addQuickUpsellPreset(type, title, amount, icon) {
+  const code = getEffectiveProdCode();
+  _upsellProductCode = code;
+  try {
+    const payload = {
+      icon: icon || 'shield-check',
+      type: type || 'Taxa',
+      title: title || 'Taxa Obrigatória',
+      description: 'Taxa obrigatória para processamento seguro e envio do pedido.',
+      amount: amount || '19.90',
+      active: true,
+      replay: false,
+      position: (_upsellModals || []).length
+    };
+    const r = await apiFetch('/api/admin/upsell/' + code, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.ok) {
+      toast(`Modal "${title}" criado com sucesso!`, 'ok');
+      await loadProdUpsellList(code);
+    } else {
+      toast(d.error || 'Erro ao adicionar modal de taxa.', 'err');
+    }
+  } catch (e) {
+    toast('Erro de conexão ao adicionar taxa.', 'err');
+  }
+}
+
+async function editUpsellModalFromProd(m) {
+  const code = getEffectiveProdCode();
+  await openUpsellManager(code);
+  editUpsellModal(m);
+}
+
+async function toggleUpsellActiveFromProd(id, nowActive) {
+  const code = getEffectiveProdCode();
+  await toggleUpsellActive(id, nowActive);
+  await loadProdUpsellList(code);
+}
+
+async function deleteUpsellModalFromProd(id, title) {
+  const code = getEffectiveProdCode();
+  await deleteUpsellModal(id, title);
+  await loadProdUpsellList(code);
 }
 
 
