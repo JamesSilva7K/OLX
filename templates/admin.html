@@ -559,6 +559,67 @@
     * { scrollbar-width: none; }
 
 /* Enhanced Product Modal CSS */
+/* Chips & Tiles interativos de escolha do Upsell */
+.upsell-choice-chip {
+  padding: 6px 11px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--c-t2);
+  cursor: pointer;
+  transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+}
+.upsell-choice-chip:hover {
+  border-color: rgba(139,92,246,0.45);
+  background: rgba(124,58,237,0.12);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.upsell-choice-chip.active {
+  border-color: #A78BFA !important;
+  background: linear-gradient(135deg, rgba(124,58,237,0.35), rgba(139,92,246,0.2)) !important;
+  color: #fff !important;
+  box-shadow: 0 0 12px rgba(139,92,246,0.35) !important;
+}
+
+.upsell-icon-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--c-t3);
+  cursor: pointer;
+  transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+.upsell-icon-tile:hover {
+  border-color: rgba(139,92,246,0.4);
+  background: rgba(124,58,237,0.1);
+  color: #C4B5FD;
+  transform: translateY(-2px);
+}
+.upsell-icon-tile.active {
+  border-color: #A78BFA !important;
+  background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(139,92,246,0.15)) !important;
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(139,92,246,0.4) !important;
+}
+.upsell-icon-tile.active svg {
+  stroke: #D8B4FE !important;
+  filter: drop-shadow(0 0 4px rgba(168,85,247,0.5));
+}
+
 #prod-modal .modal-sheet {
   background: linear-gradient(145deg, #160a24, #0f0018) !important;
   border: 1px solid rgba(139, 92, 246, 0.3) !important;
@@ -2448,6 +2509,59 @@
         }
       </script>
 
+      <!-- ═══════ SEÇÃO: CUPOM & APENAS FRETE ═══════ -->
+      <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:12px;margin:16px 0 14px">
+        <div style="font-size:12px;font-weight:700;color:var(--c-purple3);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Cupom Específico &amp; Desconto / Apenas Frete
+        </div>
+
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Código do Cupom para este Produto</label>
+          <input type="text" class="fi" id="edit-shipping-coupon" placeholder="Ex: FRETEGRATIS ou OLX10" style="text-transform:uppercase;font-weight:700;letter-spacing:1px" />
+          <span class="fhint">Código que o cliente usará no checkout para ativar o desconto ou pagar apenas o frete.</span>
+        </div>
+
+        <!-- Modo de desconto: porcentagem ou valor fixo -->
+        <div id="wrap-coupon-discount-value" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label class="flbl" style="margin:0">Desconto do Cupom</label>
+            <div style="display:flex;gap:5px">
+              <button type="button" id="btn-coupon-mode-pct" onclick="setCouponMode('pct')" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(139,92,246,0.35);background:rgba(124,58,237,0.15);color:#C4B5FD;cursor:pointer;font-weight:700">% Porcentagem</button>
+              <button type="button" id="btn-coupon-mode-fixed" onclick="setCouponMode('fixed')" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--c-t3);cursor:pointer">R$ Fixo</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="coupon-disc-prefix" style="font-size:13px;font-weight:700;color:#C4B5FD;white-space:nowrap">%</span>
+            <input type="text" class="fi" id="edit-coupon-discount-value" placeholder="Ex: 15 (para 15% de desconto)" style="flex:1" />
+          </div>
+          <input type="hidden" id="edit-coupon-discount-mode" value="pct"/>
+          <span class="fhint" id="coupon-disc-hint">Porcentagem de desconto aplicada ao produto (ex: 15 = 15%). Desativado se "Apenas Frete" estiver ativo.</span>
+        </div>
+
+        <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06)">
+          <div class="tgl-info">
+            <div class="tgl-name">Ativar Cupom para este Produto</div>
+            <div class="tgl-desc">Habilita a validação e uso do cupom neste anúncio.</div>
+          </div>
+          <label class="tgl">
+            <input type="checkbox" id="edit-coupon-active" checked />
+            <span class="tgl-sl"></span>
+          </label>
+        </div>
+
+        <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px">
+          <div class="tgl-info">
+            <div class="tgl-name">Cobrar Apenas o Frete com o Cupom</div>
+            <div class="tgl-desc">Ao aplicar o cupom, zera o valor do produto e cobra somente a taxa de frete (ignora o campo de desconto acima).</div>
+          </div>
+          <label class="tgl">
+            <input type="checkbox" id="edit-coupon-only-shipping" checked onchange="onCouponOnlyShippingChange(this.checked)"/>
+            <span class="tgl-sl"></span>
+          </label>
+        </div>
+      </div>
+
       <!-- ═══════ SEÇÃO: MODAIS DE TAXAS & COBRANÇAS ADICIONAIS ═══════ -->
       <div style="margin:22px 0 0">
 
@@ -2555,30 +2669,81 @@
                 <textarea class="fi" id="iuf-desc" rows="2" placeholder="Explique o motivo desta taxa ao cliente..." style="resize:none;font-size:11.5px"></textarea>
               </div>
 
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px">
-                <div>
-                  <label class="flbl">Tipo</label>
-                  <select class="fi" id="iuf-type" style="cursor:pointer">
-                    <option value="Seguro">Seguro</option>
-                    <option value="Taxa de Entrega">Taxa de Entrega</option>
-                    <option value="Taxa de Segurança">Taxa de Segurança</option>
-                    <option value="Garantia">Garantia</option>
-                    <option value="Embalagem">Embalagem</option>
-                    <option value="Premium">Premium</option>
-                  </select>
+              <!-- TIPO DE TAXA COM CHIPS ANIMADOS -->
+              <div style="margin-bottom:12px">
+                <label class="flbl" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <span>Tipo de Cobrança</span>
+                  <span id="iuf-type-label-badge" style="font-size:9.5px;color:#C4B5FD;font-weight:700;background:rgba(124,58,237,0.18);padding:1px 7px;border-radius:20px;border:1px solid rgba(139,92,246,0.3)">Seguro</span>
+                </label>
+                <input type="hidden" id="iuf-type" value="Seguro"/>
+                <div id="iuf-type-chips" style="display:flex;flex-wrap:wrap;gap:6px">
+                  <button type="button" class="upsell-choice-chip active" data-type="Seguro" onclick="selectInlineUpsellType('Seguro')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Seguro
+                  </button>
+                  <button type="button" class="upsell-choice-chip" data-type="Taxa de Entrega" onclick="selectInlineUpsellType('Taxa de Entrega')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/></svg>
+                    Entrega
+                  </button>
+                  <button type="button" class="upsell-choice-chip" data-type="Taxa de Segurança" onclick="selectInlineUpsellType('Taxa de Segurança')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Segurança
+                  </button>
+                  <button type="button" class="upsell-choice-chip" data-type="Garantia" onclick="selectInlineUpsellType('Garantia')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Garantia
+                  </button>
+                  <button type="button" class="upsell-choice-chip" data-type="Embalagem" onclick="selectInlineUpsellType('Embalagem')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Embalagem
+                  </button>
+                  <button type="button" class="upsell-choice-chip" data-type="Premium" onclick="selectInlineUpsellType('Premium')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Premium
+                  </button>
                 </div>
-                <div>
-                  <label class="flbl">Ícone</label>
-                  <select class="fi" id="iuf-icon" style="cursor:pointer">
-                    <option value="shield-check">Escudo (Seguro)</option>
-                    <option value="lock">Cadeado (Segurança)</option>
-                    <option value="truck">Caminhão (Entrega)</option>
-                    <option value="zap">Raio (Urgente)</option>
-                    <option value="package">Caixa (Embalagem)</option>
-                    <option value="star">Estrela (Premium)</option>
-                    <option value="tag">Tag (Taxa)</option>
-                    <option value="dollar">Cifrão (Financeiro)</option>
-                  </select>
+              </div>
+
+              <!-- ESCOLHA DE ÍCONE COM GRID VISUAL ANIMADO -->
+              <div style="margin-bottom:12px">
+                <label class="flbl" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <span>Ícone Visual do Modal</span>
+                  <span id="iuf-icon-label-badge" style="font-size:9.5px;color:#C4B5FD;font-weight:700;background:rgba(124,58,237,0.18);padding:1px 7px;border-radius:20px;border:1px solid rgba(139,92,246,0.3)">Escudo</span>
+                </label>
+                <input type="hidden" id="iuf-icon" value="shield-check"/>
+                <div id="iuf-icon-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px">
+                  <button type="button" class="upsell-icon-tile active" data-icon="shield-check" onclick="selectInlineUpsellIcon('shield-check')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Escudo</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="lock" onclick="selectInlineUpsellIcon('lock')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Cadeado</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="truck" onclick="selectInlineUpsellIcon('truck')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Entrega</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="zap" onclick="selectInlineUpsellIcon('zap')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Raio</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="package" onclick="selectInlineUpsellIcon('package')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Caixa</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="star" onclick="selectInlineUpsellIcon('star')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Estrela</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="tag" onclick="selectInlineUpsellIcon('tag')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Tag</span>
+                  </button>
+                  <button type="button" class="upsell-icon-tile" data-icon="dollar" onclick="selectInlineUpsellIcon('dollar')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span style="font-size:9.5px;font-weight:700">Cifrão</span>
+                  </button>
                 </div>
               </div>
 
@@ -2633,8 +2798,6 @@
       <div class="link-box mb-12" id="edit-lnk-box" style="display:none;margin-top:14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;padding:10px 12px;align-items:center;gap:8px">
         <input type="text" class="fi" id="edit-lnk" readonly style="font-size:11px;font-family:monospace;background:transparent;border:none;color:#A78BFA;padding:0;flex:1"/>
         <button type="button" class="btn btn-g btn-xs" onclick="cpEditLnk()" style="border-color:rgba(124,58,237,0.3);color:#C4B5FD">Copiar Link</button>
-      </div>
-
       </div>
 
       <div style="display:flex;gap:10px;margin-top:16px">
@@ -3876,22 +4039,22 @@ function closeProdModal(){document.getElementById('prod-modal').classList.remove
 function cpEditLnk(){navigator.clipboard?.writeText(document.getElementById('edit-lnk').value);toast('Link copiado!','ok');}
 
 async function saveProd(){
-  const code=document.getElementById('edit-code').value;
-  const slugInp=document.getElementById('edit-slug').value.trim().replace(/[^a-z0-9_]/gi,'_').toLowerCase();
-  const name=document.getElementById('edit-name').value.trim();
-  const price=document.getElementById('edit-price').value.trim();
-  const oldp=document.getElementById('edit-oldp').value.trim();
-  const desc=document.getElementById('edit-desc').value.trim();
-  const img1=document.getElementById('edit-img1').value.trim();
-  const img2=document.getElementById('edit-img2').value.trim();
-  const img3=document.getElementById('edit-img3').value.trim();
-  const shipping_mode=document.getElementById('edit-shipping-mode').value;
-  const shipping_fee=document.getElementById('edit-shipping-fee').value.trim();
-  const shipping_coupon=document.getElementById('edit-shipping-coupon').value.trim();
-  const coupon_discount_value=document.getElementById('edit-coupon-discount-value').value.trim();
-  const coupon_discount_mode=(document.getElementById('edit-coupon-discount-mode')?.value||'pct').trim();
-  const coupon_active=document.getElementById('edit-coupon-active') ? (document.getElementById('edit-coupon-active').checked ? 1 : 0) : 1;
-  const coupon_only_shipping=document.getElementById('edit-coupon-only-shipping') ? (document.getElementById('edit-coupon-only-shipping').checked ? 1 : 0) : 1;
+  const code = (document.getElementById('edit-code')?.value || '').trim();
+  const slugInp = (document.getElementById('edit-slug')?.value || '').trim().replace(/[^a-z0-9_]/gi,'_').toLowerCase();
+  const name = (document.getElementById('edit-name')?.value || '').trim();
+  const price = (document.getElementById('edit-price')?.value || '').trim();
+  const oldp = (document.getElementById('edit-oldp')?.value || '').trim();
+  const desc = (document.getElementById('edit-desc')?.value || '').trim();
+  const img1 = (document.getElementById('edit-img1')?.value || '').trim();
+  const img2 = (document.getElementById('edit-img2')?.value || '').trim();
+  const img3 = (document.getElementById('edit-img3')?.value || '').trim();
+  const shipping_mode = document.getElementById('edit-shipping-mode')?.value || 'full';
+  const shipping_fee = (document.getElementById('edit-shipping-fee')?.value || '19.90').trim();
+  const shipping_coupon = (document.getElementById('edit-shipping-coupon')?.value || '').trim();
+  const coupon_discount_value = (document.getElementById('edit-coupon-discount-value')?.value || '').trim();
+  const coupon_discount_mode = (document.getElementById('edit-coupon-discount-mode')?.value || 'pct').trim();
+  const coupon_active = document.getElementById('edit-coupon-active') ? (document.getElementById('edit-coupon-active').checked ? 1 : 0) : 1;
+  const coupon_only_shipping = document.getElementById('edit-coupon-only-shipping') ? (document.getElementById('edit-coupon-only-shipping').checked ? 1 : 0) : 1;
 
   if(!name||!price){toast('Nome e Preço são obrigatórios.','err');return;}
 
@@ -3903,8 +4066,10 @@ async function saveProd(){
   }
 
   
-  const btn=document.getElementById('save-prod-btn'),sp=document.getElementById('save-prod-txt');
-  btn.disabled=true;sp.textContent='Salvando...';
+  const btn = document.getElementById('save-prod-btn');
+  const sp = document.getElementById('save-prod-txt');
+  if(btn) btn.disabled = true;
+  if(sp) sp.textContent = 'Salvando...';
   
   const payload = {
     title: name,
@@ -3939,12 +4104,12 @@ async function saveProd(){
     seller_fb_url: document.getElementById('edit-seller-fb-url') ? document.getElementById('edit-seller-fb-url').value.trim() : "",
     product_published_at: document.getElementById('edit-product-published-at') ? document.getElementById('edit-product-published-at').value.trim() : "",
 
-    det_category: (document.getElementById('edit-det-category').value.trim() ? (document.getElementById('lbl-det-category').value.trim() + '|||' + document.getElementById('edit-det-category').value.trim()) : ""),
-    det_brand: (document.getElementById('edit-det-brand').value.trim() ? (document.getElementById('lbl-det-brand').value.trim() + '|||' + document.getElementById('edit-det-brand').value.trim()) : ""),
-    det_model: (document.getElementById('edit-det-model').value.trim() ? (document.getElementById('lbl-det-model').value.trim() + '|||' + document.getElementById('edit-det-model').value.trim()) : ""),
-    det_condition: (document.getElementById('edit-det-condition').value.trim() ? (document.getElementById('lbl-det-condition').value.trim() + '|||' + document.getElementById('edit-det-condition').value.trim()) : ""),
-    det_memory: (document.getElementById('edit-det-memory').value.trim() ? (document.getElementById('lbl-det-memory').value.trim() + '|||' + document.getElementById('edit-det-memory').value.trim()) : ""),
-    det_color: (document.getElementById('edit-det-color').value.trim() ? (document.getElementById('lbl-det-color').value.trim() + '|||' + document.getElementById('edit-det-color').value.trim()) : ""),
+    det_category: (document.getElementById('edit-det-category')?.value.trim() ? ((document.getElementById('lbl-det-category')?.value.trim() || 'Categoria') + '|||' + document.getElementById('edit-det-category').value.trim()) : ""),
+    det_brand: (document.getElementById('edit-det-brand')?.value.trim() ? ((document.getElementById('lbl-det-brand')?.value.trim() || 'Marca') + '|||' + document.getElementById('edit-det-brand').value.trim()) : ""),
+    det_model: (document.getElementById('edit-det-model')?.value.trim() ? ((document.getElementById('lbl-det-model')?.value.trim() || 'Modelo') + '|||' + document.getElementById('edit-det-model').value.trim()) : ""),
+    det_condition: (document.getElementById('edit-det-condition')?.value.trim() ? ((document.getElementById('lbl-det-condition')?.value.trim() || 'Condição') + '|||' + document.getElementById('edit-det-condition').value.trim()) : ""),
+    det_memory: (document.getElementById('edit-det-memory')?.value.trim() ? ((document.getElementById('lbl-det-memory')?.value.trim() || 'Memória') + '|||' + document.getElementById('edit-det-memory').value.trim()) : ""),
+    det_color: (document.getElementById('edit-det-color')?.value.trim() ? ((document.getElementById('lbl-det-color')?.value.trim() || 'Cor') + '|||' + document.getElementById('edit-det-color').value.trim()) : ""),
     payment_badges: _PROD_BADGES ? JSON.stringify(_PROD_BADGES) : "",
     product_code: slugInp || code,
     // Only send a custom zone when NOT in default mode
@@ -3983,7 +4148,8 @@ async function saveProd(){
   }catch{
     toast('Erro de conexão.','err');
   }finally{
-    btn.disabled=false;sp.textContent='Salvar Produto';
+    if(btn) btn.disabled = false;
+    if(sp) sp.textContent = 'Salvar Produto';
   }
 }
 
@@ -4651,6 +4817,39 @@ function toggleInlineUpsellForm() {
   }
 }
 
+
+/** Seleciona o tipo de taxa visualmente e atualiza o input */
+function selectInlineUpsellType(type) {
+  const hiddenInput = document.getElementById('iuf-type');
+  if (hiddenInput) hiddenInput.value = type;
+  const badge = document.getElementById('iuf-type-label-badge');
+  if (badge) badge.textContent = type;
+  document.querySelectorAll('#iuf-type-chips .upsell-choice-chip').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+  });
+}
+
+/** Seleciona o ícone de taxa visualmente e atualiza o input */
+function selectInlineUpsellIcon(iconKey) {
+  const hiddenInput = document.getElementById('iuf-icon');
+  if (hiddenInput) hiddenInput.value = iconKey;
+  const badge = document.getElementById('iuf-icon-label-badge');
+  const iconNames = {
+    'shield-check': 'Escudo',
+    'lock': 'Cadeado',
+    'truck': 'Entrega',
+    'zap': 'Raio',
+    'package': 'Caixa',
+    'star': 'Estrela',
+    'tag': 'Tag',
+    'dollar': 'Cifrão'
+  };
+  if (badge) badge.textContent = iconNames[iconKey] || iconKey;
+  document.querySelectorAll('#iuf-icon-grid .upsell-icon-tile').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-icon') === iconKey);
+  });
+}
+
 /** Cancela edição inline e fecha o formulário */
 function cancelInlineUpsellEdit() {
   const formEl = document.getElementById('inline-upsell-form');
@@ -4662,10 +4861,8 @@ function cancelInlineUpsellEdit() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  const tSel = document.getElementById('iuf-type');
-  if (tSel) tSel.value = 'Seguro';
-  const iSel = document.getElementById('iuf-icon');
-  if (iSel) iSel.value = 'shield-check';
+  selectInlineUpsellType('Seguro');
+  selectInlineUpsellIcon('shield-check');
   const aChk = document.getElementById('iuf-active');
   if (aChk) aChk.checked = true;
   const sTxt = document.getElementById('iuf-save-txt');
@@ -4822,10 +5019,8 @@ function editInlineUpsell(idx) {
   if (aInp) aInp.value = amt.toFixed(2).replace('.', ',');
   const dInp = document.getElementById('iuf-desc');
   if (dInp) dInp.value = m.description || '';
-  const tSel = document.getElementById('iuf-type');
-  if (tSel) tSel.value = m.type || 'Seguro';
-  const iSel = document.getElementById('iuf-icon');
-  if (iSel) iSel.value = m.icon || 'shield-check';
+  selectInlineUpsellType(m.type || 'Seguro');
+  selectInlineUpsellIcon(m.icon || 'shield-check');
   const aChk = document.getElementById('iuf-active');
   if (aChk) aChk.checked = !!m.active;
 
