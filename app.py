@@ -437,13 +437,58 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Accept": "application/json, text/plain, */*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Origin": "https://meupagamento.site",
+        "Referer": "https://meupagamento.site/",
+        "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"'
     }
 
     try:
         t0 = time.time()
         res = requests.post(base_url, json=payload, headers=headers, timeout=12)
         elapsed_ms = int((time.time() - t0) * 1000)
+
+        # Se Cloudflare bloquear por ASN de datacenter (HTTP 403), aciona fallback cURL com HTTP/2 nativo
+        if res.status_code == 403:
+            try:
+                import subprocess, json as _json, shutil
+                curl_bin = shutil.which("curl") or "curl"
+                cmd = [
+                    curl_bin, "-s", "-X", "POST", base_url,
+                    "-H", f"Authorization: Bearer {api_key}",
+                    "-H", "Content-Type: application/json",
+                    "-H", "Accept: application/json",
+                    "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                    "-d", _json.dumps(payload),
+                    "--connect-timeout", "10",
+                    "--max-time", "15"
+                ]
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+                if proc.returncode == 0 and proc.stdout and ("{" in proc.stdout):
+                    cdata = _json.loads(proc.stdout)
+                    tx_id = cdata.get("transaction_id") or cdata.get("id") or ""
+                    payment = cdata.get("payment", {}) if isinstance(cdata.get("payment"), dict) else {}
+                    pix_copia_cola = payment.get("pix_copia_cola") or cdata.get("pix_copia_cola") or cdata.get("qrcode") or ""
+                    expires_in = payment.get("expires_in") or cdata.get("expires_in") or 1800
+                    if pix_copia_cola:
+                        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={requests.utils.quote(pix_copia_cola)}"
+                        return {
+                            "ok": True,
+                            "gateway": "uniaopay",
+                            "transaction_id": tx_id,
+                            "pix_code": pix_copia_cola,
+                            "qr_code_url": qr_url,
+                            "expires_in": expires_in,
+                            "status": "pending",
+                            "elapsed_ms": int((time.time() - t0) * 1000),
+                            "raw": cdata
+                        }
+            except Exception as _e_curl:
+                print(f"[Uniao7Pay] Fallback cURL falhou: {_e_curl}")
 
         if res.status_code in (200, 201):
             data = res.json()
@@ -6300,6 +6345,8 @@ def api_admin_uniaopay_test():
     data = request.json or {}
     api_key = data.get("api_key", "").strip()
     base_url = data.get("base_url", "").strip()
+    if api_key and (set(api_key).issubset({"•", "*"}) or len(api_key) < 20):
+        api_key = ""  # Não sobrepor chave real com máscara de input
 
     test_amount = float(data.get("amount") or 20.00)
     if test_amount < 20.00:
@@ -8491,6 +8538,26 @@ def monitor_links():
                 link_data[s_key]["last_visit"] = max(link_data[s_key]["last_visit"], s["entered_at"] or 0)
         except Exception as e_tgs:
             print(f"[monitor_links] tg_sessions: {e_tgs}")
+
+        # Busca eventos PAGE_ENTRY em tg_events para mapear visitas reais por produto específico
+        try:
+            if role == "supreme_admin":
+                pe_events = db.execute("SELECT slug, ip, entered_at, data_enc FROM tg_events WHERE event_type='PAGE_ENTRY'").fetchall()
+            else:
+                pe_events = db.execute("SELECT slug, ip, entered_at, data_enc FROM tg_events WHERE tg_id=? AND event_type='PAGE_ENTRY'", (admin_id,)).fetchall()
+            for ev in pe_events:
+                if ev["data_enc"]:
+                    try:
+                        dec = admin_bot.decrypt_data(ev["data_enc"]) if BOT_AVAILABLE else {}
+                        item_k = (dec.get("item") or dec.get("product_code") or "").lower()
+                        if item_k and item_k != "default" and item_k in prod_map:
+                            link_data[item_k]["total"] += 1
+                            link_data[item_k]["ips"].add(ev["ip"])
+                            link_data[item_k]["last_visit"] = max(link_data[item_k]["last_visit"], ev["entered_at"] or 0)
+                    except Exception:
+                        pass
+        except Exception as e_pe:
+            print(f"[monitor_links] pe_events: {e_pe}")
 
         # Busca sessions global se disponível
         try:
