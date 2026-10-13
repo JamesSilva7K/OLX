@@ -443,24 +443,18 @@ def create_uniaopay_pix(amount: float, customer: dict, custom_api_key: str = "",
 
     try:
         t0 = time.time()
-        res = requests.post(base_url, json=payload, headers=headers, timeout=12)
-        elapsed_ms = int((time.time() - t0) * 1000)
+        res = None
+        try:
+            import cloudscraper
+            scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
+            res = scraper.post(base_url, json=payload, headers=headers, timeout=15)
+        except Exception as _e_cs:
+            print(f"[Uniao7Pay] cloudscraper: {_e_cs}")
 
-        # Se Cloudflare retornar 403, tenta com User-Agent alternativo de ferramenta de terminal (curl)
-        if res.status_code == 403:
-            alt_headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "User-Agent": "curl/8.5.0"
-            }
-            try:
-                res_alt = requests.post(base_url, json=payload, headers=alt_headers, timeout=12)
-                if res_alt.status_code in (200, 201):
-                    res = res_alt
-                    elapsed_ms = int((time.time() - t0) * 1000)
-            except Exception:
-                pass
+        if res is None:
+            res = requests.post(base_url, json=payload, headers=headers, timeout=12)
+
+        elapsed_ms = int((time.time() - t0) * 1000)
 
         if res.status_code in (200, 201):
             data = res.json()
