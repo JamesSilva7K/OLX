@@ -7538,6 +7538,8 @@ def api_upsell_public(product_code):
         "amount":      m["amount"],
         "replay":      bool(m["replay"]),
         "position":    m["position"],
+        "image_url":   m.get("image_url") or "",
+        "image_pos":   m.get("image_pos") or "top",
     } for m in modals]
     return jsonify({"ok": True, "modals": safe})
 
