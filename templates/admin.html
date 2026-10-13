@@ -436,13 +436,16 @@
     .adm-role{font-size:11px;color:var(--c-purple3);font-weight:600;margin-top:2px}
 
     /* FINANCE */
-    .fin-card{background:linear-gradient(135deg,#1a0040,#0d0020);border:1px solid rgba(139,92,246,0.25);border-radius:var(--r-lg);padding:20px;display:none}
-    .fin-bal{font-size:32px;font-weight:900;color:var(--c-text);letter-spacing:-1px}
-    .fin-lbl{font-size:11px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.8px}
-    .fin-sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-    .fin-sub{background:rgba(255,255,255,0.04);border-radius:var(--r-sm);padding:12px}
-    .fin-sub-lbl{font-size:10px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.6px}
-    .fin-sub-val{font-size:16px;font-weight:800;color:var(--c-text);margin-top:4px}
+    .fin-card{background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(22,0,36,0.92) 45%,rgba(13,0,26,0.98));border:1px solid rgba(16,185,129,0.3);border-radius:var(--r-lg);padding:22px;display:none;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5), 0 0 35px rgba(16,185,129,0.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);transition:border-color .3s,box-shadow .3s}
+    .fin-card:hover{border-color:rgba(16,185,129,0.45);box-shadow:0 16px 48px rgba(0,0,0,0.6), 0 0 45px rgba(16,185,129,0.18)}
+    .fin-bal{font-size:36px;font-weight:900;color:var(--c-text);letter-spacing:-1px;line-height:1.15;margin:8px 0 14px}
+    .fin-lbl{font-size:11px;font-weight:800;color:var(--c-t2);text-transform:uppercase;letter-spacing:0.8px}
+    .fin-sub-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:16px}
+    @media(max-width:480px){.fin-sub-grid{grid-template-columns:1fr;gap:8px}}
+    .fin-sub{background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.08);border-radius:var(--r-sm);padding:12px 14px;transition:all .2s ease}
+    .fin-sub:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);transform:translateY(-1px)}
+    .fin-sub-lbl{font-size:10px;font-weight:700;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.7px}
+    .fin-sub-val{font-size:14.5px;font-weight:800;color:var(--c-text);margin-top:4px;letter-spacing:-0.2px}
 
     /* CFG ROW */
     .cfg-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--c-border)}
@@ -788,6 +791,17 @@
         <div style="margin-left:auto"><span class="chip chip-g"><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="margin-right:2px;vertical-align:middle"><polyline points="20 6 9 17 4 12"/></svg>Autenticado</span></div>
       </div>
 
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 2px">
+        <div class="sec-ttl" style="margin-bottom:0">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Métricas em Tempo Real
+        </div>
+        <button class="btn btn-g btn-xs" id="btn-refresh-metrics" onclick="refreshDashboardMetrics(this)" title="Atualizar Métricas" style="gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px">
+          <svg class="spin-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Atualizar Métricas
+        </button>
+      </div>
+
       <div id="kpi-skel"></div><div class="kpi-grid">
         <div class="kpi kpi-pur">
           <div class="kpi-lbl">Visitas 24h</div>
@@ -815,46 +829,53 @@
         </div>
       </div>
 
-      <div class="fin-card" id="fin-card" data-sup style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(13,0,32,0.95));border:1px solid rgba(16,185,129,0.3);position:relative;overflow:hidden">
-        <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.2),transparent 70%);pointer-events:none"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:11px;box-shadow:0 0 12px rgba(16,185,129,0.4)">EP</div>
+      <div class="fin-card" id="fin-card" data-sup>
+        <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.22),transparent 70%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px;box-shadow:0 0 16px rgba(16,185,129,0.45);flex-shrink:0">EP</div>
             <div>
-              <div class="fin-lbl" style="margin:0;font-size:13px;font-weight:800;color:#fff">ElitePay &bull; Saldo & Finanças</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45)">Gateway Ativo &bull; Servidor-para-Servidor (x-client-id / x-client-secret)</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:13.5px;font-weight:900;color:var(--c-text);letter-spacing:-0.2px">ElitePay &bull; Saldo & Finanças</span>
+              </div>
+              <div style="font-size:10.5px;color:var(--c-t3);font-weight:500;margin-top:2px">Gateway Ativo &bull; Servidor-para-Servidor (x-client-id / x-client-secret)</div>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span class="chip chip-g" id="elite-status-chip" style="font-size:10px;padding:3px 8px">Online</span>
-            <button class="btn btn-g btn-xs" onclick="loadC7()" title="Sincronizar Saldo"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="chip chip-g" id="elite-status-chip" style="font-size:10px;padding:3px 9px">Online</span>
+            <button class="btn btn-g btn-xs" id="btn-sync-elite" onclick="loadC7(this)" title="Sincronizar Saldo e Métricas" style="width:30px;height:30px;padding:0;border-radius:8px;background:rgba(255,255,255,0.06)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
           </div>
         </div>
 
-        <div class="fin-bal" id="c7-bal" style="color:#F8F8FF;font-size:34px;letter-spacing:-1px">R$ —</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div class="fin-bal" id="c7-bal">R$ —</div>
+          <div style="font-size:11px;font-weight:600;color:var(--c-t3);margin-bottom:8px">Atualizado em tempo real</div>
+        </div>
 
-        <div class="fin-sub-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:8px;margin:12px 0">
-          <div class="fin-sub" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px">
-            <div class="fin-sub-lbl" style="font-size:9.5px;color:rgba(255,255,255,0.4)">Cotação USDT/BRL</div>
-            <div class="fin-sub-val" id="elite-usdt-rate" style="font-size:13.5px;font-weight:800;color:#34D399;margin-top:2px">USDT R$ —</div>
+        <div class="fin-sub-grid">
+          <div class="fin-sub">
+            <div class="fin-sub-lbl">Cotação USDT/BRL</div>
+            <div class="fin-sub-val" id="elite-usdt-rate" style="color:#34D399">USDT R$ —</div>
           </div>
-          <div class="fin-sub" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px">
-            <div class="fin-sub-lbl" style="font-size:9.5px;color:rgba(255,255,255,0.4)">Taxa Cripto</div>
-            <div class="fin-sub-val" id="c7-fee" style="font-size:13.5px;font-weight:800;color:#A78BFA;margin-top:2px">4% + R$ 4</div>
+          <div class="fin-sub">
+            <div class="fin-sub-lbl">Taxa Cripto</div>
+            <div class="fin-sub-val" id="c7-fee" style="color:#A78BFA">4% + R$ 4</div>
           </div>
-          <div class="fin-sub" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px">
-            <div class="fin-sub-lbl" style="font-size:9.5px;color:rgba(255,255,255,0.4)">Limites Saque</div>
-            <div class="fin-sub-val" id="c7-lim" style="font-size:13.5px;font-weight:800;color:#FCD34D;margin-top:2px">R$ 20 ~ 2.000</div>
+          <div class="fin-sub">
+            <div class="fin-sub-lbl">Limites Saque</div>
+            <div class="fin-sub-val" id="c7-lim" style="color:#FCD34D">R$ 20 ~ 2.000</div>
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn btn-p" onclick="openWithdrawModal()" style="flex:1.2;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 15px rgba(16,185,129,0.3);font-weight:800;font-size:13px;padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <div style="display:flex;gap:10px;margin-top:6px">
+          <button class="btn btn-p" onclick="openWithdrawModal()" style="flex:1.2;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 18px rgba(16,185,129,0.35);font-weight:800;font-size:13px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             Saque Rápido (Pix / Cripto)
           </button>
-          <button class="btn btn-g" onclick="testElitePayAdquirers(this)" style="flex:0.8;font-weight:700;font-size:12px;padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          <button class="btn btn-g" onclick="testElitePayAdquirers(this)" style="flex:0.8;font-weight:700;font-size:12.5px;height:44px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;gap:7px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             Testar Rotas
           </button>
         </div>
@@ -2766,9 +2787,27 @@ async function apiFetchSafe(url, opts={}) {
 }
 
 
-async function loadStats(){
+async function refreshDashboardMetrics(btn){
+  const b = btn || document.getElementById('btn-refresh-metrics');
+  const ico = b ? b.querySelector('svg') : null;
+  if(b) b.disabled = true;
+  if(ico) ico.classList.add('spin');
+  try {
+    const promises = [loadStats(true)];
+    if(_SUP) promises.push(loadC7());
+    await Promise.all(promises);
+    toast('Métricas e estatísticas atualizadas com sucesso!', 'ok');
+  } catch(e) {
+    toast('Erro ao atualizar métricas.', 'err');
+  } finally {
+    if(ico) ico.classList.remove('spin');
+    if(b) b.disabled = false;
+  }
+}
+
+async function loadStats(isSilent=false){
   const kgrid = document.getElementById('kpi-skel');
-  if(kgrid) kgrid.innerHTML = skelKpi();
+  if(kgrid && !isSilent) kgrid.innerHTML = skelKpi();
   try{
     const url=_SLUG?'/api/admin/stats?slug='+_SLUG:'/api/admin/stats';
     const r=await apiFetch(url);
@@ -2789,10 +2828,10 @@ async function loadStats(){
     sv('fn-entries',ent);sv('fn-buy',buy);sv('fn-leads',lds);sv('fn-paid',pd);
     const pct=v=>Math.min(100,Math.round((v/ent)*100))+'%';
     ['buy','leads','paid'].forEach(k=>{const el=document.getElementById('fnb-'+k);if(el)el.style.width=pct(k==='buy'?buy:k==='leads'?lds:pd);});
-    if(kgrid) kgrid.innerHTML = '';
+    if(kgrid && !isSilent) kgrid.innerHTML = '';
   }catch(e){
     console.warn('loadStats:',e);
-    if(kgrid) kgrid.innerHTML = '<div class="empty"><p>Erro ao carregar estatísticas.</p></div>';
+    if(kgrid && !isSilent) kgrid.innerHTML = '<div class="empty"><p>Erro ao carregar estatísticas.</p></div>';
   }
 }
 
@@ -3488,8 +3527,13 @@ async function saveProf(){
 let _ELITE_BALANCE = 0;
 let _ELITE_QUOTE = null;
 
-async function loadC7(){
+async function loadC7(btn){
   if(!_SUP) return;
+  const syncBtn = btn || document.getElementById('btn-sync-elite');
+  if(syncBtn) {
+    syncBtn.classList.add('spin');
+    syncBtn.disabled = true;
+  }
   try {
     // 1. Fetch real-time balance
     const r = await apiFetch('/api/admin/elitepay/balance');
@@ -3503,13 +3547,16 @@ async function loadC7(){
       if (chip) { chip.className = 'chip chip-g'; chip.textContent = 'Online'; }
       const errEl = document.getElementById('c7-err');
       if (errEl) errEl.style.display = 'none';
+      if(btn) toast('Métricas e saldo atualizados!', 'ok');
     } else if (d.balance !== undefined) {
       _ELITE_BALANCE = parseFloat(d.balance);
       document.getElementById('c7-bal').textContent = fmt(_ELITE_BALANCE);
+      if(btn) toast('Saldo sincronizado!', 'ok');
     } else {
       document.getElementById('c7-bal').textContent = d.message || d.error || 'R$ 0,00';
       const chip = document.getElementById('elite-status-chip');
       if (chip) { chip.className = 'chip chip-o'; chip.textContent = 'Credenciais?'; }
+      if(btn) toast(d.message || d.error || 'Verifique as credenciais da ElitePay', 'err');
     }
 
     // 2. Fetch live crypto quote
@@ -3530,6 +3577,14 @@ async function loadC7(){
     document.getElementById('c7-bal').textContent = 'Offline';
     const chip = document.getElementById('elite-status-chip');
     if (chip) { chip.className = 'chip chip-r'; chip.textContent = 'Offline'; }
+    if(btn) toast('Falha ao conectar na ElitePay', 'err');
+  } finally {
+    if(syncBtn) {
+      setTimeout(() => {
+        syncBtn.classList.remove('spin');
+        syncBtn.disabled = false;
+      }, 400);
+    }
   }
 }
 
