@@ -8427,20 +8427,6 @@ def monitor_links():
                     "price": pr["price"] or ""
                 }
 
-        # Modelos / templates adicionais
-        try:
-            tmpl_rows = db.execute("SELECT code, name, price FROM product_templates").fetchall()
-            for tr in tmpl_rows:
-                tc = tr["code"] or ""
-                if tc and tc.lower() not in prod_map:
-                    prod_map[tc.lower()] = {
-                        "code": tc,
-                        "title": tr["name"] or f"Produto {tc}",
-                        "price": tr["price"] or ""
-                    }
-        except Exception:
-            pass
-
         # Nome padrão do anúncio principal configurado
         default_prod_title = admin_bot.get_config("product_name", "iPhone 11 64GB Branco (Anúncio Principal)") if BOT_AVAILABLE else "Anúncio Principal"
 
@@ -8452,7 +8438,7 @@ def monitor_links():
         link_data[main_key]["title"] = default_prod_title
         link_data[main_key]["code"] = "Principal"
 
-        # Inicializa produtos conhecidos
+        # Inicializa SOMENTE os produtos efetivamente criados pelo usuário
         for pk, p_info in prod_map.items():
             link_data[pk]["title"] = p_info["title"]
             link_data[pk]["code"] = p_info["code"]
@@ -8552,11 +8538,19 @@ def monitor_links():
         unique_ips = set()
 
         for s_key, data in sorted(link_data.items(), key=lambda x: (x[1]["total"] + x[1]["leads"]), reverse=True):
+            code = data["code"] or (s_key if s_key != main_key else "Principal")
+            is_main = (code == "Principal" or s_key == main_key)
+            is_created = (s_key in prod_map)
+            has_activity = (data["total"] > 0 or data["leads"] > 0)
+
+            # Exibe estritamente o anúncio principal real, produtos criados pelo usuário ou links com atividade real
+            if not (is_main or is_created or has_activity):
+                continue
+
             uniq = len(data["ips"])
             total_visits += data["total"]
             unique_ips.update(data["ips"])
 
-            code = data["code"] or (s_key if s_key != main_key else "Principal")
             title = data["title"] or prod_map.get(s_key, {}).get("title") or (default_prod_title if code == "Principal" else f"Produto {code}")
 
             if code == "Principal" or s_key == main_key:
