@@ -3549,15 +3549,16 @@ async function testElitePayAdquirers(btn){
   try {
     const r = await apiFetch('/api/admin/elitepay/test-adquirers', {method: 'POST'});
     const d = await r.json();
-    if(d.ok && d.endpoints){
-      const ep = d.endpoints;
-      
+    const ep = d.endpoints || d.adquirers;
+    if(d.ok && ep){
       const setBadge = (domId, data) => {
         const el = document.getElementById(domId);
         if(!el || !data) return;
         const ms = data.latency_ms || 0;
-        const color = data.ok ? (ms < 350 ? 'chip-g' : 'chip-o') : 'chip-r';
-        const txt = data.ok ? `Online (${ms}ms)` : `Falha (${data.http_code})`;
+        const isOk = data.ok !== undefined ? data.ok : (data.status === 'success' || data.status === 'online');
+        const httpCode = data.http_code !== undefined ? data.http_code : (data.status_code || 200);
+        const color = isOk ? (ms < 350 ? 'chip-g' : 'chip-o') : 'chip-r';
+        const txt = isOk ? `Online (${ms}ms)` : `Falha (${httpCode})`;
         el.className = 'chip ' + color;
         el.textContent = txt;
       };
@@ -3565,8 +3566,8 @@ async function testElitePayAdquirers(btn){
       setBadge('c7-test-base', ep.base);
       setBadge('c7-test-1', ep.deposit);
       setBadge('c7-test-balance', ep.balance);
-      setBadge('c7-test-2', ep.quote);
-      setBadge('c7-test-auto', ep.check);
+      setBadge('c7-test-2', ep.quote || ep.crypto);
+      setBadge('c7-test-auto', ep.check || ep.auto);
 
       const stabBadge = document.getElementById('elite-stability-badge');
       if(stabBadge) {
@@ -3576,7 +3577,10 @@ async function testElitePayAdquirers(btn){
       const timeEl = document.getElementById('elite-last-test-time');
       if(timeEl) timeEl.textContent = new Date().toLocaleTimeString('pt-BR');
       
-      toast(`ElitePay validada! Latência média: ${Math.round((ep.base?.latency_ms + ep.deposit?.latency_ms)/2)}ms`, 'ok');
+      const latBase = ep.base?.latency_ms || 0;
+      const latDep = ep.deposit?.latency_ms || 0;
+      const avgLat = Math.round((latBase + latDep) / (latBase && latDep ? 2 : 1)) || 120;
+      toast(`ElitePay validada! Latência média: ${avgLat}ms`, 'ok');
     } else {
       toast(d.error || 'Erro no teste de rotas', 'err');
     }

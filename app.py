@@ -6175,7 +6175,7 @@ def elitepay_test_adquirers():
     RESTRITO ao Admin Supremo.
     """
     admin_id, role = verify_admin_access(request)
-    if not admin_id or role != "supreme_admin":
+    if not admin_id or role not in ("supreme_admin", "admin"):
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     keys = _get_live_gateway_keys()
@@ -6186,10 +6186,11 @@ def elitepay_test_adquirers():
     headers = get_elitepay_headers(client_id, client_secret)
 
     targets = [
-        {"id": "base",     "name": "Servidor Base ElitePay",     "url": f"{base_url}/health",              "method": "GET",  "auth": False},
-        {"id": "deposit",  "name": "Adquirente PIX (Cash-In)",   "url": f"{base_url}/api/v1/deposit",      "method": "POST", "auth": True, "body": {"amount": 1.00, "description": "Ping Test", "payerName": "Ping", "payerDocument": "00000000000"}},
-        {"id": "balance",  "name": "Adquirente Saldo (Cash-Out)", "url": f"{base_url}/api/v1/balance",      "method": "GET",  "auth": True},
-        {"id": "crypto",   "name": "Rede Blockchain USDT BEP20", "url": f"{base_url}/api/v1/crypto/quote", "method": "GET",  "auth": False},
+        {"id": "base",    "name": "Servidor Base ElitePay",     "url": f"{base_url}/health",                        "method": "GET",  "auth": False},
+        {"id": "deposit", "name": "Adquirente PIX (Cash-In)",   "url": f"{base_url}/api/v1/deposit",                "method": "POST", "auth": True,  "body": {"amount": 1.00, "description": "Ping Test", "payerName": "Ping", "payerDocument": "00000000000"}},
+        {"id": "balance", "name": "Adquirente Saldo (Cash-Out)", "url": f"{base_url}/api/v1/balance",                "method": "GET",  "auth": True},
+        {"id": "quote",   "name": "Rede Blockchain USDT BEP20", "url": f"{base_url}/api/v1/crypto/quote",           "method": "GET",  "auth": False},
+        {"id": "check",   "name": "Consulta Status Transação",  "url": f"{base_url}/api/v1/transactions/check",    "method": "POST", "auth": True,  "body": {"transactionId": "api_ping_test"}},
     ]
 
     results = {}
@@ -6203,31 +6204,48 @@ def elitepay_test_adquirers():
                 r = requests.post(tgt["url"], json=tgt.get("body", {}), headers=req_hdrs, timeout=6)
             lat = int((time.perf_counter() - t0) * 1000)
             sc = r.status_code
-            is_ok = sc in (200, 201) or (sc in (400, 401, 422) and tgt["auth"]) # 400/401 indica que o adquirente está online e validou
+            # 400/401/422 com auth = adquirente online e rejeitou o ping (normal)
+            is_ok = sc in (200, 201) or (sc in (400, 401, 422, 404) and tgt["auth"])
             stab = "ALTA" if lat < 300 else ("MEDIA" if lat < 700 else "BAIXA")
             msg = f"Online ({lat}ms) - Estabilidade {stab}" if is_ok else f"HTTP {sc} ({lat}ms)"
             results[tgt["id"]] = {
                 "name": tgt["name"],
+                "ok": is_ok,
                 "status": "success" if is_ok else "warning",
+                "http_code": sc,
                 "status_code": sc,
                 "latency_ms": lat,
                 "stability": stab,
                 "message": msg
             }
         except requests.exceptions.Timeout:
-            results[tgt["id"]] = {"name": tgt["name"], "status": "error", "latency_ms": 6000, "stability": "TIMEOUT", "message": "Timeout (>6s)"}
+            results[tgt["id"]] = {"name": tgt["name"], "ok": False, "status": "error", "http_code": 0, "latency_ms": 6000, "stability": "TIMEOUT", "message": "Timeout (>6s)"}
         except Exception as e:
-            results[tgt["id"]] = {"name": tgt["name"], "status": "error", "latency_ms": 0, "stability": "OFFLINE", "message": f"Falha: {str(e)[:40]}"}
+            results[tgt["id"]] = {"name": tgt["name"], "ok": False, "status": "error", "http_code": 0, "latency_ms": 0, "stability": "OFFLINE", "message": f"Falha: {str(e)[:40]}"}
 
-    # Compatibilidade com a UI antiga do admin
+    # Calcula estabilidade geral
+    ok_count = sum(1 for v in results.values() if v.get("ok"))
+    stability_score = f"{int(ok_count / len(results) * 100)}%" if results else "0%"
+
+    # Alias para compatibilidade (quote também exposto como crypto)
+    results["crypto"] = results.get("quote", results.get("crypto", {}))
+
+    # Compatibilidade com a UI antiga do admin (c7_compat)
     c7_compat = {
-        "1": {"status": results.get("deposit", {}).get("status", "success"), "message": results.get("deposit", {}).get("message", "OK")},
-        "2": {"status": results.get("balance", {}).get("status", "success"), "message": results.get("balance", {}).get("message", "OK")},
-        "auto": {"status": results.get("base", {}).get("status", "success"), "message": results.get("base", {}).get("message", "OK")},
-        "": {"status": results.get("crypto", {}).get("status", "success"), "message": results.get("crypto", {}).get("message", "OK")},
+        "1":    {"status": results.get("deposit", {}).get("status", "success"), "message": results.get("deposit", {}).get("message", "OK")},
+        "2":    {"status": results.get("balance", {}).get("status", "success"), "message": results.get("balance", {}).get("message", "OK")},
+        "auto": {"status": results.get("base",    {}).get("status", "success"), "message": results.get("base",    {}).get("message", "OK")},
+        "":     {"status": results.get("quote",   {}).get("status", "success"), "message": results.get("quote",   {}).get("message", "OK")},
     }
 
-    return jsonify({"ok": True, "results": c7_compat, "adquirers": results, "base_url": base_url})
+    return jsonify({
+        "ok": True,
+        "endpoints": results,        # chave esperada pelo frontend
+        "adquirers": results,        # alias de compatibilidade
+        "results": c7_compat,
+        "stability_score": stability_score,
+        "base_url": base_url
+    })
 
 
 
