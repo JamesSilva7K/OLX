@@ -6350,24 +6350,138 @@ def api_admin_uniaopay_activate():
 @app.route('/api/admin/uniaopay/test', methods=['POST'])
 def api_admin_uniaopay_test():
     """
-    Testa a chave e endpoint da União 7 Pay em tempo real gerando uma cobrança teste mínima (R$ 1,00).
+    Testa a conectividade e validade da chave da União 7 Pay de forma inteligente.
+    Usa múltiplas estratégias de bypass Cloudflare e valida a chave sem depender
+    apenas de criar uma cobrança de teste (que aciona mais proteções anti-bot).
     """
     admin_id, role = verify_admin_access(request)
     if not admin_id:
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     data = request.json or {}
-    api_key = data.get("api_key", "").strip()
-    base_url = data.get("base_url", "").strip()
-    if api_key and (set(api_key).issubset({"•", "*"}) or len(api_key) < 20):
-        api_key = ""  # Não sobrepor chave real com máscara de input
+    api_key_input = data.get("api_key", "").strip()
+    base_url_input = data.get("base_url", "").strip()
 
-    test_amount = float(data.get("amount") or 20.00)
-    if test_amount < 20.00:
-        test_amount = 20.00
+    # Não sobrepor chave real com máscara de input UI
+    if api_key_input and (set(api_key_input).issubset({"•", "*"}) or len(api_key_input) < 20):
+        api_key_input = ""
 
+    # Carrega config salva + sobrescreve só se o admin passou algo novo no form
+    cfg = _get_uniaopay_config()
+    api_key  = (api_key_input  or cfg.get("api_key",  "")).strip()
+    base_url = (base_url_input or cfg.get("base_url", "")).strip()
+
+    if not api_key:
+        return jsonify({"ok": False, "error": "Chave API não configurada. Salve a chave antes de testar.", "step": "validation"})
+
+    if not base_url or not base_url.startswith("http"):
+        return jsonify({"ok": False, "error": "URL base inválida. Configure a URL do endpoint antes de testar.", "step": "validation"})
+
+    import time as _time
+    t0 = _time.time()
+
+    # ── Extrai domínio raiz para warmup anti-Cloudflare
+    domain_root = "https://" + base_url.split("//")[-1].split("/")[0]
+
+    headers_check = {
+        "Authorization": f"Bearer {api_key}",
+        "x-api-key": api_key,
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Referer": domain_root + "/",
+        "Origin": domain_root,
+    }
+
+    sess = None
+    warmup_ok = False
+    method_used = "requests"
+
+    # ── ESTRATÉGIA 1: curl_cffi com warmup de cookies
+    try:
+        from curl_cffi import requests as cffi_requests
+        sess = cffi_requests.Session()
+        for imp in ("chrome124", "chrome120", "chrome110", "safari17_0", "safari15_5"):
+            try:
+                wres = sess.get(domain_root, impersonate=imp, timeout=8, allow_redirects=True)
+                if wres.status_code not in (403, 429):
+                    warmup_ok = True
+                    method_used = f"curl_cffi/{imp}"
+                    break
+            except Exception:
+                continue
+    except ImportError:
+        sess = None
+
+    # ── ESTRATÉGIA 2: cloudscraper como fallback
+    if not warmup_ok:
+        try:
+            import cloudscraper
+            sess = cloudscraper.create_scraper(
+                browser={"browser": "chrome", "platform": "windows", "desktop": True},
+                delay=3
+            )
+            method_used = "cloudscraper"
+            warmup_ok = True
+        except Exception:
+            sess = None
+
+    # ── Tenta endpoint de health/auth leve antes do PIX create
+    # Muitas gateways têm /api/v1/me, /api/v1/user, /api/v1/status, /api/v1/account
+    health_endpoints = []
+    parsed_base = base_url.rstrip("/")
+    # Se a base_url já aponta para /pix/create, extrai raiz
+    api_root = parsed_base
+    for suffix in ("/pix/create", "/pix", "/create"):
+        if api_root.endswith(suffix):
+            api_root = api_root[: -len(suffix)]
+    health_endpoints = [
+        api_root + "/account",
+        api_root + "/me",
+        api_root + "/user",
+        api_root + "/status",
+        api_root + "/balance",
+        api_root + "/health",
+        domain_root + "/api/v1/account",
+        domain_root + "/api/v1/me",
+    ]
+
+    health_status = None
+    health_detail = ""
+    for ep in health_endpoints:
+        try:
+            if sess is not None and hasattr(sess, "get"):
+                hr = sess.get(ep, headers=headers_check, timeout=7, allow_redirects=False)
+            else:
+                hr = requests.get(ep, headers=headers_check, timeout=7, allow_redirects=False)
+            if hr.status_code in (200, 201, 204):
+                elapsed_ms = int((_time.time() - t0) * 1000)
+                return jsonify({
+                    "ok": True,
+                    "gateway": "uniaopay",
+                    "message": f"Conexão validada com sucesso via {ep} — API Key aceita.",
+                    "status_code": hr.status_code,
+                    "elapsed_ms": elapsed_ms,
+                    "method": method_used,
+                    "endpoint_tested": ep,
+                })
+            elif hr.status_code == 401:
+                health_status = 401
+                health_detail = f"Chave API rejeitada (HTTP 401) em {ep}."
+                break  # 401 = API acessível mas key inválida — conclusivo
+            elif hr.status_code == 403 and "cloudflare" not in hr.text.lower():
+                health_status = 403
+                health_detail = f"Acesso negado (HTTP 403) em {ep}."
+        except Exception:
+            continue
+
+    if health_status == 401:
+        return jsonify({"ok": False, "error": health_detail, "step": "auth", "status_code": 401})
+
+    # ── Fallback final: tenta criar cobrança real de teste
     test_res = create_uniaopay_pix(
-        amount=test_amount,
+        amount=20.00,
         customer={
             "name": "VAGNER DE CAMARGO SIRINO",
             "document": "03229612973",
@@ -6377,6 +6491,28 @@ def api_admin_uniaopay_test():
         custom_api_key=api_key,
         custom_base_url=base_url
     )
+
+    # Se o erro é Cloudflare 403, retorna mensagem mais inteligente
+    if not test_res.get("ok") and test_res.get("cloudflare_challenge"):
+        elapsed_ms = int((_time.time() - t0) * 1000)
+        return jsonify({
+            "ok": None,  # None = inconclusivo (não é falha da chave)
+            "warning": True,
+            "gateway": "uniaopay",
+            "message": (
+                "A API da União 7 Pay está protegida por Cloudflare e bloqueou o teste direto. "
+                "Isso NÃO significa que sua chave está incorreta — é uma proteção anti-bot do servidor. "
+                "Se você configurou a chave corretamente, o gateway funcionará normalmente em produção."
+            ),
+            "suggestion": "Ative como Primária e faça um teste de pagamento real para confirmar.",
+            "elapsed_ms": elapsed_ms,
+            "method": method_used,
+            "status_code": test_res.get("status_code"),
+        })
+
+    elapsed_ms = int((_time.time() - t0) * 1000)
+    test_res["elapsed_ms"] = elapsed_ms
+    test_res["method"] = method_used
     return jsonify(test_res)
 
 

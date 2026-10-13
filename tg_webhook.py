@@ -582,6 +582,7 @@ def notify_admin_access(admin_id: int, role: str, ip: str, user_agent: str):
 def create_tenant_product(tg_id: int, title: str, price: str, old_price="", description="", image_url="",
                           image1="", image2="", image3="", product_code="", shipping_mode="full", shipping_fee="19.90",
                           shipping_coupon="", coupon_active=1, coupon_only_shipping=1, coupon_discount_value="",
+                          coupon_discount_mode="pct",
                           seller_name="", seller_since="", seller_avatar="",
                           det_category="", det_brand="", det_model="", det_condition="", det_memory="",
                           det_color="", payment_badges="", breadcrumb_zone="",
@@ -628,9 +629,9 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
 
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at, seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time(), seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, coupon_discount_mode, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at, seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, coupon_discount_mode or 'pct', seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time(), seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at))
     conn.commit(); conn.close()
     return code
 
@@ -642,6 +643,7 @@ def get_tenant_products(tg_id: int):
                COALESCE(coupon_active, 1) AS coupon_active,
                COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
                COALESCE(coupon_discount_value, '') AS coupon_discount_value,
+               COALESCE(coupon_discount_mode, 'pct') AS coupon_discount_mode,
                seller_name, seller_since, COALESCE(seller_avatar, '') AS seller_avatar,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
@@ -660,6 +662,7 @@ def get_product_by_code(code: str, tg_id: int = None):
                COALESCE(coupon_active, 1) AS coupon_active,
                COALESCE(coupon_only_shipping, 1) AS coupon_only_shipping,
                COALESCE(coupon_discount_value, '') AS coupon_discount_value,
+               COALESCE(coupon_discount_mode, 'pct') AS coupon_discount_mode,
                seller_name, seller_since, COALESCE(seller_avatar, '') AS seller_avatar,
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
@@ -692,7 +695,7 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
     ALLOWED = {"title", "price", "old_price", "description", "image_url",
                "image1", "image2", "image3", "shipping_mode", "shipping_fee",
                "shipping_coupon", "coupon_active", "coupon_only_shipping",
-               "coupon_discount_value", "seller_name", "seller_since", "seller_avatar",
+               "coupon_discount_value", "coupon_discount_mode", "seller_name", "seller_since", "seller_avatar",
                "det_category", "det_brand", "det_model", "det_condition", "det_memory", "det_color",
                "payment_badges", "breadcrumb_zone", "seller_sales_completed", "seller_sales_canceled", "seller_dispatch_time", "seller_rating", "seller_reviews", "seller_level", "seller_email_verified", "seller_phone_verified", "seller_id_verified", "seller_fb_verified", "seller_fb_url", "product_published_at"}
     updates = {}
@@ -790,18 +793,20 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
 
 
     only_ship = int(product.get("coupon_only_shipping", 1) or 0)
+    disc_mode = str(product.get("coupon_discount_mode", "pct") or "pct").strip().lower()
 
     # Fallback inteligente: se o modo nao e shipping_only mas coupon_discount_value esta vazio/zero,
-    # trata automaticamente como shipping_only para evitar desconto R$ 0,00
+    # trata automaticamente como shipping_only para evitar desconto R$ 0,00 — mas SOMENTE para modo fixo.
+    # No modo porcentagem, qualquer valor > 0 já é válido.
     if not only_ship:
         try:
-            _dv = str(product.get("coupon_discount_value", "") or "").replace("R$", "").strip()
+            _dv = str(product.get("coupon_discount_value", "") or "").replace("R$", "").replace("%", "").strip()
             _dv_f = float(_dv.replace(",", ".")) if _dv else 0.0
         except:
             _dv_f = 0.0
         if _dv_f <= 0:
-            only_ship = 1  # fallback automatico: evita mostrar desconto R$ 0,00
-    
+            only_ship = 1  # fallback automatico: evita mostrar desconto R$ 0,00 ou 0%
+
     if only_ship:
         discount_val = orig_price
         final_val = ship_fee
@@ -809,21 +814,31 @@ def validate_product_coupon(product_code: str, coupon_code: str, slug: str = Non
         shipping_only = True
     else:
         try:
-            raw_disc = str(product.get("coupon_discount_value", "0")).replace("R$", "").strip()
+            raw_disc = str(product.get("coupon_discount_value", "0")).replace("R$", "").replace("%", "").strip()
             if "." in raw_disc and "," in raw_disc:
                 raw_disc = raw_disc.replace(".", "").replace(",", ".")
             elif "," in raw_disc:
                 raw_disc = raw_disc.replace(",", ".")
-            disc_amount = float(raw_disc)
+            disc_raw = float(raw_disc)
         except:
-            disc_amount = 0.0
+            disc_raw = 0.0
+
+        if disc_mode == "pct":
+            # Porcentagem: ex: 15 = 15% de desconto no produto
+            pct = min(max(disc_raw, 0.0), 100.0)
+            disc_amount = round(orig_price * pct / 100.0, 2)
+            label = f"{pct:.0f}% de desconto"
+        else:
+            # Valor fixo em R$
+            disc_amount = min(disc_raw, orig_price)
+            label = f"R$ {disc_amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
         if disc_amount > orig_price:
             disc_amount = orig_price
 
         discount_val = disc_amount
-        final_val = (orig_price - discount_val) + ship_fee
-        msg = f"Cupom {coupon_input} aplicado com sucesso! Desconto de R$ {discount_val:,.2f} no produto.".replace(",", "X").replace(".", ",").replace("X", ".")
+        final_val = max((orig_price - discount_val) + ship_fee, ship_fee)
+        msg = f"Cupom {coupon_input} aplicado! {label} no produto — valor final R$ {final_val:,.2f}.".replace(",", "X").replace(".", ",").replace("X", ".")
         shipping_only = False
 
     return {
