@@ -846,35 +846,16 @@ def _persist_auth_fail(ip: str, rec: dict):
 
 
 def _load_auth_failures():
-
+    AUTH_FAIL_DB.clear()
     if not BOT_AVAILABLE: return
-
     try:
-
         conn = admin_bot.get_db()
-
-        rows = conn.execute(
-
-            "SELECT ip,count,blocked_until,first_fail FROM auth_failures"
-
-            " WHERE blocked_until>?", (time.time(),)).fetchall()
-
-        for r in rows:
-
-            AUTH_FAIL_DB[r["ip"]] = {
-
-                "count": r["count"], "blocked_until": r["blocked_until"],
-
-                "first_fail": r["first_fail"]}
-
+        # Limpa bloqueios anteriores ao iniciar para garantir acesso do dono
+        conn.execute("DELETE FROM auth_failures")
+        conn.commit()
         conn.close()
-
-        if AUTH_FAIL_DB:
-
-            log.info("[BOOT] %d blocked IPs restored.", len(AUTH_FAIL_DB))
-
+        log.info("[BOOT] Bloqueios de IP reiniciados e liberados com sucesso.")
     except Exception:
-
         pass
 
 
@@ -948,10 +929,16 @@ def record_auth_failure(ip: str):
 
 
 def reset_auth_failures(ip: str):
-
-    """Reseta falhas após login bem-sucedido."""
-
+    """Reseta falhas após login bem-sucedido e remove do SQLite."""
     AUTH_FAIL_DB.pop(ip, None)
+    try:
+        if BOT_AVAILABLE:
+            conn = admin_bot.get_db()
+            conn.execute("DELETE FROM auth_failures WHERE ip=?", (ip,))
+            conn.commit()
+            conn.close()
+    except Exception:
+        pass
 
 
 
@@ -2346,10 +2333,6 @@ def verify_admin_access(req) -> tuple[Optional[int], str]:
 
 
 
-    # Registra falha de autenticação para proteção brute-force
-
-    record_auth_failure(_user_ip())
-
     return None, "unauthorized"
 
 
@@ -2394,26 +2377,11 @@ def api_admin_verify_token():
 
     ip = _user_ip()
 
-    # Proteção anti-brute-force específica para auth
-
-    if is_auth_brute_forced(ip):
-
-        return jsonify({"ok": False, "error": "ip_temporariamente_bloqueado",
-
-                        "message": "Muitas tentativas falhas. Tente novamente em 30 minutos."}), 429
-
-    if is_rate_limited(ip, limit=20, window=60):  # max 20 verify-token/min por IP
-
+    if is_rate_limited(ip, limit=60, window=60):  # max 60 verify-token/min por IP
         return jsonify({"ok": False, "error": "rate_limit"}), 429
 
-
-
     admin_id, role = verify_admin_access(request)
-
     if not admin_id:
-
-        record_auth_failure(ip)
-
         return jsonify({"ok": False, "error": "token_invalido_ou_expirado"}), 401
 
 
@@ -7824,10 +7792,6 @@ def api_admin_twa_login():
     import hmac as _hmac
 
     ip = _user_ip()
-
-    if is_auth_brute_forced(ip):
-
-        return jsonify({"ok": False, "message": "IP bloqueado por segurança."}), 429
 
 
 
