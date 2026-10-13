@@ -92,14 +92,37 @@ def send_confirmation_email(to_email: str, subject: str = "Confirmação de Comp
             except Exception as e:
                 print(f"[ERRO] Falha ao anexar imagem {filename}: {e}")
 
+    # 2. Conexão SMTP com blindagem de porta (465 SSL primária para evitar bloqueio da 587, com fallback para 587)
+    smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 465))
+
+    # Tentativa primária: Porta 465 (SSL direto)
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)
-        server.starttls()
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, 465, timeout=10)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
+            server.starttls()
+            
         server.login(GMAIL_SENDER, GMAIL_PASSWORD)
         server.sendmail(GMAIL_SENDER, to_email, msg.as_string())
         server.quit()
-        print(f"[OK] Email enviado com sucesso via SMTP para {to_email}.")
+        print(f"[OK] Email enviado com sucesso via SMTP ({smtp_port}) para {to_email}.")
         return True
-    except Exception as e:
-        print(f"[ERRO] Erro ao enviar via SMTP: {e}")
-        return False
+    except Exception as e_primary:
+        print(f"[WARN] Falha no envio SMTP pela porta {smtp_port}: {e_primary}. Tentando porta alternativa...")
+        try:
+            alt_port = 587 if smtp_port == 465 else 465
+            if alt_port == 465:
+                server = smtplib.SMTP_SSL(smtp_server, 465, timeout=10)
+            else:
+                server = smtplib.SMTP(smtp_server, 587, timeout=10)
+                server.starttls()
+            server.login(GMAIL_SENDER, GMAIL_PASSWORD)
+            server.sendmail(GMAIL_SENDER, to_email, msg.as_string())
+            server.quit()
+            print(f"[OK] Email enviado com sucesso via SMTP ({alt_port}) para {to_email}.")
+            return True
+        except Exception as e_sec:
+            print(f"[ERRO] Erro ao enviar via SMTP (portas 465 e 587 falharam): {e_sec}")
+            return False

@@ -1217,16 +1217,13 @@ def validate_request_security():
 
     
 
-    # Bloqueia bots conhecidos e crawlers automatizados
+    # Bloqueia bots maliciosos e crawlers automatizados
+    # Exceções críticas: webhooks de pagamento (ElitePay/C7, União 7 Pay, etc.) e rotas do Telegram (/tg/)
+    _waf_bypass_paths = ('/api/webhook/pix', '/api/webhook/uniaopay', f'/tg/{_TG_WEBHOOK_SECRET}', '/tg/callback', '/tg/login')
 
-    # Exceções: webhook do Telegram (/tg/) e webhook de pagamento C7
-
-    _waf_bypass_paths = ('/api/webhook/pix', f'/tg/{_TG_WEBHOOK_SECRET}', '/tg/callback', '/tg/login')
-
-    if is_bot_request(ua) and request.path not in _waf_bypass_paths and not request.path.startswith('/tg/'):
-
+    is_wh_route = request.path.startswith('/api/webhook') or request.path.startswith('/tg/')
+    if is_bot_request(ua) and request.path not in _waf_bypass_paths and not is_wh_route:
         _log("SECURITY_BLOCKED_BOT", str(uuid.uuid4()), {"ip": ip, "ua": ua, "reason": "Bot/Crawler User-Agent detected"})
-
         return jsonify({"error": "Access denied for automated agents."}), 403
 
 
@@ -9426,7 +9423,7 @@ def fix_bot_menu():
 
     try:
 
-        r = requests.post(url, json=payload)
+        r = requests.post(url, json=payload, timeout=10)
 
         return jsonify(r.json())
 
@@ -9451,10 +9448,9 @@ except Exception as _boot_e:
 
 
 if __name__ == '__main__':
-
-    print("[+] OLPG Hardened Platform running securely on http://127.0.0.1:5000")
-
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", 5000))
     debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
-
-    app.run(host='127.0.0.1', port=5000, debug=debug_mode)
+    print(f"[+] OLPG Hardened Platform running securely on http://{host}:{port}")
+    app.run(host=host, port=port, debug=debug_mode)
 
