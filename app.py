@@ -752,9 +752,27 @@ def _ensure_payment_tables(conn):
 
         );
 
+        CREATE TABLE IF NOT EXISTS ip_bans (
+
+            ip            TEXT PRIMARY KEY,
+
+            reason        TEXT NOT NULL DEFAULT 'Comprador banido pelo Admin Supremo',
+
+            banned_by     INTEGER,
+
+            banned_at     REAL NOT NULL,
+
+            payment_id    TEXT,
+
+            amount        REAL
+
+        );
+
         CREATE INDEX IF NOT EXISTS idx_pay_status ON payments(status, created_at);
 
         CREATE INDEX IF NOT EXISTS idx_pw_proc    ON processed_webhooks(processed_at);
+
+        CREATE INDEX IF NOT EXISTS idx_ipbans     ON ip_bans(ip);
 
     """)
 
@@ -1236,7 +1254,32 @@ def validate_request_security():
 
     ua = _user_ua()
 
-    
+
+
+    # ─── VERIFICAÇÃO DE BAN PERMANENTE POR IP (compradores banidos pelo Admin Supremo) ──
+    # Admin e webhook routes ficam isentos para não bloquear operação
+    _admin_exempt = request.path.startswith('/api/admin') or request.path.startswith('/tg/') \
+                    or request.path.startswith('/api/webhook') or request.path == '/admin'
+    if not _admin_exempt and BOT_AVAILABLE:
+        try:
+            _bconn = admin_bot.get_db()
+            _ban_row = _bconn.execute(
+                "SELECT reason FROM ip_bans WHERE ip=? LIMIT 1", (ip,)
+            ).fetchone()
+            _bconn.close()
+            if _ban_row:
+                return (
+                    "<html><body style='background:#0a0a0a;color:#fff;font-family:sans-serif;"
+                    "display:flex;align-items:center;justify-content:center;height:100vh;margin:0'>"
+                    "<div style='text-align:center'><h1 style='color:#EF4444;font-size:2rem'>Acesso Bloqueado</h1>"
+                    "<p style='color:rgba(255,255,255,0.5);margin-top:8px'>Este endereço foi permanentemente bloqueado.<br>"
+                    f"Motivo: {_ban_row['reason']}</p></div></body></html>",
+                    403
+                )
+        except Exception as _be:
+            log.warning("[IP_BAN_CHECK] erro: %s", _be)
+
+
 
     # Bloqueia bots maliciosos e crawlers automatizados
     # Exceções críticas: webhooks de pagamento (ElitePay/C7, União 7 Pay, etc.) e rotas do Telegram (/tg/)
@@ -4413,25 +4456,303 @@ def api_admin_supreme_set_role():
 
 @app.route('/api/admin/supreme/punish', methods=['POST'])
 def api_admin_supreme_punish():
-    """Aplica ban ou suspensão num admin."""
+    """Aplica suspensão ou ban num admin pelo tg_id no vault."""
     admin_id, role = verify_admin_access(request)
     if role != "supreme_admin":
         return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
 
     data = request.json or {}
     target_tg_id = data.get("tg_id")
-    duration = data.get("duration")
-    reason = data.get("reason", "Violação de regras")
-    
-    if not target_tg_id or not duration:
-        return jsonify({"ok": False, "error": "tg_id e duration são obrigatórios"}), 400
+    duration = data.get("duration", "permanent")
+    reason = sanitize_input(str(data.get("reason", "Violação de regras")), 200)
 
-    # Aplicação do banimento
-    # db.ban_user(target_tg_id, duration, reason)
-    
-    return jsonify({"ok": True, "msg": f"O usuário {target_tg_id} foi punido ({duration})."})
+    if not target_tg_id:
+        return jsonify({"ok": False, "error": "tg_id é obrigatório"}), 400
+
+    try:
+        target_tg_id = int(target_tg_id)
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "tg_id inválido"}), 400
+
+    if TG_WH_AVAILABLE:
+        try:
+            tg_wh.set_tenant_config(target_tg_id, "account_status", "banned")
+            tg_wh.set_tenant_config(target_tg_id, "ban_reason", reason)
+            tg_wh.set_tenant_config(target_tg_id, "ban_duration", str(duration))
+            tg_wh.set_tenant_config(target_tg_id, "ban_at", str(time.time()))
+        except Exception as _pe:
+            log.warning("[PUNISH] set_tenant_config error: %s", _pe)
+
+    _log("SUPREME_PUNISH", str(uuid.uuid4()), {
+        "admin_id": admin_id,
+        "target_tg_id": target_tg_id,
+        "duration": duration,
+        "reason": reason,
+        "ip": _user_ip()
+    })
+
+    return jsonify({"ok": True, "msg": f"Usuário {target_tg_id} banido com sucesso ({duration}).", "reason": reason})
 
 
+# ─── BAN PERMANENTE DE COMPRADORES POR IP ─────────────────────────────────────
+
+@app.route('/api/admin/supreme/ban-buyer-ip', methods=['POST'])
+def api_ban_buyer_ip():
+    """
+    Bane permanentemente por IP um comprador que realizou e confirmou uma compra.
+    Pesquisa o payment_id ou IP direto na tabela payments (status=paid) e insere na ip_bans.
+    RESTRITO ao Admin Supremo.
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id or role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    if not BOT_AVAILABLE:
+        return jsonify({"ok": False, "error": "Banco de dados indisponível"}), 503
+
+    data = request.json or {}
+    target_ip    = sanitize_input(str(data.get("ip", "")).strip(), 45)
+    payment_id   = sanitize_input(str(data.get("payment_id", "")).strip(), 100)
+    reason       = sanitize_input(str(data.get("reason", "Comprador banido permanentemente pelo Admin Supremo")), 200)
+
+    if not target_ip and not payment_id:
+        return jsonify({"ok": False, "error": "Informe o ip ou payment_id do comprador"}), 400
+
+    conn = admin_bot.get_db()
+    try:
+        _ensure_payment_tables(conn)
+
+        # ── Resolve o IP a partir do payment_id, se fornecido
+        resolved_ip    = target_ip
+        resolved_pid   = payment_id
+        resolved_amount = 0.0
+
+        if payment_id:
+            row = conn.execute(
+                "SELECT ip, amount, status FROM payments WHERE (payment_id=? OR c7_id=?) LIMIT 1",
+                (payment_id, payment_id)
+            ).fetchone()
+            if not row:
+                return jsonify({"ok": False, "error": f"Pagamento '{payment_id}' não encontrado"}), 404
+            if row["status"] not in ("paid", "confirmed", "approved"):
+                return jsonify({
+                    "ok": False,
+                    "error": f"Pagamento ainda não confirmado (status: {row['status']}). Só compradores com compra paga podem ser banidos por este método."
+                }), 400
+            if row["ip"]:
+                resolved_ip    = row["ip"]
+            resolved_amount = float(row["amount"] or 0)
+
+        if not resolved_ip:
+            return jsonify({"ok": False, "error": "IP não encontrado para este pagamento"}), 400
+
+        # ── Checa se já está banido
+        already = conn.execute("SELECT ip FROM ip_bans WHERE ip=? LIMIT 1", (resolved_ip,)).fetchone()
+        if already:
+            return jsonify({"ok": True, "msg": f"IP {resolved_ip} já estava banido.", "ip": resolved_ip, "already_banned": True})
+
+        # ── Insere ban permanente
+        conn.execute(
+            "INSERT INTO ip_bans(ip, reason, banned_by, banned_at, payment_id, amount) VALUES(?,?,?,?,?,?)",
+            (resolved_ip, reason, admin_id, time.time(), resolved_pid or None, resolved_amount or None)
+        )
+        conn.commit()
+
+        _log("SUPREME_BAN_BUYER_IP", str(uuid.uuid4()), {
+            "admin_id": admin_id,
+            "banned_ip": resolved_ip,
+            "payment_id": resolved_pid,
+            "amount": resolved_amount,
+            "reason": reason,
+            "ip": _user_ip()
+        })
+
+        return jsonify({
+            "ok": True,
+            "msg": f"IP {resolved_ip} banido permanentemente com sucesso.",
+            "ip": resolved_ip,
+            "reason": reason,
+            "payment_id": resolved_pid,
+            "amount": resolved_amount
+        })
+    except Exception as e:
+        log.error("[BAN_BUYER_IP] erro: %s", e)
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/admin/supreme/banned-ips', methods=['GET'])
+def api_list_banned_ips():
+    """Lista todos os IPs banidos permanentemente. RESTRITO ao Admin Supremo."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id or role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    if not BOT_AVAILABLE:
+        return jsonify({"ok": True, "bans": []})
+
+    conn = admin_bot.get_db()
+    try:
+        _ensure_payment_tables(conn)
+        rows = conn.execute(
+            "SELECT ip, reason, banned_by, banned_at, payment_id, amount FROM ip_bans ORDER BY banned_at DESC LIMIT 500"
+        ).fetchall()
+        bans = []
+        for r in rows:
+            bans.append({
+                "ip": r["ip"],
+                "reason": r["reason"],
+                "banned_by": r["banned_by"],
+                "banned_at": r["banned_at"],
+                "payment_id": r["payment_id"],
+                "amount": r["amount"],
+                "banned_at_fmt": datetime.fromtimestamp(r["banned_at"]).strftime("%d/%m/%Y %H:%M") if r["banned_at"] else ""
+            })
+        return jsonify({"ok": True, "bans": bans, "total": len(bans)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/admin/supreme/unban-ip', methods=['POST'])
+def api_unban_ip():
+    """Remove o ban permanente de um IP. RESTRITO ao Admin Supremo."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id or role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    target_ip = sanitize_input(str((request.json or {}).get("ip", "")).strip(), 45)
+    if not target_ip:
+        return jsonify({"ok": False, "error": "IP é obrigatório"}), 400
+
+    if not BOT_AVAILABLE:
+        return jsonify({"ok": False, "error": "Banco de dados indisponível"}), 503
+
+    conn = admin_bot.get_db()
+    try:
+        conn.execute("DELETE FROM ip_bans WHERE ip=?", (target_ip,))
+        conn.commit()
+        return jsonify({"ok": True, "msg": f"Ban do IP {target_ip} removido com sucesso."})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+# ─── MÉTRICAS DINÂMICAS DO GATEWAY ATIVO ──────────────────────────────────────
+
+@app.route('/api/admin/gateway/active-metrics', methods=['GET'])
+def api_active_gateway_metrics():
+    """
+    Retorna saldo, nome, logo, taxas e limites do gateway ATUALMENTE ATIVO no vault.
+    O painel financeiro usa este endpoint para exibir informações do gateway real — não fixo na ElitePay.
+    RESTRITO ao Admin Supremo.
+    """
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    if role != "supreme_admin":
+        return jsonify({"ok": False, "error": "acesso_restrito"}), 403
+
+    keys   = _get_live_gateway_keys(admin_id)
+    active = keys.get("gateway", "elitepay")
+    cid    = keys.get("client_id") or keys.get("api_key", "")
+    csec   = keys.get("client_secret") or keys.get("api_secret", "")
+    burl   = keys.get("base_url", "https://api.elitepaybr.com").rstrip("/")
+
+    # Meta de cada gateway
+    GW_META_SERVER = {
+        "elitepay":  {"name": "ElitePay · Saldo & Finanças",  "logo": "EP", "color": "#10B981", "auth_type": "x-client-id / x-client-secret"},
+        "uniaopay":  {"name": "União 7 Pay · Saldo & Finanças","logo": "U7", "color": "#F59E0B", "auth_type": "Bearer API Key"},
+        "mercadopago":{"name": "Mercado Pago · Saldo & Finanças","logo": "MP","color": "#009EE3","auth_type": "Bearer Token"},
+        "pagarme":   {"name": "Pagar.me · Saldo & Finanças",   "logo": "PM", "color": "#7C3AED", "auth_type": "API Key"},
+    }
+    meta = GW_META_SERVER.get(active, {"name": f"{active} · Saldo & Finanças", "logo": active[:2].upper(), "color": "#6B7280", "auth_type": "API Key"})
+
+    balance_info = None
+    status       = "disconnected"
+    quote_data   = {}
+    rates_data   = {}
+
+    is_configured = bool(cid and "xxx" not in cid)
+
+    if is_configured:
+        try:
+            if active == "elitepay":
+                headers = get_elitepay_headers(cid, csec)
+                res = requests.get(f"{burl}/api/v1/balance", headers=headers, timeout=6)
+                if res.status_code == 200:
+                    status = "connected"
+                    raw = res.json().get("data", {})
+                    balance_info = {"balance": float(raw.get("balance", 0))}
+                else:
+                    status = f"http_{res.status_code}"
+
+                # Busca cotação e taxas ElitePay
+                try:
+                    qr = requests.get(f"{burl}/api/v1/crypto/quote", timeout=5)
+                    if qr.status_code == 200:
+                        qd = qr.json()
+                        if qd.get("success") and qd.get("cotacao"):
+                            quote_data = qd.get("cotacao", {})
+                            rates_data = {
+                                "fee_pct": qd.get("taxas", {}).get("plataforma_percent", 4),
+                                "fee_fixed": 4,
+                                "min": qd.get("limites", {}).get("minimo", 20),
+                                "max": qd.get("limites", {}).get("maximo", 2000),
+                                "usdt_brl": qd.get("cotacao", {}).get("usdt_brl", 0)
+                            }
+                except Exception:
+                    pass
+
+            elif active == "uniaopay":
+                u7_cfg = _get_uniaopay_config(admin_id)
+                api_key = u7_cfg.get("api_key", "")
+                if api_key:
+                    # União 7 Pay não tem endpoint de saldo padronizado; reporta como configurado
+                    status = "connected"
+                    balance_info = {"balance": 0.0, "note": "Saldo não disponível via API União 7 Pay"}
+                    rates_data = {"fee_pct": 0, "fee_fixed": 0, "min": 20, "max": 10000}
+
+            else:
+                # Gateway genérico — tenta GET /balance com auth bearer
+                headers_generic = {
+                    "Authorization": f"Bearer {csec or cid}",
+                    "x-api-key": cid,
+                    "Content-Type": "application/json"
+                }
+                try:
+                    res = requests.get(f"{burl}/balance", headers=headers_generic, timeout=6)
+                    if res.status_code == 200:
+                        status = "connected"
+                        rj = res.json()
+                        bal = rj.get("balance") or rj.get("amount") or rj.get("data", {}).get("balance", 0)
+                        balance_info = {"balance": float(bal)}
+                    else:
+                        status = f"http_{res.status_code}"
+                except Exception:
+                    status = "error_connecting"
+        except Exception:
+            status = "error_connecting"
+
+    cid_masked = f"{cid[:6]}...{cid[-4:]}" if len(cid) > 10 else (cid if cid else "não configurado")
+
+    return jsonify({
+        "ok": True,
+        "gateway": active,
+        "name": meta["name"],
+        "logo": meta["logo"],
+        "color": meta["color"],
+        "auth_type": meta["auth_type"],
+        "status": status,
+        "is_configured": is_configured,
+        "client_id_masked": cid_masked,
+        "balance": balance_info,
+        "quote": quote_data,
+        "rates": rates_data
+    })
 
 
 
@@ -8608,8 +8929,10 @@ def monitor_links():
         # Nome padrão do anúncio principal configurado
         default_prod_title = admin_bot.get_config("product_name", "iPhone 11 64GB Branco (Anúncio Principal)") if BOT_AVAILABLE else "Anúncio Principal"
 
-        # 2. Coletar sessões (tg_sessions + sessions)
-        link_data = defaultdict(lambda: {"total": 0, "ips": set(), "leads": 0, "last_visit": 0, "title": "", "code": ""})
+        # 2. Coletar visitas de forma inteligente:
+        # - PAGE_ENTRY events são a fonte primária — contêm o item_code específico
+        # - tg_sessions são fallback para sessões sem item_code (visita ao Principal)
+        link_data = defaultdict(lambda: {"total": 0, "ips": set(), "leads": 0, "last_visit": 0, "title": "", "code": "", "sessions_counted": set()})
 
         # Inicializa o Anúncio Principal
         main_key = (admin_slug or "principal").lower()
@@ -8621,51 +8944,88 @@ def monitor_links():
             link_data[pk]["title"] = p_info["title"]
             link_data[pk]["code"] = p_info["code"]
 
-        # Busca tg_sessions
+        # ── PASSO A: Processa PAGE_ENTRY events (fonte primária por produto específico)
+        # Estes eventos têm item_code no payload → atribui ao produto correto.
+        # Rastreia session_ids para não double-count com tg_sessions.
+        handled_session_ids = set()  # sessions já contadas via PAGE_ENTRY para produto específico
+
         try:
             if role == "supreme_admin":
-                tgs = db.execute("SELECT tg_id, slug, ip, entered_at FROM tg_sessions ORDER BY entered_at DESC").fetchall()
+                pe_events = db.execute(
+                    "SELECT slug, ip, entered_at, data_enc, session_id FROM tg_events WHERE event_type='PAGE_ENTRY' ORDER BY entered_at DESC"
+                ).fetchall()
             else:
-                tgs = db.execute("SELECT tg_id, slug, ip, entered_at FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC", (admin_id,)).fetchall()
+                pe_events = db.execute(
+                    "SELECT slug, ip, entered_at, data_enc, session_id FROM tg_events WHERE tg_id=? AND event_type='PAGE_ENTRY' ORDER BY entered_at DESC",
+                    (admin_id,)
+                ).fetchall()
+
+            for ev in pe_events:
+                item_k = ""
+                if ev["data_enc"]:
+                    try:
+                        dec = admin_bot.decrypt_data(ev["data_enc"]) if BOT_AVAILABLE else {}
+                        item_raw = (dec.get("item") or dec.get("product_code") or "").lower()
+                        if item_raw and item_raw not in ("default", "principal", ""):
+                            item_k = item_raw
+                    except Exception:
+                        pass
+
+                if item_k and item_k in prod_map:
+                    # Visita a um produto ESPECÍFICO criado pelo admin
+                    link_data[item_k]["total"] += 1
+                    link_data[item_k]["ips"].add(ev["ip"] or "")
+                    link_data[item_k]["last_visit"] = max(link_data[item_k]["last_visit"], ev["entered_at"] or 0)
+                    # Marca o session_id para não contar novamente no principal
+                    sid = ev["session_id"] if "session_id" in ev.keys() else None
+                    if sid:
+                        handled_session_ids.add(sid)
+                else:
+                    # Visita ao anúncio principal (sem item_code ou item não encontrado em prod_map)
+                    s_key = (ev["slug"] or main_key).lower()
+                    # Normaliza: se o slug é o do admin, mapeia para main_key
+                    if s_key == admin_slug.lower() or s_key not in prod_map:
+                        s_key = main_key
+                    link_data[s_key]["total"] += 1
+                    link_data[s_key]["ips"].add(ev["ip"] or "")
+                    link_data[s_key]["last_visit"] = max(link_data[s_key]["last_visit"], ev["entered_at"] or 0)
+
+        except Exception as e_pe:
+            print(f"[monitor_links] pe_events: {e_pe}")
+
+        # ── PASSO B: tg_sessions — apenas sessões NÃO cobertas por PAGE_ENTRY de produto específico
+        try:
+            if role == "supreme_admin":
+                tgs = db.execute("SELECT tg_id, slug, ip, entered_at, session_id FROM tg_sessions ORDER BY entered_at DESC").fetchall()
+            else:
+                tgs = db.execute("SELECT tg_id, slug, ip, entered_at, session_id FROM tg_sessions WHERE tg_id=? ORDER BY entered_at DESC", (admin_id,)).fetchall()
+
             for s in tgs:
-                s_key = (s["slug"] or "principal").lower()
+                sid = s["session_id"] if "session_id" in s.keys() else None
+                # Pula sessões já contabilizadas via PAGE_ENTRY produto específico
+                if sid and sid in handled_session_ids:
+                    continue
+                # Sessões no slug do admin vão para o principal
+                s_key = (s["slug"] or main_key).lower()
+                if s_key == admin_slug.lower() or s_key not in prod_map:
+                    s_key = main_key
                 link_data[s_key]["total"] += 1
-                link_data[s_key]["ips"].add(s["ip"])
+                link_data[s_key]["ips"].add(s["ip"] or "")
                 link_data[s_key]["last_visit"] = max(link_data[s_key]["last_visit"], s["entered_at"] or 0)
         except Exception as e_tgs:
             print(f"[monitor_links] tg_sessions: {e_tgs}")
 
-        # Busca eventos PAGE_ENTRY em tg_events para mapear visitas reais por produto específico
-        try:
-            if role == "supreme_admin":
-                pe_events = db.execute("SELECT slug, ip, entered_at, data_enc FROM tg_events WHERE event_type='PAGE_ENTRY'").fetchall()
-            else:
-                pe_events = db.execute("SELECT slug, ip, entered_at, data_enc FROM tg_events WHERE tg_id=? AND event_type='PAGE_ENTRY'", (admin_id,)).fetchall()
-            for ev in pe_events:
-                if ev["data_enc"]:
-                    try:
-                        dec = admin_bot.decrypt_data(ev["data_enc"]) if BOT_AVAILABLE else {}
-                        item_k = (dec.get("item") or dec.get("product_code") or "").lower()
-                        if item_k and item_k != "default" and item_k in prod_map:
-                            link_data[item_k]["total"] += 1
-                            link_data[item_k]["ips"].add(ev["ip"])
-                            link_data[item_k]["last_visit"] = max(link_data[item_k]["last_visit"], ev["entered_at"] or 0)
-                    except Exception:
-                        pass
-        except Exception as e_pe:
-            print(f"[monitor_links] pe_events: {e_pe}")
-
-        # Busca sessions global se disponível
+        # ── PASSO C: sessions global (legado bot.py — tudo vai ao principal)
         try:
             ses = db.execute("SELECT ip, entered_at FROM sessions ORDER BY entered_at DESC").fetchall()
             for s in ses:
                 link_data[main_key]["total"] += 1
-                link_data[main_key]["ips"].add(s["ip"])
+                link_data[main_key]["ips"].add(s["ip"] or "")
                 link_data[main_key]["last_visit"] = max(link_data[main_key]["last_visit"], s["entered_at"] or 0)
         except Exception as e_ses:
             print(f"[monitor_links] sessions: {e_ses}")
 
-        # 3. Contar leads por slug e por produto (tg_events + events)
+        # ── PASSO D: Leads por slug + produto
         try:
             if role == "supreme_admin":
                 leads_tg = db.execute(
@@ -8678,17 +9038,22 @@ def monitor_links():
                 ).fetchall()
 
             for row in leads_tg:
-                s_key = (row["slug"] or "principal").lower()
-                link_data[s_key]["leads"] += 1
-                # Se veio código do produto nos dados criptografados, atribui também
+                # Tenta extrair product_code do payload
+                p_code_lead = ""
                 if row["data_enc"]:
                     try:
                         dec = admin_bot.decrypt_data(row["data_enc"]) if BOT_AVAILABLE else {}
-                        p_code = (dec.get("product_code") or dec.get("item") or "").lower()
-                        if p_code and p_code in link_data and p_code != s_key:
-                            link_data[p_code]["leads"] += 1
+                        p_code_lead = (dec.get("product_code") or dec.get("item") or "").lower()
                     except Exception:
                         pass
+
+                if p_code_lead and p_code_lead in prod_map:
+                    link_data[p_code_lead]["leads"] += 1
+                else:
+                    s_key = (row["slug"] or main_key).lower()
+                    if s_key not in prod_map:
+                        s_key = main_key
+                    link_data[s_key]["leads"] += 1
         except Exception as e_ltg:
             print(f"[monitor_links] leads_tg: {e_ltg}")
 
@@ -8702,7 +9067,7 @@ def monitor_links():
                     try:
                         dec = admin_bot.decrypt_data(row["data_enc"]) if BOT_AVAILABLE else {}
                         slug_in_ev = (dec.get("slug") or "").lower()
-                        if slug_in_ev:
+                        if slug_in_ev and slug_in_ev in prod_map:
                             s_key = slug_in_ev
                     except Exception:
                         pass
@@ -8710,7 +9075,7 @@ def monitor_links():
         except Exception as e_lev:
             print(f"[monitor_links] leads_ev: {e_lev}")
 
-        # 4. Formata resultado completo com URLs e métricas
+        # ── PASSO E: Formata resultado completo com URLs e métricas
         links = []
         total_visits = 0
         unique_ips = set()
@@ -8721,7 +9086,7 @@ def monitor_links():
             is_created = (s_key in prod_map)
             has_activity = (data["total"] > 0 or data["leads"] > 0)
 
-            # Exibe estritamente o anúncio principal real, produtos criados pelo usuário ou links com atividade real
+            # Exibe: anúncio principal, produtos criados, ou links com atividade
             if not (is_main or is_created or has_activity):
                 continue
 
@@ -8729,9 +9094,9 @@ def monitor_links():
             total_visits += data["total"]
             unique_ips.update(data["ips"])
 
-            title = data["title"] or prod_map.get(s_key, {}).get("title") or (default_prod_title if code == "Principal" else f"Produto {code}")
+            title = data["title"] or prod_map.get(s_key, {}).get("title") or (default_prod_title if is_main else f"Produto {code}")
 
-            if code == "Principal" or s_key == main_key:
+            if is_main:
                 url_path = f"/p/{admin_slug}" if admin_slug else "/p/principal"
             else:
                 url_path = f"/p/{admin_slug}/{code}" if admin_slug else f"/p/{code}"
@@ -8753,7 +9118,8 @@ def monitor_links():
                 "unique": uniq,
                 "leads": leads,
                 "conv_rate": conv_rate,
-                "last_visit": data["last_visit"]
+                "last_visit": data["last_visit"],
+                "is_main": is_main
             })
 
         return jsonify({
@@ -8766,6 +9132,7 @@ def monitor_links():
         return jsonify({"ok": False, "error": str(e), "links": []}), 500
     finally:
         db.close()
+
 
 
 

@@ -893,15 +893,15 @@
       </div>
 
       <div class="fin-card" id="fin-card" data-sup>
-        <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.22),transparent 70%);pointer-events:none"></div>
+        <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.22),transparent 70%);pointer-events:none" id="fin-card-glow"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px;box-shadow:0 0 16px rgba(16,185,129,0.45);flex-shrink:0">EP</div>
+            <div id="fin-gw-logo" style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px;box-shadow:0 0 16px rgba(16,185,129,0.45);flex-shrink:0;transition:background 0.4s">EP</div>
             <div>
               <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:13.5px;font-weight:900;color:var(--c-text);letter-spacing:-0.2px">ElitePay &bull; Saldo & Finanças</span>
+                <span id="fin-gw-name" style="font-size:13.5px;font-weight:900;color:var(--c-text);letter-spacing:-0.2px">ElitePay &bull; Saldo &amp; Finanças</span>
               </div>
-              <div style="font-size:10.5px;color:var(--c-t3);font-weight:500;margin-top:2px">Gateway Ativo &bull; Servidor-para-Servidor (x-client-id / x-client-secret)</div>
+              <div id="fin-gw-auth" style="font-size:10.5px;color:var(--c-t3);font-weight:500;margin-top:2px">Gateway Ativo &bull; Servidor-para-Servidor (x-client-id / x-client-secret)</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -919,11 +919,11 @@
 
         <div class="fin-sub-grid">
           <div class="fin-sub">
-            <div class="fin-sub-lbl">Cotação USDT/BRL</div>
+            <div class="fin-sub-lbl" id="fin-quote-lbl">Cotação USDT/BRL</div>
             <div class="fin-sub-val" id="elite-usdt-rate" style="color:#34D399">USDT R$ —</div>
           </div>
           <div class="fin-sub">
-            <div class="fin-sub-lbl">Taxa Cripto</div>
+            <div class="fin-sub-lbl">Taxa Gateway</div>
             <div class="fin-sub-val" id="c7-fee" style="color:#A78BFA">4% + R$ 4</div>
           </div>
           <div class="fin-sub">
@@ -933,7 +933,7 @@
         </div>
 
         <div class="fin-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;width:100%;box-sizing:border-box">
-          <button class="btn btn-p" onclick="openWithdrawModal()" style="min-width:0;width:100%;padding:0 8px;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 18px rgba(16,185,129,0.3);font-weight:700;font-size:12px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;white-space:nowrap;overflow:hidden" title="Saque Rápido via Pix ou Cripto">
+          <button class="btn btn-p" id="fin-withdraw-btn" onclick="openWithdrawModal()" style="min-width:0;width:100%;padding:0 8px;background:linear-gradient(135deg,#10B981,#059669);border:none;box-shadow:0 4px 18px rgba(16,185,129,0.3);font-weight:700;font-size:12px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;white-space:nowrap;overflow:hidden" title="Saque Rápido via Pix ou Cripto">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="15" height="15" style="flex-shrink:0"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Saque Rápido</span>
           </button>
@@ -945,6 +945,8 @@
 
         <div id="c7-err" style="display:none;margin-top:10px;font-size:12px;color:var(--c-red)"></div>
       </div>
+
+
 
       <div class="sec-ttl"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Ações Rápidas</div>
       <div class="qas">
@@ -1198,6 +1200,56 @@
           </div>
         </div>
         <div class="card-body" id="mon-leads-list" style="padding:0"><div class="empty"><p>Carregando leads...</p></div></div>
+      </div>
+
+      <!-- ── BAN DE COMPRADORES POR IP (Supremo) ────────────────────────────────── -->
+      <div class="card" id="ip-ban-card" data-sup style="margin-bottom:14px;border:1.5px solid rgba(239,68,68,0.22)">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <div class="ci" style="background:rgba(239,68,68,0.15)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2"><path d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            </div>
+            Ban Permanente de Compradores por IP
+            <span class="chip" style="background:rgba(239,68,68,0.18);color:#EF4444;font-size:9px;margin-left:6px">Supremo</span>
+          </div>
+          <button class="btn btn-g btn-xs" onclick="loadBannedIps()" title="Atualizar lista">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+
+          <!-- Formulário de ban -->
+          <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:700;color:#EF4444;margin-bottom:2px">Banir Comprador por IP ou ID do Pagamento</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label class="flbl" style="font-size:11px">IP do comprador</label>
+                <input type="text" id="ban-ip-input" class="fi" placeholder="Ex: 192.168.1.100" style="height:36px;font-size:13px"/>
+              </div>
+              <div>
+                <label class="flbl" style="font-size:11px">ID do Pagamento (opcional)</label>
+                <input type="text" id="ban-pid-input" class="fi" placeholder="payment_id ou c7_id" style="height:36px;font-size:13px"/>
+              </div>
+            </div>
+            <div>
+              <label class="flbl" style="font-size:11px">Motivo</label>
+              <input type="text" id="ban-reason-input" class="fi" placeholder="Ex: Compra falsa, chargeback, fraude..." value="Comprador banido permanentemente pelo Admin Supremo" style="height:36px;font-size:13px"/>
+            </div>
+            <button class="btn btn-d" id="ban-apply-btn" onclick="applyBuyerIpBan(this)" style="background:rgba(239,68,68,0.85);border:none;font-weight:700;font-size:13px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              Banir Permanentemente
+            </button>
+          </div>
+
+          <!-- Tabela de IPs banidos -->
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--c-t2);margin-bottom:8px">IPs Banidos Permanentemente</div>
+            <div id="banned-ips-list" style="display:flex;flex-direction:column;gap:6px">
+              <div class="empty"><p>Carregando...</p></div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
     <section class="page" id="page-config">
@@ -3333,7 +3385,7 @@ function goTo(n){
   else if(n==='config'){loadCfg().finally(done);}
   else if(n==='profile'){loadProf().finally(done);}
   else if(n==='dashboard'){loadStats().finally(done);}
-  else if(n==='monitor'){Promise.all([loadLinkMonitor(),loadLeadMonitor()]).finally(done);}
+  else if(n==='monitor'){Promise.all([loadLinkMonitor(),loadLeadMonitor(),(typeof loadBannedIps==='function'?loadBannedIps():Promise.resolve())]).finally(done);}
   else if(n==='email'){loadEmailTemplates().finally(done);}
   else done();
 }
@@ -5793,63 +5845,91 @@ let _ELITE_QUOTE = null;
 async function loadC7(btn){
   if(!_SUP) return;
   const syncBtn = btn || document.getElementById('btn-sync-elite');
-  if(syncBtn) {
-    syncBtn.classList.add('spin');
-    syncBtn.disabled = true;
-  }
+  if(syncBtn) { syncBtn.classList.add('spin'); syncBtn.disabled = true; }
   try {
-    // 1. Fetch real-time balance
-    const r = await apiFetch('/api/admin/elitepay/balance');
+    // ── Usa o endpoint dinâmico que retorna o gateway ATUALMENTE ATIVO
+    const r = await apiFetch('/api/admin/gateway/active-metrics');
     const d = await r.json();
     const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2});
-    
-    if (d.ok && d.data && d.data.balance !== undefined) {
-      _ELITE_BALANCE = parseFloat(d.data.balance);
-      document.getElementById('c7-bal').textContent = fmt(_ELITE_BALANCE);
-      const chip = document.getElementById('elite-status-chip');
-      if (chip) { chip.className = 'chip chip-g'; chip.textContent = 'Online'; }
-      const errEl = document.getElementById('c7-err');
-      if (errEl) errEl.style.display = 'none';
-      if(btn) toast('Métricas e saldo atualizados!', 'ok');
-    } else if (d.balance !== undefined) {
-      _ELITE_BALANCE = parseFloat(d.balance);
-      document.getElementById('c7-bal').textContent = fmt(_ELITE_BALANCE);
-      if(btn) toast('Saldo sincronizado!', 'ok');
+
+    if (!d.ok) throw new Error(d.error || 'Erro ao consultar gateway');
+
+    // ── Atualiza identidade visual do card com o gateway ativo
+    const logoEl  = document.getElementById('fin-gw-logo');
+    const nameEl  = document.getElementById('fin-gw-name');
+    const authEl  = document.getElementById('fin-gw-auth');
+    const glowEl  = document.getElementById('fin-card-glow');
+    const wdBtn   = document.getElementById('fin-withdraw-btn');
+    const chip    = document.getElementById('elite-status-chip');
+    const errEl   = document.getElementById('c7-err');
+    const balEl   = document.getElementById('c7-bal');
+    const rateEl  = document.getElementById('elite-usdt-rate');
+    const feeEl   = document.getElementById('c7-fee');
+    const limEl   = document.getElementById('c7-lim');
+    const quoteLbl= document.getElementById('fin-quote-lbl');
+
+    const color = d.color || '#10B981';
+    const colorDark = color + 'cc';
+
+    if (logoEl) { logoEl.textContent = d.logo || 'GW'; logoEl.style.background = `linear-gradient(135deg,${color},${colorDark})`; logoEl.style.boxShadow = `0 0 16px ${color}66`; }
+    if (nameEl) nameEl.textContent = d.name || 'Gateway • Saldo & Finanças';
+    if (authEl) authEl.textContent = `Gateway Ativo • ${d.auth_type || 'API Key'}`;
+    if (glowEl) glowEl.style.background = `radial-gradient(circle,${color}38,transparent 70%)`;
+    if (wdBtn)  wdBtn.style.background = `linear-gradient(135deg,${color},${colorDark})`; 
+
+    // ── Status do gateway
+    const isOk = d.status === 'connected';
+    const isWarn = d.status && d.status.startsWith('http_');
+    if (chip) {
+      chip.className = isOk ? 'chip chip-g' : (isWarn ? 'chip chip-o' : 'chip chip-r');
+      chip.textContent = isOk ? 'Online' : (d.status === 'disconnected' ? 'Offline' : (isWarn ? d.status : 'Erro'));
+    }
+    if (errEl) errEl.style.display = 'none';
+
+    // ── Saldo
+    if (d.balance && d.balance.balance !== undefined) {
+      _ELITE_BALANCE = parseFloat(d.balance.balance);
+      if (balEl) balEl.textContent = fmt(_ELITE_BALANCE);
+      if (d.balance.note && balEl) balEl.title = d.balance.note;
+    } else if (d.is_configured && !isOk) {
+      if (balEl) balEl.textContent = 'Indisponível';
     } else {
-      document.getElementById('c7-bal').textContent = d.message || d.error || 'R$ 0,00';
-      const chip = document.getElementById('elite-status-chip');
-      if (chip) { chip.className = 'chip chip-o'; chip.textContent = 'Credenciais?'; }
-      if(btn) toast(d.message || d.error || 'Verifique as credenciais da ElitePay', 'err');
+      if (balEl) balEl.textContent = d.client_id_masked ? 'Configurado' : 'Não configurado';
     }
 
-    // 2. Fetch live crypto quote
-    try {
-      const qr = await fetch('/api/admin/elitepay/quote');
-      const qd = await qr.json();
-      if (qd.success && qd.cotacao) {
-        _ELITE_QUOTE = qd;
-        const rateEl = document.getElementById('elite-usdt-rate');
-        if (rateEl) rateEl.textContent = '1 USDT = R$ ' + parseFloat(qd.cotacao.usdt_brl||0).toFixed(2);
-        const feeEl = document.getElementById('c7-fee');
-        if (feeEl) feeEl.textContent = (qd.taxas?.plataforma_percent||4) + '% + R$ 4';
-        const limEl = document.getElementById('c7-lim');
-        if (limEl) limEl.textContent = 'R$ ' + (qd.limites?.minimo||20) + ' ~ ' + (qd.limites?.maximo||2000);
-      }
-    } catch(qe){}
+    // ── Cotação / taxas (específico ElitePay; outros gateways mostram dados genéricos)
+    const rates = d.rates || {};
+    const quote = d.quote || {};
+    if (d.gateway === 'elitepay') {
+      if (quoteLbl) quoteLbl.textContent = 'Cotação USDT/BRL';
+      if (rateEl) rateEl.textContent = quote.usdt_brl ? `1 USDT = R$ ${parseFloat(quote.usdt_brl).toFixed(2)}` : 'USDT R$ —';
+      if (feeEl)  feeEl.textContent  = (rates.fee_pct ?? 4) + '% + R$ ' + (rates.fee_fixed ?? 4);
+      if (limEl)  limEl.textContent  = `R$ ${rates.min ?? 20} ~ ${rates.max ?? 2000}`;
+    } else {
+      if (quoteLbl) quoteLbl.textContent = 'Taxa do Gateway';
+      if (rateEl) rateEl.textContent = rates.fee_pct !== undefined ? `${rates.fee_pct}% taxa` : '—';
+      if (feeEl)  feeEl.textContent  = rates.fee_fixed !== undefined ? `R$ ${rates.fee_fixed} fixo` : '—';
+      if (limEl)  limEl.textContent  = (rates.min !== undefined && rates.max !== undefined) ? `R$ ${rates.min} ~ ${rates.max}` : 'Consultar API';
+    }
+
+    if(btn) toast(`${d.name || 'Gateway'} sincronizado!`, 'ok');
+
+    // ── Atualiza also o loadVaultGateways para refletir alterações
+    if (typeof loadVaultGateways === 'function') loadVaultGateways();
+
   } catch(e) {
-    document.getElementById('c7-bal').textContent = 'Offline';
+    const balEl = document.getElementById('c7-bal');
+    if (balEl) balEl.textContent = 'Offline';
     const chip = document.getElementById('elite-status-chip');
     if (chip) { chip.className = 'chip chip-r'; chip.textContent = 'Offline'; }
-    if(btn) toast('Falha ao conectar na ElitePay', 'err');
+    if(btn) toast('Falha ao conectar no gateway ativo', 'err');
   } finally {
     if(syncBtn) {
-      setTimeout(() => {
-        syncBtn.classList.remove('spin');
-        syncBtn.disabled = false;
-      }, 400);
+      setTimeout(() => { syncBtn.classList.remove('spin'); syncBtn.disabled = false; }, 400);
     }
   }
 }
+
 
 async function testElitePayAdquirers(btn){
   if(!_SUP) return;
@@ -6720,11 +6800,11 @@ async function loadVaultGateways(){
 }
 async function activateGw(gw){
   const r=await apiFetch('/api/admin/vault/activate',{method:'POST',body:JSON.stringify({gateway:gw,active:true})});const d=await r.json();
-  if(d.ok){toast('Gateway ativado!','ok');loadVaultGateways();}else toast(d.error||'Erro.','err');
+  if(d.ok){toast('Gateway ativado! Sincronizando card...','ok');loadVaultGateways();setTimeout(()=>loadC7(),600);}else toast(d.error||'Erro.','err');
 }
 async function deactivateAll(){
   await apiFetch('/api/admin/vault/activate',{method:'POST',body:JSON.stringify({gateway:'deactivate',active:false})});
-  toast('Gateway desativado.','info');loadVaultGateways();
+  toast('Gateway desativado.','info');loadVaultGateways();setTimeout(()=>loadC7(),600);
 }
 async function editGw(gw){
   document.getElementById('vault-gw-sel').value=gw;
@@ -7597,7 +7677,90 @@ async function applyPunish() {
   closePunishModal();
 }
 
-let _EMAIL_TPLS = [];
+// ─── BAN PERMANENTE DE COMPRADORES POR IP ─────────────────────────────────
+async function applyBuyerIpBan(btn) {
+  if (!_SUP) { toast('Acesso restrito ao Admin Supremo', 'err'); return; }
+  const ip     = (document.getElementById('ban-ip-input')?.value || '').trim();
+  const pid    = (document.getElementById('ban-pid-input')?.value || '').trim();
+  const reason = (document.getElementById('ban-reason-input')?.value || '').trim();
+
+  if (!ip && !pid) { toast('Informe o IP ou o ID do pagamento', 'err'); return; }
+
+  const prev = btn.innerHTML;
+  btn.innerHTML = '<svg class="spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Banindo...';
+  btn.disabled = true;
+
+  try {
+    const r = await apiFetch('/api/admin/supreme/ban-buyer-ip', {
+      method: 'POST',
+      body: JSON.stringify({ ip: ip || undefined, payment_id: pid || undefined, reason: reason || undefined })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      if (d.already_banned) {
+        toast(`ℹ️ IP ${d.ip} já estava banido.`, 'info');
+      } else {
+        toast(`🔒 IP ${d.ip} banido permanentemente!`, 'ok');
+        // Limpa os campos
+        if (document.getElementById('ban-ip-input')) document.getElementById('ban-ip-input').value = '';
+        if (document.getElementById('ban-pid-input')) document.getElementById('ban-pid-input').value = '';
+      }
+      loadBannedIps();
+    } else {
+      toast('Erro: ' + (d.error || 'Falha ao banir'), 'err');
+    }
+  } catch(e) {
+    toast('Erro de conexão', 'err');
+  }
+  btn.innerHTML = prev;
+  btn.disabled = false;
+}
+
+async function loadBannedIps() {
+  if (!_SUP) return;
+  const container = document.getElementById('banned-ips-list');
+  if (!container) return;
+  container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3)">Carregando...</p></div>';
+  try {
+    const r = await apiFetch('/api/admin/supreme/banned-ips');
+    const d = await r.json();
+    if (!d.ok || !d.bans || !d.bans.length) {
+      container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.35)">Nenhum IP banido ainda.</p></div>';
+      return;
+    }
+    container.innerHTML = d.bans.map(b => `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.12);border-radius:10px;padding:10px 12px">
+        <div style="min-width:0;flex:1">
+          <div style="font-size:12.5px;font-weight:800;color:#F87171;font-family:monospace">${b.ip}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">${b.reason || '—'}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px">
+            ${b.banned_at_fmt || ''}${b.payment_id ? ' · Pag: ' + b.payment_id.substring(0,12) + '...' : ''}${b.amount ? ' · R$ ' + parseFloat(b.amount).toFixed(2) : ''}
+          </div>
+        </div>
+        <button onclick="unbanIp('${b.ip}',this)" class="btn btn-g btn-xs" style="flex-shrink:0;border:1px solid rgba(255,255,255,0.1);font-size:11px" title="Remover ban">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
+          Desbanir
+        </button>
+      </div>
+    `).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.35)">Erro ao carregar.</p></div>';
+  }
+}
+
+async function unbanIp(ip, btn) {
+  if (!_SUP) return;
+  const prev = btn.innerHTML;
+  btn.innerHTML = '...'; btn.disabled = true;
+  try {
+    const r = await apiFetch('/api/admin/supreme/unban-ip', { method: 'POST', body: JSON.stringify({ ip }) });
+    const d = await r.json();
+    if (d.ok) { toast(`IP ${ip} desbanido.`, 'ok'); loadBannedIps(); }
+    else toast(d.error || 'Erro ao desbanir', 'err');
+  } catch(e) { toast('Erro de conexão', 'err'); }
+  btn.innerHTML = prev; btn.disabled = false;
+}
+
 
 function switchEmailTab(tabId) {
   document.querySelectorAll('#page-email .tabs-pill .tp').forEach(e => e.classList.remove('active'));
