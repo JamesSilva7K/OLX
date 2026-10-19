@@ -565,19 +565,22 @@
       color: #555; margin-top: 14px;
     }
 
-    /* MODAL AVANÇADO MULTI-ETAPAS */
+    /* MODAL AVANÇADO MULTI-ETAPAS — TELA CHEIA (MOBILE & DESKTOP) */
     .modal-backdrop {
       display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-      z-index: 9999; align-items: center; justify-content: center; padding: 16px;
+      width: 100vw; height: 100vh; height: 100dvh;
+      background: #ffffff; z-index: 99999;
+      overflow-y: auto; overflow-x: hidden;
+      padding: 0; margin: 0;
     }
-    .modal-backdrop.open { display: flex; }
+    .modal-backdrop.open { display: flex; flex-direction: column; }
     
     .checkout-modal-container {
-      background: #ffffff; width: 100%; max-width: 520px; max-height: 92vh;
-      border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.35);
-      position: relative; animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.06);
+      background: #ffffff; width: 100%; min-height: 100vh; min-height: 100dvh;
+      border-radius: 0 !important; box-shadow: none !important;
+      position: relative;
+      display: flex; flex-direction: column; border: none !important;
+      margin: 0 !important; padding: 0 !important; flex: 1;
     }
 
     /* Old modal header & progress bar are permanently suppressed */
@@ -591,7 +594,6 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-      overflow: hidden;
     }
 
     /* FORM STYLES */
@@ -703,24 +705,23 @@
     }
     .btn-copy-action.copied { background: var(--olx-green); }
 
-    /* IMAGE 2 & 3 STYLES: CONFIRMAÇÃO DE DADOS & RESUMO DO PRODUTO */
-    /* ── thin purple top bar for custom screens ── */
+    /* IMAGE 2 & 3 STYLES: CONFIRMAÇÃO DE DADOS & RESUMO DO PRODUTO (TELA CHEIA) */
     .olx-custom-screen-wrap {
-      display: flex; flex-direction: column; min-height: 100%; background: #fff;
+      display: flex; flex-direction: column; width: 100%; max-width: 580px; margin: 0 auto;
+      min-height: 100vh; min-height: 100dvh; background: #ffffff; flex: 1;
     }
     .olx-custom-top-bar {
-      height: 4px; background: linear-gradient(90deg, var(--olx-purple) 60%, #e5e7eb 60%);
-      flex-shrink: 0;
+      height: 3.5px; background: #6e0ad6; width: 100%; flex-shrink: 0;
     }
     .olx-flow-nav-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 20px 13px; border-bottom: 1px solid #f0f0f0; background: #ffffff; flex-shrink: 0;
+      padding: 16px 20px 14px; background: #ffffff; flex-shrink: 0;
     }
     .olx-flow-nav-left {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 14px;
     }
     .olx-flow-back-btn {
-      background: none; border: none; cursor: pointer; padding: 4px 6px 4px 0;
+      background: none; border: none; cursor: pointer; padding: 2px;
       display: flex; align-items: center; color: #1a1a1a; transition: opacity 0.15s;
       flex-shrink: 0;
     }
@@ -732,50 +733,48 @@
     }
     .olx-flow-close-btn:hover { background: #f3f4f6; color: #1a1a1a; }
     .olx-flow-nav-title {
-      font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: 0;
+      font-size: 17px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.2px;
     }
     .confirm-scroll-body {
-      flex: 1; overflow-y: auto; padding: 28px 24px 16px;
+      flex: 1; overflow-y: auto; padding: 24px 20px 24px;
     }
     .confirm-scroll-body::-webkit-scrollbar { width: 4px; }
     .confirm-scroll-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
     .confirm-personal-wrap { padding: 0; }
     .confirm-personal-title {
-      font-size: 22px; font-weight: 800; color: #1a1a1a; line-height: 1.3; margin-bottom: 26px;
+      font-size: 24px; font-weight: 700; color: #222222; line-height: 1.35; margin-bottom: 28px;
+      letter-spacing: -0.2px;
     }
     .confirm-section-heading {
-      font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 18px;
+      font-size: 17px; font-weight: 600; color: #444444; margin-bottom: 22px;
     }
     .confirm-info-row {
-      padding: 14px 0;
-      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 22px; padding: 0; border: none;
     }
-    .confirm-info-row:last-of-type { border-bottom: none; }
     .confirm-info-label {
-      font-size: 12px; color: #8a8a8a; margin-bottom: 3px; font-weight: 400; letter-spacing: 0.01em;
+      font-size: 13px; color: #757575; margin-bottom: 4px; font-weight: 400;
     }
     .confirm-info-val {
-      font-size: 15px; color: #1a1a1a; font-weight: 600; word-break: break-word;
+      font-size: 16px; color: #1a1a1a; font-weight: 500; word-break: break-word;
     }
     .confirm-btns-wrap {
-      padding: 16px 24px 28px; flex-shrink: 0;
+      padding: 20px 20px 32px; flex-shrink: 0; margin-top: auto;
     }
     .btn-orange-full {
-      width: 100%; height: 52px; background: linear-gradient(135deg, #f28800 0%, #e07300 100%);
-      color: #ffffff; border: none; border-radius: 30px; font-size: 16px; font-weight: 700;
+      width: 100%; height: 52px; background: #f16529;
+      color: #ffffff; border: none; border-radius: 9999px; font-size: 16px; font-weight: 700;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(242, 128, 0, 0.4); transition: all 0.2s;
-      letter-spacing: 0.01em;
+      transition: all 0.2s; box-shadow: none;
     }
-    .btn-orange-full:hover { filter: brightness(1.06); transform: translateY(-1px); }
-    .btn-orange-full:active { transform: translateY(0); filter: brightness(0.97); }
+    .btn-orange-full:hover { background: #df5317; }
+    .btn-orange-full:active { background: #cf480f; }
     .btn-outline-pill {
-      width: 100%; height: 52px; background: #ffffff; color: #e07300;
-      border: 1.5px solid #f28800; border-radius: 30px; font-size: 15px; font-weight: 700;
+      width: 100%; height: 52px; background: #ffffff; color: #f16529;
+      border: 1.5px solid #f16529; border-radius: 9999px; font-size: 16px; font-weight: 700;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.2s; margin-top: 12px;
     }
-    .btn-outline-pill:hover { background: #fff8f0; }
+    .btn-outline-pill:hover { background: #fff8f5; }
 
     /* RESUMO DO PRODUTO (IMAGEM 3) */
     .summary-screen-wrap {
@@ -846,6 +845,614 @@
       display: flex; align-items: center; justify-content: center; gap: 8px;
       color: var(--olx-green); font-size: 13px; font-weight: 700;
       background: var(--olx-green-light); padding: 10px; border-radius: 8px;
+    }
+
+    /* ─── TELA DE PAGAMENTO (IDÊNTICA À IMAGEM DO CLIENTE) ─── */
+    .olx-purple-nav-header {
+      height: 56px;
+      background: #6e0ad6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      width: 100%;
+    }
+    .olx-purple-back-btn, .olx-purple-close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      border-radius: 50%;
+      transition: opacity 0.15s;
+    }
+    .olx-purple-back-btn:hover, .olx-purple-close-btn:hover {
+      opacity: 0.8;
+    }
+    .olx-purple-header-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      height: 100%;
+    }
+    .olx-purple-logo-img {
+      max-height: 28px;
+      max-width: 130px;
+      object-fit: contain;
+    }
+    .pay-screen-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      padding: 24px 20px 18px;
+      letter-spacing: -0.2px;
+    }
+    .pay-method-card {
+      margin: 0 20px 22px;
+      border: 1.5px solid #6e0ad6;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(110, 10, 214, 0.06);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .pay-radio-outer {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #6e0ad6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pay-radio-inner {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6e0ad6;
+    }
+    .pay-method-icon-wrap {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pay-pix-icon {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+    .pay-method-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .pay-method-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    .pay-method-sub {
+      font-size: 12.5px;
+      color: #718096;
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+    .pay-coupon-section {
+      margin: 10px 20px 24px;
+    }
+    .pay-coupon-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 12px;
+    }
+    .pay-coupon-applied-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+    }
+    .pay-coupon-card-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pay-coupon-tag-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #f3e8ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7c3aed;
+      flex-shrink: 0;
+    }
+    .pay-coupon-card-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .pay-coupon-code {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: 0.5px;
+    }
+    .pay-coupon-status {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 2px;
+    }
+    .pay-coupon-card-right {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .pay-coupon-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .pay-coupon-remove {
+      font-size: 12px;
+      color: #7c3aed;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 3px;
+    }
+    .pay-coupon-remove:hover {
+      text-decoration: underline;
+    }
+    .pay-coupon-input-wrap {
+      display: flex;
+      gap: 10px;
+    }
+    .pay-coupon-input-wrap input {
+      flex: 1;
+      height: 48px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      outline: none;
+      background: #fafafa;
+    }
+    .pay-coupon-input-wrap input:focus {
+      border-color: #6e0ad6;
+      background: #fff;
+    }
+    .btn-pay-apply-coupon {
+      padding: 0 20px;
+      background: #6e0ad6;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-pay-apply-coupon:hover {
+      background: #550bb5;
+    }
+    .pay-screen-bottom-wrap {
+      margin-top: auto;
+      padding: 0 0 24px;
+      flex-shrink: 0;
+      width: 100%;
+    }
+    .pay-progress-bar-line {
+      height: 4px;
+      width: 100%;
+      background: #e5e7eb;
+    }
+    .pay-progress-bar-fill {
+      width: 78%;
+      height: 100%;
+      background: #6e0ad6;
+    }
+    .pay-bottom-action-row {
+      display: flex;
+      justify-content: flex-end;
+      padding: 16px 20px 0;
+    }
+    .btn-orange-pill {
+      min-width: 140px;
+      height: 48px;
+      background: #f16529;
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 32px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(241, 101, 41, 0.25);
+    }
+    .btn-orange-pill:hover {
+      background: #df5317;
+    }
+    .btn-orange-pill:active {
+      background: #cf480f;
+    }
+
+    /* ─── VISÃO DESKTOP (IDÊNTICA À IMAGEM DO COMPUTADOR) ─── */
+    .pay-screen-mobile-view {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .pay-screen-desktop-view {
+      display: none;
+      width: 100%;
+      background: #ffffff;
+      min-height: 100vh;
+    }
+
+    @media (min-width: 769px) {
+      .pay-screen-mobile-view {
+        display: none !important;
+      }
+      .pay-screen-desktop-view {
+        display: block !important;
+      }
+      #modal-step-payment-choice {
+        overflow-y: auto !important;
+      }
+    }
+
+    /* Desktop Header */
+    .dt-pay-header {
+      background: #ffffff;
+      border-bottom: 1px solid #ededed;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .dt-pay-header-inner {
+      width: 100%;
+      max-width: 1140px;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dt-pay-header-logo {
+      display: flex;
+      align-items: center;
+    }
+    .dt-pay-logo-img {
+      max-height: 36px;
+      max-width: 140px;
+      object-fit: contain;
+    }
+    .dt-pay-header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .dt-btn-saiba-mais {
+      background: none;
+      border: 1.5px solid #d5d5d5;
+      border-radius: 20px;
+      padding: 6px 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .dt-btn-saiba-mais:hover {
+      border-color: #6e0ad6;
+      color: #6e0ad6;
+    }
+    .dt-btn-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s;
+    }
+    .dt-btn-close:hover {
+      background: #f5f5f5;
+    }
+
+    /* Desktop Main Layout */
+    .dt-pay-main {
+      padding: 36px 0 60px;
+      background: #ffffff;
+    }
+    .dt-pay-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 56px;
+      align-items: flex-start;
+    }
+    .dt-pay-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #222222;
+      margin: 0 0 24px;
+      letter-spacing: -0.3px;
+    }
+
+    /* Green Coupon Banner */
+    .dt-coupon-banner {
+      background: #f2fcf6;
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .dt-coupon-check-icon {
+      color: #10b981;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .dt-coupon-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    .dt-coupon-subtitle {
+      font-size: 13px;
+      color: #4a5568;
+      margin-top: 3px;
+    }
+
+    .dt-trust-notice {
+      font-size: 13.5px;
+      color: #4a5568;
+      margin-bottom: 30px;
+    }
+    .dt-trust-highlight {
+      color: #6e0ad6;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .dt-section {
+      margin-bottom: 30px;
+    }
+    .dt-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #222222;
+      margin-bottom: 12px;
+    }
+
+    /* Radio Options (Entrega) */
+    .dt-radio-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .dt-radio-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .dt-radio-row.disabled {
+      cursor: default;
+      opacity: 0.65;
+    }
+    .dt-radio-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .dt-radio-circle.selected {
+      border-color: #6e0ad6;
+    }
+    .dt-radio-circle.selected .dt-radio-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6e0ad6;
+    }
+    .dt-radio-label {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: #2d3748;
+    }
+    .dt-sub-note {
+      color: #888888;
+      font-weight: normal;
+      font-size: 13.5px;
+    }
+
+    /* Address Card */
+    .dt-address-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #ffffff;
+    }
+    .dt-address-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #f3e8ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .dt-address-text {
+      font-size: 14px;
+      color: #2d3748;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    /* Desktop Resumo Card */
+    .dt-summary-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      position: sticky;
+      top: 96px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    }
+    .dt-summary-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 18px;
+    }
+    .dt-product-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .dt-product-thumb {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #edf2f7;
+      flex-shrink: 0;
+    }
+    .dt-product-meta {
+      min-width: 0;
+    }
+    .dt-product-name {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .dt-product-seller {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 4px;
+    }
+    .dt-summary-divider {
+      border-top: 1px solid #edf2f7;
+      margin: 16px 0;
+    }
+    .dt-cost-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #4a5568;
+      margin-bottom: 10px;
+    }
+    .dt-coupon-cost-row .dt-coupon-label,
+    .dt-coupon-cost-row .dt-coupon-val {
+      color: #10b981;
+      font-weight: 700;
+    }
+    .dt-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin: 18px 0 22px;
+    }
+    .dt-total-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+    .dt-btn-confirm-pay {
+      width: 100%;
+      height: 50px;
+      background: #F28A30;
+      color: #ffffff;
+      border: none;
+      border-radius: 25px;
+      font-size: 15.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(242, 138, 48, 0.3);
+      transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+    }
+    .dt-btn-confirm-pay:hover {
+      background: #df7318;
+      transform: translateY(-1px);
+    }
+    .dt-btn-confirm-pay:active {
+      transform: translateY(0);
+    }
+    .dt-safe-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6e0ad6;
+      margin-top: 16px;
+    }
+    .dt-terms-text {
+      font-size: 11px;
+      color: #a0aec0;
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.45;
+    }
+    .dt-terms-text a {
+      color: #6e0ad6;
+      text-decoration: underline;
     }
 
     /* STEP 3: SUCCESS VIEW */
@@ -938,15 +1545,10 @@
       .form-row, .form-row-3 { grid-template-columns: 1fr; }
       .price-value { font-size: 36px; }
 
-      /* Mobile Modal Fixes */
-      .modal-backdrop { padding: 0; align-items: flex-end; }
-      .checkout-modal-container { max-width: 100vw; border-radius: 18px 18px 0 0; max-height: 95vh; display: flex; flex-direction: column; width: 100%; }
-      .step-item span { display: none; }
-      .step-progress-bar { padding: 12px 16px; }
-      .modal-header-title { font-size: 14px; }
-      .modal-step-body { padding: 16px; flex: 1; overflow-y: auto; padding-bottom: 40px; }
-      .checkout-coupon-card { margin-top: 20px; }
-      .btn-step-next { margin-top: 10px; margin-bottom: 10px; }
+      /* Mobile Checkout Full Screen */
+      .modal-backdrop { padding: 0 !important; }
+      .checkout-modal-container { max-width: 100% !important; border-radius: 0 !important; min-height: 100dvh !important; }
+      .olx-custom-screen-wrap { max-width: 100% !important; min-height: 100dvh !important; }
 
       /* Tips Native Scroll */
       #tips-track-wrap { overflow-x: auto !important; scroll-snap-type: x mandatory; }
@@ -1797,14 +2399,14 @@
     <!-- ─── ETAPA IMAGEM 2: CONFIRMAÇÃO DE DADOS (SENTIDO DE COMPRA DE PRODUTO) ─── -->
     <div class="modal-step-body" id="modal-step-confirm-data" style="display: none; padding: 0; height: 100%; overflow: hidden;">
       <div class="olx-custom-screen-wrap">
-        <!-- Thin purple progress bar - Image 2 style -->
-        <div class="olx-custom-top-bar"></div>
-
         <!-- Flat nav header: back arrow + title + close -->
         <div class="olx-flow-nav-header">
           <div class="olx-flow-nav-left">
             <button type="button" class="olx-flow-back-btn" onclick="backToStep1()" title="Voltar">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
             </button>
             <div class="olx-flow-nav-title">Comprar produto</div>
           </div>
@@ -1812,6 +2414,8 @@
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
+        <!-- Thin purple progress bar directly below header - Image 2 style -->
+        <div class="olx-custom-top-bar" style="background: #6e0ad6;"></div>
 
         <!-- Scrollable info body -->
         <div class="confirm-scroll-body">
@@ -1851,7 +2455,7 @@
 
         <!-- Sticky action buttons at bottom -->
         <div class="confirm-btns-wrap">
-          <button type="button" class="btn-orange-full" id="btn-confirm-personal" onclick="proceedToSummary()">
+          <button type="button" class="btn-orange-full" id="btn-confirm-personal" onclick="proceedToPaymentChoice()">
             Confirmar
           </button>
           <button type="button" class="btn-outline-pill" onclick="backToStep1()">
@@ -1859,6 +2463,272 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- ─── ETAPA PAGAMENTO: ESCOLHA DE FORMA DE PAGAMENTO (DESKTOP E MOBILE) ─── -->
+    <div class="modal-step-body" id="modal-step-payment-choice" style="display: none; padding: 0; min-height: 100%;">
+      
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- VISÃO MOBILE (max-width: 768px): Header Roxo, Apenas Pix e Cupom  -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div class="pay-screen-mobile-view">
+        <div class="olx-custom-screen-wrap">
+          <!-- Top Header Roxo idêntico à imagem mobile -->
+          <div class="olx-purple-nav-header">
+            <button type="button" class="olx-purple-back-btn" onclick="backToConfirmData()" title="Voltar">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <div class="olx-purple-header-center">
+              {% if logo_url %}
+                <img src="{{ logo_url }}" alt="Logo" class="olx-purple-logo-img" id="pay-screen-logo" onerror="this.style.display='none'" />
+              {% else %}
+                <svg viewBox="0 0 220 88" xmlns="http://www.w3.org/2000/svg" height="26" style="filter: brightness(0) invert(1);">
+                  <circle cx="30" cy="44" r="29" fill="#F28A30"/>
+                  <circle cx="30" cy="44" r="16" fill="#fff"/>
+                  <rect x="66" y="15" width="15" height="58" rx="3" fill="#7B02E8"/>
+                  <rect x="66" y="59" width="30" height="14" rx="3" fill="#7B02E8"/>
+                  <line x1="103" y1="15" x2="148" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                  <line x1="148" y1="15" x2="103" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                </svg>
+              {% endif %}
+            </div>
+            <button type="button" class="olx-purple-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="confirm-scroll-body" style="padding: 0;">
+            <div class="pay-screen-title">Pagamento</div>
+
+            <!-- Card de Pagamento Pix Selecionado (Apenas Pix) -->
+            <div class="pay-method-card" id="card-pix-option">
+              <div class="pay-radio-outer">
+                <div class="pay-radio-inner"></div>
+              </div>
+              <div class="pay-method-icon-wrap">
+                <img src="{{ pix_badge_url if pix_badge_url else '/static/images/cards/pix.svg' }}" alt="Pix" class="pay-pix-icon" id="pay-screen-pix-badge" onerror="this.src='/static/images/cards/pix.svg'" />
+              </div>
+              <div class="pay-method-info">
+                <div class="pay-method-name">Pix</div>
+                <div class="pay-method-sub">A confirmação do seu pagamento é mais rápida</div>
+              </div>
+            </div>
+
+            <!-- Seção de Cupom de Desconto -->
+            <div class="pay-coupon-section">
+              <div class="pay-coupon-section-title">Cupom de desconto</div>
+
+              <!-- Card de Cupom Aplicado -->
+              <div class="pay-coupon-applied-card" id="pay-coupon-applied-box" style="display: none;">
+                <div class="pay-coupon-card-left">
+                  <div class="pay-coupon-tag-icon">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                      <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                  </div>
+                  <div class="pay-coupon-card-text">
+                    <div class="pay-coupon-code" id="pay-coupon-name">GANHE16</div>
+                    <div class="pay-coupon-status">Cupom aplicado</div>
+                  </div>
+                </div>
+                <div class="pay-coupon-card-right">
+                  <div class="pay-coupon-val" id="pay-coupon-discount-val">- R$ 72,00</div>
+                  <a href="javascript:void(0)" class="pay-coupon-remove" onclick="removeCouponFromPayment()">Remover</a>
+                </div>
+              </div>
+
+              <!-- Form para digitar cupom se não houver um aplicado -->
+              <div class="pay-coupon-input-wrap" id="pay-coupon-input-box">
+                <input type="text" id="pay-coupon-input-field" placeholder="Digite seu cupom" />
+                <button type="button" class="btn-pay-apply-coupon" onclick="applyCouponInPayment()">Aplicar</button>
+              </div>
+              <div id="pay-coupon-feedback-msg" style="display:none; font-size:12px; margin-top:6px; font-weight:600;"></div>
+            </div>
+          </div>
+
+          <!-- Barra de Progresso + Botão Continuar Laranja à Direita -->
+          <div class="pay-screen-bottom-wrap">
+            <div class="pay-progress-bar-line">
+              <div class="pay-progress-bar-fill"></div>
+            </div>
+            <div class="pay-bottom-action-row">
+              <button type="button" class="btn-orange-pill" id="btn-pay-continue" onclick="executeFinalPayment()">
+                <span id="btn-pay-continue-text">Continuar</span>
+                <svg id="btn-pay-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- VISÃO DESKTOP (min-width: 769px): IDÊNTICA À IMAGEM DO CLIENTE     -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div class="pay-screen-desktop-view">
+        <!-- Top Navbar Desktop -->
+        <header class="dt-pay-header">
+          <div class="dt-pay-header-inner">
+            <div class="dt-pay-header-logo">
+              {% if logo_url %}
+                <img src="{{ logo_url }}" alt="Logo" class="dt-pay-logo-img" id="dt-pay-screen-logo" onerror="this.style.display='none'" />
+              {% else %}
+                <svg viewBox="0 0 220 88" xmlns="http://www.w3.org/2000/svg" height="32">
+                  <circle cx="30" cy="44" r="29" fill="#F28A30"/>
+                  <circle cx="30" cy="44" r="16" fill="#fff"/>
+                  <rect x="66" y="15" width="15" height="58" rx="3" fill="#7B02E8"/>
+                  <rect x="66" y="59" width="30" height="14" rx="3" fill="#7B02E8"/>
+                  <line x1="103" y1="15" x2="148" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                  <line x1="148" y1="15" x2="103" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                </svg>
+              {% endif %}
+            </div>
+            <div class="dt-pay-header-right">
+              <button type="button" class="dt-btn-saiba-mais" onclick="showToast('Ambiente 100% seguro com criptografia bancária OLX.', 'info')">Saiba mais</button>
+              <button type="button" class="dt-btn-close" onclick="closeCheckoutModal()" title="Fechar">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#666" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Body Desktop (2 colunas) -->
+        <main class="dt-pay-main">
+          <div class="dt-pay-container">
+            <!-- Coluna Esquerda -->
+            <div class="dt-pay-left-col">
+              <h1 class="dt-pay-title">Confirme sua compra</h1>
+
+              <!-- Banner Cupom Aplicado (Verde) -->
+              <div class="dt-coupon-banner" id="dt-coupon-banner" style="display: none;">
+                <div class="dt-coupon-check-icon">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="dt-coupon-text-wrap">
+                  <div class="dt-coupon-title">Cupom aplicado!</div>
+                  <div class="dt-coupon-subtitle">Você ganhou desconto nesta compra.</div>
+                </div>
+              </div>
+
+              <!-- Frase de Segurança -->
+              <div class="dt-trust-notice">
+                Compre com segurança e tenha a garantia do dinheiro de volta com a <span class="dt-trust-highlight">Compra Segura</span>
+              </div>
+
+              <!-- Seção Entrega -->
+              <div class="dt-section">
+                <div class="dt-section-title">Entrega</div>
+                <div class="dt-radio-list">
+                  <label class="dt-radio-row selected">
+                    <div class="dt-radio-circle selected">
+                      <div class="dt-radio-dot"></div>
+                    </div>
+                    <span class="dt-radio-label">Quero entrega pela OLX</span>
+                  </label>
+                  <label class="dt-radio-row disabled">
+                    <div class="dt-radio-circle"></div>
+                    <span class="dt-radio-label">Quero retirar com o vendedor <span class="dt-sub-note">(combine pelo chat)</span></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Seção Endereço de Entrega -->
+              <div class="dt-section">
+                <div class="dt-section-title">Endereço de entrega</div>
+                <div class="dt-address-card">
+                  <div class="dt-address-icon-wrap">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#6e0ad6" stroke-width="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                      <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                  </div>
+                  <div class="dt-address-info">
+                    <div class="dt-address-text" id="dt-lead-address">—</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Seção Forma de Pagamento (Apenas Pix) -->
+              <div class="dt-section">
+                <div class="dt-section-title">Forma de pagamento</div>
+                <div class="pay-method-card" style="margin: 0; box-shadow: none;">
+                  <div class="pay-radio-outer">
+                    <div class="pay-radio-inner"></div>
+                  </div>
+                  <div class="pay-method-icon-wrap">
+                    <img src="{{ pix_badge_url if pix_badge_url else '/static/images/cards/pix.svg' }}" alt="Pix" class="pay-pix-icon" id="dt-pay-screen-pix-badge" onerror="this.src='/static/images/cards/pix.svg'" />
+                  </div>
+                  <div class="pay-method-info">
+                    <div class="pay-method-name">Pix</div>
+                    <div class="pay-method-sub">A confirmação do seu pagamento é mais rápida</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coluna Direita (Card Resumo) -->
+            <div class="dt-pay-right-col">
+              <div class="dt-summary-card">
+                <div class="dt-summary-title">Resumo</div>
+                
+                <div class="dt-product-row">
+                  <img src="{{ product_image1 if product_image1 else '' }}" alt="Produto" class="dt-product-thumb" onerror="this.style.display='none'" />
+                  <div class="dt-product-meta">
+                    <div class="dt-product-name">{{ product_name if product_name else 'Produto OLX' }}</div>
+                    <div class="dt-product-seller">{{ seller_name if seller_name else 'Vendedor Verificado' }}</div>
+                  </div>
+                </div>
+
+                <div class="dt-summary-divider"></div>
+
+                <div class="dt-cost-row">
+                  <span>Produto</span>
+                  <span id="dt-summary-prod-val">R$ {{ product_price if product_price else '' }}</span>
+                </div>
+
+                <div class="dt-cost-row">
+                  <span>Entrega</span>
+                  <span id="dt-summary-shipping-val">R$ {{ shipping_fee if shipping_fee else '19,90' }}</span>
+                </div>
+
+                <div class="dt-cost-row dt-coupon-cost-row" id="dt-summary-coupon-row" style="display: none;">
+                  <span class="dt-coupon-label">Cupom</span>
+                  <span class="dt-coupon-val" id="dt-summary-coupon-val">-R$ 28,99</span>
+                </div>
+
+                <div class="dt-summary-divider"></div>
+
+                <div class="dt-total-row">
+                  <span>Total a pagar</span>
+                  <span class="dt-total-val" id="dt-summary-total-val">R$ {{ product_price if product_price else '' }}</span>
+                </div>
+
+                <button type="button" class="dt-btn-confirm-pay" id="dt-btn-confirm-pay" onclick="executeFinalPayment()">
+                  <span id="dt-btn-pay-text">Confirmar Pagamento</span>
+                  <svg id="dt-btn-pay-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+                </button>
+
+                <div class="dt-safe-badge">
+                  <svg width="15" height="15" fill="#6e0ad6" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#fff" stroke-width="2" fill="none"/></svg>
+                  <span>Compra Segura</span>
+                </div>
+
+                <div class="dt-terms-text">
+                  Ao confirmar o pagamento, você declara que está concordando com os <a href="javascript:void(0)">Termos e Condições de uso</a> da OLX
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
     </div>
 
     <!-- ─── ETAPA IMAGEM 3: RESUMO E CONFIRMAÇÃO DO PAGAMENTO ─── -->
@@ -1950,7 +2820,7 @@
         <div class="olx-custom-top-bar" style="background: var(--olx-purple);"></div>
         <div class="olx-flow-nav-header">
           <div class="olx-flow-nav-left">
-            <button type="button" class="olx-flow-back-btn" onclick="backToSummary()" title="Voltar">
+            <button type="button" class="olx-flow-back-btn" onclick="backToPaymentChoice()" title="Voltar">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <div class="olx-flow-nav-title">Pagamento Pix Seguro</div>
@@ -2676,45 +3546,213 @@
   }
 
   function backToStep1() {
-    document.getElementById('modal-step-confirm-data').style.display = 'none';
-    document.getElementById('modal-step-product-summary').style.display = 'none';
-    document.getElementById('modal-step-2').style.display = 'none';
-    document.getElementById('modal-step-1').style.display = 'block';
+    const confirmStep = document.getElementById('modal-step-confirm-data');
+    if (confirmStep) confirmStep.style.display = 'none';
+    const payChoice = document.getElementById('modal-step-payment-choice');
+    if (payChoice) payChoice.style.display = 'none';
+    const prodSum = document.getElementById('modal-step-product-summary');
+    if (prodSum) prodSum.style.display = 'none';
+    const step2 = document.getElementById('modal-step-2');
+    if (step2) step2.style.display = 'none';
+    const step1 = document.getElementById('modal-step-1');
+    if (step1) step1.style.display = 'block';
   }
 
   function backToConfirmData() {
-    document.getElementById('modal-step-product-summary').style.display = 'none';
-    document.getElementById('modal-step-confirm-data').style.display = 'block';
+    const payChoice = document.getElementById('modal-step-payment-choice');
+    if (payChoice) payChoice.style.display = 'none';
+    const prodSum = document.getElementById('modal-step-product-summary');
+    if (prodSum) prodSum.style.display = 'none';
+    const confirmStep = document.getElementById('modal-step-confirm-data');
+    if (confirmStep) confirmStep.style.display = 'block';
+  }
+
+  function backToPaymentChoice() {
+    const step2 = document.getElementById('modal-step-2');
+    if (step2) step2.style.display = 'none';
+    const payChoice = document.getElementById('modal-step-payment-choice');
+    if (payChoice) {
+      payChoice.style.display = 'block';
+    } else {
+      const confirmStep = document.getElementById('modal-step-confirm-data');
+      if (confirmStep) confirmStep.style.display = 'block';
+    }
   }
 
   function backToSummary() {
-    document.getElementById('modal-step-2').style.display = 'none';
-    document.getElementById('modal-step-product-summary').style.display = 'block';
+    backToPaymentChoice();
+  }
+
+  function updatePaymentScreenCoupon() {
+    const appliedBox = document.getElementById('pay-coupon-applied-box');
+    const inputBox = document.getElementById('pay-coupon-input-box');
+    const nameEl = document.getElementById('pay-coupon-name');
+    const valEl = document.getElementById('pay-coupon-discount-val');
+
+    if (activeCoupon) {
+      if (appliedBox) appliedBox.style.display = 'flex';
+      if (inputBox) inputBox.style.display = 'none';
+      if (nameEl) nameEl.textContent = activeCoupon;
+      let discountFmt = window._lastCouponDiscountFmt || ('R$ ' + (RAW_PRODUCT_PRICE || '72,00'));
+      if (valEl) valEl.textContent = '- ' + discountFmt;
+    } else {
+      if (appliedBox) appliedBox.style.display = 'none';
+      if (inputBox) inputBox.style.display = 'flex';
+    }
+  }
+
+  function removeCouponFromPayment() {
+    activeCoupon = '';
+    isShippingOnlyActive = false;
+    currentFinalAmount = RAW_PRODUCT_PRICE.replace(',', '.');
+    window._lastCouponDiscountFmt = null;
+    updatePaymentScreenCoupon();
+    updateDesktopPaymentData();
+    showToast('Cupom removido.', 'info');
+  }
+
+  async function applyCouponInPayment() {
+    const inp = document.getElementById('pay-coupon-input-field');
+    if (!inp) return;
+    const code = inp.value.trim();
+    if (!code) {
+      showToast('Digite o código do cupom.', 'error');
+      return;
+    }
+    const feedback = document.getElementById('pay-coupon-feedback-msg');
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#7B02E8';
+      feedback.textContent = 'Validando cupom...';
+    }
+    try {
+      const res = await fetch('/api/validate-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coupon: code,
+          product_code: PRODUCT_CODE,
+          slug: PAGE_SLUG || ''
+        })
+      });
+      const data = await res.json();
+      if (data.valid || data.ok) {
+        activeCoupon = data.coupon || code.toUpperCase();
+        isShippingOnlyActive = true;
+        currentFinalAmount = String(data.final_amount || RAW_SHIPPING_FEE.replace(',', '.'));
+        window._lastCouponDiscountFmt = data.formatted_discount || ('R$ ' + RAW_PRODUCT_PRICE);
+        if (feedback) feedback.style.display = 'none';
+        updatePaymentScreenCoupon();
+        updateDesktopPaymentData();
+        showToast(data.message || 'Cupom aplicado com sucesso!', 'check');
+      } else {
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.style.color = '#ef4444';
+          feedback.textContent = data.message || 'Cupom inválido.';
+        }
+        showToast(data.message || 'Cupom inválido.', 'error');
+      }
+    } catch(e) {
+      if (feedback) {
+        feedback.style.display = 'block';
+        feedback.style.color = '#ef4444';
+        feedback.textContent = 'Erro ao validar cupom.';
+      }
+    }
+  }
+
+  async function syncPaymentConfig() {
+    try {
+      const res = await fetch(CONFIG_URL);
+      if (!res.ok) return;
+      const conf = await res.json();
+      if (conf.logo_url) {
+        const logoImg = document.getElementById('pay-screen-logo');
+        if (logoImg) {
+          logoImg.src = conf.logo_url;
+          logoImg.style.display = 'block';
+        }
+        const dtLogoImg = document.getElementById('dt-pay-screen-logo');
+        if (dtLogoImg) {
+          dtLogoImg.src = conf.logo_url;
+          dtLogoImg.style.display = 'block';
+        }
+      }
+      if (conf.pix_badge_url) {
+        const pixBadge = document.getElementById('pay-screen-pix-badge');
+        if (pixBadge) {
+          pixBadge.src = conf.pix_badge_url;
+        }
+        const dtPixBadge = document.getElementById('dt-pay-screen-pix-badge');
+        if (dtPixBadge) {
+          dtPixBadge.src = conf.pix_badge_url;
+        }
+      }
+    } catch(e) {}
+  }
+
+  function updateDesktopPaymentData() {
+    // Endereço de entrega
+    const dtAddress = document.getElementById('dt-lead-address');
+    if (dtAddress && checkoutLeadPayload) {
+      const p = checkoutLeadPayload;
+      dtAddress.textContent = `${p.street}, ${p.number}${p.complement ? ' - ' + p.complement : ''} - ${p.neighborhood}, ${p.city}/${p.state} (CEP: ${p.cep})`;
+    } else if (dtAddress) {
+      const street = document.getElementById('lead-street') ? document.getElementById('lead-street').value : '';
+      const num = document.getElementById('lead-number') ? document.getElementById('lead-number').value : '';
+      const neigh = document.getElementById('lead-neighborhood') ? document.getElementById('lead-neighborhood').value : '';
+      const city = document.getElementById('lead-city') ? document.getElementById('lead-city').value : '';
+      const st = document.getElementById('lead-state') ? document.getElementById('lead-state').value : '';
+      if (street) {
+        dtAddress.textContent = `${street}, ${num} - ${neigh}, ${city}/${st}`;
+      }
+    }
+
+    // Valores
+    const prodVal = document.getElementById('dt-summary-prod-val');
+    if (prodVal) prodVal.textContent = 'R$ ' + (RAW_PRODUCT_PRICE || '280,00');
+
+    const shipVal = document.getElementById('dt-summary-shipping-val');
+    if (shipVal) shipVal.textContent = 'R$ ' + (RAW_SHIPPING_FEE || '9,90');
+
+    const banner = document.getElementById('dt-coupon-banner');
+    const couponRow = document.getElementById('dt-summary-coupon-row');
+    const couponVal = document.getElementById('dt-summary-coupon-val');
+    const totalVal = document.getElementById('dt-summary-total-val');
+
+    const finalAmountFmt = 'R$ ' + (currentFinalAmount || (isShippingOnlyActive ? RAW_SHIPPING_FEE : RAW_PRODUCT_PRICE));
+
+    if (activeCoupon) {
+      if (banner) banner.style.display = 'flex';
+      if (couponRow) couponRow.style.display = 'flex';
+      let discountFmt = window._lastCouponDiscountFmt || ('R$ ' + (RAW_PRODUCT_PRICE || '28,99'));
+      if (couponVal) couponVal.textContent = '- ' + discountFmt;
+      if (totalVal) totalVal.textContent = finalAmountFmt;
+    } else {
+      if (banner) banner.style.display = 'none';
+      if (couponRow) couponRow.style.display = 'none';
+      if (totalVal) totalVal.textContent = 'R$ ' + (RAW_PRODUCT_PRICE || '280,00');
+    }
+  }
+
+  function proceedToPaymentChoice() {
+    // Esconde Confirmação de dados e abre tela de Pagamento (Imagem 1 solicitada)
+    const confirmStep = document.getElementById('modal-step-confirm-data');
+    if (confirmStep) confirmStep.style.display = 'none';
+    const step1 = document.getElementById('modal-step-1');
+    if (step1) step1.style.display = 'none';
+    const payChoice = document.getElementById('modal-step-payment-choice');
+    if (payChoice) {
+      payChoice.style.display = 'block';
+      updatePaymentScreenCoupon();
+      updateDesktopPaymentData();
+      syncPaymentConfig();
+    }
   }
 
   function proceedToSummary() {
-    // Esconde Confirmação de dados (Imagem 2) e abre Resumo (Imagem 3)
-    document.getElementById('modal-step-confirm-data').style.display = 'none';
-    document.getElementById('modal-step-product-summary').style.display = 'block';
-
-    // Atualiza valores no Resumo (Imagem 3)
-    const finalValFmt = 'R$ ' + (currentFinalAmount || (isShippingOnlyActive ? RAW_SHIPPING_FEE : RAW_PRODUCT_PRICE));
-    const totalEl = document.getElementById('summary-screen-total-val');
-    const pixNote = document.getElementById('summary-screen-pix-note');
-    if (totalEl) totalEl.textContent = finalValFmt;
-    if (pixNote) pixNote.textContent = '1x ' + finalValFmt;
-
-    const shipValEl = document.getElementById('summary-screen-shipping-val');
-    if (shipValEl) shipValEl.textContent = 'R$ ' + RAW_SHIPPING_FEE;
-
-    const coupRow = document.getElementById('summary-screen-coupon-row');
-    const coupVal = document.getElementById('summary-screen-coupon-val');
-    if (activeCoupon && coupRow && coupVal) {
-      coupRow.style.display = 'flex';
-      coupVal.textContent = '-R$ ' + RAW_PRODUCT_PRICE;
-    } else if (coupRow) {
-      coupRow.style.display = 'none';
-    }
+    proceedToPaymentChoice();
   }
 
   async function executeFinalPayment() {
@@ -2724,11 +3762,27 @@
       return;
     }
 
+    const btnContinue = document.getElementById('btn-pay-continue');
+    const btnContinueTxt = document.getElementById('btn-pay-continue-text');
+    const btnContinueSpin = document.getElementById('btn-pay-spinner');
+
+    const dtBtnPay = document.getElementById('dt-btn-confirm-pay');
+    const dtBtnPayTxt = document.getElementById('dt-btn-pay-text');
+    const dtBtnPaySpin = document.getElementById('dt-btn-pay-spinner');
+
     const payBtn = document.getElementById('btn-final-confirm-pay');
     const payText = document.getElementById('btn-final-pay-text');
     const paySpin = document.getElementById('btn-final-pay-spinner');
 
-    payBtn.disabled = true;
+    if (btnContinue) btnContinue.disabled = true;
+    if (btnContinueTxt) btnContinueTxt.textContent = 'Gerando Pix...';
+    if (btnContinueSpin) btnContinueSpin.style.display = 'inline-block';
+
+    if (dtBtnPay) dtBtnPay.disabled = true;
+    if (dtBtnPayTxt) dtBtnPayTxt.textContent = 'Gerando Pix Seguro...';
+    if (dtBtnPaySpin) dtBtnPaySpin.style.display = 'inline-block';
+
+    if (payBtn) payBtn.disabled = true;
     if (payText) payText.textContent = 'Gerando Pix Seguro...';
     if (paySpin) paySpin.style.display = 'inline-block';
 
@@ -2747,9 +3801,13 @@
 
       currentPaymentId = pixData.payment_id || pixData.external_id;
 
-      // 2. Oculta Resumo e Transita para Step 4 (Pagamento Pix)
-      document.getElementById('modal-step-product-summary').style.display = 'none';
-      document.getElementById('modal-step-2').style.display = 'block';
+      // 2. Oculta Escolha de Pagamento e Transita para Step 2 (Pagamento Pix QR Code)
+      const payChoice = document.getElementById('modal-step-payment-choice');
+      if (payChoice) payChoice.style.display = 'none';
+      const prodSum = document.getElementById('modal-step-product-summary');
+      if (prodSum) prodSum.style.display = 'none';
+      const step2 = document.getElementById('modal-step-2');
+      if (step2) step2.style.display = 'block';
 
       // Popula dados do Pix
       const qrImg = document.getElementById('pix-qr-img');
@@ -2770,7 +3828,15 @@
     } catch(err) {
       showToast('Erro ao processar: ' + err.message, 'error');
     } finally {
-      payBtn.disabled = false;
+      if (btnContinue) btnContinue.disabled = false;
+      if (btnContinueTxt) btnContinueTxt.textContent = 'Continuar';
+      if (btnContinueSpin) btnContinueSpin.style.display = 'none';
+
+      if (dtBtnPay) dtBtnPay.disabled = false;
+      if (dtBtnPayTxt) dtBtnPayTxt.textContent = 'Confirmar Pagamento';
+      if (dtBtnPaySpin) dtBtnPaySpin.style.display = 'none';
+
+      if (payBtn) payBtn.disabled = false;
       if (payText) payText.textContent = 'Confirmar Pagamento';
       if (paySpin) paySpin.style.display = 'none';
     }
@@ -2885,7 +3951,8 @@
       document.getElementById('rev-lead-name').textContent = name;
       document.getElementById('rev-lead-email').textContent = email;
       document.getElementById('rev-lead-phone').textContent = phone;
-      document.getElementById('rev-lead-address').textContent = `${street}, ${number}${complement ? ' - ' + complement : ''} - ${neighborhood}, ${city}/${state} (CEP: ${cep})`;
+      const fullAddressStr = `${street}, ${number}${complement ? ' - ' + complement : ''} - ${neighborhood}, ${city}/${state} (CEP: ${cep})`;
+      document.getElementById('rev-lead-address').textContent = fullAddressStr;
       
       // Formata CPF mascarado
       const cleanCpf = cpf.replace(/\D/g, '');
@@ -2894,9 +3961,20 @@
         : cpf;
       document.getElementById('rev-lead-cpf').textContent = maskedCpf;
 
-      // Transita para a Etapa 2 (Imagem 2 - Confirmação de dados)
-      document.getElementById('modal-step-1').style.display = 'none';
-      document.getElementById('modal-step-confirm-data').style.display = 'block';
+      // Popula endereço no desktop
+      const dtAddressEl = document.getElementById('dt-lead-address');
+      if (dtAddressEl) dtAddressEl.textContent = fullAddressStr;
+
+      // Transição inteligente por dispositivo:
+      // Computador (>= 769px): transita direto para a tela "Confirme sua compra" idêntica à imagem 1!
+      // Mobile (< 769px): transita para a confirmação de dados (imagem 2)
+      if (window.innerWidth >= 769) {
+        document.getElementById('modal-step-1').style.display = 'none';
+        proceedToPaymentChoice();
+      } else {
+        document.getElementById('modal-step-1').style.display = 'none';
+        document.getElementById('modal-step-confirm-data').style.display = 'block';
+      }
 
       showToast('Dados registrados com sucesso! Confirme suas informações.', 'check');
       trackEvent('STEP_CONFIRM_DATA_DISPLAYED', { name, phone });

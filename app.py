@@ -1604,6 +1604,28 @@ def get_whatsapp_config():
 
 
 
+def _extract_pix_badge_url(badges_data):
+    if not badges_data:
+        return "/static/images/cards/pix.svg"
+    try:
+        if isinstance(badges_data, str) and badges_data.strip():
+            import json
+            badges_data = json.loads(badges_data)
+        if isinstance(badges_data, list):
+            for b in badges_data:
+                if isinstance(b, dict):
+                    lbl = str(b.get("label") or "").lower()
+                    url = str(b.get("url") or "")
+                    if ("pix" in lbl or "pix" in url.lower()) and url:
+                        return url
+            for b in badges_data:
+                if isinstance(b, dict) and b.get("url"):
+                    return b["url"]
+    except Exception:
+        pass
+    return "/static/images/cards/pix.svg"
+
+
 @app.route('/')
 
 @app.route('/p/<slug_or_code>')
@@ -1800,7 +1822,11 @@ def index(slug_or_code=None, item_code=None):
 
             seller_status=cfgs.get("seller_status", ""),
 
-            logo_url=cfgs.get("logo_url", ""),
+            logo_url=(cfgs.get("logo_url", "") or (admin_bot.get_config("logo_url", "") if BOT_AVAILABLE else "")),
+
+            pix_badge_url=_extract_pix_badge_url((custom_item.get("payment_badges") if custom_item and custom_item.get("payment_badges") else None) or (admin_bot.get_config("payment_badges", "") if BOT_AVAILABLE else "")),
+
+            payment_badges=(admin_bot.get_config("payment_badges", "") if BOT_AVAILABLE else ""),
 
             shipping_mode=p_shipping_mode,
 
@@ -2022,6 +2048,10 @@ def index(slug_or_code=None, item_code=None):
 
         logo_url=logo_url,
 
+        pix_badge_url=_extract_pix_badge_url(admin_bot.get_config("payment_badges", "") if BOT_AVAILABLE else ""),
+
+        payment_badges=(admin_bot.get_config("payment_badges", "") if BOT_AVAILABLE else ""),
+
         favicon_url=favicon_url,
 
         breadcrumb_state=cfgs.get("breadcrumb_state", "São Paulo") if 'cfgs' in dir() else "São Paulo",
@@ -2125,6 +2155,8 @@ def api_config(slug=None):
             "seller_avatar":       product.get("seller_avatar", cfgs.get("seller_avatar", "")) if product else cfgs.get("seller_avatar", ""),
 
             "payment_badges":      global_badges,
+
+            "pix_badge_url":       _extract_pix_badge_url(global_badges),
 
             "search_placeholder":  global_search_placeholder,
 
