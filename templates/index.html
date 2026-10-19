@@ -574,50 +574,25 @@
     .modal-backdrop.open { display: flex; }
     
     .checkout-modal-container {
-      background: #ffffff; width: 100%; max-width: 580px; max-height: 90vh;
-      border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
-      position: relative; animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.05);
+      background: #ffffff; width: 100%; max-width: 520px; max-height: 92vh;
+      border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.35);
+      position: relative; animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.06);
     }
 
-    .modal-header {
-      background: var(--olx-purple); color: #fff;
-      padding: 20px 28px; display: flex; align-items: center; justify-content: space-between;
-      flex-shrink: 0; z-index: 10;
+    /* Old modal header & progress bar are permanently suppressed */
+    .modal-header, .step-progress-bar {
+      display: none !important;
     }
-    .modal-header-title { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
-    .modal-close-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; padding: 6px; border-radius: 50%; transition: background 0.2s; }
-    .modal-close-btn:hover { background: rgba(255,255,255,0.3); }
-
-    /* STEP PROGRESS BAR */
-    .step-progress-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      background: #ffffff; border-bottom: 1px solid #f3f4f6; padding: 18px 28px;
-      flex-shrink: 0;
-    }
-    .step-item {
-      display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: #9ca3af;
-    }
-    .step-item.active { color: var(--olx-purple); }
-    .step-item.completed { color: var(--olx-green); }
-    .step-number {
-      width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      background: #f3f4f6; color: #6b7280; font-size: 12px; font-weight: 800;
-    }
-    .step-item.active .step-number { background: var(--olx-purple); color: #fff; box-shadow: 0 2px 10px rgba(110,10,214,0.3); }
-    .step-item.completed .step-number { background: var(--olx-green); color: #fff; }
-    .step-divider { flex: 1; height: 2px; background: #e5e7eb; margin: 0 16px; border-radius: 2px; }
-    .step-divider.filled { background: var(--olx-green); }
 
     .modal-step-body { 
-      padding: 28px; 
-      overflow-y: auto; 
-      flex: 1; 
+      padding: 0; 
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
     }
-    .modal-step-body::-webkit-scrollbar { width: 6px; }
-    .modal-step-body::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
-    .modal-step-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-    .modal-step-body::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
     /* FORM STYLES */
     .form-group { margin-bottom: 20px; position: relative; }
@@ -738,8 +713,11 @@
       flex-shrink: 0;
     }
     .olx-flow-nav-header {
-      display: flex; align-items: center; gap: 10px; padding: 14px 20px 13px;
-      border-bottom: 1px solid #f0f0f0; background: #ffffff; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 13px; border-bottom: 1px solid #f0f0f0; background: #ffffff; flex-shrink: 0;
+    }
+    .olx-flow-nav-left {
+      display: flex; align-items: center; gap: 10px;
     }
     .olx-flow-back-btn {
       background: none; border: none; cursor: pointer; padding: 4px 6px 4px 0;
@@ -747,6 +725,12 @@
       flex-shrink: 0;
     }
     .olx-flow-back-btn:hover { opacity: 0.6; }
+    .olx-flow-close-btn {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      display: flex; align-items: center; justify-content: center;
+      color: #718096; border-radius: 50%; transition: background 0.15s, color 0.15s;
+    }
+    .olx-flow-close-btn:hover { background: #f3f4f6; color: #1a1a1a; }
     .olx-flow-nav-title {
       font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: 0;
     }
@@ -835,13 +819,17 @@
       font-size: 12px; color: #718096; margin-top: 2px; text-align: right;
     }
     .btn-summary-pay {
-      width: 100%; height: 50px; background: #c87a3e; color: #ffffff;
-      border: none; border-radius: 25px; font-size: 16px; font-weight: 700;
+      width: 100%; height: 52px; background: linear-gradient(135deg, #f28800 0%, #e07300 100%);
+      color: #ffffff; border: none; border-radius: 30px; font-size: 16px; font-weight: 700;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; margin-top: 22px; box-shadow: 0 4px 12px rgba(200, 122, 62, 0.3);
+      transition: all 0.2s; margin-top: 22px; box-shadow: 0 4px 16px rgba(242, 128, 0, 0.4);
+      letter-spacing: 0.01em;
     }
     .btn-summary-pay:hover {
-      background: #b66a30; transform: translateY(-1px);
+      filter: brightness(1.06); transform: translateY(-1px);
+    }
+    .btn-summary-pay:active {
+      transform: translateY(0); filter: brightness(0.97);
     }
     .summary-safe-badge {
       display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -1675,157 +1663,135 @@
 <div class="modal-backdrop" id="checkout-modal">
   <div class="checkout-modal-container">
     
-    <!-- Modal Header -->
-    <div class="modal-header">
-      <div class="modal-header-title">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span>Garantia da OLX • Compra Segura</span>
-      </div>
-      <button class="modal-close-btn" id="close-checkout" title="Fechar">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-
-    <!-- Step Progress Bar -->
-    <div class="step-progress-bar">
-      <div class="step-item active" id="step-nav-1">
-        <div class="step-number">1</div>
-        <span>Identificação & Entrega</span>
-      </div>
-      <div class="step-divider" id="step-div-1"></div>
-      <div class="step-item" id="step-nav-2">
-        <div class="step-number">2</div>
-        <span>Pagamento Pix</span>
-      </div>
-      <div class="step-divider" id="step-div-2"></div>
-      <div class="step-item" id="step-nav-3">
-        <div class="step-number">3</div>
-        <span>Conclusão</span>
-      </div>
-    </div>
-
     <!-- STEP 1: QUALIFIED LEAD CAPTURE (DADOS PESSOAIS E ENTREGA) -->
-    <div class="modal-step-body" id="modal-step-1">
-      <div style="font-size: 13px; color: #555; margin-bottom: 16px;">
-        Preencha seus dados para habilitar a <strong>Garantia OLX</strong> e calcular a rota de envio seguro.
-      </div>
+    <div class="modal-step-body" id="modal-step-1" style="display: block; padding: 0; height: 100%; overflow: hidden;">
+      <div class="olx-custom-screen-wrap">
+        <!-- Thin purple progress bar - Image 2 style -->
+        <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 35%, #e5e7eb 35%);"></div>
 
-      <div class="form-group">
-        <label class="form-label">Nome Completo *</label>
-        <input type="text" id="lead-name" class="form-input" placeholder="Digite seu nome completo" />
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">CPF *</label>
-          <input type="text" id="lead-cpf" class="form-input" placeholder="000.000.000-00" maxlength="14" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">WhatsApp / Celular *</label>
-          <input type="text" id="lead-phone" class="form-input" placeholder="(11) 99999-9999" maxlength="15" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">E-mail para Rastreamento *</label>
-        <input type="email" id="lead-email" class="form-input" placeholder="seu-email@exemplo.com" />
-      </div>
-
-      <!-- ENDEREÇO -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">CEP de Entrega *</label>
-          <input type="text" id="lead-cep" class="form-input" placeholder="00000-000" maxlength="9" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Estado (UF) *</label>
-          <input type="text" id="lead-state" class="form-input" placeholder="SP" maxlength="2" />
-        </div>
-      </div>
-
-      <div class="form-row-3">
-        <div class="form-group">
-          <label class="form-label">Rua / Endereço *</label>
-          <input type="text" id="lead-street" class="form-input" placeholder="Ex: Av. Paulista" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Número *</label>
-          <input type="text" id="lead-number" class="form-input" placeholder="123" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Compl.</label>
-          <input type="text" id="lead-complement" class="form-input" placeholder="Apto 4" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Bairro *</label>
-          <input type="text" id="lead-neighborhood" class="form-input" placeholder="Bairro" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Cidade *</label>
-          <input type="text" id="lead-city" class="form-input" placeholder="Cidade" />
-        </div>
-      </div>
-
-      <!-- CUPOM DE DESCONTO / APENAS FRETE -->
-      {% if coupon_active is not defined or coupon_active|int != 0 %}
-      <div class="checkout-coupon-card" id="coupon-section">
-        <div class="coupon-card-header">
-          <div style="display:flex;align-items:center;gap:6px">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            <span>Possui um cupom de desconto?</span>
+        <!-- Flat nav header: title + close -->
+        <div class="olx-flow-nav-header">
+          <div class="olx-flow-nav-left">
+            <div class="olx-flow-nav-title">Comprar produto</div>
           </div>
-          <span style="font-size:11px;color:#6b7280;font-weight:600">Opcional</span>
-        </div>
-        <div class="coupon-input-wrap">
-          <input type="text" id="checkout-coupon-input" placeholder="Digite seu cupom aqui" value="{{ shipping_coupon if shipping_coupon is defined and shipping_coupon else '' }}" />
-          <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="handleCouponClick()">
-            <span id="btn-apply-coupon-text">Aplicar</span>
+          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        <div class="coupon-status-msg" id="coupon-status-msg"></div>
-      </div>
-      {% endif %}
 
-      <!-- RESUMO DA COMPRA INTELIGENTE -->
-      <div class="order-summary-box">
-        <div class="summary-header">
-          <div>
-            <div class="summary-product" id="summary-product-name">{{ product_name if product_name else '' }}</div>
-            <div class="summary-shipping" id="summary-shipping-desc">
-              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Entrega Garantida OLX com Rastreamento</span>
+        <!-- Scrollable form body -->
+        <div class="confirm-scroll-body">
+          <div class="confirm-personal-wrap">
+            <div class="confirm-personal-title" style="font-size: 20px; margin-bottom: 6px;">
+              Identificação e Entrega
+            </div>
+            <div style="font-size: 13px; color: #718096; margin-bottom: 22px;">
+              Preencha seus dados para entrega com a Compra Segura OLX.
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nome Completo *</label>
+              <input type="text" id="lead-name" class="form-input" placeholder="Digite seu nome completo" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">CPF *</label>
+                <input type="text" id="lead-cpf" class="form-input" placeholder="000.000.000-00" maxlength="14" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">WhatsApp / Celular *</label>
+                <input type="text" id="lead-phone" class="form-input" placeholder="(11) 99999-9999" maxlength="15" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">E-mail para Rastreamento *</label>
+              <input type="email" id="lead-email" class="form-input" placeholder="seu-email@exemplo.com" />
+            </div>
+
+            <!-- ENDEREÇO -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">CEP de Entrega *</label>
+                <input type="text" id="lead-cep" class="form-input" placeholder="00000-000" maxlength="9" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estado (UF) *</label>
+                <input type="text" id="lead-state" class="form-input" placeholder="SP" maxlength="2" />
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
+                <label class="form-label">Rua / Endereço *</label>
+                <input type="text" id="lead-street" class="form-input" placeholder="Ex: Av. Paulista" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Número *</label>
+                <input type="text" id="lead-number" class="form-input" placeholder="123" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Compl.</label>
+                <input type="text" id="lead-complement" class="form-input" placeholder="Apto 4" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Bairro *</label>
+                <input type="text" id="lead-neighborhood" class="form-input" placeholder="Bairro" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cidade *</label>
+                <input type="text" id="lead-city" class="form-input" placeholder="Cidade" />
+              </div>
+            </div>
+
+            <!-- CUPOM DE DESCONTO / APENAS FRETE -->
+            {% if coupon_active is not defined or coupon_active|int != 0 %}
+            <div class="checkout-coupon-card" id="coupon-section" style="margin-top: 10px; margin-bottom: 14px;">
+              <div class="coupon-card-header">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  <span>Possui um cupom de desconto?</span>
+                </div>
+                <span style="font-size:11px;color:#6b7280;font-weight:600">Opcional</span>
+              </div>
+              <div class="coupon-input-wrap">
+                <input type="text" id="checkout-coupon-input" placeholder="Digite seu cupom aqui" value="{{ shipping_coupon if shipping_coupon is defined and shipping_coupon else '' }}" />
+                <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="handleCouponClick()">
+                  <span id="btn-apply-coupon-text">Aplicar</span>
+                </button>
+              </div>
+              <div class="coupon-status-msg" id="coupon-status-msg"></div>
+            </div>
+            {% endif %}
+
+            <!-- Elementos de cálculo ocultos para suporte a JS -->
+            <div style="display: none;" id="hidden-calc-dom">
+              <span id="summary-product-name">{{ product_name if product_name else '' }}</span>
+              <span id="breakdown-prod-val">R$ {{ product_price if product_price else '' }}</span>
+              <span id="breakdown-discount-label">Desconto:</span>
+              <span id="breakdown-discount-val">- R$ 0,00</span>
+              <span id="breakdown-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
+              <span id="summary-total-val">R$ {{ product_price if product_price else '' }}</span>
+              <div id="row-prod-price"></div>
+              <div id="row-coupon-discount"></div>
+              <div id="row-shipping-fee"></div>
             </div>
           </div>
         </div>
 
-        <div class="order-summary-breakdown">
-          <div class="summary-row" id="row-prod-price">
-            <span>Valor do Produto:</span>
-            <span id="breakdown-prod-val">R$ {{ product_price if product_price else '' }}</span>
-          </div>
-          <div class="summary-row" id="row-coupon-discount" style="display:none">
-            <span id="breakdown-discount-label">Desconto Cupom (100%):</span>
-            <span id="breakdown-discount-val">- R$ {{ product_price if product_price else '' }}</span>
-          </div>
-          <div class="summary-row" id="row-shipping-fee">
-            <span>Taxa de Envio Seguro:</span>
-            <span id="breakdown-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
-          </div>
-          <div class="summary-row total">
-            <span>Total a Pagar:</span>
-            <span class="total-val" id="summary-total-val">R$ {{ product_price if product_price else '' }}</span>
-          </div>
+        <!-- Sticky action buttons at bottom -->
+        <div class="confirm-btns-wrap">
+          <button type="button" class="btn-orange-full" id="btn-advance-lead">
+            <span id="btn-advance-text">Continuar</span>
+            <svg id="btn-advance-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="margin-left: 6px;"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg id="btn-advance-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+          </button>
         </div>
       </div>
-
-      <button class="btn-step-next" id="btn-advance-lead">
-        <span id="btn-advance-text">Continuar para o Pagamento</span>
-        <svg id="btn-advance-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        <svg id="btn-advance-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-      </button>
     </div>
 
     <!-- ─── ETAPA IMAGEM 2: CONFIRMAÇÃO DE DADOS (SENTIDO DE COMPRA DE PRODUTO) ─── -->
@@ -1834,12 +1800,17 @@
         <!-- Thin purple progress bar - Image 2 style -->
         <div class="olx-custom-top-bar"></div>
 
-        <!-- Flat nav header: back arrow + title -->
+        <!-- Flat nav header: back arrow + title + close -->
         <div class="olx-flow-nav-header">
-          <button type="button" class="olx-flow-back-btn" onclick="backToStep1()" title="Voltar">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <div class="olx-flow-nav-left">
+            <button type="button" class="olx-flow-back-btn" onclick="backToStep1()" title="Voltar">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="olx-flow-nav-title">Comprar produto</div>
+          </div>
+          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-          <div class="olx-flow-nav-title">Comprar produto</div>
         </div>
 
         <!-- Scrollable info body -->
@@ -1891,123 +1862,167 @@
     </div>
 
     <!-- ─── ETAPA IMAGEM 3: RESUMO E CONFIRMAÇÃO DO PAGAMENTO ─── -->
-    <div class="modal-step-body" id="modal-step-product-summary" style="display: none; padding: 0;">
-      <!-- Header Superior com Voltar - mesmo estilo da Imagem 2 -->
-      <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 80%, #e5e7eb 80%);"></div>
-      <div class="olx-flow-nav-header">
-        <button type="button" class="olx-flow-back-btn" onclick="backToConfirmData()" title="Voltar">
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div class="olx-flow-nav-title">Revisão do Pedido</div>
-      </div>
+    <div class="modal-step-body" id="modal-step-product-summary" style="display: none; padding: 0; height: 100%; overflow: hidden;">
+      <div class="olx-custom-screen-wrap">
+        <!-- Thin purple progress bar - Image 3 style (almost full) -->
+        <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 85%, #e5e7eb 85%);"></div>
 
-      <div class="summary-screen-wrap">
-        <div class="summary-screen-title">Resumo</div>
-
-        <!-- Card do Produto (Foto + Título + Vendedor + CPF) idêntico à Imagem 3 -->
-        <div class="summary-product-card">
-          <img src="{{ product_image1 if product_image1 else '' }}" alt="Foto do produto" class="summary-product-img" onerror="this.style.display='none'" />
-          <div class="summary-product-meta">
-            <div class="summary-product-meta-title">{{ product_name if product_name else 'Produto OLX' }}</div>
-            <div class="summary-seller-row">Vendido por: <strong>{{ seller_name if seller_name else 'Vendedor Verificado' }}</strong></div>
-            <div class="summary-seller-row" style="color:#a0aec0">CPF: 123.***.***-**</div>
+        <!-- Flat nav header: back arrow + title + close -->
+        <div class="olx-flow-nav-header">
+          <div class="olx-flow-nav-left">
+            <button type="button" class="olx-flow-back-btn" onclick="backToConfirmData()" title="Voltar">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="olx-flow-nav-title">Revisão do Pedido</div>
           </div>
+          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
-        <div class="summary-divider-line"></div>
+        <div class="confirm-scroll-body">
+          <div class="summary-screen-wrap" style="padding: 0;">
+            <div class="summary-screen-title" style="font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 20px;">Resumo</div>
 
-        <!-- Custos e Valores idênticos à Imagem 3 -->
-        <div class="summary-cost-row">
-          <span>Produto</span>
-          <span>
-            {% if old_price %}<s style="color:#a0aec0;font-size:12px;margin-right:6px">R$ {{ old_price }}</s>{% endif %}
-            <strong style="color:#2d3748">R$ {{ product_price if product_price else '' }}</strong>
-          </span>
-        </div>
+            <!-- Card do Produto (Foto + Título + Vendedor + CPF) idêntico à Imagem 3 -->
+            <div class="summary-product-card">
+              <img src="{{ product_image1 if product_image1 else '' }}" alt="Foto do produto" class="summary-product-img" onerror="this.style.display='none'" />
+              <div class="summary-product-meta">
+                <div class="summary-product-meta-title">{{ product_name if product_name else 'Produto OLX' }}</div>
+                <div class="summary-seller-row">Vendido por: <strong>{{ seller_name if seller_name else 'Vendedor Verificado' }}</strong></div>
+                <div class="summary-seller-row" style="color:#a0aec0">CPF: 123.***.***-**</div>
+              </div>
+            </div>
 
-        <div class="summary-cost-row">
-          <span>Entrega Padrão</span>
-          <span style="font-weight:600;color:#2d3748" id="summary-screen-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
-        </div>
+            <div class="summary-divider-line"></div>
 
-        <div class="summary-cost-row coupon-row" id="summary-screen-coupon-row" style="display:none">
-          <span>Cupom</span>
-          <span id="summary-screen-coupon-val">-R$ 0,00</span>
-        </div>
+            <!-- Custos e Valores idênticos à Imagem 3 -->
+            <div class="summary-cost-row">
+              <span>Produto</span>
+              <span>
+                {% if old_price %}<s style="color:#a0aec0;font-size:12px;margin-right:6px">R$ {{ old_price }}</s>{% endif %}
+                <strong style="color:#2d3748">R$ {{ product_price if product_price else '' }}</strong>
+              </span>
+            </div>
 
-        <div class="summary-cost-row total-row">
-          <span>Total a pagar</span>
-          <span style="color:#1a202c" id="summary-screen-total-val">R$ {{ product_price if product_price else '' }}</span>
-        </div>
-        <div class="summary-installment-note">
-          Pagamento à vista · <span id="summary-screen-pix-note">1x R$ {{ product_price if product_price else '' }}</span>
-        </div>
+            <div class="summary-cost-row">
+              <span>Entrega Padrão</span>
+              <span style="font-weight:600;color:#2d3748" id="summary-screen-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
+            </div>
 
-        <!-- Botão Confirmar Pagamento idêntico à Imagem 3 -->
-        <button type="button" class="btn-summary-pay" id="btn-final-confirm-pay" onclick="executeFinalPayment()">
-          <span id="btn-final-pay-text">Confirmar Pagamento</span>
-          <svg id="btn-final-pay-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-        </button>
+            <div class="summary-cost-row coupon-row" id="summary-screen-coupon-row" style="display:none">
+              <span>Cupom</span>
+              <span id="summary-screen-coupon-val">-R$ 0,00</span>
+            </div>
 
-        <!-- Badge Compra Segura idêntico à Imagem 3 -->
-        <div class="summary-safe-badge">
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>Compra Segura</span>
-        </div>
+            <div class="summary-cost-row total-row">
+              <span>Total a pagar</span>
+              <span style="color:#1a202c" id="summary-screen-total-val">R$ {{ product_price if product_price else '' }}</span>
+            </div>
+            <div class="summary-installment-note">
+              Pagamento à vista · <span id="summary-screen-pix-note">1x R$ {{ product_price if product_price else '' }}</span>
+            </div>
 
-        <!-- Termos e Condições idênticos à Imagem 3 -->
-        <div class="summary-terms-text">
-          Ao confirmar o pagamento, você declara que está concordando com os <a href="#">Termos e Condições de uso</a> da OLX Pay e Compra Segura.
+            <!-- Botão Confirmar Pagamento idêntico à Imagem 3 -->
+            <button type="button" class="btn-summary-pay" id="btn-final-confirm-pay" onclick="executeFinalPayment()">
+              <span id="btn-final-pay-text">Confirmar Pagamento</span>
+              <svg id="btn-final-pay-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+            </button>
+
+            <!-- Badge Compra Segura idêntico à Imagem 3 -->
+            <div class="summary-safe-badge">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Compra Segura</span>
+            </div>
+
+            <!-- Termos e Condições idênticos à Imagem 3 -->
+            <div class="summary-terms-text">
+              Ao confirmar o pagamento, você declara que está concordando com os <a href="#">Termos e Condições de uso</a> da OLX Pay e Compra Segura.
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- STEP 2: PIX GATEWAY SINCRONIZADO -->
-    <div class="modal-step-body pix-container" id="modal-step-2" style="display: none;">
-      <div class="pix-timer-badge">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Chave expira em: <strong id="pix-countdown">14:59</strong></span>
-      </div>
+    <div class="modal-step-body pix-container" id="modal-step-2" style="display: none; padding: 0; height: 100%; overflow: hidden;">
+      <div class="olx-custom-screen-wrap">
+        <div class="olx-custom-top-bar" style="background: var(--olx-purple);"></div>
+        <div class="olx-flow-nav-header">
+          <div class="olx-flow-nav-left">
+            <button type="button" class="olx-flow-back-btn" onclick="backToSummary()" title="Voltar">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="olx-flow-nav-title">Pagamento Pix Seguro</div>
+          </div>
+          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
 
-      <div style="font-weight: 800; font-size: 16px; color: #1a1a1a; margin-bottom: 4px;">Pague via Pix para aprovação imediata</div>
-      <div style="font-size: 13px; color: #666; margin-bottom: 14px;">Abra seu aplicativo do banco e aponte a câmera para o QR Code abaixo:</div>
+        <div class="confirm-scroll-body" style="text-align: center;">
+          <div class="pix-timer-badge" style="margin-top: 10px;">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Chave expira em: <strong id="pix-countdown">14:59</strong></span>
+          </div>
 
-      <div class="pix-qr-wrapper">
-        <img id="pix-qr-img" class="pix-qr-img" src="" alt="QR Code Pix" />
-      </div>
+          <div style="font-weight: 800; font-size: 16px; color: #1a1a1a; margin-bottom: 4px;">Pague via Pix para aprovação imediata</div>
+          <div style="font-size: 13px; color: #666; margin-bottom: 16px;">Abra seu aplicativo do banco e aponte a câmera para o QR Code abaixo:</div>
 
-      <div class="pix-copy-box">
-        <input type="text" id="pix-copy-input" class="pix-copy-input" readonly />
-        <button class="btn-copy-action" id="btn-copy-pix">
-          <svg id="copy-icon-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span id="copy-text-label">Copiar Pix</span>
-        </button>
-      </div>
+          <div class="pix-qr-wrapper">
+            <img id="pix-qr-img" class="pix-qr-img" src="" alt="QR Code Pix" />
+          </div>
 
-      <div class="pix-status-alert">
-        <svg class="spinner-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-        <span>Sincronizando com a rede bancária... Aguardando confirmação.</span>
+          <div class="pix-copy-box">
+            <input type="text" id="pix-copy-input" class="pix-copy-input" readonly />
+            <button class="btn-copy-action" id="btn-copy-pix">
+              <svg id="copy-icon-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span id="copy-text-label">Copiar Pix</span>
+            </button>
+          </div>
+
+          <div class="pix-status-alert">
+            <svg class="spinner-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+            <span>Sincronizando com a rede bancária... Aguardando confirmação.</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- STEP 3: COMPRA CONFIRMADA COM SUCESSO -->
-    <div class="modal-step-body success-view" id="modal-step-3" style="display: none;">
-      <div class="success-icon-wrapper">
-        <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="modal-step-body success-view" id="modal-step-3" style="display: none; padding: 0; height: 100%; overflow: hidden;">
+      <div class="olx-custom-screen-wrap">
+        <div class="olx-custom-top-bar" style="background: var(--olx-green);"></div>
+        <div class="olx-flow-nav-header">
+          <div class="olx-flow-nav-left">
+            <div class="olx-flow-nav-title">Compra Concluída</div>
+          </div>
+          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="confirm-scroll-body" style="text-align: center; padding-top: 36px;">
+          <div class="success-icon-wrapper">
+            <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3 style="font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px;">Pagamento Confirmado!</h3>
+          <p style="font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 24px;">
+            Seu pedido foi registrado com sucesso sob o protocolo de <strong>Garantia da OLX</strong>.<br/>
+            Você receberá as atualizações e o código de rastreamento no WhatsApp cadastrado.
+          </p>
+          <div style="background: #f8f9fa; border-radius: 12px; padding: 16px; text-align: left; font-size: 13px; color: #444; margin-bottom: 24px; border: 1px solid #edf2f7;">
+            <div><strong>Status do Pedido:</strong> <span style="color: #1a7a46; font-weight: 700;">Aprovado & Em Preparação</span></div>
+            <div style="margin-top: 6px;"><strong>Previsão de Entrega:</strong> 2 a 4 dias úteis</div>
+            <div style="margin-top: 6px;"><strong>Tipo de Envio:</strong> Entrega Fácil OLX Express</div>
+          </div>
+          <div style="padding: 0 20px 24px;">
+            <button class="btn-orange-full" onclick="location.reload();">
+              Concluir
+            </button>
+          </div>
+        </div>
       </div>
-      <h3 style="font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px;">Pagamento Confirmado!</h3>
-      <p style="font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 20px;">
-        Seu pedido foi registrado com sucesso sob o protocolo de <strong>Garantia da OLX</strong>.<br/>
-        Você receberá as atualizações e o código de rastreamento no WhatsApp cadastrado.
-      </p>
-      <div style="background: #f8f9fa; border-radius: 10px; padding: 14px; text-align: left; font-size: 13px; color: #444; margin-bottom: 20px;">
-        <div><strong>Status do Pedido:</strong> <span style="color: #1a7a46; font-weight: 700;">Aprovado & Em Preparação</span></div>
-        <div style="margin-top: 6px;"><strong>Previsão de Entrega:</strong> 2 a 4 dias úteis</div>
-        <div style="margin-top: 6px;"><strong>Tipo de Envio:</strong> Entrega Fácil OLX Express</div>
-      </div>
-      <button class="btn-step-next" style="background: var(--olx-purple);" onclick="location.reload();">
-        Concluir
-      </button>
     </div>
 
   </div>
@@ -2654,21 +2669,27 @@
   let currentPaymentId = '';
   let paymentPollTimer = null;
 
+  function closeCheckoutModal() {
+    const modal = document.getElementById('checkout-modal');
+    if (modal) modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
   function backToStep1() {
     document.getElementById('modal-step-confirm-data').style.display = 'none';
     document.getElementById('modal-step-product-summary').style.display = 'none';
     document.getElementById('modal-step-2').style.display = 'none';
     document.getElementById('modal-step-1').style.display = 'block';
-
-    const header = document.querySelector('.modal-header');
-    const prog = document.querySelector('.step-progress-bar');
-    if (header) header.style.display = 'flex';
-    if (prog) prog.style.display = 'flex';
   }
 
   function backToConfirmData() {
     document.getElementById('modal-step-product-summary').style.display = 'none';
     document.getElementById('modal-step-confirm-data').style.display = 'block';
+  }
+
+  function backToSummary() {
+    document.getElementById('modal-step-2').style.display = 'none';
+    document.getElementById('modal-step-product-summary').style.display = 'block';
   }
 
   function proceedToSummary() {
@@ -2726,20 +2747,9 @@
 
       currentPaymentId = pixData.payment_id || pixData.external_id;
 
-      // 2. Oculta Resumo e Transita para Step 2 (Pagamento Pix)
+      // 2. Oculta Resumo e Transita para Step 4 (Pagamento Pix)
       document.getElementById('modal-step-product-summary').style.display = 'none';
       document.getElementById('modal-step-2').style.display = 'block';
-
-      // Reexibe o header e a barra de progresso no modal
-      const header = document.querySelector('.modal-header');
-      const prog = document.querySelector('.step-progress-bar');
-      if (header) header.style.display = 'flex';
-      if (prog) prog.style.display = 'flex';
-
-      document.getElementById('step-nav-1').classList.remove('active');
-      document.getElementById('step-nav-1').classList.add('completed');
-      document.getElementById('step-div-1').classList.add('filled');
-      document.getElementById('step-nav-2').classList.add('active');
 
       // Popula dados do Pix
       const qrImg = document.getElementById('pix-qr-img');
@@ -2888,12 +2898,6 @@
       document.getElementById('modal-step-1').style.display = 'none';
       document.getElementById('modal-step-confirm-data').style.display = 'block';
 
-      // Esconde o header padrão da OLX e o progresso durante telas personalizadas de confirmação (Imagens 2 e 3)
-      const header = document.querySelector('.modal-header');
-      const prog = document.querySelector('.step-progress-bar');
-      if (header) header.style.display = 'none';
-      if (prog) prog.style.display = 'none';
-
       showToast('Dados registrados com sucesso! Confirme suas informações.', 'check');
       trackEvent('STEP_CONFIRM_DATA_DISPLAYED', { name, phone });
 
@@ -2901,7 +2905,7 @@
       showToast('Erro ao processar: ' + err.message, 'error');
     } finally {
       btnAdvanceLead.disabled = false;
-      document.getElementById('btn-advance-text').textContent = 'Continuar para o Pagamento';
+      document.getElementById('btn-advance-text').textContent = 'Continuar';
       document.getElementById('btn-advance-icon').style.display = 'inline-block';
     }
   });
