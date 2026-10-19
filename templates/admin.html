@@ -1202,50 +1202,87 @@
         <div class="card-body" id="mon-leads-list" style="padding:0"><div class="empty"><p>Carregando leads...</p></div></div>
       </div>
 
-      <!-- ── BAN DE COMPRADORES POR IP (Supremo) ────────────────────────────────── -->
-      <div class="card" id="ip-ban-card" data-sup style="margin-bottom:14px;border:1.5px solid rgba(239,68,68,0.22)">
-        <div class="card-hdr">
+      <!-- ── BAN DE COMPRADORES POR IP (Supremo) ─────────────────────────────── -->
+      <div class="card" id="ip-ban-card" data-sup style="margin-bottom:14px;border:1.5px solid rgba(239,68,68,0.2);background:linear-gradient(135deg,rgba(15,5,20,0.95),rgba(20,5,15,0.9))">
+        <!-- Header -->
+        <div class="card-hdr" style="border-bottom:1px solid rgba(239,68,68,0.12);padding:16px 18px">
           <div class="card-ttl">
-            <div class="ci" style="background:rgba(239,68,68,0.15)">
-              <svg fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2"><path d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-            </div>
-            Ban Permanente de Compradores por IP
-            <span class="chip" style="background:rgba(239,68,68,0.18);color:#EF4444;font-size:9px;margin-left:6px">Supremo</span>
-          </div>
-          <button class="btn btn-g btn-xs" onclick="loadBannedIps()" title="Atualizar lista">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          </button>
-        </div>
-        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
-
-          <!-- Formulário de ban -->
-          <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px">
-            <div style="font-size:12px;font-weight:700;color:#EF4444;margin-bottom:2px">Banir Comprador por IP ou ID do Pagamento</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div>
-                <label class="flbl" style="font-size:11px">IP do comprador</label>
-                <input type="text" id="ban-ip-input" class="fi" placeholder="Ex: 192.168.1.100" style="height:36px;font-size:13px"/>
-              </div>
-              <div>
-                <label class="flbl" style="font-size:11px">ID do Pagamento (opcional)</label>
-                <input type="text" id="ban-pid-input" class="fi" placeholder="payment_id ou c7_id" style="height:36px;font-size:13px"/>
-              </div>
+            <div class="ci" style="background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.1));border:1px solid rgba(239,68,68,0.2)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             </div>
             <div>
-              <label class="flbl" style="font-size:11px">Motivo</label>
-              <input type="text" id="ban-reason-input" class="fi" placeholder="Ex: Compra falsa, chargeback, fraude..." value="Comprador banido permanentemente pelo Admin Supremo" style="height:36px;font-size:13px"/>
+              <div style="font-size:14px;font-weight:800;color:#fff">Controle de Compradores Confirmados</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px">Ban permanente por IP · Apenas Admin Supremo</div>
             </div>
-            <button class="btn btn-d" id="ban-apply-btn" onclick="applyBuyerIpBan(this)" style="background:rgba(239,68,68,0.85);border:none;font-weight:700;font-size:13px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-              Banir Permanentemente
+            <span class="chip" style="background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.1));color:#F87171;font-size:9px;font-weight:800;border:1px solid rgba(239,68,68,0.2);margin-left:4px">SUPREMO</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-g btn-xs" onclick="loadConfirmedBuyers()" title="Recarregar compradores" style="border:1px solid rgba(255,255,255,0.08)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
           </div>
+        </div>
 
-          <!-- Tabela de IPs banidos -->
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--c-t2);margin-bottom:8px">IPs Banidos Permanentemente</div>
-            <div id="banned-ips-list" style="display:flex;flex-direction:column;gap:6px">
-              <div class="empty"><p>Carregando...</p></div>
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.06);padding:0 18px">
+          <button id="ban-tab-buyers" onclick="switchBanTab('buyers')" style="padding:12px 16px;font-size:12px;font-weight:700;color:#F87171;border:none;background:none;cursor:pointer;border-bottom:2px solid #EF4444;display:flex;align-items:center;gap:6px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Compradores
+            <span id="ban-buyers-count" style="background:rgba(239,68,68,0.2);color:#F87171;font-size:10px;padding:1px 6px;border-radius:20px">0</span>
+          </button>
+          <button id="ban-tab-banned" onclick="switchBanTab('banned')" style="padding:12px 16px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            IPs Banidos
+            <span id="ban-banned-count" style="background:rgba(100,100,100,0.15);color:rgba(255,255,255,0.4);font-size:10px;padding:1px 6px;border-radius:20px">0</span>
+          </button>
+        </div>
+
+        <div class="card-body" style="padding:16px 18px">
+
+          <!-- ── TAB: COMPRADORES CONFIRMADOS ── -->
+          <div id="ban-panel-buyers">
+
+            <!-- Quick ban by IP or payment_id form -->
+            <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.12);border-radius:14px;padding:14px;margin-bottom:16px">
+              <div style="font-size:11px;font-weight:700;color:#F87171;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Busca Rápida por IP ou ID do Pagamento
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                <div>
+                  <label class="flbl" style="font-size:10px;color:rgba(255,255,255,0.45)">IP do comprador</label>
+                  <input type="text" id="ban-ip-input" class="fi" placeholder="Ex: 192.168.1.100" style="height:36px;font-size:12.5px;border-color:rgba(239,68,68,0.2);background:rgba(0,0,0,0.3)"/>
+                </div>
+                <div>
+                  <label class="flbl" style="font-size:10px;color:rgba(255,255,255,0.45)">ID do Pagamento</label>
+                  <input type="text" id="ban-pid-input" class="fi" placeholder="payment_id ou c7_id" style="height:36px;font-size:12.5px;border-color:rgba(239,68,68,0.2);background:rgba(0,0,0,0.3)"/>
+                </div>
+              </div>
+              <input type="text" id="ban-reason-input" class="fi" placeholder="Motivo do banimento..." value="Comprador banido permanentemente pelo Admin Supremo" style="height:36px;font-size:12px;margin-bottom:8px;border-color:rgba(239,68,68,0.2);background:rgba(0,0,0,0.3)"/>
+              <button class="btn btn-d" id="ban-apply-btn" onclick="applyBuyerIpBan(this)" style="width:100%;background:linear-gradient(135deg,rgba(239,68,68,0.9),rgba(200,30,30,0.85));border:1px solid rgba(239,68,68,0.3);font-weight:700;font-size:12.5px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:7px;color:#fff;box-shadow:0 4px 15px rgba(239,68,68,0.25);letter-spacing:0.3px">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                Banir Permanentemente
+              </button>
+            </div>
+
+            <!-- Confirmed buyers list -->
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+              <span>Compradores com compra confirmada (não banidos)</span>
+              <button onclick="loadConfirmedBuyers()" class="btn btn-g btn-xs" style="font-size:10px;border:1px solid rgba(255,255,255,0.06)">Atualizar</button>
+            </div>
+            <div id="confirmed-buyers-list" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto">
+              <div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Carregando compradores...</p></div>
+            </div>
+          </div>
+
+          <!-- ── TAB: IPS BANIDOS ── -->
+          <div id="ban-panel-banned" style="display:none">
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+              <span>IPs banidos permanentemente</span>
+              <button onclick="loadBannedIps()" class="btn btn-g btn-xs" style="font-size:10px;border:1px solid rgba(255,255,255,0.06)">Atualizar</button>
+            </div>
+            <div id="banned-ips-list" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto">
+              <div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Carregando...</p></div>
             </div>
           </div>
 
@@ -7677,7 +7714,100 @@ async function applyPunish() {
   closePunishModal();
 }
 
-// ─── BAN PERMANENTE DE COMPRADORES POR IP ─────────────────────────────────
+// ─── BAN TAB CONTROLLER ────────────────────────────────────────────────────────
+
+function switchBanTab(tab) {
+  const panels = { buyers: document.getElementById('ban-panel-buyers'), banned: document.getElementById('ban-panel-banned') };
+  const tabs   = { buyers: document.getElementById('ban-tab-buyers'),   banned: document.getElementById('ban-tab-banned') };
+
+  Object.keys(panels).forEach(k => {
+    if (panels[k]) panels[k].style.display = k === tab ? 'block' : 'none';
+    if (tabs[k]) {
+      tabs[k].style.color        = k === tab ? '#F87171' : 'rgba(255,255,255,0.4)';
+      tabs[k].style.borderBottom = k === tab ? '2px solid #EF4444' : '2px solid transparent';
+    }
+  });
+
+  if (tab === 'buyers')  loadConfirmedBuyers();
+  if (tab === 'banned')  loadBannedIps();
+}
+
+// ─── COMPRADORES CONFIRMADOS (cards para ban rápido) ──────────────────────────
+async function loadConfirmedBuyers() {
+  if (!_SUP) return;
+  const container = document.getElementById('confirmed-buyers-list');
+  if (!container) return;
+  container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Carregando...</p></div>';
+  try {
+    const r = await apiFetch('/api/admin/supreme/confirmed-buyers');
+    const d = await r.json();
+    const countEl = document.getElementById('ban-buyers-count');
+
+    if (!d.ok || !d.buyers || !d.buyers.length) {
+      container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Nenhum comprador confirmado não banido.</p></div>';
+      if (countEl) countEl.textContent = '0';
+      return;
+    }
+
+    if (countEl) countEl.textContent = d.buyers.length;
+
+    container.innerHTML = d.buyers.map(b => {
+      const initials = (b.payer_name || '??').split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+      const amtFmt   = 'R$ ' + parseFloat(b.amount||0).toLocaleString('pt-BR', {minimumFractionDigits:2});
+      return `
+        <div style="background:rgba(15,10,20,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:border-color 0.2s" onmouseenter="this.style.borderColor='rgba(239,68,68,0.3)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.07)'">
+          <!-- Avatar -->
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(150,20,20,0.5));border:1.5px solid rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#F87171;flex-shrink:0;letter-spacing:-0.5px">${initials}</div>
+          <!-- Info -->
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(b.payer_name || 'Desconhecido')}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              ${b.payer_cpf_masked ? `<span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:1px 7px;font-size:10px;color:rgba(255,255,255,0.45);font-family:monospace">${b.payer_cpf_masked}</span>` : ''}
+              <span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:1px 7px;font-size:10px;color:rgba(255,255,255,0.45);font-family:monospace">${b.ip}</span>
+              <span style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:6px;padding:1px 7px;font-size:10px;color:#34D399;font-weight:700">${amtFmt}</span>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:3px">${b.confirmed_at_fmt || b.created_at_fmt || ''}</div>
+          </div>
+          <!-- Ban button -->
+          <button onclick="quickBanBuyer('${b.ip}','${escapeHtml(b.payment_id||b.c7_id||'')}','${escapeHtml(b.payer_name||'')}',this)"
+            style="flex-shrink:0;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#F87171;border-radius:10px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s;white-space:nowrap"
+            onmouseenter="this.style.background='rgba(239,68,68,0.25)'" onmouseleave="this.style.background='rgba(239,68,68,0.12)'">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            Banir
+          </button>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Erro ao carregar.</p></div>';
+  }
+}
+
+// ─── BAN RÁPIDO POR CARD DE COMPRADOR ────────────────────────────────────────
+async function quickBanBuyer(ip, paymentId, payerName, btn) {
+  if (!_SUP) return;
+  const prev = btn.innerHTML;
+  btn.innerHTML = '...'; btn.disabled = true;
+  const reason = `Comprador ${payerName || ip} banido permanentemente pelo Admin Supremo`;
+  try {
+    const r = await apiFetch('/api/admin/supreme/ban-buyer-ip', {
+      method: 'POST',
+      body: JSON.stringify({ ip, payment_id: paymentId || undefined, reason })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      toast(d.already_banned ? `⚠️ IP ${d.ip} já banido.` : `🔒 ${payerName || ip} banido!`, 'ok');
+      loadConfirmedBuyers();
+      // Update banned count badge
+      const cntEl = document.getElementById('ban-banned-count');
+      if (cntEl) cntEl.textContent = parseInt(cntEl.textContent || '0') + 1;
+    } else {
+      toast('Erro: ' + (d.error || 'Falha ao banir'), 'err');
+    }
+  } catch(e) { toast('Erro de conexão', 'err'); }
+  btn.innerHTML = prev; btn.disabled = false;
+}
+
+// ─── BAN PERMANENTE DE COMPRADORES POR IP ─────────────────────────────────────
 async function applyBuyerIpBan(btn) {
   if (!_SUP) { toast('Acesso restrito ao Admin Supremo', 'err'); return; }
   const ip     = (document.getElementById('ban-ip-input')?.value || '').trim();
@@ -7701,10 +7831,10 @@ async function applyBuyerIpBan(btn) {
         toast(`ℹ️ IP ${d.ip} já estava banido.`, 'info');
       } else {
         toast(`🔒 IP ${d.ip} banido permanentemente!`, 'ok');
-        // Limpa os campos
-        if (document.getElementById('ban-ip-input')) document.getElementById('ban-ip-input').value = '';
-        if (document.getElementById('ban-pid-input')) document.getElementById('ban-pid-input').value = '';
+        if (document.getElementById('ban-ip-input'))  document.getElementById('ban-ip-input').value = '';
+        if (document.getElementById('ban-pid-input'))  document.getElementById('ban-pid-input').value = '';
       }
+      loadConfirmedBuyers();
       loadBannedIps();
     } else {
       toast('Erro: ' + (d.error || 'Falha ao banir'), 'err');
@@ -7716,35 +7846,60 @@ async function applyBuyerIpBan(btn) {
   btn.disabled = false;
 }
 
+// ─── LISTA DE IPs BANIDOS (cards ricos) ─────────────────────────────────────
 async function loadBannedIps() {
   if (!_SUP) return;
   const container = document.getElementById('banned-ips-list');
   if (!container) return;
-  container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3)">Carregando...</p></div>';
+  container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Carregando...</p></div>';
   try {
     const r = await apiFetch('/api/admin/supreme/banned-ips');
     const d = await r.json();
+    const cntEl = document.getElementById('ban-banned-count');
+
     if (!d.ok || !d.bans || !d.bans.length) {
-      container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.35)">Nenhum IP banido ainda.</p></div>';
+      container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Nenhum IP banido ainda.</p></div>';
+      if (cntEl) cntEl.textContent = '0';
       return;
     }
-    container.innerHTML = d.bans.map(b => `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.12);border-radius:10px;padding:10px 12px">
-        <div style="min-width:0;flex:1">
-          <div style="font-size:12.5px;font-weight:800;color:#F87171;font-family:monospace">${b.ip}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">${b.reason || '—'}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px">
-            ${b.banned_at_fmt || ''}${b.payment_id ? ' · Pag: ' + b.payment_id.substring(0,12) + '...' : ''}${b.amount ? ' · R$ ' + parseFloat(b.amount).toFixed(2) : ''}
+    if (cntEl) cntEl.textContent = d.bans.length;
+
+    container.innerHTML = d.bans.map(b => {
+      const initials = (b.payer_name || '??').split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+      const amtFmt   = b.amount ? 'R$ ' + parseFloat(b.amount).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '';
+      return `
+        <div style="background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.15);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+          <!-- Avatar -->
+          <div style="width:42px;height:42px;border-radius:50%;background:rgba(239,68,68,0.12);border:1.5px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#EF4444;flex-shrink:0;letter-spacing:-0.5px">${initials}</div>
+          <!-- Info -->
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="font-size:13px;font-weight:800;color:#F87171;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(b.payer_name || 'IP Desconhecido')}</div>
+              <span style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.2);border-radius:20px;padding:1px 8px;font-size:9.5px;font-weight:800;color:#F87171">BANIDO</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">
+              <span style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);border-radius:6px;padding:1px 7px;font-size:10.5px;color:#F87171;font-family:monospace;font-weight:700">${b.ip}</span>
+              ${b.payer_cpf_masked ? `<span style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:1px 7px;font-size:10px;color:rgba(255,255,255,0.4);font-family:monospace">${b.payer_cpf_masked}</span>` : ''}
+              ${amtFmt ? `<span style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.12);border-radius:6px;padding:1px 7px;font-size:10px;color:#F87171;font-weight:700">${amtFmt}</span>` : ''}
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
+              ${b.banned_at_fmt ? `<span>🚫 ${b.banned_at_fmt}</span>` : ''}
+              ${b.confirmed_at_fmt ? `<span>✓ Comprou: ${b.confirmed_at_fmt}</span>` : ''}
+              ${b.reason ? `<span style="color:rgba(239,68,68,0.5)">${escapeHtml(b.reason)}</span>` : ''}
+            </div>
           </div>
-        </div>
-        <button onclick="unbanIp('${b.ip}',this)" class="btn btn-g btn-xs" style="flex-shrink:0;border:1px solid rgba(255,255,255,0.1);font-size:11px" title="Remover ban">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
-          Desbanir
-        </button>
-      </div>
-    `).join('');
+          <!-- Unban button -->
+          <button onclick="unbanIp('${b.ip}',this)"
+            style="flex-shrink:0;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:10px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.2s"
+            onmouseenter="this.style.background='rgba(16,185,129,0.1)';this.style.color='#34D399';this.style.borderColor='rgba(16,185,129,0.3)'"
+            onmouseleave="this.style.background='rgba(255,255,255,0.04)';this.style.color='rgba(255,255,255,0.5)';this.style.borderColor='rgba(255,255,255,0.1)'">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
+            Desbanir
+          </button>
+        </div>`;
+    }).join('');
   } catch(e) {
-    container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.35)">Erro ao carregar.</p></div>';
+    container.innerHTML = '<div class="empty"><p style="color:rgba(255,255,255,0.3);font-size:12px">Erro ao carregar.</p></div>';
   }
 }
 
@@ -7755,12 +7910,11 @@ async function unbanIp(ip, btn) {
   try {
     const r = await apiFetch('/api/admin/supreme/unban-ip', { method: 'POST', body: JSON.stringify({ ip }) });
     const d = await r.json();
-    if (d.ok) { toast(`IP ${ip} desbanido.`, 'ok'); loadBannedIps(); }
+    if (d.ok) { toast(`IP ${ip} desbanido.`, 'ok'); loadBannedIps(); loadConfirmedBuyers(); }
     else toast(d.error || 'Erro ao desbanir', 'err');
   } catch(e) { toast('Erro de conexão', 'err'); }
   btn.innerHTML = prev; btn.disabled = false;
 }
-
 
 function switchEmailTab(tabId) {
   document.querySelectorAll('#page-email .tabs-pill .tp').forEach(e => e.classList.remove('active'));

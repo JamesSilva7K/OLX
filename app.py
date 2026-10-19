@@ -4584,7 +4584,7 @@ def api_ban_buyer_ip():
 
 @app.route('/api/admin/supreme/banned-ips', methods=['GET'])
 def api_list_banned_ips():
-    """Lista todos os IPs banidos permanentemente. RESTRITO ao Admin Supremo."""
+    """Lista todos os IPs banidos permanentemente com dados do comprador. RESTRITO ao Admin Supremo."""
     admin_id, role = verify_admin_access(request)
     if not admin_id or role != "supreme_admin":
         return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
@@ -4596,10 +4596,21 @@ def api_list_banned_ips():
     try:
         _ensure_payment_tables(conn)
         rows = conn.execute(
-            "SELECT ip, reason, banned_by, banned_at, payment_id, amount FROM ip_bans ORDER BY banned_at DESC LIMIT 500"
+            """SELECT b.ip, b.reason, b.banned_by, b.banned_at, b.payment_id, b.amount,
+                      p.payer_name, p.payer_cpf, p.confirmed_at, p.status
+               FROM ip_bans b
+               LEFT JOIN payments p ON p.ip = b.ip AND p.status IN ('paid','confirmed','approved')
+               GROUP BY b.ip
+               ORDER BY b.banned_at DESC LIMIT 500"""
         ).fetchall()
         bans = []
         for r in rows:
+            # Mask CPF: 123.456.789-00 → 123.***.**9-00
+            cpf_raw = r["payer_cpf"] or ""
+            cpf_masked = ""
+            if len(cpf_raw) >= 11:
+                digits = cpf_raw.replace(".", "").replace("-", "")
+                cpf_masked = f"{digits[:3]}.***.***-{digits[-2:]}"
             bans.append({
                 "ip": r["ip"],
                 "reason": r["reason"],
@@ -4607,6 +4618,10 @@ def api_list_banned_ips():
                 "banned_at": r["banned_at"],
                 "payment_id": r["payment_id"],
                 "amount": r["amount"],
+                "payer_name": r["payer_name"] or "",
+                "payer_cpf_masked": cpf_masked,
+                "confirmed_at": r["confirmed_at"],
+                "confirmed_at_fmt": datetime.fromtimestamp(r["confirmed_at"]).strftime("%d/%m/%Y %H:%M") if r["confirmed_at"] else "",
                 "banned_at_fmt": datetime.fromtimestamp(r["banned_at"]).strftime("%d/%m/%Y %H:%M") if r["banned_at"] else ""
             })
         return jsonify({"ok": True, "bans": bans, "total": len(bans)})
@@ -4635,6 +4650,58 @@ def api_unban_ip():
         conn.execute("DELETE FROM ip_bans WHERE ip=?", (target_ip,))
         conn.commit()
         return jsonify({"ok": True, "msg": f"Ban do IP {target_ip} removido com sucesso."})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+# ─── COMPRADORES CONFIRMADOS (para ban direto na UI) ──────────────────────────
+
+@app.route('/api/admin/supreme/confirmed-buyers', methods=['GET'])
+def api_confirmed_buyers():
+    """Lista compradores com pagamento confirmado (paid/confirmed/approved) que NÃO estão na lista de bans.
+    Usado pela UI do admin para permitir ban rápido por card. RESTRITO ao Admin Supremo."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id or role != "supreme_admin":
+        return jsonify({"ok": False, "error": "Acesso restrito ao Admin Supremo"}), 403
+
+    if not BOT_AVAILABLE:
+        return jsonify({"ok": True, "buyers": []})
+
+    conn = admin_bot.get_db()
+    try:
+        _ensure_payment_tables(conn)
+        rows = conn.execute(
+            """SELECT p.payment_id, p.c7_id, p.payer_name, p.payer_cpf, p.ip,
+                      p.amount, p.status, p.confirmed_at, p.created_at
+               FROM payments p
+               WHERE p.status IN ('paid','confirmed','approved')
+                 AND p.ip IS NOT NULL AND p.ip != ''
+                 AND p.ip NOT IN (SELECT ip FROM ip_bans)
+               ORDER BY p.confirmed_at DESC LIMIT 200"""
+        ).fetchall()
+        buyers = []
+        for r in rows:
+            cpf_raw = r["payer_cpf"] or ""
+            cpf_masked = ""
+            if len(cpf_raw) >= 11:
+                digits = cpf_raw.replace(".", "").replace("-", "")
+                cpf_masked = f"{digits[:3]}.***.***-{digits[-2:]}"
+
+            buyers.append({
+                "payment_id": r["payment_id"],
+                "c7_id": r["c7_id"],
+                "payer_name": r["payer_name"] or "Desconhecido",
+                "payer_cpf_masked": cpf_masked,
+                "ip": r["ip"],
+                "amount": float(r["amount"] or 0),
+                "status": r["status"],
+                "confirmed_at": r["confirmed_at"],
+                "confirmed_at_fmt": datetime.fromtimestamp(r["confirmed_at"]).strftime("%d/%m/%Y %H:%M") if r["confirmed_at"] else "",
+                "created_at_fmt": datetime.fromtimestamp(r["created_at"]).strftime("%d/%m/%Y %H:%M") if r["created_at"] else ""
+            })
+        return jsonify({"ok": True, "buyers": buyers, "total": len(buyers)})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
