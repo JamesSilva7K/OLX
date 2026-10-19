@@ -4468,10 +4468,12 @@
     }
   });
 
-  closeCheckout.addEventListener('click', () => {
-    checkoutModal.classList.remove('open');
-    document.body.style.overflow = '';
-  });
+  if (closeCheckout) {
+    closeCheckout.addEventListener('click', () => {
+      checkoutModal.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
 
   // Inputs Masks no Modal
   const leadName = document.getElementById('lead-name');
@@ -4652,27 +4654,33 @@
   let paymentPollTimer = null;
 
   function goToAddressStep() {
-    const name = document.getElementById('lead-name') ? document.getElementById('lead-name').value.trim() : '';
-    const cpf = document.getElementById('lead-cpf') ? document.getElementById('lead-cpf').value.trim() : '';
-    const phone = document.getElementById('lead-phone') ? document.getElementById('lead-phone').value.trim() : '';
-    const email = document.getElementById('lead-email') ? document.getElementById('lead-email').value.trim() : '';
+    const nameEl = document.getElementById('lead-name');
+    const cpfEl = document.getElementById('lead-cpf');
+    const phoneEl = document.getElementById('lead-phone');
+    const emailEl = document.getElementById('lead-email');
+
+    const name = nameEl ? nameEl.value.trim() : '';
+    const cpf = cpfEl ? cpfEl.value.trim() : '';
+    const phone = phoneEl ? phoneEl.value.trim() : '';
+    const email = emailEl ? emailEl.value.trim() : '';
+
+    [nameEl, cpfEl, phoneEl, emailEl].forEach(el => {
+      if (el) el.classList.remove('error');
+    });
 
     if (!AdvancedValidator.isValidName(name)) {
       showToast('Digite seu nome e sobrenome completo.', 'error');
-      const el = document.getElementById('lead-name');
-      if (el) { el.classList.add('error'); el.focus(); }
+      if (nameEl) { nameEl.classList.add('error'); nameEl.focus(); }
       return;
     }
     if (!AdvancedValidator.isValidCPF(cpf)) {
       showToast('CPF inválido. Verifique os números digitados.', 'error');
-      const el = document.getElementById('lead-cpf');
-      if (el) { el.classList.add('error'); el.focus(); }
+      if (cpfEl) { cpfEl.classList.add('error'); cpfEl.focus(); }
       return;
     }
     if (!AdvancedValidator.isValidPhone(phone)) {
       showToast('Telefone inválido. Informe o DDD e número corretos.', 'error');
-      const el = document.getElementById('lead-phone');
-      if (el) { el.classList.add('error'); el.focus(); }
+      if (phoneEl) { phoneEl.classList.add('error'); phoneEl.focus(); }
       return;
     }
     const validEmail = (em) => {
@@ -4684,8 +4692,7 @@
     };
     if (!validEmail(email)) {
       showToast('Digite um e-mail válido para rastreamento.', 'error');
-      const el = document.getElementById('lead-email');
-      if (el) { el.classList.add('error'); el.focus(); }
+      if (emailEl) { emailEl.classList.add('error'); emailEl.focus(); }
       return;
     }
 
@@ -4695,23 +4702,33 @@
     if (personalWrap) personalWrap.style.display = 'none';
     if (addressWrap) {
       addressWrap.style.display = 'flex';
+      const checkoutBackdrop = document.getElementById('checkout-modal');
+      if (checkoutBackdrop) checkoutBackdrop.scrollTop = 0;
+      window.scrollTo(0, 0);
       const cepInputEl = document.getElementById('lead-cep');
       if (cepInputEl && !cepInputEl.value) cepInputEl.focus();
     }
   }
+  window.goToAddressStep = goToAddressStep;
 
   function backToPersonalStep() {
     const personalWrap = document.getElementById('modal-mobile-substep-personal');
     const addressWrap = document.getElementById('modal-mobile-substep-address');
     if (addressWrap) addressWrap.style.display = 'none';
-    if (personalWrap) personalWrap.style.display = 'flex';
+    if (personalWrap) {
+      personalWrap.style.display = 'flex';
+      const checkoutBackdrop = document.getElementById('checkout-modal');
+      if (checkoutBackdrop) checkoutBackdrop.scrollTop = 0;
+    }
   }
+  window.backToPersonalStep = backToPersonalStep;
 
   function closeCheckoutModal() {
     const modal = document.getElementById('checkout-modal');
     if (modal) modal.classList.remove('open');
     document.body.style.overflow = '';
   }
+  window.closeCheckoutModal = closeCheckoutModal;
 
   function backToStep1() {
     const confirmStep = document.getElementById('modal-step-confirm-data');
