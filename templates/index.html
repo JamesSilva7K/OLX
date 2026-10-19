@@ -729,58 +729,69 @@
     .btn-copy-action.copied { background: var(--olx-green); }
 
     /* IMAGE 2 & 3 STYLES: CONFIRMAÇÃO DE DADOS & RESUMO DO PRODUTO */
+    /* ── thin purple top bar for custom screens ── */
+    .olx-custom-screen-wrap {
+      display: flex; flex-direction: column; min-height: 100%; background: #fff;
+    }
+    .olx-custom-top-bar {
+      height: 4px; background: linear-gradient(90deg, var(--olx-purple) 60%, #e5e7eb 60%);
+      flex-shrink: 0;
+    }
     .olx-flow-nav-header {
-      display: flex; align-items: center; gap: 14px; padding: 18px 24px;
-      border-bottom: 3px solid var(--olx-purple); background: #ffffff;
+      display: flex; align-items: center; gap: 10px; padding: 14px 20px 13px;
+      border-bottom: 1px solid #f0f0f0; background: #ffffff; flex-shrink: 0;
     }
     .olx-flow-back-btn {
-      background: none; border: none; cursor: pointer; padding: 6px; display: flex;
-      align-items: center; justify-content: center; color: #1a1a1a; border-radius: 50%;
-      transition: background 0.15s;
+      background: none; border: none; cursor: pointer; padding: 4px 6px 4px 0;
+      display: flex; align-items: center; color: #1a1a1a; transition: opacity 0.15s;
+      flex-shrink: 0;
     }
-    .olx-flow-back-btn:hover { background: #f3f4f6; }
+    .olx-flow-back-btn:hover { opacity: 0.6; }
     .olx-flow-nav-title {
-      font-size: 17px; font-weight: 700; color: #2d3748; letter-spacing: -0.2px;
+      font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: 0;
     }
-
-    .confirm-personal-wrap {
-      padding: 24px 28px;
+    .confirm-scroll-body {
+      flex: 1; overflow-y: auto; padding: 28px 24px 16px;
     }
+    .confirm-scroll-body::-webkit-scrollbar { width: 4px; }
+    .confirm-scroll-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+    .confirm-personal-wrap { padding: 0; }
     .confirm-personal-title {
-      font-size: 21px; font-weight: 700; color: #2d3748; line-height: 1.35; margin-bottom: 24px;
+      font-size: 22px; font-weight: 800; color: #1a1a1a; line-height: 1.3; margin-bottom: 26px;
     }
     .confirm-section-heading {
-      font-size: 17px; font-weight: 700; color: #2d3748; margin-bottom: 20px;
+      font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 18px;
     }
     .confirm-info-row {
-      margin-bottom: 20px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
     }
+    .confirm-info-row:last-of-type { border-bottom: none; }
     .confirm-info-label {
-      font-size: 13px; color: #718096; margin-bottom: 4px; font-weight: 500;
+      font-size: 12px; color: #8a8a8a; margin-bottom: 3px; font-weight: 400; letter-spacing: 0.01em;
     }
     .confirm-info-val {
-      font-size: 15px; color: #2d3748; font-weight: 600; word-break: break-all;
+      font-size: 15px; color: #1a1a1a; font-weight: 600; word-break: break-word;
     }
-
+    .confirm-btns-wrap {
+      padding: 16px 24px 28px; flex-shrink: 0;
+    }
     .btn-orange-full {
-      width: 100%; height: 50px; background: #f28000; color: #ffffff;
-      border: none; border-radius: 25px; font-size: 16px; font-weight: 700;
+      width: 100%; height: 52px; background: linear-gradient(135deg, #f28800 0%, #e07300 100%);
+      color: #ffffff; border: none; border-radius: 30px; font-size: 16px; font-weight: 700;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 14px rgba(242, 128, 0, 0.35); transition: all 0.2s;
-      margin-top: 26px; text-decoration: none;
+      box-shadow: 0 4px 16px rgba(242, 128, 0, 0.4); transition: all 0.2s;
+      letter-spacing: 0.01em;
     }
-    .btn-orange-full:hover {
-      background: #e07300; transform: translateY(-1px);
-    }
+    .btn-orange-full:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .btn-orange-full:active { transform: translateY(0); filter: brightness(0.97); }
     .btn-outline-pill {
-      width: 100%; height: 50px; background: #ffffff; color: #b45309;
-      border: 1.5px solid #d97706; border-radius: 25px; font-size: 15px; font-weight: 700;
+      width: 100%; height: 52px; background: #ffffff; color: #e07300;
+      border: 1.5px solid #f28800; border-radius: 30px; font-size: 15px; font-weight: 700;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.2s; margin-top: 12px;
     }
-    .btn-outline-pill:hover {
-      background: #fffbeb;
-    }
+    .btn-outline-pill:hover { background: #fff8f0; }
 
     /* RESUMO DO PRODUTO (IMAGEM 3) */
     .summary-screen-wrap {
@@ -1818,64 +1829,74 @@
     </div>
 
     <!-- ─── ETAPA IMAGEM 2: CONFIRMAÇÃO DE DADOS (SENTIDO DE COMPRA DE PRODUTO) ─── -->
-    <div class="modal-step-body" id="modal-step-confirm-data" style="display: none; padding: 0;">
-      <!-- Header Superior idêntico à Imagem 2 -->
-      <div class="olx-flow-nav-header">
-        <button type="button" class="olx-flow-back-btn" onclick="backToStep1()" title="Voltar">
-          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </button>
-        <div class="olx-flow-nav-title">Comprar produto</div>
-      </div>
+    <div class="modal-step-body" id="modal-step-confirm-data" style="display: none; padding: 0; height: 100%; overflow: hidden;">
+      <div class="olx-custom-screen-wrap">
+        <!-- Thin purple progress bar - Image 2 style -->
+        <div class="olx-custom-top-bar"></div>
 
-      <div class="confirm-personal-wrap">
-        <div class="confirm-personal-title">
-          Quase lá! Por favor, confirme os dados abaixo.
+        <!-- Flat nav header: back arrow + title -->
+        <div class="olx-flow-nav-header">
+          <button type="button" class="olx-flow-back-btn" onclick="backToStep1()" title="Voltar">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="olx-flow-nav-title">Comprar produto</div>
         </div>
 
-        <div class="confirm-section-heading">Informações Pessoais</div>
+        <!-- Scrollable info body -->
+        <div class="confirm-scroll-body">
+          <div class="confirm-personal-wrap">
+            <div class="confirm-personal-title">
+              Quase lá! Por favor, confirme os dados abaixo.
+            </div>
 
-        <div class="confirm-info-row">
-          <div class="confirm-info-label">Nome Completo</div>
-          <div class="confirm-info-val" id="rev-lead-name">—</div>
+            <div class="confirm-section-heading">Informações Pessoais</div>
+
+            <div class="confirm-info-row">
+              <div class="confirm-info-label">Nome Completo</div>
+              <div class="confirm-info-val" id="rev-lead-name">—</div>
+            </div>
+
+            <div class="confirm-info-row">
+              <div class="confirm-info-label">E-mail</div>
+              <div class="confirm-info-val" id="rev-lead-email">—</div>
+            </div>
+
+            <div class="confirm-info-row">
+              <div class="confirm-info-label">Telefone</div>
+              <div class="confirm-info-val" id="rev-lead-phone">—</div>
+            </div>
+
+            <div class="confirm-info-row">
+              <div class="confirm-info-label">Endereço de Entrega</div>
+              <div class="confirm-info-val" id="rev-lead-address">—</div>
+            </div>
+
+            <div class="confirm-info-row" style="border-bottom: none;">
+              <div class="confirm-info-label">CPF</div>
+              <div class="confirm-info-val" id="rev-lead-cpf">—</div>
+            </div>
+          </div>
         </div>
 
-        <div class="confirm-info-row">
-          <div class="confirm-info-label">E-mail</div>
-          <div class="confirm-info-val" id="rev-lead-email">—</div>
+        <!-- Sticky action buttons at bottom -->
+        <div class="confirm-btns-wrap">
+          <button type="button" class="btn-orange-full" id="btn-confirm-personal" onclick="proceedToSummary()">
+            Confirmar
+          </button>
+          <button type="button" class="btn-outline-pill" onclick="backToStep1()">
+            Editar dados
+          </button>
         </div>
-
-        <div class="confirm-info-row">
-          <div class="confirm-info-label">Telefone</div>
-          <div class="confirm-info-val" id="rev-lead-phone">—</div>
-        </div>
-
-        <div class="confirm-info-row">
-          <div class="confirm-info-label">Endereço de Entrega</div>
-          <div class="confirm-info-val" id="rev-lead-address">—</div>
-        </div>
-
-        <div class="confirm-info-row">
-          <div class="confirm-info-label">CPF</div>
-          <div class="confirm-info-val" id="rev-lead-cpf">—</div>
-        </div>
-
-        <!-- Botões de Ação idênticos à Imagem 2 -->
-        <button type="button" class="btn-orange-full" id="btn-confirm-personal" onclick="proceedToSummary()">
-          Confirmar
-        </button>
-
-        <button type="button" class="btn-outline-pill" onclick="backToStep1()">
-          Editar dados
-        </button>
       </div>
     </div>
 
     <!-- ─── ETAPA IMAGEM 3: RESUMO E CONFIRMAÇÃO DO PAGAMENTO ─── -->
     <div class="modal-step-body" id="modal-step-product-summary" style="display: none; padding: 0;">
-      <!-- Header Superior com Voltar -->
+      <!-- Header Superior com Voltar - mesmo estilo da Imagem 2 -->
+      <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 80%, #e5e7eb 80%);"></div>
       <div class="olx-flow-nav-header">
         <button type="button" class="olx-flow-back-btn" onclick="backToConfirmData()" title="Voltar">
-          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="olx-flow-nav-title">Revisão do Pedido</div>
       </div>
