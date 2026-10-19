@@ -1350,6 +1350,35 @@
             -->
           </div>
           <div class="mt-12" style="display:flex;gap:8px"><button class="btn btn-p" onclick="saveVisualCfg()" style="flex:1">Salvar Visual</button><button class="btn btn-d btn-sm" onclick="clearBadges()">Limpar</button></div>
+
+          <!-- ── TOGGLES: Formas de Pagamento Adicionais ── -->
+          <div style="margin-top:20px;border-top:1px solid var(--c-border);padding-top:16px">
+            <p class="sm" style="font-weight:700;color:var(--c-t1);margin-bottom:12px">Opções de Pagamento (Tela Mobile)</p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--c-card2);border-radius:10px;padding:10px 14px;border:1px solid var(--c-border)">
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--c-t1)">NuPay (Nubank)</div>
+                  <div style="font-size:11px;color:var(--c-t3)">Exibir opção NuPay na tela de pagamento</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+                  <input type="checkbox" id="tgl-nupay" onchange="saveTgl('show_nupay',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+                  <span id="tgl-nupay-track" style="position:absolute;inset:0;background:#444;border-radius:11px;transition:.3s;"></span>
+                  <span id="tgl-nupay-thumb" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></span>
+                </label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--c-card2);border-radius:10px;padding:10px 14px;border:1px solid var(--c-border)">
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--c-t1)">Cartão de Crédito</div>
+                  <div style="font-size:11px;color:var(--c-t3)">Exibir opção de cartão de crédito</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+                  <input type="checkbox" id="tgl-credit" onchange="saveTgl('show_credit_card',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+                  <span id="tgl-credit-track" style="position:absolute;inset:0;background:#444;border-radius:11px;transition:.3s;"></span>
+                  <span id="tgl-credit-thumb" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></span>
+                </label>
+              </div>
+            </div>
+          </div>
         </div></div>
       </div>
 
@@ -5731,7 +5760,14 @@ function onCouponOnlyShippingChange(checked) {
 async function loadCfg(){
   try{const url=_SLUG?'/api/config/'+_SLUG:'/api/config';const r=await fetch(url);const d=await r.json();const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};sv('cfg-pname',d.product_name);sv('cfg-price',d.product_price);sv('cfg-oldp',d.product_old_price);sv('cfg-desc',d.product_description);sv('cfg-img',d.product_image);sv('cfg-sname',d.seller_name);sv('cfg-ssince',d.seller_since);sv('cfg-sstatus',d.seller_status);sv('cfg-logo',d.logo_url);sv('cfg-wa',d.whatsapp_number);sv('cfg-wa-msg',d.whatsapp_message);sv('pu1',d.product_image1);sv('pu2',d.product_image2);sv('pu3',d.product_image3);sv('cfg-favicon',d.favicon_url);if(d.logo_url)prevLogo(d.logo_url);if(d.favicon_url)prevFavicon(d.favicon_url);const defBadges = Object.values(PB).map(b => ({url:b.url, label:b.label, active:true}));if(d.payment_badges){try{_BADGES=fixBadgeUrls(JSON.parse(d.payment_badges));if(!Array.isArray(_BADGES))_BADGES=defBadges;}catch(e){_BADGES=defBadges;}}else{_BADGES=defBadges;}renderBadges();loadTgls();}catch(e){}
 }
-async function loadTgls(){try{const r=await apiFetch('/api/admin/config');const d=await r.json();if(!d.ok)return;const c=d.config||{};const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v==='1'||v===true||v===1;};sc('tgl-active',c.active);sc('tgl-pixel',c.pixel_active);sc('tgl-notif',c.notifications);}catch{}}
+async function loadTgls(){try{const r=await apiFetch('/api/admin/config');const d=await r.json();if(!d.ok)return;const c=d.config||{};const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v==='1'||v===true||v===1;};sc('tgl-active',c.active);sc('tgl-pixel',c.pixel_active);sc('tgl-notif',c.notifications);
+  // Payment option toggles
+  const nupayEl=document.getElementById('tgl-nupay');const creditEl=document.getElementById('tgl-credit');
+  if(nupayEl){nupayEl.checked=c.show_nupay==='1';_updTgl('tgl-nupay',nupayEl.checked);}
+  if(creditEl){creditEl.checked=c.show_credit_card==='1';_updTgl('tgl-credit',creditEl.checked);}
+}catch{}}
+function _updTgl(id,on){const trk=document.getElementById(id+'-track');const thm=document.getElementById(id+'-thumb');if(trk)trk.style.background=on?'#8b5cf6':'#444';if(thm)thm.style.left=on?'20px':'2px';}
+document.addEventListener('change',e=>{if(e.target.id==='tgl-nupay'||e.target.id==='tgl-credit'){_updTgl(e.target.id,e.target.checked);}});
 
 async function saveCfg(u){try{const r=await apiFetch('/api/admin/config',{method:'POST',body:JSON.stringify(u)});const d=await r.json();if(d.ok)toast('Configurações salvas!','ok');else toast(d.error||d.message||'Erro.','err');}catch{toast('Erro.','err');}}
 function saveProdCfg(){saveCfg({product_name:document.getElementById('cfg-pname').value,product_price:document.getElementById('cfg-price').value,product_old_price:document.getElementById('cfg-oldp').value,product_description:document.getElementById('cfg-desc').value,product_image:document.getElementById('cfg-img').value});}

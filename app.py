@@ -2158,6 +2158,10 @@ def api_config(slug=None):
 
             "pix_badge_url":       _extract_pix_badge_url(global_badges),
 
+            "show_nupay":          admin_bot.get_config("show_nupay", "0") if BOT_AVAILABLE else "0",
+
+            "show_credit_card":    admin_bot.get_config("show_credit_card", "0") if BOT_AVAILABLE else "0",
+
             "search_placeholder":  global_search_placeholder,
 
             "favicon_url":         global_favicon_url,
@@ -2219,6 +2223,12 @@ def api_config(slug=None):
         "seller_since":        gc("seller_since", ""),
 
         "payment_badges":      gc("payment_badges", ""),
+
+        "pix_badge_url":       _extract_pix_badge_url(gc("payment_badges", "")),
+
+        "show_nupay":          gc("show_nupay", "0"),
+
+        "show_credit_card":    gc("show_credit_card", "0"),
 
         "det_category":  gc("det_category",  ""),
 
@@ -6385,6 +6395,33 @@ def check_payment(payment_id):
                         wa_num = wa_digits if wa_digits.startswith("55") else f"55{wa_digits}"
                         markup = {"inline_keyboard": [[{"text": "💬 Chamar Cliente no WhatsApp", "url": f"https://wa.me/{wa_num}"}]]}
                     tg_wh.notify_log_channel("pagamento", html_msg, markup=markup)
+
+                # ── Email automático ao comprador ──────────────────────────────
+                if payment.get("email"):
+                    try:
+                        import email_sender
+                        import urllib.parse
+                        to_em = payment["email"]
+                        prod_name = payment.get("product_name", "Produto")
+                        val_brl = payment.get("amount", 0)
+                        buyer_name = payment.get("name", "Cliente")
+                        html_body = f"<h2>Pagamento Confirmado!</h2><p>Olá {buyer_name}, seu pagamento de R${float(str(val_brl).replace(',','.')):,.2f} pelo produto <b>{prod_name}</b> foi confirmado com sucesso!</p>"
+                        if TG_WH_AVAILABLE:
+                            tpls = tg_wh.get_email_templates()
+                            if tpls:
+                                html_body = tpls[-1]['html_content']
+                                wa_num_cfg = tg_wh.get_config("whatsapp_number") or "5511999999999"
+                                wa_msg_cfg = tg_wh.get_config("whatsapp_message") or "Olá"
+                                wa_link = f"https://wa.me/{wa_num_cfg}?text={urllib.parse.quote(wa_msg_cfg)}"
+                                html_body = html_body.replace('[Nome do produto]', prod_name)
+                                html_body = html_body.replace('[00,00]', f"R$ {float(str(val_brl).replace(',','.')):,.2f}".replace('.',','))
+                                html_body = html_body.replace('[Nome do comprador]', buyer_name)
+                                html_body = html_body.replace('[Forma de pagamento]', 'PIX')
+                                html_body = html_body.replace('[LINK_WHATSAPP]', wa_link)
+                                html_body = html_body.replace('./images/', request.host_url + 'static/email_images/')
+                        email_sender.send_confirmation_email(to_em, f"Confirmação de Pagamento - {prod_name}", html_body)
+                    except Exception as _em_err:
+                        print(f"[Email Check_Payment] {_em_err}")
 
                 return jsonify({"payment_id": safe_pid, "status": "paid", "amount": payment.get("amount")})
 
