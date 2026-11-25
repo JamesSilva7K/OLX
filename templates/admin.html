@@ -1861,9 +1861,42 @@
             </div>
             <div class="fg">
               <label class="flbl">Modelo de Email (Template)</label>
-              <select id="em-tpl" class="fi" onchange="if(this.value){ loadTplContent(this.value); }else{ document.getElementById('em-html').value=''; updateEmailPreview();}">
+              <!-- Hidden native select for JS compatibility -->
+              <select id="em-tpl" style="display:none;" onchange="if(this.value){ loadTplContent(this.value); }else{ document.getElementById('em-html').value=''; updateEmailPreview();}">
                 <option value="">-- Personalizado (HTML livre) --</option>
               </select>
+              <!-- Custom styled dropdown -->
+              <div id="em-tpl-custom" style="position:relative;">
+                <div id="em-tpl-btn" onclick="toggleCustomTplDropdown()" style="
+                  display:flex; align-items:center; justify-content:space-between;
+                  padding: 10px 14px; cursor:pointer; user-select:none;
+                  background: rgba(139,92,246,0.08);
+                  border: 1.5px solid rgba(139,92,246,0.35);
+                  border-radius: 10px; gap:10px;
+                  transition: border-color 0.2s, background 0.2s;">
+                  <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                    <div id="em-tpl-badge" style="
+                      flex-shrink:0; width:28px; height:28px; border-radius:7px;
+                      background: linear-gradient(135deg,#7c3aed,#4f46e5);
+                      display:flex;align-items:center;justify-content:center;">
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div style="min-width:0;">
+                      <div id="em-tpl-label" style="font-size:12.5px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">-- Personalizado (HTML livre) --</div>
+                      <div id="em-tpl-desc" style="font-size:10.5px;color:var(--c-t3);margin-top:1px;">HTML customizado manualmente</div>
+                    </div>
+                  </div>
+                  <svg id="em-tpl-arrow" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--c-t2)" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <!-- Dropdown panel -->
+                <div id="em-tpl-panel" style="
+                  display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:200;
+                  background: #1e1a2e; border:1.5px solid rgba(139,92,246,0.4);
+                  border-radius:12px; overflow:hidden;
+                  box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+                  <div id="em-tpl-options" style="max-height:220px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px;"></div>
+                </div>
+              </div>
             </div>
 
             <!-- PAINEL INTELIGENTE DA VENDA (CAMPOS SINCRONIZADOS & CUSTOMIZADOS) -->
@@ -7865,11 +7898,6 @@ async function refreshPreview(productCode){
     _pvProducts = d.products || [];
 
     // Update URL displays
-    const urlBadge = document.getElementById('pv-url-badge');
-    const urlBar = document.getElementById('pv-url-bar');
-    const openBtn = document.getElementById('pv-open-btn');
-    if(urlBadge) urlBadge.textContent = _pvUrl || '—';
-    if(urlBar){
       try {const u=new URL(_pvUrl);urlBar.textContent=u.hostname+u.pathname;}
       catch{urlBar.textContent=_pvUrl||'—';}
     }
@@ -8964,14 +8992,138 @@ async function loadEmailTemplates() {
           loadTplContent(targetId);
         }
       }
+      buildCustomTplDropdown();
       populateCatalogSelectInEmail();
       if (!document.getElementById('em-var-data-hora')?.value) {
         syncEmailSaleDateTime();
       }
-      setTimeout(() => updateEmailPreview(), 60);
+      setTimeout(() => updateEmailPreview(), 80);
     }
   } catch(e){}
 }
+
+// ── Custom Template Dropdown ──────────────────────────────────────────────────
+function buildCustomTplDropdown() {
+  const optionsContainer = document.getElementById('em-tpl-options');
+  if (!optionsContainer) return;
+
+  const tplDescriptions = {
+    'venda': 'Notificação ao vendedor / lead sobre a venda aprovada',
+    'compra': 'Confirmação ao comprador sobre a compra realizada',
+  };
+
+  const tplGradients = [
+    'linear-gradient(135deg,#7c3aed,#4f46e5)',
+    'linear-gradient(135deg,#059669,#0d9488)',
+    'linear-gradient(135deg,#b45309,#d97706)',
+    'linear-gradient(135deg,#dc2626,#9333ea)',
+  ];
+
+  // "Personalizado" option
+  let html = `<div class="em-tpl-opt" data-val="" onclick="selectCustomTpl('','-- Personalizado (HTML livre) --','HTML customizado manualmente')" style="
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;
+    transition:background 0.15s;">
+    <div style="flex-shrink:0;width:28px;height:28px;border-radius:7px;background:rgba(139,92,246,0.15);
+      display:flex;align-items:center;justify-content:center;">
+      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--c-purple3)" stroke-width="2.2">
+        <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--c-text);">-- Personalizado (HTML livre) --</div>
+      <div style="font-size:10px;color:var(--c-t3);">HTML customizado manualmente</div>
+    </div>
+  </div>`;
+
+  _EMAIL_TPLS.forEach((t, i) => {
+    const titleLow = (t.title||'').toLowerCase();
+    let descKey = Object.keys(tplDescriptions).find(k => titleLow.includes(k));
+    const desc = descKey ? tplDescriptions[descKey] : 'Template de email personalizado';
+    const grad = tplGradients[i % tplGradients.length];
+    html += `<div class="em-tpl-opt" data-val="${t.id}" onclick="selectCustomTpl('${t.id}',${JSON.stringify(t.title)},${JSON.stringify(desc)})" style="
+      display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;
+      transition:background 0.15s;">
+      <div style="flex-shrink:0;width:28px;height:28px;border-radius:7px;background:${grad};
+        display:flex;align-items:center;justify-content:center;">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.2">
+          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div style="min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.title)}</div>
+        <div style="font-size:10px;color:var(--c-t3);">${desc}</div>
+      </div>
+    </div>`;
+  });
+
+  optionsContainer.innerHTML = html;
+
+  // Apply hover styles via event delegation
+  optionsContainer.querySelectorAll('.em-tpl-opt').forEach(el => {
+    el.addEventListener('mouseenter', () => el.style.background = 'rgba(139,92,246,0.12)');
+    el.addEventListener('mouseleave', () => el.style.background = '');
+  });
+
+  // Highlight currently selected
+  const sel = document.getElementById('em-tpl');
+  if (sel) highlightCustomTplOption(sel.value);
+}
+
+function selectCustomTpl(val, label, desc) {
+  const sel = document.getElementById('em-tpl');
+  if (sel) { sel.value = val; }
+  document.getElementById('em-tpl-label').textContent = label;
+  document.getElementById('em-tpl-desc').textContent = desc;
+  closeCustomTplDropdown();
+  highlightCustomTplOption(val);
+  if (val) { loadTplContent(val); }
+  else { document.getElementById('em-html').value = ''; updateEmailPreview(); }
+}
+
+function highlightCustomTplOption(val) {
+  document.querySelectorAll('#em-tpl-options .em-tpl-opt').forEach(el => {
+    const isActive = (el.getAttribute('data-val') == val);
+    el.style.background = isActive ? 'rgba(139,92,246,0.18)' : '';
+    el.style.borderLeft = isActive ? '3px solid var(--c-purple3)' : '3px solid transparent';
+  });
+}
+
+function toggleCustomTplDropdown() {
+  const panel = document.getElementById('em-tpl-panel');
+  const arrow = document.getElementById('em-tpl-arrow');
+  const btn = document.getElementById('em-tpl-btn');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  if (isOpen) {
+    panel.style.display = 'none';
+    if (arrow) arrow.style.transform = '';
+    if (btn) btn.style.borderColor = 'rgba(139,92,246,0.35)';
+  } else {
+    panel.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+    if (btn) btn.style.borderColor = 'rgba(139,92,246,0.7)';
+    // Close on outside click
+    setTimeout(() => {
+      const handler = (e) => {
+        if (!document.getElementById('em-tpl-custom')?.contains(e.target)) {
+          closeCustomTplDropdown();
+          document.removeEventListener('click', handler);
+        }
+      };
+      document.addEventListener('click', handler);
+    }, 10);
+  }
+}
+
+function closeCustomTplDropdown() {
+  const panel = document.getElementById('em-tpl-panel');
+  const arrow = document.getElementById('em-tpl-arrow');
+  const btn = document.getElementById('em-tpl-btn');
+  if (panel) panel.style.display = 'none';
+  if (arrow) arrow.style.transform = '';
+  if (btn) btn.style.borderColor = 'rgba(139,92,246,0.35)';
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function loadEmailTemplatesAdmin() {
   const container = document.getElementById('templates-list-admin');
@@ -9310,27 +9462,39 @@ function loadTplContent(id) {
   }
 }
 
+let _previewBlobUrl = null;
 function updateEmailPreview() {
   const html = getProcessedHtml();
   const subj = document.getElementById('em-subj')?.value || 'Preview Real do Email';
   const iframe = document.getElementById('em-preview-frame');
   const subjEl = document.getElementById('em-preview-subj');
-  
+
   if (subjEl) subjEl.textContent = subj;
-  if (iframe) {
-    const previewContent = html || '<div style="font-family:sans-serif; color:#94a3b8; padding:40px; text-align:center; font-size:14px;">O preview do seu email aparecerá aqui em tempo real.</div>';
-    try {
-      iframe.srcdoc = previewContent;
-    } catch(e) {}
-    try {
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      if (doc) {
-        doc.open();
-        doc.write(previewContent);
-        doc.close();
-      }
-    } catch(e) {}
-  }
+  if (!iframe) return;
+
+  const previewContent = html
+    ? html
+    : '<div style="font-family:sans-serif;color:#94a3b8;padding:40px;text-align:center;font-size:14px;">O preview do seu email aparecerá aqui em tempo real.</div>';
+
+  // Revoke previous blob to avoid memory leak
+  if (_previewBlobUrl) { try { URL.revokeObjectURL(_previewBlobUrl); } catch(e) {} _previewBlobUrl = null; }
+
+  // Method 1: Blob URL — works in Telegram WebApp (bypasses CSP on srcdoc)
+  try {
+    const blob = new Blob([previewContent], { type: 'text/html; charset=utf-8' });
+    _previewBlobUrl = URL.createObjectURL(blob);
+    iframe.src = _previewBlobUrl;
+    return; // success — bail out
+  } catch(e) {}
+
+  // Method 2: srcdoc fallback
+  try { iframe.srcdoc = previewContent; return; } catch(e) {}
+
+  // Method 3: contentDocument fallback
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) { doc.open(); doc.write(previewContent); doc.close(); }
+  } catch(e) {}
 }
 
 async function sendAdminEmail() {
