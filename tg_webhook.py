@@ -216,8 +216,8 @@ def init_tenant_tables():
     _safe_add_column(conn, "tenant_products", "seller_fb_verified", "INTEGER DEFAULT 0")
     _safe_add_column(conn, "tenant_products", "seller_fb_url", "TEXT")
     _safe_add_column(conn, "tenant_products", "product_published_at", "TEXT")
-    # Upsell modals table
-    conn.execute("""
+    # Upsell modals table & Seller profiles
+    conn.executescript("""
         CREATE TABLE IF NOT EXISTS product_upsell_modals (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             tg_id       INTEGER NOT NULL,
@@ -231,6 +231,27 @@ def init_tenant_tables():
             active      INTEGER NOT NULL DEFAULT 1,
             created_at  REAL NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS seller_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tg_id INTEGER NOT NULL,
+            seller_name TEXT NOT NULL,
+            seller_avatar TEXT DEFAULT '',
+            seller_since TEXT DEFAULT '',
+            seller_level TEXT DEFAULT 'Especialista',
+            seller_rating TEXT DEFAULT '4,7',
+            seller_reviews TEXT DEFAULT '23',
+            seller_sales_completed TEXT DEFAULT '26',
+            seller_sales_canceled TEXT DEFAULT '01',
+            seller_dispatch_time TEXT DEFAULT '03 horas',
+            seller_email_verified INTEGER DEFAULT 1,
+            seller_phone_verified INTEGER DEFAULT 1,
+            seller_id_verified INTEGER DEFAULT 1,
+            seller_fb_verified INTEGER DEFAULT 0,
+            seller_fb_url TEXT DEFAULT '',
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sp_tgid ON seller_profiles(tg_id);
     """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_upsell_prod ON product_upsell_modals(tg_id, product_code);")
     _safe_add_column(conn, "product_upsell_modals", "replay", "INTEGER NOT NULL DEFAULT 0")
@@ -242,6 +263,31 @@ def init_tenant_tables():
     _safe_add_column(conn, "tg_sessions",     "lng",  "TEXT")
     _safe_add_column(conn, "tg_sessions",     "city_geo",   "TEXT")
     _safe_add_column(conn, "tg_sessions",     "country_geo","TEXT")
+    _safe_add_column(conn, "tenant_products", "seller_profile_id", "INTEGER DEFAULT 0")
+    _safe_add_column(conn, "email_logs",      "html_content", "TEXT DEFAULT ''")
+
+    # Seed de perfis de vendedores realistas se a tabela estiver vazia
+    try:
+        cur_sp = conn.cursor()
+        cur_sp.execute("SELECT COUNT(*) FROM seller_profiles")
+        if cur_sp.fetchone()[0] == 0:
+            import time as _t
+            now_sp = _t.time()
+            cur_sp.executemany("""
+                INSERT INTO seller_profiles (
+                    tg_id, seller_name, seller_avatar, seller_since, seller_level,
+                    seller_rating, seller_reviews, seller_sales_completed, seller_sales_canceled,
+                    seller_dispatch_time, seller_email_verified, seller_phone_verified, seller_id_verified,
+                    seller_fb_verified, seller_fb_url, created_at, updated_at
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """, [
+                (0, "João da Silva", "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80", "Setembro 2021", "Especialista", "4,7", "23", "26", "01", "03 horas", 1, 1, 1, 0, "", now_sp, now_sp),
+                (0, "Mariana Santos", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80", "Março 2020", "Especialista Apple", "4,9", "48", "54", "00", "01 hora", 1, 1, 1, 1, "", now_sp, now_sp),
+                (0, "Carlos Tech Express", "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80", "Janeiro 2019", "Loja Verificada PRO", "5,0", "97", "112", "02", "02 horas", 1, 1, 1, 1, "", now_sp, now_sp)
+            ])
+            conn.commit()
+    except Exception as e_seed:
+        logger.warning(f"[SEED] Erro ao seedar perfis de vendedores: {e_seed}")
     
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM email_templates")
@@ -592,7 +638,7 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
                           seller_sales_completed="", seller_sales_canceled="", seller_dispatch_time="",
                           seller_rating="", seller_reviews="", seller_level="",
                           seller_email_verified=1, seller_phone_verified=1, seller_id_verified=1,
-                          seller_fb_verified=0, seller_fb_url="", product_published_at=""):
+                          seller_fb_verified=0, seller_fb_url="", product_published_at="", seller_profile_id=0):
     conn = _get_db()
     import unicodedata, hashlib
 
@@ -636,9 +682,9 @@ def create_tenant_product(tg_id: int, title: str, price: str, old_price="", desc
     c_only_ship = 1 if (coupon_only_shipping in (1, "1", True, "true")) else 0
 
     conn.execute("""
-        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, coupon_discount_mode, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at, seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, coupon_discount_mode or 'pct', seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time(), seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at))
+        INSERT INTO tenant_products(tg_id, product_code, title, price, old_price, description, image_url, image1, image2, image3, shipping_mode, shipping_fee, shipping_coupon, coupon_active, coupon_only_shipping, coupon_discount_value, coupon_discount_mode, seller_name, seller_since, seller_avatar, det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone, created_at, seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at, seller_profile_id)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (tg_id, code, title, price, old_price, description, img_main, img1, img2, img3, shipping_mode, shipping_fee, shipping_coupon, c_active, c_only_ship, coupon_discount_value, coupon_discount_mode or 'pct', seller_name, seller_since, seller_avatar or "", det_category, det_brand, det_model, det_condition, det_memory, det_color, payment_badges, breadcrumb_zone or "", time.time(), seller_sales_completed, seller_sales_canceled, seller_dispatch_time, seller_rating, seller_reviews, seller_level, seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url, product_published_at, int(seller_profile_id or 0)))
     conn.commit(); conn.close()
     return code
 
@@ -655,6 +701,7 @@ def get_tenant_products(tg_id: int):
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
                COALESCE(breadcrumb_zone, '') AS breadcrumb_zone, COALESCE(seller_sales_completed, '') AS seller_sales_completed, COALESCE(seller_sales_canceled, '') AS seller_sales_canceled, COALESCE(seller_dispatch_time, '') AS seller_dispatch_time, COALESCE(seller_rating, '') AS seller_rating, COALESCE(seller_reviews, '') AS seller_reviews, COALESCE(seller_level, '') AS seller_level, COALESCE(seller_email_verified, 1) AS seller_email_verified, COALESCE(seller_phone_verified, 1) AS seller_phone_verified, COALESCE(seller_id_verified, 1) AS seller_id_verified, COALESCE(seller_fb_verified, 0) AS seller_fb_verified, COALESCE(seller_fb_url, '') AS seller_fb_url, COALESCE(product_published_at, '') AS product_published_at,
+               COALESCE(seller_profile_id, 0) AS seller_profile_id,
                created_at
         FROM tenant_products WHERE tg_id=? ORDER BY id DESC
     """, (tg_id,)).fetchall()
@@ -674,6 +721,7 @@ def get_product_by_code(code: str, tg_id: int = None):
                det_category, det_brand, det_model, det_condition, det_memory, det_color,
                payment_badges,
                COALESCE(breadcrumb_zone, '') AS breadcrumb_zone, COALESCE(seller_sales_completed, '') AS seller_sales_completed, COALESCE(seller_sales_canceled, '') AS seller_sales_canceled, COALESCE(seller_dispatch_time, '') AS seller_dispatch_time, COALESCE(seller_rating, '') AS seller_rating, COALESCE(seller_reviews, '') AS seller_reviews, COALESCE(seller_level, '') AS seller_level, COALESCE(seller_email_verified, 1) AS seller_email_verified, COALESCE(seller_phone_verified, 1) AS seller_phone_verified, COALESCE(seller_id_verified, 1) AS seller_id_verified, COALESCE(seller_fb_verified, 0) AS seller_fb_verified, COALESCE(seller_fb_url, '') AS seller_fb_url, COALESCE(product_published_at, '') AS product_published_at,
+               COALESCE(seller_profile_id, 0) AS seller_profile_id,
                created_at
     """
     if tg_id:
@@ -704,14 +752,125 @@ def update_tenant_product(tg_id: int, product_code: str, fields: dict) -> bool:
                "shipping_coupon", "coupon_active", "coupon_only_shipping",
                "coupon_discount_value", "coupon_discount_mode", "seller_name", "seller_since", "seller_avatar",
                "det_category", "det_brand", "det_model", "det_condition", "det_memory", "det_color",
-               "payment_badges", "breadcrumb_zone", "seller_sales_completed", "seller_sales_canceled", "seller_dispatch_time", "seller_rating", "seller_reviews", "seller_level", "seller_email_verified", "seller_phone_verified", "seller_id_verified", "seller_fb_verified", "seller_fb_url", "product_published_at"}
+               "payment_badges", "breadcrumb_zone", "seller_sales_completed", "seller_sales_canceled", "seller_dispatch_time", "seller_rating", "seller_reviews", "seller_level", "seller_email_verified", "seller_phone_verified", "seller_id_verified", "seller_fb_verified", "seller_fb_url", "product_published_at", "seller_profile_id"}
     updates = {}
     for k, v in fields.items():
         if k in ALLOWED:
             if k in ("coupon_active", "coupon_only_shipping", "seller_email_verified", "seller_phone_verified", "seller_id_verified", "seller_fb_verified"):
                 updates[k] = 1 if (v in (1, "1", True, "true")) else 0
+            elif k == "seller_profile_id":
+                updates[k] = int(v or 0)
             else:
                 updates[k] = v
+    if not updates:
+        return False
+    cols = ", ".join(f"{k}=?" for k in updates)
+    vals = list(updates.values()) + [tg_id, product_code]
+    conn = _get_db()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE tenant_products SET {cols} WHERE tg_id=? AND product_code=?", vals)
+    updated = cur.rowcount > 0
+    conn.commit(); conn.close()
+    return updated
+
+# ─── PERFIS DE VENDEDORES (DONOS DE ANÚNCIOS REUTILIZÁVEIS) ───────────────────
+def get_seller_profiles(tg_id: int):
+    """Retorna lista de perfis de vendedores criados pelo admin ou padrão compartilhados."""
+    conn = _get_db()
+    rows = conn.execute("""
+        SELECT id, tg_id, seller_name,
+               COALESCE(seller_avatar, '') AS seller_avatar,
+               COALESCE(seller_since, '') AS seller_since,
+               COALESCE(seller_level, 'Especialista') AS seller_level,
+               COALESCE(seller_rating, '4,7') AS seller_rating,
+               COALESCE(seller_reviews, '23') AS seller_reviews,
+               COALESCE(seller_sales_completed, '26') AS seller_sales_completed,
+               COALESCE(seller_sales_canceled, '01') AS seller_sales_canceled,
+               COALESCE(seller_dispatch_time, '03 horas') AS seller_dispatch_time,
+               COALESCE(seller_email_verified, 1) AS seller_email_verified,
+               COALESCE(seller_phone_verified, 1) AS seller_phone_verified,
+               COALESCE(seller_id_verified, 1) AS seller_id_verified,
+               COALESCE(seller_fb_verified, 0) AS seller_fb_verified,
+               COALESCE(seller_fb_url, '') AS seller_fb_url,
+               created_at, updated_at
+        FROM seller_profiles
+        WHERE tg_id=? OR tg_id=0
+        ORDER BY id DESC
+    """, (tg_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def get_seller_profile_by_id(profile_id: int, tg_id: int = None):
+    """Retorna perfil de vendedor específico por ID."""
+    conn = _get_db()
+    if tg_id:
+        r = conn.execute("SELECT * FROM seller_profiles WHERE id=? AND (tg_id=? OR tg_id=0)", (profile_id, tg_id)).fetchone()
+    else:
+        r = conn.execute("SELECT * FROM seller_profiles WHERE id=?", (profile_id,)).fetchone()
+    conn.close()
+    return dict(r) if r else None
+
+def save_seller_profile(tg_id: int, data: dict):
+    """Cria ou atualiza perfil de vendedor com validação 100% segura."""
+    conn = _get_db()
+    cur = conn.cursor()
+    pid = data.get("id")
+    seller_name = str(data.get("seller_name", "")).strip() or "Vendedor Verificado"
+    seller_avatar = str(data.get("seller_avatar", "")).strip()
+    seller_since = str(data.get("seller_since", "")).strip() or "Setembro 2021"
+    seller_level = str(data.get("seller_level", "")).strip() or "Especialista"
+    seller_rating = str(data.get("seller_rating", "")).strip() or "4,7"
+    seller_reviews = str(data.get("seller_reviews", "")).strip() or "23"
+    seller_sales_completed = str(data.get("seller_sales_completed", "")).strip() or "26"
+    seller_sales_canceled = str(data.get("seller_sales_canceled", "")).strip() or "01"
+    seller_dispatch_time = str(data.get("seller_dispatch_time", "")).strip() or "03 horas"
+    seller_email_verified = 1 if data.get("seller_email_verified", 1) in (1, "1", True, "true") else 0
+    seller_phone_verified = 1 if data.get("seller_phone_verified", 1) in (1, "1", True, "true") else 0
+    seller_id_verified = 1 if data.get("seller_id_verified", 1) in (1, "1", True, "true") else 0
+    seller_fb_verified = 1 if data.get("seller_fb_verified", 0) in (1, "1", True, "true") else 0
+    seller_fb_url = str(data.get("seller_fb_url", "")).strip()
+    now = time.time()
+
+    if pid and str(pid).isdigit() and int(pid) > 0:
+        pid = int(pid)
+        cur.execute("""
+            UPDATE seller_profiles SET
+                seller_name=?, seller_avatar=?, seller_since=?, seller_level=?, seller_rating=?,
+                seller_reviews=?, seller_sales_completed=?, seller_sales_canceled=?, seller_dispatch_time=?,
+                seller_email_verified=?, seller_phone_verified=?, seller_id_verified=?, seller_fb_verified=?, seller_fb_url=?,
+                updated_at=?
+            WHERE id=? AND (tg_id=? OR tg_id=0)
+        """, (seller_name, seller_avatar, seller_since, seller_level, seller_rating,
+              seller_reviews, seller_sales_completed, seller_sales_canceled, seller_dispatch_time,
+              seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url,
+              now, pid, tg_id))
+    else:
+        cur.execute("""
+            INSERT INTO seller_profiles(
+                tg_id, seller_name, seller_avatar, seller_since, seller_level, seller_rating,
+                seller_reviews, seller_sales_completed, seller_sales_canceled, seller_dispatch_time,
+                seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url,
+                created_at, updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (tg_id, seller_name, seller_avatar, seller_since, seller_level, seller_rating,
+              seller_reviews, seller_sales_completed, seller_sales_canceled, seller_dispatch_time,
+              seller_email_verified, seller_phone_verified, seller_id_verified, seller_fb_verified, seller_fb_url,
+              now, now))
+        pid = cur.lastrowid
+
+    conn.commit()
+    conn.close()
+    return get_seller_profile_by_id(pid, tg_id)
+
+def delete_seller_profile(profile_id: int, tg_id: int):
+    """Exclui um perfil de vendedor."""
+    conn = _get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM seller_profiles WHERE id=? AND (tg_id=? OR tg_id=0)", (profile_id, tg_id))
+    deleted = cur.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
     if not updates:
         return False
     cols = ", ".join(f"{k}=?" for k in updates)
@@ -1603,9 +1762,9 @@ def delete_email_template(template_id: int):
     conn.commit()
     conn.close()
 
-def log_email(admin_id: int, to_email: str, subject: str, status: str):
+def log_email(admin_id: int, to_email: str, subject: str, status: str, html_content: str = ""):
     conn = _get_db()
-    conn.execute("INSERT INTO email_logs (admin_id, to_email, subject, status, sent_at) VALUES (?, ?, ?, ?, ?)", (admin_id, to_email, subject, status, time.time()))
+    conn.execute("INSERT INTO email_logs (admin_id, to_email, subject, status, html_content, sent_at) VALUES (?, ?, ?, ?, ?, ?)", (admin_id, to_email, subject, status, html_content, time.time()))
     conn.commit()
     conn.close()
 

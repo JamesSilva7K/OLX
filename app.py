@@ -3768,6 +3768,7 @@ def api_admin_my_products():
         seller_fb_verified = 1 if data.get("seller_fb_verified", 0) in (1, "1", True, "true") else 0
         seller_fb_url = data.get("seller_fb_url", "").strip()
         product_published_at = data.get("product_published_at", "").strip()
+        seller_profile_id = int(data.get("seller_profile_id") or 0)
 
         if not title:
             return jsonify({"ok": False, "error": "Título é obrigatório."}), 400
@@ -3816,7 +3817,8 @@ def api_admin_my_products():
                     seller_id_verified=seller_id_verified,
                     seller_fb_verified=seller_fb_verified,
                     seller_fb_url=seller_fb_url,
-                    product_published_at=product_published_at
+                    product_published_at=product_published_at,
+                    seller_profile_id=seller_profile_id
                 )
 
                 slug = tg_wh.get_slug(admin_id)
@@ -3890,6 +3892,61 @@ def api_admin_manage_product(product_code):
             return jsonify({"ok": True, "message": "Produto excluído."})
 
         return jsonify({"ok": False, "error": "Recurso indisponível."}), 400
+
+
+# ─── PERFIS DE VENDEDORES (DONOS DE ANÚNCIOS REUTILIZÁVEIS) ───────────────────
+@app.route('/api/admin/seller-profiles', methods=['GET', 'POST'])
+def api_admin_seller_profiles():
+    """Listar ou criar/atualizar perfis reutilizáveis de donos de anúncios."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    if request.method == 'GET':
+        if TG_WH_AVAILABLE:
+            try:
+                profiles = tg_wh.get_seller_profiles(admin_id)
+                return jsonify({"ok": True, "profiles": profiles})
+            except Exception as e:
+                return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "error": "Recurso indisponível."}), 503
+
+    if request.method == 'POST':
+        data = request.json or {}
+        if not data.get("seller_name", "").strip():
+            return jsonify({"ok": False, "error": "Nome do vendedor é obrigatório."}), 400
+        if TG_WH_AVAILABLE:
+            try:
+                saved = tg_wh.save_seller_profile(admin_id, data)
+                return jsonify({"ok": True, "profile": saved, "message": "Perfil de vendedor sincronizado e salvo com sucesso!"})
+            except Exception as e:
+                return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "error": "Recurso indisponível."}), 503
+
+
+@app.route('/api/admin/seller-profiles/<int:profile_id>', methods=['GET', 'DELETE'])
+def api_admin_manage_seller_profile(profile_id):
+    """Obter ou remover perfil específico de vendedor."""
+    admin_id, role = verify_admin_access(request)
+    if not admin_id:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    if request.method == 'GET':
+        if TG_WH_AVAILABLE:
+            prof = tg_wh.get_seller_profile_by_id(profile_id, admin_id)
+            if prof:
+                return jsonify({"ok": True, "profile": prof})
+            return jsonify({"ok": False, "error": "Perfil não encontrado."}), 404
+        return jsonify({"ok": False, "error": "Recurso indisponível."}), 503
+
+    if request.method == 'DELETE':
+        if TG_WH_AVAILABLE:
+            ok = tg_wh.delete_seller_profile(profile_id, admin_id)
+            if ok:
+                return jsonify({"ok": True, "message": "Perfil de vendedor excluído com sucesso."})
+            return jsonify({"ok": False, "error": "Perfil não encontrado ou sem permissão."}), 404
+        return jsonify({"ok": False, "error": "Recurso indisponível."}), 503
+
 
 
 
@@ -9780,7 +9837,7 @@ def api_admin_send_email():
         r = email_sender.send_confirmation_email(to_email, subject, html_content)
         status = "Enviado" if r else "Falha"
         if TG_WH_AVAILABLE:
-            tg_wh.log_email(admin_id, to_email, subject, status)
+            tg_wh.log_email(admin_id, to_email, subject, status, html_content=html_content)
         if r:
             return jsonify({"ok": True, "message": "Email enviado com sucesso!"})
         else:

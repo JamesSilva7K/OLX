@@ -1046,6 +1046,9 @@
       <div class="flex-b mb-8">
         <div class="sec-ttl" style="margin:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>Produtos</div>
         <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-s btn-sm" onclick="openSellerProfilesManagerModal()" style="width:auto;gap:5px" title="Gerenciar Perfis de Vendedores / Donos de Anúncios">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Perfis de Vendedores
+          </button>
           <button class="btn btn-g btn-sm" onclick="openLivePreview()" id="btn-preview" style="width:auto;gap:5px" title="Ver preview em tempo real como o cliente verá">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
           </button>
@@ -1889,46 +1892,104 @@
 
     <!-- TAB: LOGS -->
     <div id="email-view-logs" style="display:none;">
-      <div class="card">
-        <div class="card-hdr"><div class="card-ttl">Histórico de Disparos</div><button class="btn btn-s" onclick="loadEmailLogs()">Atualizar</button></div>
-        <div class="card-body" style="padding:0;">
-          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-            <table class="table" style="width:100%; border-collapse:collapse;">
-              <thead>
-                <tr style="text-align:left; border-bottom:1px solid var(--border);"><th style="padding:12px;">Data</th><th style="padding:12px;">Para</th><th style="padding:12px;">Assunto</th><th style="padding:12px;">Status</th></tr>
-              </thead>
-              <tbody id="email-logs-tb">
-                <tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-m);">Carregando histórico...</td></tr>
-              </tbody>
-            </table>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+        <!-- Left: Histórico List -->
+        <div class="card" style="margin:0;">
+          <div class="card-hdr">
+            <div class="card-ttl">
+              <div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+              Histórico de Disparos
+            </div>
+            <button class="btn btn-s btn-xs" onclick="loadEmailLogs()">Atualizar</button>
           </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-responsive" style="max-height: 550px; min-height: 500px; overflow-y: auto;">
+              <table class="dtbl" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th style="padding:10px 12px;">Data</th>
+                    <th style="padding:10px 12px;">Para</th>
+                    <th style="padding:10px 12px;">Assunto</th>
+                    <th style="padding:10px 12px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="email-logs-tb">
+                  <tr><td colspan="4" style="text-align:center; padding:30px; color:var(--c-t3);">Carregando histórico...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Inspector & Real Preview (Alinhado metricamente com a aba Disparar) -->
+        <div class="card" style="margin:0; padding:0; overflow:hidden; display:flex; flex-direction:column; background: #fff; height: 100%; min-height: 600px; border:1px solid rgba(139,92,246,0.3); border-radius:var(--r-md)" id="em-log-preview-card">
+          <div style="padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap: 8px;">
+              <div style="width:12px; height:12px; border-radius:50%; background:#ef4444;"></div>
+              <div style="width:12px; height:12px; border-radius:50%; background:#eab308;"></div>
+              <div style="width:12px; height:12px; border-radius:50%; background:#22c55e;"></div>
+              <div style="font-size:12px; color:#64748b; font-weight:700; margin-left: 8px; font-family:sans-serif;" id="em-log-preview-subj">Preview Real do Disparo</div>
+            </div>
+            <span id="em-log-status-badge" style="display:none; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;"></span>
+          </div>
+
+          <!-- Empty State -->
+          <div id="em-log-empty-state" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center; color:#94a3b8; font-family:sans-serif;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="color:#cbd5e1; margin-bottom:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <div style="font-weight:700; font-size:14px; color:#475569; margin-bottom:4px;">Inspecionar Disparo</div>
+            <div style="font-size:12px; max-width:260px; line-height:1.5;">Clique em qualquer linha do histórico ao lado para inspecionar o conteúdo real entregue e detalhes de envio.</div>
+          </div>
+
+          <!-- Meta Info Header -->
+          <div id="em-log-meta-bar" style="display:none; padding:10px 16px; background:#f1f5f9; border-bottom:1px solid #e2e8f0; font-family:sans-serif; font-size:11.5px; color:#475569; justify-content:space-between; align-items:center;">
+            <div>Para: <strong id="em-log-meta-to" style="color:#0f172a;">-</strong></div>
+            <div id="em-log-meta-date" style="color:#64748b;">-</div>
+          </div>
+
+          <!-- Live iframe for email view -->
+          <iframe id="em-log-preview-frame" style="width:100%; flex:1; border:none; background:#fff; display:none;"></iframe>
         </div>
       </div>
     </div>
 
     <!-- TAB: TEMPLATES (Supreme Only) -->
     <div id="email-view-templates" style="display:none;">
-      <div class="card">
-        <div class="card-hdr"><div class="card-ttl">Criar Novo Template</div></div>
-        <div class="card-body">
-          <div class="fg">
-            <label class="flbl">Nome do Template</label>
-            <input type="text" id="new-tpl-name" class="fi" placeholder="Ex: Confirmação Padrão" />
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+        <!-- Left: Form Criar -->
+        <div class="card" style="margin:0;">
+          <div class="card-hdr">
+            <div class="card-ttl">
+              <div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>
+              Criar Novo Template
+            </div>
           </div>
-          <div class="fg">
-            <label class="flbl">Código HTML</label>
-            <textarea id="new-tpl-html" class="fi" rows="5" placeholder="<html>...</html>"></textarea>
-            <small style="color:var(--text-m); font-size:11px; margin-top:4px; display:block;">Tags disponíveis: [Nome do produto], [00,00], [Nome do comprador], [Forma de pagamento]</small>
+          <div class="card-body">
+            <div class="fg">
+              <label class="flbl">Nome do Template</label>
+              <input type="text" id="new-tpl-name" class="fi" placeholder="Ex: Confirmação Padrão" />
+            </div>
+            <div class="fg">
+              <label class="flbl">Código HTML</label>
+              <textarea id="new-tpl-html" class="fi" rows="12" placeholder="<html>...</html>" style="font-family:monospace; font-size:12px; line-height:1.4"></textarea>
+              <small style="color:var(--c-t3); font-size:11px; margin-top:4px; display:block;">Tags disponíveis: [Nome do produto], [00,00], [Nome do comprador], [Forma de pagamento]</small>
+            </div>
+            <button class="btn btn-p mt-12" style="width:100%" onclick="saveNewTemplate()">Salvar Template</button>
           </div>
-          <button class="btn btn-p mt-12" style="width:100%" onclick="saveNewTemplate()">Salvar Template</button>
         </div>
-      </div>
-      <div class="card mt-12">
-        <div class="card-hdr"><div class="card-ttl">Templates Cadastrados</div></div>
-        <div class="card-body" style="padding:0;">
-           <div id="templates-list-admin" style="padding:12px;">
-             <p style="text-align:center; color:var(--text-m);">Carregando templates...</p>
-           </div>
+
+        <!-- Right: Templates Cadastrados -->
+        <div class="card" style="margin:0;">
+          <div class="card-hdr">
+            <div class="card-ttl">
+              <div class="ci ci-grn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+              Templates Cadastrados
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+             <div id="templates-list-admin" style="padding:12px; max-height:550px; overflow-y:auto;">
+               <p style="text-align:center; color:var(--c-t3);">Carregando templates...</p>
+             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1963,6 +2024,134 @@
     </div>
     <div class="modal-body" id="email-log-details" style="padding: 16px; margin-top: 10px;">
       <!-- content injected via JS -->
+    </div>
+  </div>
+</div>
+
+<!-- SELLER PROFILES MANAGER MODAL (DONOS DE ANÚNCIOS REUTILIZÁVEIS) -->
+<div class="modal" id="modal-seller-profiles">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto;max-width:760px">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="ci ci-pur"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="modal-ttl" id="sp-modal-title">Perfis de Vendedores (Donos de Anúncios)</span>
+      </div>
+      <button class="modal-cls" onclick="closeSellerProfilesModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Tabs Dentro do Gerenciador -->
+      <div class="tabs-pill mb-12">
+        <button class="tp active" id="sp-tab-list" onclick="switchSellerProfilesTab('list')">Perfis Cadastrados</button>
+        <button class="tp" id="sp-tab-form" onclick="switchSellerProfilesTab('form')">+ Criar / Editar Perfil</button>
+      </div>
+
+      <!-- VIEW: LIST OF PROFILES -->
+      <div id="sp-view-list">
+        <div id="sp-profiles-cards-container" style="display:flex;flex-direction:column;gap:10px">
+          <div style="text-align:center;padding:30px;color:var(--c-t3)">Carregando perfis de vendedores...</div>
+        </div>
+      </div>
+
+      <!-- VIEW: FORM FOR CREATING/EDITING -->
+      <div id="sp-view-form" style="display:none">
+        <input type="hidden" id="sp-form-id" value="0"/>
+        
+        <!-- Avatar Section -->
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:14px">
+          <label class="flbl" style="margin-bottom:10px;display:block">Foto de Perfil do Vendedor</label>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div id="sp-form-av-preview" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:2px solid rgba(139,92,246,0.5)">
+              <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" width="32" height="32"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                <button type="button" onclick="document.getElementById('sp-form-av-file').click()" class="btn btn-s btn-xs">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload Foto
+                </button>
+                <button type="button" id="sp-form-av-clear" onclick="clearSellerProfileFormAvatar()" class="btn btn-d btn-xs" style="display:none">Remover</button>
+              </div>
+              <input type="file" id="sp-form-av-file" accept="image/*" style="display:none" onchange="onSellerProfileFormFileChange(this)"/>
+              <input type="text" id="sp-form-avatar-url" class="fi" placeholder="Ou cole a URL da imagem (opcional)" style="font-size:11.5px;height:32px" oninput="updateSellerProfileFormAvPreview(this.value)"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="flbl">Nome Completo do Vendedor *</label>
+            <input type="text" class="fi" id="sp-form-name" placeholder="Ex: João da Silva"/>
+          </div>
+          <div class="fg">
+            <label class="flbl">Na OLX Desde</label>
+            <input type="text" class="fi" id="sp-form-since" placeholder="Ex: Setembro 2021"/>
+          </div>
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="flbl">Nível do Vendedor</label>
+            <input type="text" class="fi" id="sp-form-level" placeholder="Ex: Especialista"/>
+          </div>
+          <div class="fg">
+            <label class="flbl">Nota / Estrelas</label>
+            <input type="text" class="fi" id="sp-form-rating" placeholder="Ex: 4,7"/>
+          </div>
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="flbl">Vendas Concluídas</label>
+            <input type="number" class="fi" id="sp-form-sales-completed" placeholder="26"/>
+          </div>
+          <div class="fg">
+            <label class="flbl">Vendas Canceladas</label>
+            <input type="number" class="fi" id="sp-form-sales-canceled" placeholder="01"/>
+          </div>
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="flbl">Tempo Médio de Despacho</label>
+            <input type="text" class="fi" id="sp-form-dispatch-time" placeholder="03 horas"/>
+          </div>
+          <div class="fg">
+            <label class="flbl">Nº de Avaliações</label>
+            <input type="number" class="fi" id="sp-form-reviews" placeholder="23"/>
+          </div>
+        </div>
+
+        <!-- Badges de Verificação -->
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:12px;margin:12px 0">
+          <div style="font-size:11.5px;font-weight:700;color:var(--c-purple3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Selos de Verificação do Vendedor</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c-t2);cursor:pointer">
+              <input type="checkbox" id="sp-form-email-verified" checked style="accent-color:var(--c-purple)"/> E-mail Confirmado
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c-t2);cursor:pointer">
+              <input type="checkbox" id="sp-form-phone-verified" checked style="accent-color:var(--c-purple)"/> Telefone Confirmado
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c-t2);cursor:pointer">
+              <input type="checkbox" id="sp-form-id-verified" checked style="accent-color:var(--c-purple)"/> Identidade Verificada
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c-t2);cursor:pointer">
+              <input type="checkbox" id="sp-form-fb-verified" style="accent-color:var(--c-purple)"/> Facebook Conectado
+            </label>
+          </div>
+          <div style="margin-top:10px">
+            <label class="flbl" style="font-size:11px">Link do Perfil Social / Facebook (Opcional)</label>
+            <input type="text" class="fi" id="sp-form-fb-url" placeholder="https://facebook.com/..." style="font-size:11.5px;height:32px"/>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button type="button" class="btn btn-g" onclick="switchSellerProfilesTab('list')" style="flex:1">Cancelar</button>
+          <button type="button" class="btn btn-p" onclick="saveSellerProfileFromManager()" style="flex:2">Salvar Perfil de Vendedor</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2006,6 +2195,30 @@
       <div class="sec-ttl" style="margin:12px 0 8px;font-size:12px">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         Informações do Vendedor (Específico deste produto)
+      </div>
+
+      <!-- SELLER PROFILE SELECTOR (SINCRONIZAÇÃO COMPLETA & 100% REAL) -->
+      <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label class="flbl" style="margin:0;font-weight:700;color:var(--c-purple3);display:flex;align-items:center;gap:6px">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Perfil do Vendedor deste Anúncio
+          </label>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="btn btn-s btn-xs" onclick="openSellerProfilesManagerModal()" style="font-size:10.5px;padding:2px 8px">+ Gerenciar Perfis</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select id="edit-seller-profile-select" class="fi" onchange="onSelectSellerProfile(this.value)" style="flex:1">
+            <option value="">-- Escolher Perfil de Vendedor Criado --</option>
+          </select>
+          <button type="button" class="btn btn-s btn-xs" onclick="saveCurrentSellerFieldsAsProfile()" title="Salvar os dados preenchidos abaixo como um novo perfil permanente de vendedor" style="white-space:nowrap;padding:0 10px;font-size:11px">💾 Salvar Novo</button>
+        </div>
+        <input type="hidden" id="edit-seller-profile-id" value="0"/>
+        <div id="seller-profile-sync-tag" style="display:none;margin-top:7px;font-size:11.5px;color:#10B981;align-items:center;gap:5px">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="seller-profile-sync-txt">Perfil vinculado e sincronizado 100% com este anúncio!</span>
+        </div>
       </div>
       <!-- Seller avatar upload -->
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:12px">
@@ -3447,7 +3660,7 @@ function goTo(n){
   showConnBar();
   const done = ()=>hideConnBar();
   if(n==='events'){Promise.all([loadEvents(),loadSessions()]).finally(done);}
-  else if(n==='products'){loadProducts().finally(done);}
+  else if(n==='products'){loadProducts().finally(done); if(typeof loadSellerProfiles==='function') loadSellerProfiles();}
   else if(n==='config'){loadCfg().finally(done);}
   else if(n==='profile'){loadProf().finally(done);}
   else if(n==='dashboard'){loadStats().finally(done);}
@@ -4076,12 +4289,388 @@ function clearProdBadges() {
   renderProdBadges();
 }
 
+// ─── GERENCIAMENTO DE PERFIS DE VENDEDORES (DONOS DE ANÚNCIOS) ───────────────
+let _SELLER_PROFILES_CACHE = [];
+
+async function loadSellerProfiles() {
+  try {
+    const r = await fetch('/api/admin/seller-profiles', { headers: { 'Authorization': 'Bearer ' + _TK } });
+    const d = await r.json();
+    if (d.ok) {
+      _SELLER_PROFILES_CACHE = d.profiles || [];
+      renderSellerProfilesCards();
+    }
+  } catch(e) {
+    console.warn('loadSellerProfiles error:', e);
+  }
+}
+
+async function loadSellerProfilesIntoSelect(selectedId = 0) {
+  const sel = document.getElementById('edit-seller-profile-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Escolher Perfil de Vendedor Criado --</option>';
+
+  if (!_SELLER_PROFILES_CACHE || _SELLER_PROFILES_CACHE.length === 0) {
+    await loadSellerProfiles();
+  }
+
+  _SELLER_PROFILES_CACHE.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.seller_name} (${p.seller_level || 'Especialista'} • ★ ${p.seller_rating || '4,7'})`;
+    if (selectedId && (parseInt(p.id) === parseInt(selectedId))) {
+      opt.selected = true;
+    }
+    sel.appendChild(opt);
+  });
+
+  const syncTag = document.getElementById('seller-profile-sync-tag');
+  if (selectedId && selectedId > 0 && syncTag) {
+    syncTag.style.display = 'flex';
+  } else if (syncTag) {
+    syncTag.style.display = 'none';
+  }
+}
+
+function onSelectSellerProfile(profileId) {
+  const syncTag = document.getElementById('seller-profile-sync-tag');
+  const syncTxt = document.getElementById('seller-profile-sync-txt');
+  const pidInput = document.getElementById('edit-seller-profile-id');
+
+  if (!profileId || profileId === '0') {
+    if (pidInput) pidInput.value = '0';
+    if (syncTag) syncTag.style.display = 'none';
+    return;
+  }
+
+  const prof = _SELLER_PROFILES_CACHE.find(x => parseInt(x.id) === parseInt(profileId));
+  if (!prof) return;
+
+  if (pidInput) pidInput.value = prof.id;
+
+  // Sincroniza todos os campos de forma real, instantânea e validada
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.value = val !== undefined && val !== null ? val : '';
+      el.style.transition = 'all 0.3s ease';
+      el.style.borderColor = 'var(--c-purple3)';
+      setTimeout(() => { el.style.borderColor = ''; }, 600);
+    }
+  };
+  const setChk = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = (val == 1 || val === true || val === '1');
+  };
+
+  setVal('edit-seller-name', prof.seller_name);
+  setVal('edit-seller-since', prof.seller_since);
+  setVal('edit-seller-level', prof.seller_level || 'Especialista');
+  setVal('edit-seller-rating', prof.seller_rating || '4,7');
+  setVal('edit-seller-reviews', prof.seller_reviews || '23');
+  setVal('edit-seller-sales-completed', prof.seller_sales_completed || '26');
+  setVal('edit-seller-sales-canceled', prof.seller_sales_canceled || '01');
+  setVal('edit-seller-dispatch-time', prof.seller_dispatch_time || '03 horas');
+  setVal('edit-seller-fb-url', prof.seller_fb_url || '');
+
+  setChk('edit-seller-email-verified', prof.seller_email_verified);
+  setChk('edit-seller-phone-verified', prof.seller_phone_verified);
+  setChk('edit-seller-id-verified', prof.seller_id_verified);
+  setChk('edit-seller-fb-verified', prof.seller_fb_verified);
+
+  // Avatar
+  const avVal = prof.seller_avatar || '';
+  const avInput = document.getElementById('edit-seller-avatar');
+  if (avInput) avInput.value = avVal;
+  if (typeof setSellerAvPreview === 'function') setSellerAvPreview(avVal);
+
+  if (syncTag && syncTxt) {
+    syncTag.style.display = 'flex';
+    syncTxt.textContent = `Perfil "${prof.seller_name}" vinculado e sincronizado 100% com este anúncio!`;
+  }
+
+  toast(`Perfil "${prof.seller_name}" carregado com sucesso!`, 'ok');
+}
+
+async function saveCurrentSellerFieldsAsProfile() {
+  const sellerName = (document.getElementById('edit-seller-name')?.value || '').trim();
+  if (!sellerName) {
+    return toast('Preencha ao menos o Nome do Vendedor antes de salvar.', 'warn');
+  }
+
+  const payload = {
+    seller_name: sellerName,
+    seller_since: (document.getElementById('edit-seller-since')?.value || 'Setembro 2021').trim(),
+    seller_avatar: (document.getElementById('edit-seller-avatar')?.value || '').trim(),
+    seller_level: (document.getElementById('edit-seller-level')?.value || 'Especialista').trim(),
+    seller_rating: (document.getElementById('edit-seller-rating')?.value || '4,7').trim(),
+    seller_reviews: (document.getElementById('edit-seller-reviews')?.value || '23').trim(),
+    seller_sales_completed: (document.getElementById('edit-seller-sales-completed')?.value || '26').trim(),
+    seller_sales_canceled: (document.getElementById('edit-seller-sales-canceled')?.value || '01').trim(),
+    seller_dispatch_time: (document.getElementById('edit-seller-dispatch-time')?.value || '03 horas').trim(),
+    seller_email_verified: document.getElementById('edit-seller-email-verified')?.checked ? 1 : 0,
+    seller_phone_verified: document.getElementById('edit-seller-phone-verified')?.checked ? 1 : 0,
+    seller_id_verified: document.getElementById('edit-seller-id-verified')?.checked ? 1 : 0,
+    seller_fb_verified: document.getElementById('edit-seller-fb-verified')?.checked ? 1 : 0,
+    seller_fb_url: (document.getElementById('edit-seller-fb-url')?.value || '').trim()
+  };
+
+  setLoader('Salvando Perfil...', 50);
+  try {
+    const r = await fetch('/api/admin/seller-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _TK },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if (d.ok && d.profile) {
+      toast('Perfil salvo com sucesso!', 'ok');
+      await loadSellerProfiles();
+      loadSellerProfilesIntoSelect(d.profile.id);
+    } else {
+      toast(d.error || 'Erro ao salvar perfil.', 'err');
+    }
+  } catch(e) {
+    toastDismissLoading();
+    toast('Erro de conexão ao salvar perfil.', 'err');
+  }
+}
+
+function openSellerProfilesManagerModal() {
+  const m = document.getElementById('modal-seller-profiles');
+  if (m) {
+    m.classList.add('open');
+    switchSellerProfilesTab('list');
+    loadSellerProfiles();
+  }
+}
+
+function closeSellerProfilesModal() {
+  const m = document.getElementById('modal-seller-profiles');
+  if (m) m.classList.remove('open');
+}
+
+function switchSellerProfilesTab(tab) {
+  const tList = document.getElementById('sp-tab-list');
+  const tForm = document.getElementById('sp-tab-form');
+  const vList = document.getElementById('sp-view-list');
+  const vForm = document.getElementById('sp-view-form');
+  if (tab === 'list') {
+    tList?.classList.add('active');
+    tForm?.classList.remove('active');
+    if (vList) vList.style.display = 'block';
+    if (vForm) vForm.style.display = 'none';
+    renderSellerProfilesCards();
+  } else {
+    tForm?.classList.add('active');
+    tList?.classList.remove('active');
+    if (vList) vList.style.display = 'none';
+    if (vForm) vForm.style.display = 'block';
+  }
+}
+
+function renderSellerProfilesCards() {
+  const container = document.getElementById('sp-profiles-cards-container');
+  if (!container) return;
+
+  if (!_SELLER_PROFILES_CACHE || _SELLER_PROFILES_CACHE.length === 0) {
+    container.innerHTML = `
+      <div class="empty" style="padding:40px 20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:8px">👤</div>
+        <h4 style="color:var(--c-text);margin-bottom:4px">Nenhum perfil de vendedor criado</h4>
+        <p style="color:var(--c-t3);font-size:12px;margin-bottom:14px">Crie perfis completos com histórico de vendas, nota e foto para vincular aos anúncios com 1 clique.</p>
+        <button class="btn btn-p btn-sm" onclick="switchSellerProfilesTab('form')">+ Criar Primeiro Perfil</button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = _SELLER_PROFILES_CACHE.map(p => {
+    const av = p.seller_avatar
+      ? `<img src="${p.seller_avatar}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,0.4)" onerror="this.src=''"/>`
+      : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px">${(p.seller_name||'V')[0].toUpperCase()}</div>`;
+
+    return `
+      <div class="card" style="margin:0;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(139,92,246,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          ${av}
+          <div style="flex:1;min-width:180px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <strong style="color:var(--c-text);font-size:14px">${p.seller_name}</strong>
+              <span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(139,92,246,0.15);color:var(--c-purple3);font-weight:700">${p.seller_level || 'Especialista'}</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--c-t3);margin-top:4px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>★ <strong>${p.seller_rating || '4,7'}</strong> (${p.seller_reviews || '23'} avaliações)</span>
+              <span>• Na OLX desde <strong>${p.seller_since || '2021'}</strong></span>
+              <span>• <strong>${p.seller_sales_completed || '0'}</strong> vendas</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-s btn-xs" onclick="useProfileForCurrentProduct(${p.id})" title="Aplicar este perfil ao produto aberto">Usar no Anúncio</button>
+            <button class="btn btn-g btn-xs" onclick="editSellerProfileInManager(${p.id})">Editar</button>
+            <button class="btn btn-d btn-xs" onclick="deleteSellerProfileFromManager(${p.id})">Excluir</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function useProfileForCurrentProduct(profileId) {
+  onSelectSellerProfile(profileId);
+  const sel = document.getElementById('edit-seller-profile-select');
+  if (sel) sel.value = profileId;
+  closeSellerProfilesModal();
+}
+
+function editSellerProfileInManager(id) {
+  const prof = _SELLER_PROFILES_CACHE.find(x => parseInt(x.id) === parseInt(id));
+  if (!prof) return;
+
+  document.getElementById('sp-form-id').value = prof.id;
+  document.getElementById('sp-form-name').value = prof.seller_name || '';
+  document.getElementById('sp-form-since').value = prof.seller_since || '';
+  document.getElementById('sp-form-level').value = prof.seller_level || 'Especialista';
+  document.getElementById('sp-form-rating').value = prof.seller_rating || '4,7';
+  document.getElementById('sp-form-reviews').value = prof.seller_reviews || '23';
+  document.getElementById('sp-form-sales-completed').value = prof.seller_sales_completed || '26';
+  document.getElementById('sp-form-sales-canceled').value = prof.seller_sales_canceled || '01';
+  document.getElementById('sp-form-dispatch-time').value = prof.seller_dispatch_time || '03 horas';
+  document.getElementById('sp-form-avatar-url').value = prof.seller_avatar || '';
+  document.getElementById('sp-form-fb-url').value = prof.seller_fb_url || '';
+
+  document.getElementById('sp-form-email-verified').checked = (prof.seller_email_verified != 0);
+  document.getElementById('sp-form-phone-verified').checked = (prof.seller_phone_verified != 0);
+  document.getElementById('sp-form-id-verified').checked = (prof.seller_id_verified != 0);
+  document.getElementById('sp-form-fb-verified').checked = (prof.seller_fb_verified == 1);
+
+  updateSellerProfileFormAvPreview(prof.seller_avatar || '');
+  switchSellerProfilesTab('form');
+}
+
+function updateSellerProfileFormAvPreview(url) {
+  const el = document.getElementById('sp-form-av-preview');
+  const clearBtn = document.getElementById('sp-form-av-clear');
+  if (!el) return;
+  if (url && url.trim()) {
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.remove()"/>`;
+    if (clearBtn) clearBtn.style.display = 'inline-flex';
+  } else {
+    el.innerHTML = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" width="32" height="32"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>`;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function clearSellerProfileFormAvatar() {
+  document.getElementById('sp-form-avatar-url').value = '';
+  updateSellerProfileFormAvPreview('');
+}
+
+function onSellerProfileFormFileChange(inp) {
+  const file = inp.files && inp.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  setLoader('Enviando foto...', 40);
+  fetch('/api/admin/upload', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + _TK },
+    body: fd
+  }).then(r => r.json()).then(d => {
+    toastDismissLoading();
+    if (d.ok && d.url) {
+      document.getElementById('sp-form-avatar-url').value = d.url;
+      updateSellerProfileFormAvPreview(d.url);
+      toast('Foto enviada!', 'ok');
+    } else {
+      toast(d.error || 'Erro no upload.', 'err');
+    }
+  }).catch(() => {
+    toastDismissLoading();
+    toast('Erro de conexão.', 'err');
+  });
+}
+
+async function saveSellerProfileFromManager() {
+  const name = document.getElementById('sp-form-name').value.trim();
+  if (!name) return toast('O Nome do Vendedor é obrigatório.', 'warn');
+
+  const pid = parseInt(document.getElementById('sp-form-id').value || '0');
+  const payload = {
+    id: pid > 0 ? pid : undefined,
+    seller_name: name,
+    seller_since: document.getElementById('sp-form-since').value.trim() || 'Setembro 2021',
+    seller_level: document.getElementById('sp-form-level').value.trim() || 'Especialista',
+    seller_rating: document.getElementById('sp-form-rating').value.trim() || '4,7',
+    seller_reviews: document.getElementById('sp-form-reviews').value.trim() || '23',
+    seller_sales_completed: document.getElementById('sp-form-sales-completed').value.trim() || '26',
+    seller_sales_canceled: document.getElementById('sp-form-sales-canceled').value.trim() || '01',
+    seller_dispatch_time: document.getElementById('sp-form-dispatch-time').value.trim() || '03 horas',
+    seller_avatar: document.getElementById('sp-form-avatar-url').value.trim(),
+    seller_fb_url: document.getElementById('sp-form-fb-url').value.trim(),
+    seller_email_verified: document.getElementById('sp-form-email-verified').checked ? 1 : 0,
+    seller_phone_verified: document.getElementById('sp-form-phone-verified').checked ? 1 : 0,
+    seller_id_verified: document.getElementById('sp-form-id-verified').checked ? 1 : 0,
+    seller_fb_verified: document.getElementById('sp-form-fb-verified').checked ? 1 : 0
+  };
+
+  setLoader('Salvando Perfil...', 60);
+  try {
+    const r = await fetch('/api/admin/seller-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _TK },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if (d.ok) {
+      toast('Perfil de vendedor salvo com sucesso!', 'ok');
+      await loadSellerProfiles();
+      loadSellerProfilesIntoSelect(d.profile ? d.profile.id : pid);
+      switchSellerProfilesTab('list');
+    } else {
+      toast(d.error || 'Erro ao salvar.', 'err');
+    }
+  } catch(e) {
+    toastDismissLoading();
+    toast('Erro de conexão.', 'err');
+  }
+}
+
+async function deleteSellerProfileFromManager(id) {
+  if (!confirm('Deseja realmente excluir este perfil de vendedor?')) return;
+  setLoader('Excluindo...', 50);
+  try {
+    const r = await fetch('/api/admin/seller-profiles/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + _TK }
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if (d.ok) {
+      toast('Perfil excluído com sucesso.', 'ok');
+      await loadSellerProfiles();
+      loadSellerProfilesIntoSelect();
+    } else {
+      toast(d.error || 'Erro ao excluir.', 'err');
+    }
+  } catch(e) {
+    toastDismissLoading();
+    toast('Erro de conexão.', 'err');
+  }
+}
+
 function openAddProd(){
   document.getElementById('prod-modal-ttl').textContent='Novo Produto no Catálogo';
   ['edit-code','edit-name','edit-price','edit-oldp','edit-desc','edit-slug','edit-img1','edit-img2','edit-img3','edit-shipping-coupon','edit-coupon-discount-value','edit-seller-name','edit-seller-since','edit-seller-avatar','edit-det-category','edit-det-brand','edit-det-model','edit-det-condition','edit-det-memory','edit-det-color','edit-product-published-at','edit-seller-level','edit-seller-rating','edit-seller-reviews','edit-seller-sales-completed','edit-seller-sales-canceled','edit-seller-dispatch-time','edit-seller-fb-url'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) { el.value = ''; el.disabled = false; }
   });
+  const pidEl = document.getElementById('edit-seller-profile-id');
+  if (pidEl) pidEl.value = '0';
+  const syncTag = document.getElementById('seller-profile-sync-tag');
+  if (syncTag) syncTag.style.display = 'none';
+  if (typeof loadSellerProfilesIntoSelect === 'function') loadSellerProfilesIntoSelect(0);
   ['category', 'brand', 'model', 'condition', 'memory', 'color'].forEach(f => {
     const tg = document.getElementById('tg-det-' + f);
     if(tg) {
@@ -4121,6 +4710,9 @@ function openAddProd(){
 function openEditProd(p){
   if(!p) return;
   document.getElementById('prod-modal-ttl').textContent='Editar Produto';
+  const pidEl = document.getElementById('edit-seller-profile-id');
+  if (pidEl) pidEl.value = p.seller_profile_id || 0;
+  if (typeof loadSellerProfilesIntoSelect === 'function') loadSellerProfilesIntoSelect(p.seller_profile_id || 0);
   const code=p.product_code||p.code||'';
   document.getElementById('edit-code').value=code;
   document.getElementById('edit-name').value=p.title||p.name||'';
@@ -4298,6 +4890,7 @@ async function saveProd(){
     seller_fb_verified: document.getElementById('edit-seller-fb-verified') ? (document.getElementById('edit-seller-fb-verified').checked ? 1 : 0) : 0,
     seller_fb_url: document.getElementById('edit-seller-fb-url') ? document.getElementById('edit-seller-fb-url').value.trim() : "",
     product_published_at: document.getElementById('edit-product-published-at') ? document.getElementById('edit-product-published-at').value.trim() : "",
+    seller_profile_id: parseInt(document.getElementById('edit-seller-profile-id')?.value || '0') || 0,
 
     det_category: (document.getElementById('edit-det-category')?.value.trim() ? ((document.getElementById('lbl-det-category')?.value.trim() || 'Categoria') + '|||' + document.getElementById('edit-det-category').value.trim()) : ""),
     det_brand: (document.getElementById('edit-det-brand')?.value.trim() ? ((document.getElementById('lbl-det-brand')?.value.trim() || 'Marca') + '|||' + document.getElementById('edit-det-brand').value.trim()) : ""),
@@ -7965,9 +8558,11 @@ function switchEmailTab(tabId) {
 }
 
 let _EMAIL_LOGS_CACHE = [];
+let _SELECTED_EMAIL_LOG_ID = null;
+
 async function loadEmailLogs() {
   const tb = document.getElementById('email-logs-tb');
-  tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Carregando histórico...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--c-t3);">Carregando histórico...</td></tr>';
   try {
     const r = await fetch('/api/admin/email-logs', {headers:{'Authorization':'Bearer '+_TK}});
     const d = await r.json();
@@ -7975,60 +8570,128 @@ async function loadEmailLogs() {
       _EMAIL_LOGS_CACHE = d.logs;
       tb.innerHTML = d.logs.map(lg => {
         const dt = new Date(lg.sent_at ? lg.sent_at * 1000 : (lg.created_at || 0) * 1000).toLocaleString('pt-BR');
-        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.background='transparent'" onclick="showEmailLogDetail(${lg.id})">
-          <td style="padding:12px; font-size:13px; color:var(--text-m);">${dt}</td>
-          <td style="padding:12px; font-size:14px; font-weight:bold;">${lg.to_email}</td>
-          <td style="padding:12px; font-size:13px;">${lg.subject}</td>
-          <td style="padding:12px; font-size:12px;">
-            <span style="padding:4px 8px; border-radius:4px; background:${lg.status=='Enviado'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'}; color:${lg.status=='Enviado'?'#10B981':'#EF4444'};">${lg.status}</span>
+        const isSel = _SELECTED_EMAIL_LOG_ID === lg.id;
+        const isOk = lg.status === 'Enviado';
+        return `<tr id="row-log-${lg.id}" style="cursor:pointer; transition: all 0.2s; ${isSel ? 'background:rgba(139,92,246,0.15);' : ''}" onmouseover="if(_SELECTED_EMAIL_LOG_ID!==${lg.id}) this.style.background='rgba(139,92,246,0.06)'" onmouseout="if(_SELECTED_EMAIL_LOG_ID!==${lg.id}) this.style.background='transparent'" onclick="showEmailLogDetail(${lg.id})">
+          <td style="padding:11px 12px; font-size:12px; color:var(--c-t3); white-space:nowrap;">${dt}</td>
+          <td style="padding:11px 12px; font-size:12.5px; font-weight:700; color:var(--c-text); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${lg.to_email}</td>
+          <td style="padding:11px 12px; font-size:12px; color:var(--c-t2); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${lg.subject}</td>
+          <td style="padding:11px 12px; font-size:11px; white-space:nowrap;">
+            <span style="padding:3px 8px; border-radius:6px; font-weight:700; background:${isOk ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${isOk ? '#10B981' : '#EF4444'}; border:1px solid ${isOk ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'};">${lg.status}</span>
           </td>
         </tr>`;
       }).join('');
+
+      // Auto-seleciona o primeiro disparo para sincronização métrica da tela
+      if (!_SELECTED_EMAIL_LOG_ID || !_EMAIL_LOGS_CACHE.find(x => x.id === _SELECTED_EMAIL_LOG_ID)) {
+        showEmailLogDetail(d.logs[0].id, false);
+      } else {
+        showEmailLogDetail(_SELECTED_EMAIL_LOG_ID, false);
+      }
     } else {
-      tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-m);">Nenhum disparo registrado ainda.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--c-t3);">Nenhum disparo registrado ainda.</td></tr>';
+      const emptySt = document.getElementById('em-log-empty-state');
+      if (emptySt) emptySt.style.display = 'flex';
+      const frame = document.getElementById('em-log-preview-frame');
+      if (frame) frame.style.display = 'none';
+      const meta = document.getElementById('em-log-meta-bar');
+      if (meta) meta.style.display = 'none';
+      const badge = document.getElementById('em-log-status-badge');
+      if (badge) badge.style.display = 'none';
     }
   } catch(e) {
-    tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">Erro ao carregar histórico.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#ef4444;">Erro ao carregar histórico.</td></tr>';
   }
 }
 
-function showEmailLogDetail(id) {
+function showEmailLogDetail(id, openModalOnMobile = true) {
   const lg = _EMAIL_LOGS_CACHE.find(x => x.id === id);
   if(!lg) return;
+  _SELECTED_EMAIL_LOG_ID = id;
+
+  // Atualiza highlights visuais na tabela
+  document.querySelectorAll('#email-logs-tb tr').forEach(tr => {
+    tr.style.background = 'transparent';
+  });
+  const row = document.getElementById('row-log-' + id);
+  if (row) row.style.background = 'rgba(139,92,246,0.15)';
+
   const dt = new Date(lg.sent_at ? lg.sent_at * 1000 : (lg.created_at || 0) * 1000).toLocaleString('pt-BR');
-  const modal = document.getElementById('email-log-modal');
-  const details = document.getElementById('email-log-details');
-  
-  details.innerHTML = `
-    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <div style="font-size:12px; color:var(--text-m);">Data do Disparo<br><strong style="color:var(--text); font-size:14px;">${dt}</strong></div>
-        <div style="padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; background:${lg.status=='Enviado'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'}; color:${lg.status=='Enviado'?'#10B981':'#EF4444'};">
-          STATUS: ${lg.status.toUpperCase()}
-        </div>
-      </div>
-      
-      <div style="margin-bottom:12px;">
-        <span style="font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:1px;">Remetente (Admin)</span>
-        <div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-          ${lg.admin_avatar ? `<img src="${lg.admin_avatar}" style="width:32px; height:32px; border-radius:50%; border:1px solid #333;">` : `<div style="width:32px; height:32px; border-radius:50%; background:#444; display:flex; align-items:center; justify-content:center; font-weight:bold;">A</div>`}
-          <span style="font-size:15px; font-weight:600;">${lg.admin_name || 'Sistema'}</span>
-        </div>
-      </div>
+  const isOk = lg.status === 'Enviado';
 
-      <div style="margin-bottom:12px;">
-        <span style="font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:1px;">Destinatário</span>
-        <div style="font-size:15px; font-weight:500; color:#6366F1; margin-top:4px;">${lg.to_email}</div>
-      </div>
+  // 1. Atualiza Painel de Preview à Direita (Sincronizado Metricamente)
+  const subjEl = document.getElementById('em-log-preview-subj');
+  if (subjEl) subjEl.textContent = lg.subject || 'Preview do Disparo';
 
-      <div style="margin-bottom:12px;">
-        <span style="font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:1px;">Assunto</span>
-        <div style="font-size:15px; margin-top:4px; font-weight:500;">${lg.subject}</div>
-      </div>
-    </div>
-  `;
-  
-  modal.classList.add('open');
+  const badgeEl = document.getElementById('em-log-status-badge');
+  if (badgeEl) {
+    badgeEl.style.display = 'inline-block';
+    badgeEl.textContent = lg.status ? lg.status.toUpperCase() : 'STATUS';
+    badgeEl.style.background = isOk ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+    badgeEl.style.color = isOk ? '#10B981' : '#EF4444';
+    badgeEl.style.border = isOk ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+  }
+
+  const metaBar = document.getElementById('em-log-meta-bar');
+  if (metaBar) {
+    metaBar.style.display = 'flex';
+    document.getElementById('em-log-meta-to').textContent = lg.to_email || '—';
+    document.getElementById('em-log-meta-date').textContent = dt;
+  }
+
+  const emptySt = document.getElementById('em-log-empty-state');
+  if (emptySt) emptySt.style.display = 'none';
+
+  const frame = document.getElementById('em-log-preview-frame');
+  if (frame) {
+    frame.style.display = 'block';
+    if (lg.html_content && lg.html_content.trim()) {
+      frame.srcdoc = lg.html_content;
+    } else {
+      frame.srcdoc = `<!DOCTYPE html><html><body style="font-family:sans-serif;margin:0;padding:24px;background:#f8fafc;color:#1e293b;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;">
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:28px;max-width:440px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.05);text-align:center;">
+          <div style="width:48px;height:48px;border-radius:50%;background:${isOk ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'};color:${isOk ? '#10b981' : '#ef4444'};display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">${isOk ? '✓' : '✕'}</div>
+          <h3 style="margin:0 0 8px;color:#0f172a;font-size:18px;">${lg.subject}</h3>
+          <p style="margin:0 0 16px;color:#64748b;font-size:13px;">Disparado para <strong>${lg.to_email}</strong> em ${dt}</p>
+          <div style="padding:10px 14px;background:#f1f5f9;border-radius:8px;font-size:12px;color:#475569;display:inline-block;font-weight:600;">Status no Provedor: ${lg.status}</div>
+        </div>
+      </body></html>`;
+    }
+  }
+
+  // 2. Se for Mobile (< 768px) e foi um clique explícito, abre também o Modal
+  if (openModalOnMobile && window.innerWidth < 768) {
+    const modal = document.getElementById('email-log-modal');
+    const details = document.getElementById('email-log-details');
+    if (modal && details) {
+      details.innerHTML = `
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="font-size:12px; color:var(--c-t3);">Data do Disparo<br><strong style="color:var(--c-text); font-size:14px;">${dt}</strong></div>
+            <div style="padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; background:${isOk ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isOk ? '#10B981' : '#EF4444'};">
+              STATUS: ${lg.status.toUpperCase()}
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <span style="font-size:11px; color:var(--c-t3); text-transform:uppercase; letter-spacing:1px;">Remetente (Admin)</span>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+              ${lg.admin_avatar ? `<img src="${lg.admin_avatar}" style="width:32px; height:32px; border-radius:50%; border:1px solid #333;">` : `<div style="width:32px; height:32px; border-radius:50%; background:#444; display:flex; align-items:center; justify-content:center; font-weight:bold;">A</div>`}
+              <span style="font-size:15px; font-weight:600;">${lg.admin_name || 'Sistema'}</span>
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <span style="font-size:11px; color:var(--c-t3); text-transform:uppercase; letter-spacing:1px;">Destinatário</span>
+            <div style="font-size:15px; font-weight:500; color:#6366F1; margin-top:4px;">${lg.to_email}</div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <span style="font-size:11px; color:var(--c-t3); text-transform:uppercase; letter-spacing:1px;">Assunto</span>
+            <div style="font-size:15px; margin-top:4px; font-weight:500;">${lg.subject}</div>
+          </div>
+        </div>
+      `;
+      modal.classList.add('open');
+    }
+  }
 }
 
 async function loadEmailTemplates() {
@@ -8055,16 +8718,19 @@ async function loadEmailTemplates() {
 function loadEmailTemplatesAdmin() {
   const container = document.getElementById('templates-list-admin');
   if(!_EMAIL_TPLS || _EMAIL_TPLS.length === 0) {
-    container.innerHTML = '<p style="text-align:center; color:var(--text-m);">Nenhum template salvo. Crie o primeiro acima.</p>';
+    container.innerHTML = '<p style="text-align:center; color:var(--c-t3); padding:30px;">Nenhum template salvo. Crie o primeiro ao lado.</p>';
     return;
   }
   container.innerHTML = _EMAIL_TPLS.map(t => `
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px 14px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
       <div>
-        <strong style="color:var(--text);">${t.title}</strong>
-        <div style="font-size:12px; color:var(--text-m); margin-top:4px;">ID: ${t.id}</div>
+        <strong style="color:var(--c-text); font-size:13px;">${t.title}</strong>
+        <div style="font-size:11px; color:var(--c-t3); margin-top:3px;">ID: #${t.id}</div>
       </div>
-      <button class="btn btn-s" style="background:rgba(239,68,68,0.1); color:#EF4444;" onclick="deleteTemplate(${t.id})">Excluir</button>
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-s btn-xs" onclick="loadTplContent(${t.id}); switchEmailTab('send');" title="Usar este template no envio">Usar</button>
+        <button class="btn btn-d btn-xs" onclick="deleteTemplate(${t.id})">Excluir</button>
+      </div>
     </div>
   `).join('');
 }
