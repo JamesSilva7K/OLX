@@ -1971,8 +1971,11 @@
 
             <div class="fg">
               <label class="flbl" style="display:flex; justify-content:space-between; align-items:center;">
-                Código HTML do Email
-                <button type="button" class="btn btn-s" style="padding:0 8px; height:24px; font-size:10px;" onclick="document.getElementById('html-wrap').classList.toggle('hidden')">Esconder/Exibir Código</button>
+                <span>Código HTML do Email</span>
+                <div style="display:flex;gap:6px">
+                  <button type="button" class="btn btn-s" style="padding:0 8px; height:24px; font-size:10px;" onclick="saveCurrentHtmlToTemplate()">Salvar no Modelo</button>
+                  <button type="button" class="btn btn-s" style="padding:0 8px; height:24px; font-size:10px;" onclick="document.getElementById('html-wrap').classList.toggle('hidden')">Esconder/Exibir Código</button>
+                </div>
               </label>
               <div id="em-vars-container" style="display:none; margin-top: 8px; margin-bottom: 8px; padding: 12px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--r-md)">
                 <div style="font-size: 10px; color: var(--c-purple3); margin-bottom: 8px; font-weight: bold; text-transform: uppercase;">Outras Variáveis Dinâmicas do Template</div>
@@ -2082,7 +2085,7 @@
               <textarea id="new-tpl-html" class="fi" rows="12" placeholder="<html>...</html>" style="font-family:monospace; font-size:12px; line-height:1.4"></textarea>
               <small style="color:var(--c-t3); font-size:11px; margin-top:4px; display:block;">Tags disponíveis: [Nome do produto], [00,00], [Nome do comprador], [Forma de pagamento]</small>
             </div>
-            <button class="btn btn-p mt-12" style="width:100%" onclick="saveNewTemplate()">Salvar Template</button>
+            <button id="btn-save-tpl" class="btn btn-p mt-12" style="width:100%" onclick="saveNewTemplate()">Salvar Template</button>
           </div>
         </div>
 
@@ -8940,6 +8943,8 @@ function showEmailLogDetail(id, openModalOnMobile = true) {
   }
 }
 
+let _editingTemplateId = null;
+
 async function loadEmailTemplates() {
   try {
     const r = await fetch('/api/admin/email-templates', {headers:{'Authorization':'Bearer '+_TK}});
@@ -8950,17 +8955,20 @@ async function loadEmailTemplates() {
       if(sel) {
         sel.innerHTML = '<option value="">-- Personalizado (HTML livre) --</option>';
         _EMAIL_TPLS.forEach(t => {
-          sel.innerHTML += `<option value="${t.id}">${t.title}</option>`;
+          sel.innerHTML += `<option value="${t.id}">${escapeHtml(t.title)}</option>`;
         });
-        if (!document.getElementById('em-html').value && _EMAIL_TPLS.length > 0) {
-          sel.value = _EMAIL_TPLS[0].id;
-          loadTplContent(_EMAIL_TPLS[0].id);
+        if (_EMAIL_TPLS.length > 0) {
+          const currentVal = sel.value;
+          const targetId = (_EMAIL_TPLS.some(x => x.id == currentVal)) ? currentVal : _EMAIL_TPLS[0].id;
+          sel.value = targetId;
+          loadTplContent(targetId);
         }
       }
       populateCatalogSelectInEmail();
       if (!document.getElementById('em-var-data-hora')?.value) {
         syncEmailSaleDateTime();
       }
+      setTimeout(() => updateEmailPreview(), 60);
     }
   } catch(e){}
 }
@@ -8974,15 +8982,57 @@ function loadEmailTemplatesAdmin() {
   container.innerHTML = _EMAIL_TPLS.map(t => `
     <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px 14px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
       <div>
-        <strong style="color:var(--c-text); font-size:13px;">${t.title}</strong>
+        <strong style="color:var(--c-text); font-size:13px;">${escapeHtml(t.title)}</strong>
         <div style="font-size:11px; color:var(--c-t3); margin-top:3px;">ID: #${t.id}</div>
       </div>
       <div style="display:flex; gap:6px;">
         <button class="btn btn-s btn-xs" onclick="loadTplContent(${t.id}); switchEmailTab('send');" title="Usar este template no envio">Usar</button>
+        <button class="btn btn-p btn-xs" onclick="editTemplateInAdmin(${t.id})" title="Editar título e código">Editar</button>
         <button class="btn btn-d btn-xs" onclick="deleteTemplate(${t.id})">Excluir</button>
       </div>
     </div>
   `).join('');
+}
+
+function editTemplateInAdmin(id) {
+  const tpl = _EMAIL_TPLS.find(x => x.id == id);
+  if(!tpl) return;
+  _editingTemplateId = id;
+  document.getElementById('new-tpl-name').value = tpl.title;
+  document.getElementById('new-tpl-html').value = tpl.html_content;
+  const btn = document.getElementById('btn-save-tpl');
+  if(btn) btn.textContent = 'Salvar Alterações (ID #' + id + ')';
+  toast('Template #' + id + ' carregado no editor ao lado.', 'info');
+}
+
+async function saveCurrentHtmlToTemplate() {
+  const tid = document.getElementById('em-tpl')?.value;
+  const html = document.getElementById('em-html')?.value.trim();
+  if (!tid) return toast('Selecione um template salvo para atualizar.', 'warn');
+  if (!html) return toast('O conteúdo HTML não pode estar vazio.', 'warn');
+  
+  const tpl = _EMAIL_TPLS.find(x => x.id == tid);
+  const title = tpl ? tpl.title : 'Template OLX Pay';
+  
+  setLoader('Salvando no template...', 50);
+  try {
+    const r = await fetch('/api/admin/email-templates/' + tid, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _TK},
+      body: JSON.stringify({ title: title, html_content: html })
+    });
+    const d = await r.json();
+    toastDismissLoading();
+    if (d.ok) {
+      toast('Template atualizado e sincronizado com sucesso!', 'ok');
+      await loadEmailTemplates();
+    } else {
+      toast(d.error || 'Erro ao atualizar template.', 'err');
+    }
+  } catch (e) {
+    toastDismissLoading();
+    toast('Erro de rede.', 'err');
+  }
 }
 
 async function saveNewTemplate() {
@@ -8991,17 +9041,23 @@ async function saveNewTemplate() {
   if(!name || !html) return toast('Preencha nome e código HTML do template.', 'warn');
   setLoader('Salvando...', 50);
   try {
-    const r = await fetch('/api/admin/email-templates', {
-      method:'POST',
+    const isEdit = !!_editingTemplateId;
+    const url = isEdit ? `/api/admin/email-templates/${_editingTemplateId}` : '/api/admin/email-templates';
+    const method = isEdit ? 'PUT' : 'POST';
+    const r = await fetch(url, {
+      method: method,
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_TK},
       body: JSON.stringify({title: name, html_content: html})
     });
     const d = await r.json();
     toastDismissLoading();
     if(d.ok) {
-      toast('Template salvo com sucesso!', 'success');
+      toast(isEdit ? 'Template atualizado com sucesso!' : 'Template salvo com sucesso!', 'ok');
+      _editingTemplateId = null;
       document.getElementById('new-tpl-name').value = '';
       document.getElementById('new-tpl-html').value = '';
+      const btn = document.getElementById('btn-save-tpl');
+      if(btn) btn.textContent = 'Salvar Template';
       await loadEmailTemplates();
       loadEmailTemplatesAdmin();
     } else {
@@ -9030,6 +9086,9 @@ async function deleteTemplate(tid) {
       toast(d.error || 'Erro ao excluir', 'err');
     }
   } catch(e) {
+    toastDismissLoading(); toast('Erro de rede.', 'err');
+  }
+}
     toastDismissLoading(); toast('Erro de conexão', 'err');
   }
 }
@@ -9234,6 +9293,18 @@ function loadTplContent(id) {
   const tpl = _EMAIL_TPLS.find(x => x.id == id);
   if(tpl) {
       document.getElementById('em-html').value = tpl.html_content;
+      
+      const subjEl = document.getElementById('em-subj');
+      const btnTxtEl = document.getElementById('em-var-btn-text');
+      const titleLower = (tpl.title || '').toLowerCase();
+      if (titleLower.includes('compra')) {
+        if(subjEl) subjEl.value = 'COMPRA CONFIRMADA! Pagamento aprovado com sucesso via OLX Pay.';
+        if(btnTxtEl) btnTxtEl.value = 'ACOMPANHAR MEU PEDIDO';
+      } else if (titleLower.includes('venda')) {
+        if(subjEl) subjEl.value = 'PARABÉNS PELA SUA VENDA! Seu pagamento está pronto para ser resgatado.';
+        if(btnTxtEl) btnTxtEl.value = 'RESGATAR PAGAMENTO DA VENDA';
+      }
+
       parseTemplateVars(tpl.html_content);
       updateEmailPreview();
   }
@@ -9247,10 +9318,18 @@ function updateEmailPreview() {
   
   if (subjEl) subjEl.textContent = subj;
   if (iframe) {
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(html || '<div style="font-family:sans-serif; color:#94a3b8; padding:40px; text-align:center; font-size:14px;">O preview do seu email aparecerá aqui em tempo real.</div>');
-    doc.close();
+    const previewContent = html || '<div style="font-family:sans-serif; color:#94a3b8; padding:40px; text-align:center; font-size:14px;">O preview do seu email aparecerá aqui em tempo real.</div>';
+    try {
+      iframe.srcdoc = previewContent;
+    } catch(e) {}
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      if (doc) {
+        doc.open();
+        doc.write(previewContent);
+        doc.close();
+      }
+    } catch(e) {}
   }
 }
 

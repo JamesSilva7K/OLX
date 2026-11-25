@@ -9754,6 +9754,23 @@ def api_admin_email_templates():
             return jsonify({"ok": True, "message": "Template adicionado!"})
         return jsonify({"ok": False, "error": "Recurso indisponível"}), 400
 
+@app.route('/api/admin/email-templates/<int:tid>', methods=['PUT'])
+def api_admin_update_email_template(tid):
+    admin_id, role = verify_admin_access(request)
+    if not admin_id: return jsonify({"ok": False, "error": "unauthorized"}), 401
+    data = request.json or {}
+    title = data.get('title', '').strip()
+    html = data.get('html_content', '').strip()
+    if not title or not html:
+        return jsonify({"ok": False, "error": "Título e HTML são obrigatórios"}), 400
+    if TG_WH_AVAILABLE:
+        conn = tg_wh._get_db()
+        conn.execute("UPDATE email_templates SET title=?, html_content=? WHERE id=?", (title, html, tid))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "message": "Template atualizado com sucesso!"})
+    return jsonify({"ok": False}), 400
+
 @app.route('/api/admin/email-templates/<int:tid>', methods=['DELETE'])
 def api_admin_delete_email_template(tid):
     admin_id, role = verify_admin_access(request)

@@ -317,27 +317,43 @@ def init_tenant_tables():
     if os.path.exists(tpl_path):
         try:
             with open(tpl_path, 'r', encoding='utf-8') as f:
-                html = f.read()
-                html = html.replace('[Nome do vendedor]', '{{vendedor}}') \
-                           .replace('[Nome do comprador]', '{{comprador}}') \
-                           .replace('[Nome do produto]', '{{produto}}') \
-                           .replace('[00,00]', '{{valor}}') \
-                           .replace('[Data e hora]', '{{data_hora}}') \
-                           .replace('[Forma de pagamento]', '{{pagamento}}') \
-                           .replace('[TEXTO_BOTAO]', '{{texto_botao}}') \
-                           .replace('[LINK_REDIRECIONAMENTO]', '{{link_redirecionamento}}') \
-                           .replace('[LINK_WHATSAPP]', '{{link_redirecionamento}}')
+                html_raw = f.read()
+                html_venda = html_raw.replace('[Nome do vendedor]', '{{vendedor}}') \
+                                     .replace('[Nome do comprador]', '{{comprador}}') \
+                                     .replace('[Nome do produto]', '{{produto}}') \
+                                     .replace('[00,00]', '{{valor}}') \
+                                     .replace('[Data e hora]', '{{data_hora}}') \
+                                     .replace('[Forma de pagamento]', '{{pagamento}}') \
+                                     .replace('[TEXTO_BOTAO]', '{{texto_botao}}') \
+                                     .replace('[LINK_REDIRECIONAMENTO]', '{{link_redirecionamento}}') \
+                                     .replace('[LINK_WHATSAPP]', '{{link_redirecionamento}}')
+
+                html_compra = html_venda.replace('PARABÉNS PELA SUA VENDA!', 'PARABÉNS PELA SUA COMPRA!') \
+                                        .replace('Seu pagamento está pronto para ser resgatado.', 'Seu pagamento foi confirmado com sucesso via OLX Pay.')
                 
-                cur.execute("SELECT id FROM email_templates WHERE title LIKE '%Template Padrão%' LIMIT 1")
-                existing_tpl = cur.fetchone()
-                if existing_tpl:
-                    conn.execute("UPDATE email_templates SET html_content=? WHERE id=?", (html, existing_tpl[0]))
+                # Modelo 1: Notificação de Venda Aprovada (Vendedor / Lead)
+                cur.execute("SELECT id FROM email_templates WHERE title LIKE '%Venda%' LIMIT 1")
+                t_venda = cur.fetchone()
+                if t_venda:
+                    conn.execute("UPDATE email_templates SET title=?, html_content=? WHERE id=?", 
+                                 ("Template Notificação de Venda (Vendedor / Lead)", html_venda, t_venda[0]))
                 else:
                     conn.execute("INSERT INTO email_templates (title, html_content, created_at) VALUES (?, ?, ?)", 
-                                 ("Template Padrão OLX Pay (Notificação de Venda Aprovada)", html, time.time()))
+                                 ("Template Notificação de Venda (Vendedor / Lead)", html_venda, time.time()))
+
+                # Modelo 2: Confirmação de Compra Aprovada (Comprador)
+                cur.execute("SELECT id FROM email_templates WHERE title LIKE '%Compra%' LIMIT 1")
+                t_compra = cur.fetchone()
+                if t_compra:
+                    conn.execute("UPDATE email_templates SET title=?, html_content=? WHERE id=?", 
+                                 ("Template Confirmação de Compra (Comprador)", html_compra, t_compra[0]))
+                else:
+                    conn.execute("INSERT INTO email_templates (title, html_content, created_at) VALUES (?, ?, ?)", 
+                                 ("Template Confirmação de Compra (Comprador)", html_compra, time.time()))
+
                 conn.commit()
         except Exception as e_tpl:
-            logger.warning(f"[EMAIL_TPL] Erro ao sincronizar template de email: {e_tpl}")
+            logger.warning(f"[EMAIL_TPL] Erro ao sincronizar templates de email: {e_tpl}")
 
     conn.commit(); conn.close()
 
