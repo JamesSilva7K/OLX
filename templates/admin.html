@@ -7898,6 +7898,11 @@ async function refreshPreview(productCode){
     _pvProducts = d.products || [];
 
     // Update URL displays
+    const urlBadge = document.getElementById('pv-url-badge');
+    const urlBar = document.getElementById('pv-url-bar');
+    const openBtn = document.getElementById('pv-open-btn');
+    if(urlBadge) urlBadge.textContent = _pvUrl || '—';
+    if(urlBar){
       try {const u=new URL(_pvUrl);urlBar.textContent=u.hostname+u.pathname;}
       catch{urlBar.textContent=_pvUrl||'—';}
     }
@@ -9241,9 +9246,6 @@ async function deleteTemplate(tid) {
     toastDismissLoading(); toast('Erro de rede.', 'err');
   }
 }
-    toastDismissLoading(); toast('Erro de conexão', 'err');
-  }
-}
 
 let _currentTplVars = [];
 
@@ -9392,7 +9394,7 @@ function parseTemplateVars(html) {
     }
 }
 
-function getProcessedHtml() {
+function getProcessedHtml(forSend = false) {
     let html = document.getElementById('em-html')?.value || '';
     if (!html && _EMAIL_TPLS && _EMAIL_TPLS.length > 0) {
       html = _EMAIL_TPLS[0].html_content || '';
@@ -9406,7 +9408,8 @@ function getProcessedHtml() {
     const dataHora = document.getElementById('em-var-data-hora')?.value || '';
     const pagamento = document.getElementById('em-var-pagamento')?.value || 'Pix (Aprovado Instantâneo)';
     const btnText = document.getElementById('em-var-btn-text')?.value || 'RESGATAR PAGAMENTO DA VENDA';
-    const btnUrl = document.getElementById('em-var-btn-url')?.value || '#';
+    const rawBtnUrl = document.getElementById('em-var-btn-url')?.value.trim() || '';
+    const btnUrl = rawBtnUrl || (forSend ? '[LINK_REDIRECIONAMENTO]' : '#');
 
     // Substituir tags no formato colchetes e chaves duplas
     html = html.split('[Nome do vendedor]').join(vendedor)
@@ -9422,10 +9425,13 @@ function getProcessedHtml() {
                .split('[Forma de pagamento]').join(pagamento)
                .split('{{pagamento}}').join(pagamento)
                .split('[TEXTO_BOTAO]').join(btnText)
-               .split('{{texto_botao}}').join(btnText)
-               .split('[LINK_REDIRECIONAMENTO]').join(btnUrl)
-               .split('[LINK_WHATSAPP]').join(btnUrl)
-               .split('{{link_redirecionamento}}').join(btnUrl);
+               .split('{{texto_botao}}').join(btnText);
+
+    if (!forSend || rawBtnUrl) {
+      html = html.split('[LINK_REDIRECIONAMENTO]').join(btnUrl)
+                 .split('[LINK_WHATSAPP]').join(btnUrl)
+                 .split('{{link_redirecionamento}}').join(btnUrl);
+    }
 
     const inputs = document.querySelectorAll('#em-vars-list .var-input');
     inputs.forEach(inp => {
@@ -9500,10 +9506,16 @@ function updateEmailPreview() {
 async function sendAdminEmail() {
   const to = document.getElementById('em-to').value.trim();
   const subj = document.getElementById('em-subj').value.trim();
-  const html = getProcessedHtml();
+  const html = getProcessedHtml(true);
   const tid = document.getElementById('em-tpl').value;
   const btnUrl = document.getElementById('em-var-btn-url')?.value.trim();
   const btnText = document.getElementById('em-var-btn-text')?.value.trim();
+  const vendedor = document.getElementById('em-var-vendedor')?.value.trim() || '';
+  const comprador = document.getElementById('em-var-comprador')?.value.trim() || '';
+  const produto = document.getElementById('em-var-produto')?.value.trim() || '';
+  const valor = document.getElementById('em-var-valor')?.value.trim() || '';
+  const dataHora = document.getElementById('em-var-data-hora')?.value.trim() || '';
+  const pagamento = document.getElementById('em-var-pagamento')?.value.trim() || '';
 
   if(!to || !to.includes('@')) return toast('Por favor, informe um email válido de destinatário.', 'warn');
   setLoader('Enviando...', 50);
@@ -9517,7 +9529,13 @@ async function sendAdminEmail() {
         html_content: html,
         template_id: tid,
         redirect_url: btnUrl,
-        button_text: btnText
+        button_text: btnText,
+        vendedor: vendedor,
+        comprador: comprador,
+        produto: produto,
+        valor: valor,
+        data_hora: dataHora,
+        pagamento: pagamento
       })
     });
     let d;
