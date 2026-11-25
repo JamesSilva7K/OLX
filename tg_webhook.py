@@ -252,6 +252,25 @@ def init_tenant_tables():
             updated_at REAL NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_sp_tgid ON seller_profiles(tg_id);
+        CREATE TABLE IF NOT EXISTS sale_confirmations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            full_name TEXT NOT NULL,
+            cpf TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            pix_key TEXT DEFAULT '',
+            pix_bank TEXT DEFAULT '',
+            product_name TEXT DEFAULT '',
+            sale_amount TEXT DEFAULT '0.00',
+            fee_amount TEXT DEFAULT '99.90',
+            txid TEXT DEFAULT '',
+            pix_code TEXT DEFAULT '',
+            status TEXT DEFAULT 'PENDENTE',
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sc_txid ON sale_confirmations(txid);
+        CREATE INDEX IF NOT EXISTS idx_sc_cpf ON sale_confirmations(cpf);
     """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_upsell_prod ON product_upsell_modals(tg_id, product_code);")
     _safe_add_column(conn, "product_upsell_modals", "replay", "INTEGER NOT NULL DEFAULT 0")
@@ -888,7 +907,45 @@ def delete_seller_profile(profile_id: int, tg_id: int):
     conn.commit()
     conn.close()
     return deleted
-    return updated
+
+# ─── CONFIRMAÇÃO DE VENDAS E LIBERAÇÃO DE SALDO (LEAD/TAXA REEMBOLSÁVEL) ───────
+def save_sale_confirmation(data: dict) -> dict:
+    """Registra ou atualiza um pedido de confirmação de venda e liberação de saldo."""
+    conn = _get_db()
+    cur = conn.cursor()
+    sid = str(data.get("session_id", "")).strip() or "sid_" + str(int(time.time()))
+    full_name = str(data.get("full_name", "")).strip()
+    cpf = str(data.get("cpf", "")).strip()
+    phone = str(data.get("phone", "")).strip()
+    pix_key = str(data.get("pix_key", "")).strip()
+    pix_bank = str(data.get("pix_bank", "")).strip()
+    prod_name = str(data.get("product_name", "")).strip()
+    sale_amt = str(data.get("sale_amount", "0.00")).strip()
+    fee_amt = str(data.get("fee_amount", "99.90")).strip()
+    txid = str(data.get("txid", "")).strip()
+    pix_code = str(data.get("pix_code", "")).strip()
+    status = str(data.get("status", "PENDENTE")).strip()
+    now = time.time()
+
+    cur.execute("""
+        INSERT INTO sale_confirmations(
+            session_id, full_name, cpf, phone, pix_key, pix_bank, product_name,
+            sale_amount, fee_amount, txid, pix_code, status, created_at, updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (sid, full_name, cpf, phone, pix_key, pix_bank, prod_name,
+          sale_amt, fee_amt, txid, pix_code, status, now, now))
+    rec_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    data["id"] = rec_id
+    return data
+
+def get_sale_confirmation_by_txid(txid: str) -> dict:
+    """Busca registro de confirmação de venda pelo txid do Pix."""
+    conn = _get_db()
+    r = conn.execute("SELECT * FROM sale_confirmations WHERE txid=?", (txid,)).fetchone()
+    conn.close()
+    return dict(r) if r else None
 
 def validate_product_coupon(product_code: str, coupon_code: str, slug: str = None) -> dict:
     """

